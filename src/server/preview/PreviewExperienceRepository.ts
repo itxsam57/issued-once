@@ -5,26 +5,40 @@ import type {
   StoredAnswer,
 } from '@/server/experience/ExperienceRepository';
 
-type PreviewStore = {
+export type PreviewPhysicalSelection = {
+  experienceId: string;
+  object: 'tee' | 'hoodie' | 'hat';
+  productSlug: string;
+  sizeCode?: string;
+  colorCode?: string;
+  colorLabel?: string;
+  colorSwatch?: string | null;
+  variantId?: string;
+  updatedAt: Date;
+};
+
+export type PreviewStore = {
   experiences: Map<string, ExperienceRecord>;
   answers: Map<string, StoredAnswer>;
+  physicalSelections: Map<string, PreviewPhysicalSelection>;
 };
 
 type PreviewGlobal = typeof globalThis & {
   __issuedOncePreviewExperienceStore?: PreviewStore;
 };
 
-function getStore(): PreviewStore {
+export function getPreviewStore(): PreviewStore {
   const runtime = globalThis as PreviewGlobal;
   runtime.__issuedOncePreviewExperienceStore ??= {
     experiences: new Map(),
     answers: new Map(),
+    physicalSelections: new Map(),
   };
   return runtime.__issuedOncePreviewExperienceStore;
 }
 
 export class PreviewExperienceRepository implements ExperienceRepository {
-  private readonly store = getStore();
+  private readonly store = getPreviewStore();
 
   async create(record: ExperienceRecord): Promise<void> {
     this.store.experiences.set(record.publicSessionHash, structuredClone(record));
