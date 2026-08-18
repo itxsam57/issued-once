@@ -3,17 +3,17 @@ import type { QuestionDefinition } from './types';
 export const QUESTIONS = [
   {
     id: 'q1',
-    prompt: 'Name three things you can talk about for hours.',
+    prompt: "So tell me. What's your favourite book?",
     kind: 'text',
   },
   {
     id: 'q2',
-    prompt: 'Where would you disappear for a week if nobody could contact you?',
+    prompt: 'Where would you disappear to for a week?',
     kind: 'text',
   },
   {
     id: 'q3',
-    prompt: 'Pick a time that feels most like you.',
+    prompt: 'Pick a time. Which one feels most like you?',
     kind: 'choice',
     choices: [
       { value: 'sunrise', label: 'Sunrise' },
@@ -24,22 +24,22 @@ export const QUESTIONS = [
   },
   {
     id: 'q4',
-    prompt: 'What is something people usually misunderstand about you?',
+    prompt: 'What do people usually get wrong about you?',
     kind: 'text',
   },
   {
     id: 'q5',
-    prompt: 'Name a song, film, person, team, game or character that carries your kind of energy.',
+    prompt: "What's a song you never skip?",
     kind: 'text',
   },
   {
     id: 'q6',
-    prompt: 'What must never appear on something you wear?',
+    prompt: "What's something you'd never wear, no matter who made it?",
     kind: 'text',
   },
   {
     id: 'q7',
-    prompt: 'Give me one completely random fact about yourself.',
+    prompt: 'Last one. Tell me something completely random about you.',
     kind: 'text',
     optional: true,
   },
