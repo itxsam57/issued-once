@@ -14,12 +14,14 @@ type InterviewFlowProps = {
   initialPosition?: number;
   onAnswer: (payload: AnswerPayload) => Promise<void> | void;
   onComplete?: () => Promise<void> | void;
+  onProceed?: () => Promise<void> | void;
 };
 
 export function InterviewFlow({
   initialPosition = 1,
   onAnswer,
   onComplete,
+  onProceed,
 }: InterviewFlowProps) {
   const safeInitialIndex = Math.min(Math.max(initialPosition - 1, 0), QUESTIONS.length - 1);
   const [questionIndex, setQuestionIndex] = useState(safeInitialIndex);
@@ -31,6 +33,11 @@ export function InterviewFlow({
         <p className="interview-complete__signal">PROFILE CLOSED</p>
         <h1>WE HAVE ENOUGH.</h1>
         <p>You decide what it exists on.</p>
+        {onProceed ? (
+          <button className="interview-complete__proceed" type="button" onClick={() => void onProceed()}>
+            UNLOCK FORM
+          </button>
+        ) : null}
       </section>
     );
   }
