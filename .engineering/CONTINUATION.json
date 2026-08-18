@@ -5,8 +5,8 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentBranchHead": "9bb791a7c0c932bbec215c57c6ea16539529e8c5",
-    "currentVerifiedHead": "9bb791a7c0c932bbec215c57c6ea16539529e8c5"
+    "currentBranchHead": "a057af7314df0b42b352910000261c99b59b8abb",
+    "currentVerifiedHead": "a057af7314df0b42b352910000261c99b59b8abb"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
@@ -26,21 +26,24 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "permanent-random-issue-id-green-2026-08-18",
-    "objective": "Create permanent human-readable Issue IDs that reveal no sales sequence or timing information.",
+    "cycleId": "paid-order-event-inbox-private-registry-green-2026-08-18",
+    "objective": "Create the durable idempotency boundary and one-statement private Issue reservation path for authenticated paid-order events.",
     "changes": [
-      "Added stateless cryptographic IO-XXXX-XXXX generator",
-      "Uses ambiguity-free random alphabet and eight random bytes",
-      "Generator has no database counter, timestamp, customer number or sales sequence dependency",
-      "Corrected a test defect that accidentally applied ambiguity checks to the fixed IO prefix rather than the random payload"
+      "Added webhook_events inbox with provider/event uniqueness and explicit processing states",
+      "Added private issues registry with unique Issue code, Fourthwall order/event and quote constraints",
+      "Issue rows contain only order correlation and locked physical facts; no customer/quiz columns",
+      "Added PostgresPaidOrderRepository with idempotent authenticated-event recording",
+      "Added one-statement CTE reservation that reads product/variant/size/color from checkout_quotes + locked physical selection and marks PROCESSED only for reserved/duplicate outcomes",
+      "Fixed pre-existing migration-chain defect by aligning experience_physical_selection.experience_id from UUID to TEXT to match experiences.id",
+      "Matched issues.quote_id TEXT to the live checkout_quotes.id schema"
     ],
     "verification": {
-      "head": "9bb791a7c0c932bbec215c57c6ea16539529e8c5",
-      "ciRun": 32127931306,
+      "head": "a057af7314df0b42b352910000261c99b59b8abb",
+      "ciRun": 32128458110,
       "unitTests": "GREEN",
       "typecheck": "GREEN",
-      "issueCodeFormat": "IO-XXXX-XXXX",
-      "uniquenessAuthority": "Database uniqueness constraint will be authoritative in the next registry cycle"
+      "atomicityModel": "single Postgres data-modifying CTE statement; database uniqueness/expected-state rules are concurrency authority",
+      "piiRegistryColumns": "NONE"
     },
     "frontPageStatus": {
       "publicPreview": "NOT_DEPLOYED_YET",
@@ -49,9 +52,9 @@
     },
     "ownerAction": null,
     "nextActions": [
-      "Write RED SQL-contract tests for durable webhook inbox and private Issue registry",
-      "Add 0005 migration using text quote_id to match the live checkout_quotes schema",
-      "Implement one-statement idempotent/atomic paid-order repository",
+      "Write RED behavior tests for PaidOrderWebhookService",
+      "Implement test-event isolation, missing/unknown quote terminal handling, duplicate safety and bounded Issue-ID collision retry",
+      "Then add fail-closed runtime and signed Next.js webhook route",
       "Continue implementation plan autonomously"
     ]
   }
