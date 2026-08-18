@@ -72,9 +72,54 @@ export class PostgresQuestionSetRepository implements QuestionSetRepository {
       optional: question.optional,
       choices: question.choices ?? null,
     }));
+    const serialized = JSON.stringify(payload);
+
+    await this.sql.query(
+      `INSERT INTO question_definitions (
+         question_id,
+         question_version,
+         family,
+         prompt,
+         kind,
+         optional,
+         choices,
+         active,
+         weight,
+         created_at
+       )
+       SELECT
+         "questionId",
+         "questionVersion",
+         family,
+         prompt,
+         kind,
+         optional,
+         choices,
+         true,
+         1,
+         $2
+       FROM jsonb_to_recordset($1::jsonb) AS q(
+         slot text,
+         ordinal integer,
+         "questionId" text,
+         "questionVersion" integer,
+         family text,
+         prompt text,
+         kind text,
+         optional boolean,
+         choices jsonb
+       )
+       ON CONFLICT (question_id, question_version) DO NOTHING`,
+      [serialized, input.createdAt],
+    );
 
     const rows = await this.sql.query<CreatedRow>(
-      `WITH supplied AS (
+      `WITH inserted_set AS (
+         INSERT INTO experience_question_sets (experience_id, created_at)
+         VALUES ($1, $3)
+         ON CONFLICT (experience_id) DO NOTHING
+         RETURNING experience_id
+       ), supplied AS (
          SELECT *
          FROM jsonb_to_recordset($2::jsonb) AS q(
            slot text,
@@ -87,38 +132,6 @@ export class PostgresQuestionSetRepository implements QuestionSetRepository {
            optional boolean,
            choices jsonb
          )
-       ), definitions AS (
-         INSERT INTO question_definitions (
-           question_id,
-           question_version,
-           family,
-           prompt,
-           kind,
-           optional,
-           choices,
-           active,
-           weight,
-           created_at
-         )
-         SELECT
-           "questionId",
-           "questionVersion",
-           family,
-           prompt,
-           kind,
-           optional,
-           choices,
-           true,
-           1,
-           $3
-         FROM supplied
-         ON CONFLICT (question_id, question_version) DO NOTHING
-         RETURNING question_id
-       ), inserted_set AS (
-         INSERT INTO experience_question_sets (experience_id, created_at)
-         VALUES ($1, $3)
-         ON CONFLICT (experience_id) DO NOTHING
-         RETURNING experience_id
        ), inserted_items AS (
          INSERT INTO experience_question_set_items (
            experience_id,
@@ -149,7 +162,7 @@ export class PostgresQuestionSetRepository implements QuestionSetRepository {
          RETURNING ordinal
        )
        SELECT (SELECT count(*) FROM inserted_items) = 7 AS created`,
-      [input.experienceId, JSON.stringify(payload), input.createdAt],
+      [input.experienceId, serialized, input.createdAt],
     );
 
     return rows[0]?.created === true;
