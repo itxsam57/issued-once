@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { decryptPrivatePayload, encryptPrivatePayload } from '@/server/crypto/privatePayload';
 import type { ArtworkStorageGateway } from './ArtworkStorageGateway';
+import { ArtworkQualityGate } from './ArtworkQualityGate';
 import type { DesignGateway } from './DesignGateway';
 import type { DesignJobRecord, DesignRepository } from './DesignRepository';
 
@@ -11,6 +12,7 @@ export class DesignService {
     private readonly storage: ArtworkStorageGateway,
     private readonly idGenerator: () => string = () => randomUUID(),
     private readonly now: () => Date = () => new Date(),
+    private readonly qualityGate: ArtworkQualityGate = new ArtworkQualityGate(),
   ) {}
 
   async createForIssue(issueId: string): Promise<DesignJobRecord> {
@@ -79,5 +81,28 @@ export class DesignService {
       await this.repository.markFailed(job.id, error instanceof Error ? error.name : 'DESIGN_FAILURE', this.now());
       throw error;
     }
+  }
+
+  async approveForManufacturing(issueId: string): Promise<DesignJobRecord> {
+    const [input, job] = await Promise.all([
+      this.repository.loadInput(issueId),
+      this.repository.findByIssueId(issueId),
+    ]);
+    if (!input || !job) throw new Error('Design review is unavailable');
+    if (job.state === 'APPROVED') return job;
+    if (input.issueStatus !== 'DESIGN_REVIEW') throw new Error('Issue is not waiting for design approval');
+
+    const quality = this.qualityGate.validate({
+      issueId,
+      designJobId: job.id,
+      objectType: input.objectType,
+      state: job.state,
+      artworkUrl: job.artworkUrl,
+      artworkMimeType: job.artworkMimeType,
+      artworkBytes: job.artworkBytes,
+      width: job.width,
+      height: job.height,
+    });
+    return this.repository.approve(job.id, quality.checks, this.now());
   }
 }
