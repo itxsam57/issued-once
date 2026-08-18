@@ -40,7 +40,7 @@ function setup(overrides: Record<string, unknown> = {}) {
 }
 
 describe('CheckoutService', () => {
-  test('revalidates ownership, current variant truth, and creates one anonymous cart item', async () => {
+  test('revalidates ownership, current variant truth, and creates one anonymous cart item with one opaque correlation key', async () => {
     const { service, commerce } = setup();
 
     const result = await service.start({
@@ -58,14 +58,13 @@ describe('CheckoutService', () => {
       quantity: 1,
       currency: 'USD',
       metadata: {
-        io_experience_id: 'exp-1',
         io_quote_id: 'quote-opaque-1',
       },
     });
     expect(result).toEqual({
       checkoutUrl: 'https://issued-once.fourthwall.com/cart/checkout?cartId=cart-1&currency=USD',
     });
-    expect(JSON.stringify(commerce.createCart.mock.calls[0])).not.toMatch(/answer|email|name|address/i);
+    expect(JSON.stringify(commerce.createCart.mock.calls[0])).not.toMatch(/answer|email|name|address|experience/i);
   });
 
   test('rejects a quote copied from another anonymous experience', async () => {
