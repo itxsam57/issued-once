@@ -18,25 +18,41 @@ const profiles = [
 ];
 
 async function waitForCurrentDeployment(page) {
-  let lastError;
-  for (let attempt = 0; attempt < 30; attempt += 1) {
+  let lastDetail = 'no response received';
+
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
     try {
       const response = await page.goto(`${baseUrl}/begin`, {
         waitUntil: 'domcontentloaded',
-        timeout: 20_000,
+        timeout: 8_000,
       });
+      const status = response?.status() ?? 'NO_RESPONSE';
+      const title = await page.title().catch(() => 'NO_TITLE');
+
       if (!response?.ok()) {
-        throw new Error(`preview returned HTTP ${response?.status()}`);
+        lastDetail = `attempt ${attempt}: HTTP ${status}, title=${JSON.stringify(title)}`;
+        console.log(lastDetail);
+        await page.waitForTimeout(2_000);
+        continue;
       }
-      await page.getByText('OWNER PREVIEW / NO PAYMENT').waitFor({ timeout: 3_000 });
-      return;
+
+      try {
+        await page.getByText('OWNER PREVIEW / NO PAYMENT').waitFor({ timeout: 2_500 });
+        return;
+      } catch {
+        const bodyText = (await page.locator('body').innerText().catch(() => '')).slice(0, 240);
+        lastDetail = `attempt ${attempt}: HTTP ${status}, title=${JSON.stringify(title)}, body=${JSON.stringify(bodyText)}`;
+        console.log(lastDetail);
+        await page.waitForTimeout(2_000);
+      }
     } catch (error) {
-      lastError = error;
-      await page.waitForTimeout(5_000);
+      lastDetail = `attempt ${attempt}: ${String(error)}`;
+      console.log(lastDetail);
+      await page.waitForTimeout(2_000);
     }
   }
 
-  throw new Error(`Vercel branch alias did not reach the owner-preview deployment: ${String(lastError)}`);
+  throw new Error(`Vercel owner preview is not externally testable: ${lastDetail}`);
 }
 
 async function continueText(page, answer) {
