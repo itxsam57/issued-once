@@ -14,34 +14,31 @@ export class DesignService {
   ) {}
 
   async createForIssue(issueId: string): Promise<DesignJobRecord> {
-    const existing = await this.repository.findByIssueId(issueId);
-    if (existing) return existing;
-
+    let job = await this.repository.findByIssueId(issueId);
     const input = await this.repository.loadInput(issueId);
     if (!input) throw new Error('Design input is unavailable');
-    if (input.issueStatus !== 'RECEIVED') throw new Error('Issue is not eligible for design');
-    if (input.questions.length !== 7) throw new Error('Design input requires seven answered questions');
 
-    const now = this.now();
-    const proposed: DesignJobRecord = {
-      id: this.idGenerator(),
-      issueId,
-      state: 'QUEUED',
-      encryptedBrief: null,
-      artworkUrl: null,
-      artworkMimeType: null,
-      artworkBytes: null,
-      width: null,
-      height: null,
-      provider: null,
-      model: null,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const reservation = await this.repository.begin(proposed);
-    if (!reservation.created) return reservation.job;
+    if (!job) {
+      if (input.issueStatus !== 'RECEIVED') throw new Error('Issue is not eligible for design');
+      if (input.questions.length !== 7) throw new Error('Design input requires seven answered questions');
+      const now = this.now();
+      const reservation = await this.repository.begin({
+        id: this.idGenerator(), issueId, state: 'QUEUED', encryptedBrief: null,
+        artworkUrl: null, artworkMimeType: null, artworkBytes: null,
+        width: null, height: null, provider: null, model: null, createdAt: now, updatedAt: now,
+      });
+      job = reservation.job;
+    }
+
+    if (job.state === 'REVIEW' || job.state === 'APPROVED') return job;
+    if (job.state === 'INTERPRETING' || job.state === 'GENERATING') return job;
+    if (job.state !== 'QUEUED' && job.state !== 'FAILED') throw new Error('Design job is not claimable');
+
+    const claimed = await this.repository.claim(job.id, this.now());
+    if (!claimed) return (await this.repository.findByIssueId(issueId)) ?? job;
 
     try {
+      if (input.questions.length !== 7) throw new Error('Design input requires seven answered questions');
       const questions = await Promise.all(input.questions.map(async (question) => {
         const payload = await decryptPrivatePayload<{ answer: string }>(question.encryptedAnswer);
         return {
@@ -52,7 +49,6 @@ export class DesignService {
           answer: payload.answer,
         };
       }));
-
       const brief = await this.gateway.interpret({
         issueCode: input.issueCode,
         objectType: input.objectType,
@@ -63,13 +59,12 @@ export class DesignService {
       const artwork = await this.gateway.generateArtwork(brief);
       const stored = await this.storage.put({
         issueId,
-        designJobId: reservation.job.id,
+        designJobId: job.id,
         bytes: artwork.bytes,
         mimeType: artwork.mimeType,
       });
-
       return await this.repository.saveGenerated({
-        jobId: reservation.job.id,
+        jobId: job.id,
         encryptedBrief: await encryptPrivatePayload(brief),
         artworkUrl: stored.url,
         artworkMimeType: artwork.mimeType,
@@ -81,11 +76,7 @@ export class DesignService {
         updatedAt: this.now(),
       });
     } catch (error) {
-      await this.repository.markFailed(
-        reservation.job.id,
-        error instanceof Error ? error.name : 'DESIGN_FAILURE',
-        this.now(),
-      );
+      await this.repository.markFailed(job.id, error instanceof Error ? error.name : 'DESIGN_FAILURE', this.now());
       throw error;
     }
   }
