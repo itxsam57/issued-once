@@ -32,7 +32,7 @@ export function BaseColorSelection({ colors, onConfirm }: BaseColorSelectionProp
   return (
     <section className="base-color" aria-labelledby="base-color-heading">
       <p className="base-color__signal">FIT LOCKED / BASE</p>
-      <h1 id="base-color-heading">Choose the color it begins as.</h1>
+      <h1 id="base-color-heading">Color your issue.</h1>
 
       <fieldset className="base-color__options">
         <legend className="sr-only">Base color</legend>
@@ -52,7 +52,6 @@ export function BaseColorSelection({ colors, onConfirm }: BaseColorSelectionProp
               style={{ '--base-color-swatch': color.swatch } as CSSProperties}
             />
             <span className="base-color__label">{color.label}</span>
-            <span className="base-color__code" aria-hidden="true">{color.code}</span>
           </label>
         ))}
       </fieldset>
