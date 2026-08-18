@@ -15,7 +15,7 @@ describe('VisualPreviewExperience', () => {
     expect(screen.getByText('VISUAL QA / NOT PRODUCTION')).toBeInTheDocument();
     expect(screen.getByText('01 / 07')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Name three things you can talk about for hours.' })).toBeInTheDocument();
-    expect(screen.queryByText(/tee|hoodie|hat|shop now/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/tee|hoodie|hat|cap|tote|shop now/i)).not.toBeInTheDocument();
   });
 
   test('owner preview completes safely without opening production checkout', async () => {
@@ -32,7 +32,7 @@ describe('VisualPreviewExperience', () => {
     await user.click(screen.getByRole('button', { name: 'CONTINUE' }));
 
     await user.click(screen.getByRole('button', { name: 'UNLOCK FORM' }));
-    await user.click(screen.getByRole('radio', { name: 'HOODIE' }));
+    await user.click(screen.getByRole('radio', { name: 'TEE' }));
     await user.click(screen.getByRole('button', { name: 'LOCK FORM' }));
     await user.click(screen.getByRole('radio', { name: /Medium/ }));
     await user.click(screen.getByRole('button', { name: 'CONFIRM SIZE' }));
