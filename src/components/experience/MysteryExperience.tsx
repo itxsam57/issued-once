@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { QuestionId } from '@/domain/experience/types';
+import { BaseColorSelection, type BaseColorOption } from './BaseColorSelection';
 import { InterviewFlow } from './InterviewFlow';
 import { ObjectSelection, type ObjectType } from './ObjectSelection';
 import { SizeConfirmation, type SizeOption } from './SizeConfirmation';
@@ -12,6 +13,9 @@ type AnswerPayload = {
 };
 
 type SizeCatalog = Partial<Record<ObjectType, readonly SizeOption[]>>;
+type BaseColorCatalog = Partial<
+  Record<ObjectType, Readonly<Record<string, readonly BaseColorOption[]>>>
+>;
 
 type MysteryExperienceProps = {
   initialQuestionPosition?: number;
@@ -20,9 +24,15 @@ type MysteryExperienceProps = {
   onObjectSelected: (object: ObjectType) => Promise<void> | void;
   sizeCatalog?: SizeCatalog;
   onSizeConfirmed?: (selection: { object: ObjectType; sizeCode: string }) => Promise<void> | void;
+  baseColorCatalog?: BaseColorCatalog;
+  onBaseColorConfirmed?: (selection: {
+    object: ObjectType;
+    sizeCode: string;
+    colorCode: string;
+  }) => Promise<void> | void;
 };
 
-type ExperiencePhase = 'interview' | 'form' | 'size';
+type ExperiencePhase = 'interview' | 'form' | 'size' | 'base';
 
 export function MysteryExperience({
   initialQuestionPosition,
@@ -31,9 +41,12 @@ export function MysteryExperience({
   onObjectSelected,
   sizeCatalog,
   onSizeConfirmed,
+  baseColorCatalog,
+  onBaseColorConfirmed,
 }: MysteryExperienceProps) {
   const [phase, setPhase] = useState<ExperiencePhase>('interview');
   const [selectedObject, setSelectedObject] = useState<ObjectType | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
   async function handleObjectSelected(object: ObjectType) {
     await onObjectSelected(object);
@@ -45,6 +58,35 @@ export function MysteryExperience({
     setPhase('size');
   }
 
+  async function handleSizeConfirmed(sizeCode: string) {
+    if (!selectedObject || !onSizeConfirmed) return;
+
+    await onSizeConfirmed({ object: selectedObject, sizeCode });
+
+    const colors = baseColorCatalog?.[selectedObject]?.[sizeCode];
+    if (!colors?.length || !onBaseColorConfirmed) return;
+
+    setSelectedSize(sizeCode);
+    setPhase('base');
+  }
+
+  if (phase === 'base' && selectedObject && selectedSize) {
+    const colors = baseColorCatalog?.[selectedObject]?.[selectedSize] ?? [];
+
+    return (
+      <BaseColorSelection
+        colors={colors}
+        onConfirm={(colorCode) =>
+          onBaseColorConfirmed?.({
+            object: selectedObject,
+            sizeCode: selectedSize,
+            colorCode,
+          })
+        }
+      />
+    );
+  }
+
   if (phase === 'size' && selectedObject) {
     const sizes = sizeCatalog?.[selectedObject] ?? [];
 
@@ -52,7 +94,7 @@ export function MysteryExperience({
       <SizeConfirmation
         object={selectedObject}
         sizes={sizes}
-        onConfirm={(sizeCode) => onSizeConfirmed?.({ object: selectedObject, sizeCode })}
+        onConfirm={handleSizeConfirmed}
       />
     );
   }
