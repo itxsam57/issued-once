@@ -1,6 +1,6 @@
 'use client';
 
-import { InterviewFlow } from '@/components/experience/InterviewFlow';
+import { MysteryExperience } from '@/components/experience/MysteryExperience';
 
 export function VisualPreviewExperience() {
   return (
@@ -8,7 +8,10 @@ export function VisualPreviewExperience() {
       <div className="visual-preview__marker" role="note">
         VISUAL QA / NOT PRODUCTION
       </div>
-      <InterviewFlow onAnswer={async () => undefined} />
+      <MysteryExperience
+        onAnswer={async () => undefined}
+        onObjectSelected={async () => undefined}
+      />
     </main>
   );
 }
