@@ -21,33 +21,22 @@ const VISUAL_QA_SIZE_CATALOG = {
   tote: [{ code: 'OS', label: 'One size', measurements: 'One size' }],
 } as const;
 
+const VISUAL_QA_TEE_COLORS = [
+  { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
+  { code: 'black', label: 'Black', swatch: '#171713' },
+  { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
+  { code: 'navy', label: 'Navy', swatch: '#202834' },
+  { code: 'forest', label: 'Forest', swatch: '#344238' },
+] as const;
+
 const VISUAL_QA_BASE_COLOR_CATALOG = {
   tee: {
-    XS: [
-      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
-      { code: 'black', label: 'Black', swatch: '#171713' },
-    ],
-    S: [
-      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
-      { code: 'black', label: 'Black', swatch: '#171713' },
-    ],
-    M: [
-      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
-      { code: 'black', label: 'Black', swatch: '#171713' },
-      { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
-    ],
-    L: [
-      { code: 'black', label: 'Black', swatch: '#171713' },
-      { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
-    ],
-    XL: [
-      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
-      { code: 'black', label: 'Black', swatch: '#171713' },
-    ],
-    '2XL': [
-      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
-      { code: 'black', label: 'Black', swatch: '#171713' },
-    ],
+    XS: VISUAL_QA_TEE_COLORS,
+    S: VISUAL_QA_TEE_COLORS,
+    M: VISUAL_QA_TEE_COLORS,
+    L: VISUAL_QA_TEE_COLORS,
+    XL: VISUAL_QA_TEE_COLORS,
+    '2XL': VISUAL_QA_TEE_COLORS,
   },
   hoodie: {
     S: [
