@@ -48,6 +48,7 @@ export interface DesignRepository {
   loadInput(issueId: string): Promise<DesignInput | null>;
   findByIssueId(issueId: string): Promise<DesignJobRecord | null>;
   begin(job: DesignJobRecord): Promise<{ created: boolean; job: DesignJobRecord }>;
+  claim(jobId: string, updatedAt: Date): Promise<boolean>;
   saveGenerated(input: {
     jobId: string;
     encryptedBrief: EncryptedPayload;
