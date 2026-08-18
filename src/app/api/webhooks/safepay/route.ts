@@ -1,4 +1,8 @@
 import {
+  createIssueService,
+  IssueRuntimeUnavailableError,
+} from '@/server/issues/runtimeIssues';
+import {
   createPaymentService,
   PaymentRuntimeUnavailableError,
 } from '@/server/payments/runtimePayments';
@@ -11,9 +15,22 @@ export async function POST(request: Request) {
       rawBody,
       headers: request.headers,
     });
+
+    if (result.kind === 'paid' && result.paymentAttemptId) {
+      const issue = await createIssueService().reserveForPaidAttempt(result.paymentAttemptId);
+      return Response.json({
+        received: true,
+        kind: result.kind,
+        issueCode: issue.issue.issueCode,
+      });
+    }
+
     return Response.json({ received: true, kind: result.kind });
   } catch (error) {
-    if (error instanceof PaymentRuntimeUnavailableError) {
+    if (
+      error instanceof PaymentRuntimeUnavailableError ||
+      error instanceof IssueRuntimeUnavailableError
+    ) {
       return Response.json({ error: 'Payment webhook is unavailable' }, { status: 503 });
     }
     if (error instanceof Error && /signature|merchant|webhook body|webhook data/i.test(error.message)) {
