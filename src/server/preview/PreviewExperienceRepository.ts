@@ -1,3 +1,4 @@
+import type { CheckoutQuoteRecord } from '@/server/checkout/CheckoutService';
 import type {
   AnswerTransition,
   ExperienceRecord,
@@ -21,6 +22,7 @@ export type PreviewStore = {
   experiences: Map<string, ExperienceRecord>;
   answers: Map<string, StoredAnswer>;
   physicalSelections: Map<string, PreviewPhysicalSelection>;
+  checkoutQuotes: Map<string, CheckoutQuoteRecord>;
 };
 
 type PreviewGlobal = typeof globalThis & {
@@ -33,6 +35,7 @@ export function getPreviewStore(): PreviewStore {
     experiences: new Map(),
     answers: new Map(),
     physicalSelections: new Map(),
+    checkoutQuotes: new Map(),
   };
   return runtime.__issuedOncePreviewExperienceStore;
 }
