@@ -16,7 +16,7 @@ describe('BEGIN route deployment mode', () => {
 
     render(BeginPage());
 
-    expect(screen.getByText('VISUAL QA / NOT PRODUCTION')).toBeInTheDocument();
+    expect(screen.getByText('OWNER PREVIEW / NO PAYMENT')).toBeInTheDocument();
     expect(screen.getByText('01 / 07')).toBeInTheDocument();
   });
 
@@ -25,6 +25,7 @@ describe('BEGIN route deployment mode', () => {
 
     render(BeginPage());
 
+    expect(screen.queryByText('OWNER PREVIEW / NO PAYMENT')).not.toBeInTheDocument();
     expect(screen.queryByText('VISUAL QA / NOT PRODUCTION')).not.toBeInTheDocument();
     expect(screen.getByText('01 / 07')).toBeInTheDocument();
   });
