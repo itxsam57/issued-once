@@ -5,18 +5,12 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentVerifiedHead": "3bbac6a5eb2b630d782f2495057eb5b0960e8506"
+    "currentVerifiedHead": "200205407d33f1cf3df8d91446c57074248fd919"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
     "decision": "CONTINUE",
-    "allowedStopStates": [
-      "OWNER_REQUIRED",
-      "BLOCKED",
-      "WAIT_EXTERNAL",
-      "LOOP_DETECTED",
-      "COMPLETE"
-    ],
+    "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
     "stopReason": null
   },
   "engineeringFactory": {
@@ -31,25 +25,25 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "browser-synchronization-repair-2026-08-18",
-    "objective": "Eliminate the legacy desktop public-interview Playwright race without changing product behavior.",
+    "cycleId": "base-selection-domain-2026-08-18",
+    "objective": "Define and verify the server-owned BASE to commitment quote domain boundary.",
     "changes": [
-      "Added condition-based CONTINUE enablement and exact next-progress waits to the legacy public seven-answer path",
-      "Kept production code untouched"
+      "Added COMMITMENT_READY as the state between SIZE_CONFIRMED and CHECKOUT_STARTED",
+      "Added BaseSelectionRepository transition contract",
+      "Added BaseSelectionService that resolves exactly one current available provider variant from the stored product and size",
+      "Added opaque quote creation with a short expiry and ambiguity rejection"
     ],
     "verification": {
-      "ci": "GREEN on 3bbac6a5eb2b630d782f2495057eb5b0960e8506",
-      "browserQa": "GREEN on 3bbac6a5eb2b630d782f2495057eb5b0960e8506",
-      "publicPhysicalDesktop": "GREEN through HOODIE -> FIT -> M -> BASE",
-      "publicPhysicalMobile": "GREEN through HOODIE -> FIT -> M -> BASE",
-      "legacyDesktopUnlock": "GREEN after condition-based synchronization"
+      "ci": "GREEN on 200205407d33f1cf3df8d91446c57074248fd919",
+      "browserQa": "GREEN on 200205407d33f1cf3df8d91446c57074248fd919",
+      "newBaseDomainTests": "GREEN after an exact missing-service RED; existing suite remained green"
     },
-    "rootCauseResolved": "The legacy helper advanced before the server-driven question transition was observable; the test now waits on explicit state instead of timing.",
     "nextActions": [
-      "Create a RED contract for base-color confirmation that resolves one exact currently available provider variant from the already-locked product and size",
-      "Persist base color and variant server-side and create an opaque short-lived checkout quote",
-      "Add /api/experience/base with minimal browser input",
-      "Prove real public BASE -> COMMITMENT on desktop and mobile before touching hosted checkout success"
+      "Create a persistence RED for color, swatch, exact variant and SIZE_CONFIRMED -> COMMITMENT_READY",
+      "Implement Postgres and preview base persistence",
+      "Add migration support for COMMITMENT_READY",
+      "Wire fail-closed base runtime and /api/experience/base",
+      "Prove real public BASE -> COMMITMENT on desktop and mobile"
     ]
   }
 }
