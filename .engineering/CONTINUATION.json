@@ -5,8 +5,8 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentBranchHead": "9e13468ce23bce0ba1a6e6b5adace016f1a9437c",
-    "currentVerifiedHead": "9e13468ce23bce0ba1a6e6b5adace016f1a9437c"
+    "currentBranchHead": "c5a8f664a02198441679327032045bca594a1c1c",
+    "currentVerifiedHead": "c5a8f664a02198441679327032045bca594a1c1c"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
@@ -26,42 +26,43 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "signed-fourthwall-webhook-route-green-2026-08-18",
-    "objective": "Expose a fail-closed server endpoint that authenticates exact Fourthwall webhook bytes before any payload trust or paid-order processing.",
+    "cycleId": "paid-order-privacy-replay-concurrency-green-2026-08-18",
+    "objective": "Harden the paid-order subsystem against provider PII leakage, duplicate replay and concurrent duplicate delivery while preserving the existing customer browser journey.",
     "changes": [
-      "Added durable-only paid-order runtime requiring DATABASE_URL, FOURTHWALL_WEBHOOK_SECRET and FOURTHWALL_SHOP_ID",
-      "Added POST /api/webhooks/fourthwall",
-      "Route reads exact raw bytes once and verifies X-Fourthwall-Hmac-SHA256 before parsing JSON",
-      "Invalid signature returns 401 with no processor call",
-      "Malformed signed payload returns 400",
-      "Authenticated wrong shop/type/version are acknowledged without processing",
-      "test/processed/duplicate/terminal outcomes acknowledge 200",
-      "retryable processing and unavailable runtime return 503",
-      "Unexpected server error logging is generic and does not emit payload/signature/customer content",
-      "Corrected a Vitest hoisting defect in route test doubles without changing production behavior"
+      "Added paid-order privacy regression suite using a provider-shaped payload containing customer email, message, shipping/address and attacker-controlled product/variant/price fields",
+      "Verified minimized envelope and reservation inputs contain none of those private/provider-controlled values",
+      "Added migration structure assertions for event/Issue uniqueness and absence of customer/quiz columns",
+      "Added signed raw-body integration fixture that verifies HMAC, parses the minimized envelope and creates exactly one private Issue",
+      "Replaying the same signed event returns the existing permanent Issue instead of inserting another",
+      "Concurrent duplicate delivery produces one commercial Issue with processed+duplicate outcomes",
+      "Signed Fourthwall test notifications produce zero production Issues",
+      "Integrated the integration suite into normal pnpm test execution"
     ],
     "verification": {
-      "head": "9e13468ce23bce0ba1a6e6b5adace016f1a9437c",
-      "ciRun": 32129565977,
-      "unitTests": "GREEN",
+      "head": "c5a8f664a02198441679327032045bca594a1c1c",
+      "ciRun": 32129861683,
+      "unitIntegrationTests": "GREEN",
       "typecheck": "GREEN",
-      "webhookPath": "/api/webhooks/fourthwall",
-      "canonicalPlannedUrl": "https://issuedonce.shop/api/webhooks/fourthwall"
+      "browserQaRun": 32129861614,
+      "desktopMobileBrowserQa": "GREEN",
+      "visualEvidenceUpload": "GREEN",
+      "migrationVerification": "DEFERRED_EXTERNAL: Neon connector became unavailable when isolated verification was attempted"
     },
     "frontPageStatus": {
       "publicPreview": "NOT_DEPLOYED_YET",
       "ownerTestableUrl": null,
       "plannedDomain": "issuedonce.shop",
       "vercelTeam": "SAMX",
+      "vercelTeamId": "team_iG5Amx3WwHQ3Te5KGbmIOiqs",
       "vercelProjectsObserved": 0
     },
     "ownerAction": null,
     "nextActions": [
-      "Add subsystem-wide signed-fixture privacy/replay/concurrency tests",
-      "Run full unit/type/browser gates",
-      "Then verify migrations on isolated Neon if connector is available",
-      "Attempt Vercel preview deployment and live-test front page",
-      "Continue autonomously"
+      "Attempt Vercel preview deployment from the connected deployment tool",
+      "If deployment succeeds, live-test the HTTPS front page and report the exact owner-testable URL",
+      "If deployment cannot create/import a project, enter OWNER_REQUIRED with only the exact GitHub-to-Vercel import action",
+      "Retry isolated Neon migration verification in a later cycle when the connector is available",
+      "Do not apply production database migration without isolated verification"
     ]
   }
 }
