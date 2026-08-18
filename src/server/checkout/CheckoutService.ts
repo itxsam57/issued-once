@@ -1,6 +1,7 @@
 export type CheckoutQuoteRecord = {
   id: string;
   experienceId: string;
+  productSlug: string;
   variantId: string;
   amountMinor: number;
   currency: string;
@@ -26,7 +27,11 @@ export type CreateCartInput = {
 };
 
 export interface CommerceGateway {
-  getVariant(variantId: string, currency: string): Promise<CommerceVariant | null>;
+  getVariant(
+    productSlug: string,
+    variantId: string,
+    currency: string,
+  ): Promise<CommerceVariant | null>;
   createCart(input: CreateCartInput): Promise<{ cartId: string; checkoutUrl: string }>;
 }
 
@@ -52,7 +57,11 @@ export class CheckoutService {
       throw new Error('Quote expired');
     }
 
-    const variant = await this.commerce.getVariant(quote.variantId, quote.currency);
+    const variant = await this.commerce.getVariant(
+      quote.productSlug,
+      quote.variantId,
+      quote.currency,
+    );
     if (!variant || !variant.available) {
       throw new Error('Variant unavailable');
     }
