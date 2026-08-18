@@ -6,7 +6,7 @@ import {
   getExperienceRepository,
   PersistentExperienceRepositoryUnavailableError,
 } from '@/server/experience/runtimeRepository';
-import { SESSION_COOKIE_NAME, sessionCookieOptions } from '@/server/http/sessionCookie';
+import { SESSION_COOKIE_NAME } from '@/server/http/sessionCookie';
 
 const answerSchema = z.object({
   questionId: z.enum(['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7']),
@@ -23,16 +23,10 @@ export async function POST(request: Request) {
     const repository = getExperienceRepository();
     const service = new ExperienceService(repository);
     const cookieStore = await cookies();
-    let token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
     if (!token) {
-      if (parsed.data.questionId !== 'q1') {
-        return Response.json({ error: 'Interview session is required' }, { status: 409 });
-      }
-
-      const started = await service.start({ hookId: 'public-entry' });
-      token = started.token;
-      cookieStore.set(SESSION_COOKIE_NAME, token, sessionCookieOptions);
+      return Response.json({ error: 'Interview session is required' }, { status: 409 });
     }
 
     const result = await service.answer({
