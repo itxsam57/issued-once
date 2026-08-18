@@ -5,7 +5,7 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentVerifiedHead": "cea900797005e1d1fe9891705c2c59cda0fb64c1"
+    "currentVerifiedHead": "e0d44f6438f6191ccbd2525cb439062499c997ae"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
@@ -25,28 +25,27 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "checkout-state-hardening-2026-08-18",
-    "objective": "Make hosted checkout reachable only from conscious commitment and advance durable checkout state only after successful cart creation.",
+    "cycleId": "hosted-checkout-redirect-acceptance-2026-08-18",
+    "objective": "Prove the public customer can consciously commit and leave ISSUED ONCE for a hosted HTTPS checkout without exposing trusted product facts.",
     "changes": [
-      "CheckoutStartService now requires COMMITMENT_READY before commerce",
-      "CheckoutStartService advances COMMITMENT_READY -> CHECKOUT_STARTED only after CheckoutService returns a hosted checkout URL",
-      "Added guarded PostgresCheckoutStateRepository with expiry and expected-stage checks",
-      "Wired production checkout to a Postgres experience reader, quote repository, checkout-state repository and Fourthwall gateway on one Neon executor",
-      "Removed generic runtime repository use from production checkout to prevent preview leakage"
+      "Extended the real public browser acceptance path through ISSUE MINE",
+      "Asserted checkout POST contains only opaque quoteId",
+      "Intercepted checkout API with a safe HTTPS hosted destination and intercepted that destination itself for deterministic browser proof"
     ],
     "verification": {
-      "ci": "GREEN on cea900797005e1d1fe9891705c2c59cda0fb64c1",
-      "browserQa": "GREEN on cea900797005e1d1fe9891705c2c59cda0fb64c1",
-      "unitSuite": "63 tests GREEN",
-      "stateGate": "Non-COMMITMENT_READY sessions reject before commerce",
-      "failureSafety": "Hosted cart failure does not advance checkout state",
-      "durability": "Successful cart is followed by guarded COMMITMENT_READY -> CHECKOUT_STARTED update"
+      "ci": "GREEN on e0d44f6438f6191ccbd2525cb439062499c997ae",
+      "browserQa": "GREEN on e0d44f6438f6191ccbd2525cb439062499c997ae",
+      "desktopRedirect": "GREEN: ISSUE MINE caused top-level HTTPS navigation to hosted checkout test destination",
+      "mobileRedirect": "GREEN: ISSUE MINE caused top-level HTTPS navigation to hosted checkout test destination",
+      "wireContract": "Checkout request body contains only non-empty quoteId",
+      "recovery": "Existing checkout 503 retry/recovery browser proof remains GREEN"
     },
     "nextActions": [
-      "Create a public browser RED for ISSUE MINE -> hosted HTTPS navigation",
-      "Intercept only /api/checkout/start with a safe fake hosted checkout URL so browser redirect behavior is tested without fake Fourthwall credentials",
-      "Keep the existing 503 checkout recovery path green",
-      "After redirect acceptance, audit remaining first-order launch blockers before declaring any completion state"
+      "Implement authenticated Fourthwall ORDER_PLACED webhook handling using current official webhook contract",
+      "Create an idempotent private issue registry and RESERVED issue record only from verified paid-order truth",
+      "Generate random nonsequential permanent Issue IDs with collision protection and never reuse void/cancelled IDs",
+      "Link only minimum order/physical-selection facts needed for fulfillment while keeping quiz answers private",
+      "Add public verification read model only after private issue reservation is durable"
     ]
   }
 }
