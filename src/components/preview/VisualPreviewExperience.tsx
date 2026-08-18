@@ -5,9 +5,12 @@ import { MysteryExperience } from '@/components/experience/MysteryExperience';
 
 const VISUAL_QA_SIZE_CATALOG = {
   tee: [
+    { code: 'XS', label: 'Extra small', measurements: 'Chest 17 in · Length 27 in' },
     { code: 'S', label: 'Small', measurements: 'Chest 18 in · Length 28 in' },
     { code: 'M', label: 'Medium', measurements: 'Chest 20 in · Length 29 in' },
     { code: 'L', label: 'Large', measurements: 'Chest 22 in · Length 30 in' },
+    { code: 'XL', label: 'Extra large', measurements: 'Chest 24 in · Length 31 in' },
+    { code: '2XL', label: '2X large', measurements: 'Chest 26 in · Length 32 in' },
   ],
   hoodie: [
     { code: 'S', label: 'Small', measurements: 'Chest 20 in · Length 26 in' },
@@ -20,6 +23,10 @@ const VISUAL_QA_SIZE_CATALOG = {
 
 const VISUAL_QA_BASE_COLOR_CATALOG = {
   tee: {
+    XS: [
+      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
+      { code: 'black', label: 'Black', swatch: '#171713' },
+    ],
     S: [
       { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
       { code: 'black', label: 'Black', swatch: '#171713' },
@@ -32,6 +39,14 @@ const VISUAL_QA_BASE_COLOR_CATALOG = {
     L: [
       { code: 'black', label: 'Black', swatch: '#171713' },
       { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
+    ],
+    XL: [
+      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
+      { code: 'black', label: 'Black', swatch: '#171713' },
+    ],
+    '2XL': [
+      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
+      { code: 'black', label: 'Black', swatch: '#171713' },
     ],
   },
   hoodie: {
