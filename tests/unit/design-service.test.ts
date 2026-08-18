@@ -31,6 +31,12 @@ class MemoryDesignRepository implements DesignRepository {
     Object.assign(this.job, input, { state: 'REVIEW' as const });
     return this.job;
   }
+  async approve(jobId: string, _checks: readonly string[], approvedAt: Date) {
+    if (!this.job || this.job.id !== jobId || this.job.state !== 'REVIEW') throw new Error('not reviewable');
+    this.job.state = 'APPROVED'; this.job.updatedAt = approvedAt;
+    if (this.input) this.input.issueStatus = 'DESIGN_APPROVED';
+    return this.job;
+  }
   async markFailed(_jobId: string, _code: string, _updatedAt: Date) {
     if (this.job) this.job.state = 'FAILED';
   }
@@ -70,7 +76,7 @@ test('decrypts answers only at design boundary, gives image generation only the 
     }),
   };
   const storage: ArtworkStorageGateway = {
-    put: vi.fn(async () => ({ url: 'https://blob.example/issues/issue-1/design.png', bytes: 9 })),
+    put: vi.fn(async () => ({ url: 'https://blob.example/issues/issue-1/design.png', bytes: 900_000 })),
   };
   const service = new DesignService(repository, gateway, storage, () => 'job-1', () => new Date('2026-08-19T01:10:00Z'));
 
