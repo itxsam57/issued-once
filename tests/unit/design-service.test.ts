@@ -22,12 +22,18 @@ class MemoryDesignRepository implements DesignRepository {
     if (this.job) return { created: false, job: this.job };
     this.job = structuredClone(job); return { created: true, job: this.job };
   }
-  async saveGenerated(input: { jobId: string; encryptedBrief: DesignJobRecord['encryptedBrief']; artworkUrl: string; artworkMimeType: string; artworkBytes: number; width: number; height: number; provider: string; model: string; updatedAt: Date }) {
+  async claim(jobId: string, updatedAt: Date) {
+    if (!this.job || this.job.id !== jobId || !['QUEUED', 'FAILED'].includes(this.job.state)) return false;
+    this.job.state = 'INTERPRETING'; this.job.updatedAt = updatedAt; return true;
+  }
+  async saveGenerated(input: { jobId: string; encryptedBrief: NonNullable<DesignJobRecord['encryptedBrief']>; artworkUrl: string; artworkMimeType: string; artworkBytes: number; width: number; height: number; provider: string; model: string; updatedAt: Date }) {
     if (!this.job || this.job.id !== input.jobId) throw new Error('missing job');
     Object.assign(this.job, input, { state: 'REVIEW' as const });
     return this.job;
   }
-  async markFailed(_jobId: string, _code: string, _updatedAt: Date) {}
+  async markFailed(_jobId: string, _code: string, _updatedAt: Date) {
+    if (this.job) this.job.state = 'FAILED';
+  }
 }
 
 async function paidInput(): Promise<DesignInput> {
@@ -75,7 +81,7 @@ test('decrypts answers only at design boundary, gives image generation only the 
   expect(gateway.generateArtwork).toHaveBeenCalledTimes(1);
 });
 
-test('refuses unpaid/unreceived issue state and reuses an existing design job', async () => {
+test('refuses unpaid/unreceived issue state and reuses a finished design job', async () => {
   const repository = new MemoryDesignRepository();
   repository.input = { ...(await paidInput()), issueStatus: 'CANCELED' };
   const gateway = { interpret: vi.fn(), generateArtwork: vi.fn() } as unknown as DesignGateway;
@@ -89,5 +95,20 @@ test('refuses unpaid/unreceived issue state and reuses an existing design job', 
     width: 1024, height: 1536, provider: 'OPENAI', model: 'gpt-image-2', createdAt: new Date(), updatedAt: new Date(),
   };
   expect((await new DesignService(repository, gateway, storage).createForIssue('issue-1')).id).toBe('job-existing');
+  expect(gateway.interpret).not.toHaveBeenCalled();
+});
+
+test('does not run a second model call when another worker already claimed the queued job', async () => {
+  const repository = new MemoryDesignRepository();
+  repository.input = await paidInput();
+  repository.job = {
+    id: 'job-busy', issueId: 'issue-1', state: 'INTERPRETING', encryptedBrief: null,
+    artworkUrl: null, artworkMimeType: null, artworkBytes: null, width: null, height: null,
+    provider: null, model: null, createdAt: new Date(), updatedAt: new Date(),
+  };
+  const gateway = { interpret: vi.fn(), generateArtwork: vi.fn() } as unknown as DesignGateway;
+  const storage = { put: vi.fn() } as unknown as ArtworkStorageGateway;
+  const result = await new DesignService(repository, gateway, storage).createForIssue('issue-1');
+  expect(result.id).toBe('job-busy');
   expect(gateway.interpret).not.toHaveBeenCalled();
 });
