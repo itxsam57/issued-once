@@ -79,7 +79,6 @@ export class CheckoutService {
       quantity: 1,
       currency: quote.currency,
       metadata: {
-        io_experience_id: quote.experienceId,
         io_quote_id: quote.id,
       },
     });
