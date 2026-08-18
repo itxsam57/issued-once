@@ -5,7 +5,7 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentVerifiedHead": "c4a51f963aff2e64743a6c33fa70f46705029bbb"
+    "currentVerifiedHead": "cea900797005e1d1fe9891705c2c59cda0fb64c1"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
@@ -25,27 +25,28 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "public-base-to-commitment-acceptance-2026-08-18",
-    "objective": "Complete and prove the real public BASE -> COMMITMENT boundary without browser-trusted product facts.",
+    "cycleId": "checkout-state-hardening-2026-08-18",
+    "objective": "Make hosted checkout reachable only from conscious commitment and advance durable checkout state only after successful cart creation.",
     "changes": [
-      "Added preview checkout quote storage and preview base persistence parity",
-      "Added COMMITMENT_READY database migration",
-      "Wired fail-closed createBaseSelectionService for preview and production",
-      "Added /api/experience/base accepting only colorCode plus anonymous session cookie",
-      "Reduced the browser base request itself to {colorCode} only"
+      "CheckoutStartService now requires COMMITMENT_READY before commerce",
+      "CheckoutStartService advances COMMITMENT_READY -> CHECKOUT_STARTED only after CheckoutService returns a hosted checkout URL",
+      "Added guarded PostgresCheckoutStateRepository with expiry and expected-stage checks",
+      "Wired production checkout to a Postgres experience reader, quote repository, checkout-state repository and Fourthwall gateway on one Neon executor",
+      "Removed generic runtime repository use from production checkout to prevent preview leakage"
     ],
     "verification": {
-      "ci": "GREEN on c4a51f963aff2e64743a6c33fa70f46705029bbb",
-      "browserQa": "GREEN on c4a51f963aff2e64743a6c33fa70f46705029bbb",
-      "desktopPublicPath": "GREEN through HOODIE -> M -> BONE -> FORM COMPLETE -> $54.00 -> ISSUE MINE",
-      "mobilePublicPath": "GREEN through HOODIE -> M -> BONE -> FORM COMPLETE -> $54.00 -> ISSUE MINE",
-      "wireContract": "Browser POST /api/experience/base body is exactly {colorCode: Bone}"
+      "ci": "GREEN on cea900797005e1d1fe9891705c2c59cda0fb64c1",
+      "browserQa": "GREEN on cea900797005e1d1fe9891705c2c59cda0fb64c1",
+      "unitSuite": "63 tests GREEN",
+      "stateGate": "Non-COMMITMENT_READY sessions reject before commerce",
+      "failureSafety": "Hosted cart failure does not advance checkout state",
+      "durability": "Successful cart is followed by guarded COMMITMENT_READY -> CHECKOUT_STARTED update"
     },
     "nextActions": [
-      "Create a checkout-state RED requiring COMMITMENT_READY before commerce",
-      "Advance COMMITMENT_READY -> CHECKOUT_STARTED only after successful hosted-cart creation",
-      "Preserve fail-closed quote ownership, expiry and live variant/price checks",
-      "Prove public ISSUE MINE -> hosted checkout redirect in desktop and mobile Chromium without weakening checkout-failure recovery"
+      "Create a public browser RED for ISSUE MINE -> hosted HTTPS navigation",
+      "Intercept only /api/checkout/start with a safe fake hosted checkout URL so browser redirect behavior is tested without fake Fourthwall credentials",
+      "Keep the existing 503 checkout recovery path green",
+      "After redirect acceptance, audit remaining first-order launch blockers before declaring any completion state"
     ]
   }
 }
