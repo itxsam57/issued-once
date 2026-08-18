@@ -33,7 +33,9 @@ test('moves from private traces through a threshold into physical form selection
   expect(screen.queryByRole('radio', { name: 'TEE' })).not.toBeInTheDocument();
 
   await user.click(screen.getByRole('button', { name: 'UNLOCK FORM' }));
-  expect(screen.getByRole('heading', { name: 'Choose what it exists on.' })).toBeInTheDocument();
+  expect(
+    screen.getByRole('heading', { name: 'Pick the shape your issue lives on.' }),
+  ).toBeInTheDocument();
 
   await user.click(screen.getByRole('radio', { name: 'TEE' }));
   await user.click(screen.getByRole('button', { name: 'LOCK FORM' }));
