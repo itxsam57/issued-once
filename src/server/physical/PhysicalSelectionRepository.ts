@@ -1,6 +1,6 @@
 import type { ExperienceStage } from '@/domain/experience/types';
 
-export type ObjectType = 'tee' | 'hoodie' | 'hat';
+export type ObjectType = 'tee' | 'hoodie' | 'hat' | 'tote';
 
 export type PhysicalSelectionRecord = {
   experienceId: string;
