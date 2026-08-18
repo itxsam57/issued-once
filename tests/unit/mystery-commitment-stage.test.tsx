@@ -9,11 +9,11 @@ async function answerText(user: ReturnType<typeof userEvent.setup>, value: strin
 }
 
 const sizeCatalog = {
-  hoodie: [{ code: 'M', label: 'Medium', measurements: 'Chest 22 in · Length 27 in' }],
+  tee: [{ code: 'M', label: 'Medium', measurements: 'Chest 20 in · Length 29 in' }],
 } as const;
 
 const baseColorCatalog = {
-  hoodie: {
+  tee: {
     M: [{ code: 'bone', label: 'Bone', swatch: '#e8e0cf' }],
   },
 } as const;
@@ -52,7 +52,7 @@ test('fetches a live quote for the locked variant before exposing commitment', a
   await answerText(user, 'literal portraits');
   await user.click(screen.getByRole('button', { name: 'CONTINUE' }));
   await user.click(screen.getByRole('button', { name: 'UNLOCK FORM' }));
-  await user.click(screen.getByRole('radio', { name: 'HOODIE' }));
+  await user.click(screen.getByRole('radio', { name: 'TEE' }));
   await user.click(screen.getByRole('button', { name: 'LOCK FORM' }));
   await user.click(screen.getByRole('radio', { name: /Medium/ }));
   await user.click(screen.getByRole('button', { name: 'CONFIRM SIZE' }));
@@ -60,12 +60,12 @@ test('fetches a live quote for the locked variant before exposing commitment', a
   await user.click(screen.getByRole('button', { name: 'LOCK BASE' }));
 
   expect(getCommitmentQuote).toHaveBeenCalledWith({
-    object: 'hoodie',
+    object: 'tee',
     sizeCode: 'M',
     colorCode: 'bone',
   });
   expect(screen.getByRole('heading', { name: 'From here, it becomes ours to interpret.' })).toBeInTheDocument();
-  expect(screen.getByText('HOODIE / M / BONE')).toBeInTheDocument();
+  expect(screen.getByText('TEE / M / BONE')).toBeInTheDocument();
   expect(screen.getByText('$54.00')).toBeInTheDocument();
 
   await user.click(screen.getByRole('button', { name: 'ISSUE MINE' }));
