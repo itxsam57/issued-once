@@ -5,8 +5,8 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentBranchHead": "39c351ae6408bd0e55dea3aa92736ebb0ac5777e",
-    "currentVerifiedHead": "39c351ae6408bd0e55dea3aa92736ebb0ac5777e"
+    "currentBranchHead": "bfa24937b7a1f156bff3e1c715ee58c774faf3bf",
+    "currentVerifiedHead": "bfa24937b7a1f156bff3e1c715ee58c774faf3bf"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
@@ -26,31 +26,31 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "checkout-correlation-privacy-green-2026-08-18",
-    "objective": "Close the active privacy RED so Fourthwall cart metadata contains only the opaque quote correlation key.",
+    "cycleId": "fourthwall-webhook-trust-boundary-green-2026-08-18",
+    "objective": "Authenticate Fourthwall webhook bytes and minimize provider payload before downstream processing can see customer data.",
     "changes": [
-      "Removed io_experience_id from CheckoutService cart metadata",
-      "Kept internal quote ownership validation unchanged",
-      "Fourthwall cart metadata now contains only io_quote_id"
+      "Added constant-time base64 HMAC-SHA256 verification over exact raw bytes",
+      "Added strict Zod envelope parsing",
+      "Mapped provider payload into a minimized application shape containing only event/order identity and string metadata",
+      "Dropped customer email, shipping/address, message and amounts from the application envelope"
     ],
     "verification": {
-      "head": "39c351ae6408bd0e55dea3aa92736ebb0ac5777e",
-      "ciRun": 32127013362,
+      "head": "bfa24937b7a1f156bff3e1c715ee58c774faf3bf",
+      "ciRun": 32127410070,
       "unitTests": "GREEN",
       "typecheck": "GREEN",
-      "privacyContract": "commerce.createCart receives io_quote_id only; test forbids answer/email/name/address/experience leakage"
+      "officialContract": "Fourthwall shop webhook signature is base64 HMAC-SHA256 over the complete raw body"
     },
     "frontPageStatus": {
-      "code": "Existing mystery front page and public flow remain in branch with prior desktop/mobile Chromium evidence",
       "publicPreview": "NOT_DEPLOYED_YET",
       "ownerTestableUrl": null,
       "plannedDomain": "issuedonce.shop"
     },
     "ownerAction": null,
     "nextActions": [
-      "Write RED tests for exact raw-body Fourthwall HMAC verification and minimized webhook envelope",
-      "Implement HMAC verifier and PII-minimizing envelope parser",
-      "Obtain fresh CI GREEN before Issue ID work",
+      "Write RED tests for random non-sequential permanent Issue IDs",
+      "Implement cryptographic Issue code generation",
+      "Then add webhook event inbox/private Issue registry migration and repository",
       "Continue implementation plan autonomously"
     ]
   }
