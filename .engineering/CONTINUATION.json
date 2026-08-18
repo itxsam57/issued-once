@@ -5,8 +5,8 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentBranchHead": "dd6946cec5b9ebf5a36842a3c29e2a3b3b8c57ab",
-    "currentVerifiedHead": "e0d44f6438f6191ccbd2525cb439062499c997ae"
+    "currentBranchHead": "39c351ae6408bd0e55dea3aa92736ebb0ac5777e",
+    "currentVerifiedHead": "39c351ae6408bd0e55dea3aa92736ebb0ac5777e"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
@@ -26,43 +26,32 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "paid-order-webhook-plan-2026-08-18",
-    "objective": "Translate the owner-approved paid-order webhook/private Issue registry specification into an executable TDD plan and resume autonomous implementation.",
+    "cycleId": "checkout-correlation-privacy-green-2026-08-18",
+    "objective": "Close the active privacy RED so Fourthwall cart metadata contains only the opaque quote correlation key.",
     "changes": [
-      "Recorded owner written-spec approval from the conversation",
-      "Wrote docs/superpowers/plans/2026-08-18-issued-once-order-webhook-issue-registry.md",
-      "Self-reviewed plan coverage, placeholders, type consistency and scope",
-      "Selected inline execution because the owner already instructed Continuation Governor to continue autonomously",
-      "Kept front-page Vercel preview as an independent final deployment task so page availability cannot mask webhook correctness"
+      "Removed io_experience_id from CheckoutService cart metadata",
+      "Kept internal quote ownership validation unchanged",
+      "Fourthwall cart metadata now contains only io_quote_id"
     ],
     "verification": {
-      "architectureApproval": "APPROVED",
-      "writtenSpecApproval": "APPROVED",
-      "specPath": "docs/superpowers/specs/2026-08-18-issued-once-order-webhook-issue-registry-design.md",
-      "planPath": "docs/superpowers/plans/2026-08-18-issued-once-order-webhook-issue-registry.md",
-      "planHead": "dd6946cec5b9ebf5a36842a3c29e2a3b3b8c57ab",
-      "planSelfReview": "PASS",
-      "lastVerifiedGreenProductHead": "e0d44f6438f6191ccbd2525cb439062499c997ae",
-      "knownActiveRed": "CheckoutService still sends io_experience_id while checkout-service.test.ts requires only io_quote_id"
+      "head": "39c351ae6408bd0e55dea3aa92736ebb0ac5777e",
+      "ciRun": 32127013362,
+      "unitTests": "GREEN",
+      "typecheck": "GREEN",
+      "privacyContract": "commerce.createCart receives io_quote_id only; test forbids answer/email/name/address/experience leakage"
     },
     "frontPageStatus": {
-      "code": "Mystery front page and flow already exist with prior desktop/mobile Chromium evidence",
+      "code": "Existing mystery front page and public flow remain in branch with prior desktop/mobile Chromium evidence",
       "publicPreview": "NOT_DEPLOYED_YET",
       "ownerTestableUrl": null,
-      "plannedDomain": "issuedonce.shop",
-      "nextDeploymentGoal": "After core paid-order work remains green, publish and live-test a Vercel preview, then report the exact URL"
+      "plannedDomain": "issuedonce.shop"
     },
     "ownerAction": null,
     "nextActions": [
-      "Close the current io_experience_id cart-metadata privacy RED and obtain fresh GREEN CI",
-      "Implement exact raw-body Fourthwall HMAC verification and minimized envelope parsing test-first",
-      "Implement random non-sequential Issue ID generator",
-      "Add durable webhook inbox/private Issue registry migration and repository",
-      "Implement paid-order processor and signed route",
-      "Run full unit/type/browser privacy and replay gates",
-      "Verify migration on isolated Neon branch if connector is available",
-      "Publish and live-test owner-testable Vercel preview",
-      "Later attach issuedonce.shop when domain control is available"
+      "Write RED tests for exact raw-body Fourthwall HMAC verification and minimized webhook envelope",
+      "Implement HMAC verifier and PII-minimizing envelope parser",
+      "Obtain fresh CI GREEN before Issue ID work",
+      "Continue implementation plan autonomously"
     ]
   }
 }
