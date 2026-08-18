@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './object-stage.css';
 
 export const metadata: Metadata = {
   title: 'ISSUED ONCE',
