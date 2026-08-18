@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const previewEncryptionKey = Buffer.alloc(32, 7).toString('base64');
+
 export default defineConfig({
   testDir: './tests/e2e',
   timeout: 30_000,
@@ -34,6 +36,7 @@ export default defineConfig({
     env: {
       ...process.env,
       ENABLE_VISUAL_PREVIEW: '1',
+      QUIZ_ENCRYPTION_KEY_V1: previewEncryptionKey,
     },
   },
 });
