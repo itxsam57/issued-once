@@ -7,9 +7,18 @@ const forbiddenSizeFear = /\b(?:return|refund|final sale|guaranteed fit|perfect 
 const forbiddenCommitmentPressure = /\b(?:countdown|sold out|only\s+\d+\s+left|people are viewing|limited time|hurry|ending soon|return|refund|final sale)\b/i;
 const visualQaPath = '/visual-qa/experience';
 
-async function continueText(page: import('@playwright/test').Page, answer: string) {
+async function continueText(
+  page: import('@playwright/test').Page,
+  answer: string,
+  nextProgress?: string,
+) {
   await page.getByLabel('Your answer').fill(answer);
-  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const continueButton = page.getByRole('button', { name: 'CONTINUE' });
+  await expect(continueButton).toBeEnabled();
+  await continueButton.click();
+  if (nextProgress) {
+    await expect(page.getByText(nextProgress)).toBeVisible();
+  }
 }
 
 async function capture(page: import('@playwright/test').Page, name: string) {
@@ -207,15 +216,22 @@ test('the public BEGIN link opens the first mystery question without category le
 test('the real public seven-answer path can unlock the physical form instead of ending in a dead end', async ({ page }, testInfo) => {
   await page.goto('/');
   await page.getByRole('link', { name: /BEGIN/ }).click();
+  await expect(page.getByText('01 / 07')).toBeVisible();
 
-  await continueText(page, 'old maps, storms, strange machines');
-  await continueText(page, 'a quiet cabin above a valley');
+  await continueText(page, 'old maps, storms, strange machines', '02 / 07');
+  await continueText(page, 'a quiet cabin above a valley', '03 / 07');
   await page.getByLabel('4 a.m.').check();
-  await page.getByRole('button', { name: 'CONTINUE' }).click();
-  await continueText(page, 'quiet does not mean uncertain');
-  await continueText(page, 'a song that feels older than it is');
-  await continueText(page, 'literal portraits');
-  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const q3Continue = page.getByRole('button', { name: 'CONTINUE' });
+  await expect(q3Continue).toBeEnabled();
+  await q3Continue.click();
+  await expect(page.getByText('04 / 07')).toBeVisible();
+  await continueText(page, 'quiet does not mean uncertain', '05 / 07');
+  await continueText(page, 'a song that feels older than it is', '06 / 07');
+  await continueText(page, 'literal portraits', '07 / 07');
+
+  const finalContinue = page.getByRole('button', { name: 'CONTINUE' });
+  await expect(finalContinue).toBeEnabled();
+  await finalContinue.click();
 
   await expect(page.getByRole('heading', { name: 'WE HAVE ENOUGH.' })).toBeVisible();
   const unlockForm = page.getByRole('button', { name: 'UNLOCK FORM' });
