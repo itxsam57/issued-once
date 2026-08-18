@@ -4,6 +4,7 @@ export type OtpChallengeRecord = {
   id: string;
   experienceId: string;
   emailHash: string;
+  encryptedEmail: EncryptedPayload;
   ipHash: string;
   codeHash: string;
   expiresAt: Date;
