@@ -147,6 +147,32 @@ export class PostgresDesignRepository implements DesignRepository {
     return jobFromRow(rows[0]);
   }
 
+  async approve(jobId: string, checks: readonly string[], approvedAt: Date) {
+    const rows = await this.sql.query<JobRow>(
+      `WITH approved AS (
+         UPDATE design_jobs SET state='APPROVED', approved_at=$2, updated_at=$2
+         WHERE id=$1::uuid AND state='REVIEW'
+         RETURNING *
+       ), issue_update AS (
+         UPDATE issues SET status='DESIGN_APPROVED', updated_at=$2
+         WHERE id=(SELECT issue_id FROM approved LIMIT 1) AND status='DESIGN_REVIEW'
+         RETURNING id
+       ), event AS (
+         INSERT INTO issue_events (issue_id,event_type,source,safe_detail,created_at)
+         SELECT id,'DESIGN_APPROVED','OWNER',jsonb_build_object('checks',$3::jsonb),$2
+         FROM issue_update RETURNING issue_id
+       ) SELECT * FROM approved
+       WHERE EXISTS (SELECT 1 FROM issue_update)`,
+      [jobId, approvedAt, JSON.stringify(checks)],
+    );
+    if (!rows[0]) {
+      const existing = await this.sql.query<JobRow>(`${JOB_SELECT} WHERE id=$1::uuid AND state='APPROVED' LIMIT 1`, [jobId]);
+      if (existing[0]) return jobFromRow(existing[0]);
+      throw new Error('Design is not eligible for approval');
+    }
+    return jobFromRow(rows[0]);
+  }
+
   async markFailed(jobId: string, code: string, updatedAt: Date) {
     await this.sql.query(
       `UPDATE design_jobs SET state='FAILED', failure_code=$2, updated_at=$3
