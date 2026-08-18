@@ -117,8 +117,7 @@ export class PostgresExperienceRepository implements ExperienceRepository {
           experience_id,
           question_id,
           payload_version,
-          algorithm,
-          key_id,
+          key_version,
           iv,
           auth_tag,
           ciphertext,
@@ -132,8 +131,7 @@ export class PostgresExperienceRepository implements ExperienceRepository {
           $8,
           $9,
           $10,
-          $11,
-          $12
+          $11
         FROM advanced
         RETURNING experience_id
       `,
@@ -144,8 +142,7 @@ export class PostgresExperienceRepository implements ExperienceRepository {
         transition.updatedAt,
         answer.questionId as QuestionId,
         encrypted.version,
-        encrypted.algorithm,
-        encrypted.keyId,
+        encrypted.keyVersion,
         encrypted.iv,
         encrypted.tag,
         encrypted.ciphertext,
