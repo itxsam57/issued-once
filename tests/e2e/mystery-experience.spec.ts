@@ -136,9 +136,34 @@ test('the mystery journey crosses private traces, physical locks, and conscious 
   await expect(page.getByText('HOODIE / M / BONE')).toBeVisible();
   await expect(page.getByText('$54.00')).toBeVisible();
   await expect(page.getByText('Everything else stays unknown until it arrives.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'ISSUE MINE' })).toBeVisible();
+  const issueMine = page.getByRole('button', { name: 'ISSUE MINE' });
+  await expect(issueMine).toBeVisible();
   await expect(page.locator('body')).not.toContainText(forbiddenCommitmentPressure);
   await expect(page.locator('body')).not.toContainText(forbiddenCreativeControl);
+
+  const commitmentMetrics = await page.locator('.commitment').evaluate((element) => {
+    const ledger = element.querySelector('.commitment__ledger');
+    const price = element.querySelector('.commitment__price');
+    const button = element.querySelector('button');
+    const ledgerStyle = ledger ? getComputedStyle(ledger) : null;
+    const priceStyle = price ? getComputedStyle(price) : null;
+    const buttonStyle = button ? getComputedStyle(button) : null;
+    return {
+      ledgerDisplay: ledgerStyle?.display ?? '',
+      ledgerHeight: ledger?.getBoundingClientRect().height ?? 0,
+      priceFontSize: Number.parseFloat(priceStyle?.fontSize ?? '0'),
+      buttonHeight: button?.getBoundingClientRect().height ?? 0,
+      buttonBackground: buttonStyle?.backgroundColor ?? '',
+      buttonBorderTop: Number.parseFloat(buttonStyle?.borderTopWidth ?? '0'),
+    };
+  });
+  expect(['grid', 'flex']).toContain(commitmentMetrics.ledgerDisplay);
+  expect(commitmentMetrics.ledgerHeight).toBeGreaterThanOrEqual(96);
+  expect(commitmentMetrics.priceFontSize).toBeGreaterThanOrEqual(36);
+  expect(commitmentMetrics.buttonHeight).toBeGreaterThanOrEqual(44);
+  expect(commitmentMetrics.buttonBackground).toBe('rgba(0, 0, 0, 0)');
+  expect(commitmentMetrics.buttonBorderTop).toBe(0);
+
   await capture(page, `08-commitment-${testInfo.project.name}`);
 });
 
