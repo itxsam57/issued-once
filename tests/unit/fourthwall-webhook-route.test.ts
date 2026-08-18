@@ -1,12 +1,11 @@
 import { createHmac } from 'node:crypto';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-const { createPaidOrderRuntimeMock } = vi.hoisted(() => ({
+const { createPaidOrderRuntimeMock, RuntimeUnavailableError, RetryableError } = vi.hoisted(() => ({
   createPaidOrderRuntimeMock: vi.fn(),
+  RuntimeUnavailableError: class RuntimeUnavailableError extends Error {},
+  RetryableError: class RetryableError extends Error {},
 }));
-
-class RuntimeUnavailableError extends Error {}
-class RetryableError extends Error {}
 
 vi.mock('@/server/issues/runtimePaidOrders', () => ({
   createPaidOrderRuntime: createPaidOrderRuntimeMock,
