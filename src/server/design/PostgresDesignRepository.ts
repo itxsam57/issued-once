@@ -65,18 +65,11 @@ export class PostgresDesignRepository implements DesignRepository {
     if (rows.length !== 7) throw new Error('Paid issue does not have seven answer records');
     const first = rows[0];
     return {
-      issueId: first.issue_id,
-      issueCode: first.issue_code,
-      issueStatus: first.issue_status,
-      objectType: first.object_type,
-      sizeCode: first.size_code,
-      colorCode: first.color_code,
+      issueId: first.issue_id, issueCode: first.issue_code, issueStatus: first.issue_status,
+      objectType: first.object_type, sizeCode: first.size_code, colorCode: first.color_code,
       questions: rows.map((row) => ({
-        slot: row.slot,
-        questionId: row.question_id,
-        questionVersion: Number(row.question_version),
-        family: row.family,
-        prompt: row.prompt_snapshot,
+        slot: row.slot, questionId: row.question_id, questionVersion: Number(row.question_version),
+        family: row.family, prompt: row.prompt_snapshot,
         encryptedAnswer: encrypted(row.payload_version, row.key_version, row.iv, row.auth_tag, row.ciphertext),
       })),
     };
@@ -116,6 +109,17 @@ export class PostgresDesignRepository implements DesignRepository {
     return { created: row.created, job: jobFromRow(row) };
   }
 
+  async claim(jobId: string, updatedAt: Date) {
+    const rows = await this.sql.query<{ id: string }>(
+      `UPDATE design_jobs
+       SET state='INTERPRETING', failure_code=NULL, updated_at=$2
+       WHERE id=$1::uuid AND state IN ('QUEUED','FAILED')
+       RETURNING id`,
+      [jobId, updatedAt],
+    );
+    return Boolean(rows[0]);
+  }
+
   async saveGenerated(input: {
     jobId: string; encryptedBrief: EncryptedPayload; artworkUrl: string; artworkMimeType: string;
     artworkBytes: number; width: number; height: number; provider: string; model: string; updatedAt: Date;
@@ -127,7 +131,7 @@ export class PostgresDesignRepository implements DesignRepository {
            brief_iv=$4, brief_auth_tag=$5, brief_ciphertext=$6, artwork_url=$7,
            artwork_mime_type=$8, artwork_bytes=$9, artwork_width=$10, artwork_height=$11,
            provider=$12, model=$13, failure_code=NULL, updated_at=$14
-         WHERE id=$1::uuid AND state IN ('QUEUED','INTERPRETING','GENERATING')
+         WHERE id=$1::uuid AND state IN ('INTERPRETING','GENERATING')
          RETURNING *
        ), issue_update AS (
          UPDATE issues SET status='DESIGN_REVIEW', updated_at=$14
@@ -145,12 +149,8 @@ export class PostgresDesignRepository implements DesignRepository {
 
   async markFailed(jobId: string, code: string, updatedAt: Date) {
     await this.sql.query(
-      `WITH updated AS (
-         UPDATE design_jobs SET state='FAILED', failure_code=$2, updated_at=$3
-         WHERE id=$1::uuid AND state<>'APPROVED' RETURNING issue_id
-       )
-       UPDATE issues SET status='EXCEPTION', updated_at=$3
-       WHERE id=(SELECT issue_id FROM updated LIMIT 1)`,
+      `UPDATE design_jobs SET state='FAILED', failure_code=$2, updated_at=$3
+       WHERE id=$1::uuid AND state<>'APPROVED'`,
       [jobId, code.slice(0, 120), updatedAt],
     );
   }
