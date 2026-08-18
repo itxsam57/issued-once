@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { MysteryExperience } from '@/components/experience/MysteryExperience';
 
 const VISUAL_QA_SIZE_CATALOG = {
@@ -62,6 +63,10 @@ const VISUAL_QA_COMMITMENT_QUOTE = {
   expiresAt: '2026-08-18T06:00:00.000Z',
 } as const;
 
+type VisualPreviewExperienceProps = {
+  mode?: 'qa' | 'owner';
+};
+
 async function requestCheckout(quoteId: string): Promise<void> {
   const response = await fetch('/api/checkout/start', {
     method: 'POST',
@@ -82,11 +87,35 @@ async function requestCheckout(quoteId: string): Promise<void> {
   window.location.assign(payload.checkoutUrl);
 }
 
-export function VisualPreviewExperience() {
+export function VisualPreviewExperience({ mode = 'qa' }: VisualPreviewExperienceProps) {
+  const [ownerComplete, setOwnerComplete] = useState(false);
+  const isOwnerPreview = mode === 'owner';
+  const marker = isOwnerPreview
+    ? 'OWNER PREVIEW / NO PAYMENT'
+    : 'VISUAL QA / NOT PRODUCTION';
+
+  if (ownerComplete) {
+    return (
+      <main className="visual-preview">
+        <div className="visual-preview__marker" role="note">
+          OWNER PREVIEW / NO PAYMENT
+        </div>
+        <section className="commitment" aria-labelledby="owner-preview-complete-heading">
+          <p className="commitment__signal">PREVIEW / COMPLETE</p>
+          <h1 id="owner-preview-complete-heading">PREVIEW COMPLETE.</h1>
+          <p className="commitment__unknown">No payment was attempted.</p>
+          <p className="commitment__unknown">
+            Live checkout stays disabled until production commerce is configured.
+          </p>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="visual-preview">
       <div className="visual-preview__marker" role="note">
-        VISUAL QA / NOT PRODUCTION
+        {marker}
       </div>
       <MysteryExperience
         onAnswer={async () => undefined}
@@ -96,7 +125,11 @@ export function VisualPreviewExperience() {
         baseColorCatalog={VISUAL_QA_BASE_COLOR_CATALOG}
         onBaseColorConfirmed={async () => undefined}
         getCommitmentQuote={async () => VISUAL_QA_COMMITMENT_QUOTE}
-        onCheckoutRequested={requestCheckout}
+        onCheckoutRequested={
+          isOwnerPreview
+            ? async () => setOwnerComplete(true)
+            : requestCheckout
+        }
       />
     </main>
   );
