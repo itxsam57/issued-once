@@ -31,6 +31,17 @@ export type SizeSelectionTransition = {
   updatedAt: Date;
 };
 
+export type BaseSelectionTransition = {
+  experienceId: string;
+  expectedStage: ExperienceStage;
+  nextStage: ExperienceStage;
+  colorCode: string;
+  colorLabel: string;
+  colorSwatch: string | null;
+  variantId: string;
+  updatedAt: Date;
+};
+
 export interface PhysicalSelectionRepository {
   selectObjectAndAdvance(transition: ObjectSelectionTransition): Promise<void>;
 }
@@ -38,4 +49,9 @@ export interface PhysicalSelectionRepository {
 export interface SizeSelectionRepository {
   findByExperienceId(experienceId: string): Promise<PhysicalSelectionRecord | null>;
   confirmSizeAndAdvance(transition: SizeSelectionTransition): Promise<void>;
+}
+
+export interface BaseSelectionRepository {
+  findByExperienceId(experienceId: string): Promise<PhysicalSelectionRecord | null>;
+  confirmBaseAndAdvance(transition: BaseSelectionTransition): Promise<void>;
 }
