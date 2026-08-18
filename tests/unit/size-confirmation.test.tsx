@@ -22,7 +22,9 @@ describe('SizeConfirmation', () => {
     expect(screen.getByText('FORM LOCKED / FIT')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Pick your size.' })).toBeInTheDocument();
     for (const size of qaSizes) {
-      expect(screen.getByRole('radio', { name: new RegExp(size.label, 'i') })).toBeInTheDocument();
+      expect(
+        screen.getByRole('radio', { name: new RegExp(`^${size.label} —`, 'i') }),
+      ).toBeInTheDocument();
     }
     expect(screen.queryByText('Chest 20 in · Length 29 in')).not.toBeInTheDocument();
     expect(screen.queryByText(/perfect fit|guaranteed fit|return|refund/i)).not.toBeInTheDocument();
@@ -30,7 +32,7 @@ describe('SizeConfirmation', () => {
     const confirm = screen.getByRole('button', { name: 'CONFIRM SIZE' });
     expect(confirm).toBeDisabled();
 
-    await user.click(screen.getByRole('radio', { name: /Medium/ }));
+    await user.click(screen.getByRole('radio', { name: /^Medium —/ }));
     expect(screen.getByText('Chest 20 in · Length 29 in')).toBeInTheDocument();
     expect(screen.getByText('Check this one carefully. This is the size we’ll make.')).toBeInTheDocument();
     expect(confirm).toBeEnabled();
