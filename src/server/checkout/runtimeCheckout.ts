@@ -1,9 +1,10 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
-import { getExperienceRepository } from '@/server/experience/runtimeRepository';
+import { PostgresExperienceRepository } from '@/server/experience/PostgresExperienceRepository';
 import { CheckoutService } from './CheckoutService';
 import { CheckoutStartService } from './CheckoutStartService';
 import { FourthwallCommerceGateway } from './FourthwallCommerceGateway';
 import { PostgresCheckoutQuoteRepository } from './PostgresCheckoutQuoteRepository';
+import { PostgresCheckoutStateRepository } from './PostgresCheckoutStateRepository';
 
 export class CheckoutRuntimeUnavailableError extends Error {
   constructor() {
@@ -22,12 +23,18 @@ export function createCheckoutStartService(): CheckoutStartService {
   }
 
   const sql = createNeonSqlExecutor(databaseUrl);
+  const experienceRepository = new PostgresExperienceRepository(sql);
   const quoteRepository = new PostgresCheckoutQuoteRepository(sql);
+  const stateRepository = new PostgresCheckoutStateRepository(sql);
   const commerce = new FourthwallCommerceGateway({
     storefrontToken,
     shopDomain,
   });
   const checkout = new CheckoutService(quoteRepository, commerce);
 
-  return new CheckoutStartService(getExperienceRepository(), checkout);
+  return new CheckoutStartService(
+    experienceRepository,
+    checkout,
+    stateRepository,
+  );
 }
