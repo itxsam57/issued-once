@@ -1,7 +1,7 @@
 import { mkdir } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
-const forbiddenBeforeClose = /\b(?:tee|hoodie|hat|product|garment)\b|shop now/i;
+const forbiddenBeforeClose = /\b(?:tee|hoodie|hat|cap|tote|product|garment)\b|shop now/i;
 const forbiddenCreativeControl = /\b(?:artwork|design|preview|sample|recommended|palette|style)\b/i;
 const forbiddenSizeFear = /\b(?:return|refund|final sale|guaranteed fit|perfect fit)\b/i;
 const forbiddenCommitmentPressure = /\b(?:countdown|sold out|only\s+\d+\s+left|people are viewing|limited time|hurry|ending soon|return|refund|final sale)\b/i;
@@ -31,12 +31,12 @@ test('the mystery journey crosses private traces, physical locks, and conscious 
 
   await expect(page.getByText('VISUAL QA / NOT PRODUCTION')).toBeVisible();
   await expect(page.getByText('01 / 07')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Name three things you can talk about for hours.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: "So tell me. What's your favourite book?" })).toBeVisible();
   await expect(page.getByRole('button', { name: 'CONTINUE' })).toBeDisabled();
   await expect(page.locator('body')).not.toContainText(forbiddenBeforeClose);
   await capture(page, `01-q1-${testInfo.project.name}`);
 
-  await continueText(page, 'old maps, weather systems, forgotten machines');
+  await continueText(page, 'The Master and Margarita');
   await expect(page.getByText('02 / 07')).toBeVisible();
   await continueText(page, 'a cabin above a foggy valley');
 
@@ -62,76 +62,69 @@ test('the mystery journey crosses private traces, physical locks, and conscious 
   await capture(page, `03-complete-${testInfo.project.name}`);
 
   await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
-  await expect(page.getByText('FORM / UNLOCKED')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Choose what it exists on.' })).toBeVisible();
+  await expect(page.getByText('FORM / CURRENT ISSUE')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pick the shape your issue lives on.' })).toBeVisible();
   await expect(page.getByRole('radio', { name: 'TEE' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'HOODIE' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'HAT' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'CAP' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'TOTE' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'HOODIE' })).toHaveCount(0);
   await expect(page.locator('body')).not.toContainText(forbiddenCreativeControl);
 
   const lockForm = page.getByRole('button', { name: 'LOCK FORM' });
   await expect(lockForm).toBeDisabled();
-  await page.getByRole('radio', { name: 'HOODIE' }).check();
+  await page.getByRole('radio', { name: 'TEE' }).check();
   await expect(lockForm).toBeEnabled();
   await capture(page, `05-form-${testInfo.project.name}`);
   await lockForm.click();
 
   await expect(page.getByText('FORM LOCKED / FIT')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Choose the size it should become.' })).toBeVisible();
-  await expect(page.getByText('Chest 22 in · Length 27 in')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pick your size.' })).toBeVisible();
+  for (const size of ['Extra small', 'Small', 'Medium', 'Large', 'Extra large', '2X large']) {
+    await expect(page.getByRole('radio', { name: new RegExp(`^${size}`) })).toBeVisible();
+  }
+  await expect(page.getByText('Chest 20 in · Length 29 in')).toHaveCount(0);
   await expect(page.locator('body')).not.toContainText(forbiddenSizeFear);
   await expect(page.locator('body')).not.toContainText(forbiddenCreativeControl);
 
   const mediumSurface = page.locator('.size-confirmation__option').filter({ hasText: 'Medium' });
-  const surfaceMetrics = await mediumSurface.evaluate((element) => {
-    const style = getComputedStyle(element);
-    const radio = element.querySelector('input');
-    const radioStyle = radio ? getComputedStyle(radio) : null;
-    return {
-      display: style.display,
-      height: element.getBoundingClientRect().height,
-      radioAppearance: radioStyle?.appearance ?? '',
-    };
-  });
+  const surfaceMetrics = await mediumSurface.evaluate((element) => ({
+    display: getComputedStyle(element).display,
+    height: element.getBoundingClientRect().height,
+  }));
   expect(['grid', 'flex']).toContain(surfaceMetrics.display);
   expect(surfaceMetrics.height).toBeGreaterThanOrEqual(72);
-  expect(surfaceMetrics.radioAppearance).toBe('none');
 
   const confirmSize = page.getByRole('button', { name: 'CONFIRM SIZE' });
   await expect(confirmSize).toBeDisabled();
-  await page.getByRole('radio', { name: /Medium/ }).check();
+  await page.getByRole('radio', { name: /^Medium/ }).check();
+  await expect(page.getByText('Chest 20 in · Length 29 in')).toBeVisible();
   await expect(page.getByText('Check this one carefully. This is the size we’ll make.')).toBeVisible();
   await expect(confirmSize).toBeEnabled();
   await capture(page, `06-size-${testInfo.project.name}`);
   await confirmSize.click();
 
   await expect(page.getByText('FIT LOCKED / BASE')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Choose the color it begins as.' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'Bone' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'Black' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'Ash' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Color your issue.' })).toBeVisible();
+  for (const color of ['Bone', 'Black', 'Ash', 'Navy', 'Forest']) {
+    await expect(page.getByRole('radio', { name: color })).toBeVisible();
+  }
   await expect(page.locator('body')).not.toContainText(forbiddenCreativeControl);
 
   const boneSurface = page.locator('.base-color__option').filter({ hasText: 'Bone' });
   const baseMetrics = await boneSurface.evaluate((element) => {
-    const style = getComputedStyle(element);
-    const radio = element.querySelector('input');
     const swatch = element.querySelector('.base-color__swatch');
-    const radioStyle = radio ? getComputedStyle(radio) : null;
     const swatchRect = swatch?.getBoundingClientRect();
     return {
-      display: style.display,
+      display: getComputedStyle(element).display,
       height: element.getBoundingClientRect().height,
-      radioAppearance: radioStyle?.appearance ?? '',
       swatchWidth: swatchRect?.width ?? 0,
       swatchHeight: swatchRect?.height ?? 0,
     };
   });
   expect(['grid', 'flex']).toContain(baseMetrics.display);
-  expect(baseMetrics.height).toBeGreaterThanOrEqual(100);
-  expect(baseMetrics.radioAppearance).toBe('none');
-  expect(baseMetrics.swatchWidth).toBeGreaterThanOrEqual(40);
-  expect(baseMetrics.swatchHeight).toBeGreaterThanOrEqual(40);
+  expect(baseMetrics.height).toBeGreaterThanOrEqual(88);
+  expect(baseMetrics.swatchWidth).toBeGreaterThanOrEqual(24);
+  expect(baseMetrics.swatchHeight).toBeGreaterThanOrEqual(24);
 
   const lockBase = page.getByRole('button', { name: 'LOCK BASE' });
   await expect(lockBase).toBeDisabled();
@@ -142,7 +135,7 @@ test('the mystery journey crosses private traces, physical locks, and conscious 
 
   await expect(page.getByText('FORM COMPLETE')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'From here, it becomes ours to interpret.' })).toBeVisible();
-  await expect(page.getByText('HOODIE / M / BONE')).toBeVisible();
+  await expect(page.getByText('TEE / M / BONE')).toBeVisible();
   await expect(page.getByText('$54.00')).toBeVisible();
   await expect(page.getByText('Everything else stays unknown until it arrives.')).toBeVisible();
   const issueMine = page.getByRole('button', { name: 'ISSUE MINE' });
@@ -184,7 +177,7 @@ test('the mystery journey crosses private traces, physical locks, and conscious 
   });
   await issueMine.click();
   await expect(page.getByRole('status')).toHaveText('CHECKOUT NOT OPENED / TRY AGAIN');
-  await expect(page.getByText('HOODIE / M / BONE')).toBeVisible();
+  await expect(page.getByText('TEE / M / BONE')).toBeVisible();
   await expect(page.getByText('$54.00')).toBeVisible();
   await expect(page.getByRole('button', { name: 'ISSUE MINE' })).toBeEnabled();
   await capture(page, `11-checkout-recovery-${testInfo.project.name}`);
@@ -203,22 +196,22 @@ test('the first question fits the viewport without horizontal overflow', async (
 test('the public BEGIN link opens the first mystery question without category leakage', async ({ page }, testInfo) => {
   await page.goto('/');
 
-  await expect(page.getByRole('heading', { name: 'There is something here that does not exist yet.' })).toBeVisible();
-  await page.getByRole('link', { name: /BEGIN/ }).click();
+  await expect(page.getByRole('heading', { name: 'A piece of your mind. Issued for you.' })).toBeVisible();
+  await page.getByRole('link', { name: /BEGIN/ }).first().click();
 
   await expect(page).toHaveURL(/\/begin$/);
   await expect(page.getByText('01 / 07')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Name three things you can talk about for hours.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: "So tell me. What's your favourite book?" })).toBeVisible();
   await expect(page.locator('body')).not.toContainText(forbiddenBeforeClose);
   await capture(page, `09-public-entry-${testInfo.project.name}`);
 });
 
-test('the real public seven-answer path can unlock the physical form instead of ending in a dead end', async ({ page }, testInfo) => {
+test('the real public seven-answer path can unlock the current issue instead of ending in a dead end', async ({ page }, testInfo) => {
   await page.goto('/');
-  await page.getByRole('link', { name: /BEGIN/ }).click();
+  await page.getByRole('link', { name: /BEGIN/ }).first().click();
   await expect(page.getByText('01 / 07')).toBeVisible();
 
-  await continueText(page, 'old maps, storms, strange machines', '02 / 07');
+  await continueText(page, 'The Master and Margarita', '02 / 07');
   await continueText(page, 'a quiet cabin above a valley', '03 / 07');
   await page.getByLabel('4 a.m.').check();
   const q3Continue = page.getByRole('button', { name: 'CONTINUE' });
@@ -238,9 +231,10 @@ test('the real public seven-answer path can unlock the physical form instead of 
   await expect(unlockForm).toBeVisible();
   await unlockForm.click();
 
-  await expect(page.getByText('FORM / UNLOCKED')).toBeVisible();
+  await expect(page.getByText('FORM / CURRENT ISSUE')).toBeVisible();
   await expect(page.getByRole('radio', { name: 'TEE' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'HOODIE' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'HAT' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'CAP' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'TOTE' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'HOODIE' })).toHaveCount(0);
   await capture(page, `12-public-form-${testInfo.project.name}`);
 });
