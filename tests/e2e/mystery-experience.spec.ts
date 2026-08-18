@@ -2,6 +2,7 @@ import { mkdir } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
 const forbiddenBeforeClose = /tee|hoodie|hat|product|garment|shop now/i;
+const visualQaPath = '/visual-qa/experience';
 
 async function continueText(page: import('@playwright/test').Page, answer: string) {
   await page.getByLabel('Your answer').fill(answer);
@@ -14,7 +15,7 @@ async function capture(page: import('@playwright/test').Page, name: string) {
 }
 
 test('the mystery interview completes in a real browser without leaking the object early', async ({ page }, testInfo) => {
-  await page.goto('/__preview__/experience');
+  await page.goto(visualQaPath);
 
   await expect(page.getByText('VISUAL QA / NOT PRODUCTION')).toBeVisible();
   await expect(page.getByText('01 / 07')).toBeVisible();
@@ -49,7 +50,7 @@ test('the mystery interview completes in a real browser without leaking the obje
 });
 
 test('the first question fits the viewport without horizontal overflow', async ({ page }, testInfo) => {
-  await page.goto('/__preview__/experience');
+  await page.goto(visualQaPath);
 
   const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   expect(horizontalOverflow).toBe(false);
