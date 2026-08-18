@@ -307,6 +307,18 @@ a {
   color: var(--signal);
 }
 
+.interview-question__save-state {
+  width: min(820px, 100%);
+  margin: 18px 0 -20px;
+  color: var(--signal);
+  background: transparent;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
 .interview-question button {
   justify-self: start;
   margin-top: clamp(44px, 7vh, 82px);
@@ -439,6 +451,10 @@ a {
     min-height: 64px;
     padding: 16px 2px;
     border-left: 0;
+  }
+
+  .interview-question__save-state {
+    margin: 14px 0 -14px;
   }
 
   .interview-question button {
