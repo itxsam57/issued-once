@@ -5,14 +5,14 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentBranchHead": "f9629b52a3c15d35fb67a709dddff91b62b26d43",
+    "currentBranchHead": "5c6046b34b5c36f1bf2fddf933dcc5bd6105df67",
     "currentVerifiedHead": "c5a8f664a02198441679327032045bca594a1c1c"
   },
   "continuationGovernor": {
     "state": "WAIT_EXTERNAL",
-    "decision": "CONTINUE_DEPLOYMENT_DISCOVERY",
+    "decision": "RUN_PRODUCTION_BUILD_DIAGNOSTIC",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Owner reports the Vercel import is complete. The connected SAMX scope still reports zero projects immediately after that action, so this governor-only commit intentionally provides a fresh feat/mystery-foundation push to trigger Git-integrated preview creation without altering product behavior."
+    "stopReason": "Two post-import Vercel feature deployments failed. Vercel project/build logs are not exposed by the connected Vercel inventory, so the missing production Next build gate has been added identically to main and feat/mystery-foundation. This state-only push now triggers the trusted pull_request workflow to reproduce the Vercel build boundary with inspectable GitHub logs."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -26,40 +26,45 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "vercel-import-acknowledged-preview-trigger-2026-08-18",
-    "objective": "Acknowledge the completed owner import, discover the Vercel project, and trigger a fresh feature-branch preview without changing product behavior.",
+    "cycleId": "vercel-build-root-cause-diagnostic-2026-08-18",
+    "objective": "Reproduce the failed Vercel production-build boundary in an inspectable CI environment before changing product code.",
     "changes": [
-      "Accepted owner confirmation that the repository was imported into Vercel",
-      "Re-queried connected Vercel team SAMX; it still reported zero projects immediately after the owner action",
-      "Confirmed SAMX remains the only Vercel team exposed by the connected account",
-      "Confirmed Vercel project slug issued-once is not yet discoverable in SAMX through the connector",
-      "Confirmed GitHub PR #3 is open on feat/mystery-foundation at head f9629b52a3c15d35fb67a709dddff91b62b26d43 before this state write",
-      "Confirmed no Vercel deployment status or PR comment is attached to that pre-import feature-branch head",
-      "Used this governor-only commit as a safe post-import feature-branch push so Vercel Git integration can create a preview if the imported project is correctly connected",
-      "Made no product, checkout, webhook, database, or secret changes"
+      "Confirmed the owner import connected Vercel Git integration: a fresh feature push created a Vercel commit status",
+      "Observed Vercel deployment failure on commit 7d710180254af0b024b6911529dc0c6c92bcdf44",
+      "Observed the same Vercel failure again on commit 5c6046b34b5c36f1bf2fddf933dcc5bd6105df67, ruling out a one-off deployment transient",
+      "Confirmed GitHub Browser QA and CI were not equivalent to Vercel because CI did not run pnpm build and Playwright exercised the development/test server boundary",
+      "Confirmed main does not contain package.json or the Next.js app; the product is still entirely on feat/mystery-foundation",
+      "Confirmed main and the feature branch diverged after CI harness commits were added to main independently of the feature branch",
+      "Added pnpm build to the CI workflow on feat/mystery-foundation as diagnostic instrumentation",
+      "Detected that changing only the feature copy created an add/add CI workflow conflict and prevented the PR merge ref from being generated",
+      "Added the identical pnpm build gate to the trusted main CI workflow, restoring identical CI workflow content across both sides without merging product code",
+      "Made no product runtime, checkout, webhook, database, or secret changes"
     ],
     "verification": {
       "verifiedProductHead": "c5a8f664a02198441679327032045bca594a1c1c",
-      "ciRun": 32129861683,
-      "ci": "GREEN on verified product head",
-      "browserQaRun": 32129861614,
-      "browserQa": "GREEN desktop + mobile on verified product head",
-      "vercelTeam": "SAMX",
-      "vercelTeamId": "team_iG5Amx3WwHQ3Te5KGbmIOiqs",
-      "vercelProjectsObservedImmediatelyAfterOwnerImport": 0,
-      "preTriggerVercelStatusOnFeatureHead": "NONE",
+      "freshBrowserQaBeforeDiagnostic": "14/14 desktop+mobile on 7d710180254af0b024b6911529dc0c6c92bcdf44",
+      "freshCiBeforeDiagnostic": "GREEN tests+typecheck on 7d710180254af0b024b6911529dc0c6c92bcdf44",
+      "vercelFeatureDeployAttempt1": "FAILURE",
+      "vercelFeatureDeployAttempt2": "FAILURE",
+      "vercelProjectPathFromGitHubStatus": "samx4/issued-once",
+      "vercelInventoryVisibility": "CONNECTED_TEAM_LISTS_ZERO_PROJECTS",
+      "mainHasPackageJson": false,
+      "productionBuildPreviouslyCoveredByCI": false,
+      "ciProductionBuildGateNowOnMain": true,
+      "ciProductionBuildGateNowOnFeature": true,
       "ownerTestableUrl": null,
       "plannedDomain": "issuedonce.shop",
       "databaseMigration": "NOT_CLAIMED_APPLIED"
     },
-    "ownerAction": "NONE - import was reported complete",
+    "ownerAction": "NONE",
     "nextActions": [
-      "Re-query Vercel project inventory after this post-import feature-branch push",
-      "Inspect the newest deployment and build logs as soon as the project becomes discoverable",
-      "Inspect GitHub status/check evidence for a Vercel preview on the new feature head",
-      "Keep production checkout/webhook/database writes fail-closed",
+      "Inspect the CI run triggered by this post-base-sync feature push",
+      "Read the exact pnpm build failure from the Production build step if RED",
+      "Form one root-cause hypothesis from that error and add a failing regression/build test where applicable",
+      "Implement only the minimal root-cause fix",
+      "Require tests, typecheck, production build, Browser QA, and Vercel deployment to all turn green before reporting a URL",
       "Live-test the HTTPS homepage and complete mystery flow on desktop/mobile",
-      "Report the exact owner-testable URL only after fresh live verification",
+      "Keep production checkout/webhook/database writes fail-closed",
       "Retry isolated Neon migration verification when connector access is available",
       "Attach issuedonce.shop only after domain ownership/DNS is available and reverify TLS plus webhook endpoint"
     ]
