@@ -5,7 +5,7 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentVerifiedHead": "d7948d69899cfe41ad1a7591766b058a6e13a541"
+    "currentVerifiedHead": "c4a51f963aff2e64743a6c33fa70f46705029bbb"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
@@ -25,25 +25,27 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "base-selection-persistence-2026-08-18",
-    "objective": "Persist the exact selected base/variant and advance commitment readiness safely.",
+    "cycleId": "public-base-to-commitment-acceptance-2026-08-18",
+    "objective": "Complete and prove the real public BASE -> COMMITMENT boundary without browser-trusted product facts.",
     "changes": [
-      "Added durable confirmBaseAndAdvance on PostgresPhysicalSelectionRepository",
-      "Requires an existing confirmed size and unset base/variant fields",
-      "Persists color code, color label, optional swatch and exact provider variant ID",
-      "Advances only SIZE_CONFIRMED -> COMMITMENT_READY"
+      "Added preview checkout quote storage and preview base persistence parity",
+      "Added COMMITMENT_READY database migration",
+      "Wired fail-closed createBaseSelectionService for preview and production",
+      "Added /api/experience/base accepting only colorCode plus anonymous session cookie",
+      "Reduced the browser base request itself to {colorCode} only"
     ],
     "verification": {
-      "ci": "GREEN on d7948d69899cfe41ad1a7591766b058a6e13a541",
-      "browserQa": "GREEN on d7948d69899cfe41ad1a7591766b058a6e13a541",
-      "persistenceRed": "55 tests passed and only the two missing confirmBaseAndAdvance assertions failed before implementation"
+      "ci": "GREEN on c4a51f963aff2e64743a6c33fa70f46705029bbb",
+      "browserQa": "GREEN on c4a51f963aff2e64743a6c33fa70f46705029bbb",
+      "desktopPublicPath": "GREEN through HOODIE -> M -> BONE -> FORM COMPLETE -> $54.00 -> ISSUE MINE",
+      "mobilePublicPath": "GREEN through HOODIE -> M -> BONE -> FORM COMPLETE -> $54.00 -> ISSUE MINE",
+      "wireContract": "Browser POST /api/experience/base body is exactly {colorCode: Bone}"
     },
     "nextActions": [
-      "Add preview base persistence with the same stage/idempotency rules",
-      "Add migration support for COMMITMENT_READY",
-      "Add route/runtime RED for /api/experience/base accepting only colorCode",
-      "Wire BaseSelectionService with preview/Postgres quote repositories",
-      "Prove real public BASE -> COMMITMENT on desktop and mobile"
+      "Create a checkout-state RED requiring COMMITMENT_READY before commerce",
+      "Advance COMMITMENT_READY -> CHECKOUT_STARTED only after successful hosted-cart creation",
+      "Preserve fail-closed quote ownership, expiry and live variant/price checks",
+      "Prove public ISSUE MINE -> hosted checkout redirect in desktop and mobile Chromium without weakening checkout-failure recovery"
     ]
   }
 }
