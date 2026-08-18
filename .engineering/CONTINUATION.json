@@ -5,7 +5,7 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "headShaAtRecovery": "3da8fc874d33503ec8d395a04a97c807a5045259"
+    "currentVerifiedHead": "3bbac6a5eb2b630d782f2495057eb5b0960e8506"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
@@ -31,22 +31,25 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "recovery-and-browser-root-cause-2026-08-18",
-    "updatedAt": "2026-08-18T13:43:00+05:00",
-    "objective": "Recover canonical branch state and diagnose the only failing verification gate after FIT-to-BASE wiring.",
-    "evidence": {
-      "ci": "GREEN on head 3da8fc874d33503ec8d395a04a97c807a5045259",
+    "cycleId": "browser-synchronization-repair-2026-08-18",
+    "objective": "Eliminate the legacy desktop public-interview Playwright race without changing product behavior.",
+    "changes": [
+      "Added condition-based CONTINUE enablement and exact next-progress waits to the legacy public seven-answer path",
+      "Kept production code untouched"
+    ],
+    "verification": {
+      "ci": "GREEN on 3bbac6a5eb2b630d782f2495057eb5b0960e8506",
+      "browserQa": "GREEN on 3bbac6a5eb2b630d782f2495057eb5b0960e8506",
       "publicPhysicalDesktop": "GREEN through HOODIE -> FIT -> M -> BASE",
       "publicPhysicalMobile": "GREEN through HOODIE -> FIT -> M -> BASE",
-      "browserQa": "RED only in legacy desktop seven-answer unlock test",
-      "legacyFailure": "CONTINUE remained disabled because the helper filled/clicked before waiting for the next question state",
-      "workingReference": "tests/e2e/public-physical-flow.spec.ts waits for each exact NN / 07 transition before continuing"
+      "legacyDesktopUnlock": "GREEN after condition-based synchronization"
     },
-    "rootCause": "Legacy Playwright helper lacks condition-based synchronization between server-accepted answer transitions; this is a test synchronization defect, not a product regression.",
+    "rootCauseResolved": "The legacy helper advanced before the server-driven question transition was observable; the test now waits on explicit state instead of timing.",
     "nextActions": [
-      "Make the legacy public seven-answer test use condition-based question-state waits",
-      "Run fresh CI and Browser QA on the new branch head",
-      "If both gates are green, continue to the base-color -> exact variant -> opaque quote -> commitment boundary"
+      "Create a RED contract for base-color confirmation that resolves one exact currently available provider variant from the already-locked product and size",
+      "Persist base color and variant server-side and create an opaque short-lived checkout quote",
+      "Add /api/experience/base with minimal browser input",
+      "Prove real public BASE -> COMMITMENT on desktop and mobile before touching hosted checkout success"
     ]
   }
 }
