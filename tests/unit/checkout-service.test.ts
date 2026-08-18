@@ -5,6 +5,7 @@ const now = new Date('2026-08-18T06:30:00.000Z');
 const quote = {
   id: 'quote-opaque-1',
   experienceId: 'exp-1',
+  productSlug: 'mystery-hoodie',
   variantId: '000009c2-0c75-0024-0000-09c20c750024',
   amountMinor: 5400,
   currency: 'USD',
@@ -47,7 +48,11 @@ describe('CheckoutService', () => {
       experienceId: quote.experienceId,
     });
 
-    expect(commerce.getVariant).toHaveBeenCalledWith(quote.variantId, 'USD');
+    expect(commerce.getVariant).toHaveBeenCalledWith(
+      quote.productSlug,
+      quote.variantId,
+      'USD',
+    );
     expect(commerce.createCart).toHaveBeenCalledWith({
       variantId: quote.variantId,
       quantity: 1,
