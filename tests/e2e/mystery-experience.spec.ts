@@ -165,6 +165,20 @@ test('the mystery journey crosses private traces, physical locks, and conscious 
   expect(commitmentMetrics.buttonBorderTop).toBe(0);
 
   await capture(page, `08-commitment-${testInfo.project.name}`);
+
+  await page.route('**/api/checkout/start', async (route) => {
+    await route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Checkout unavailable' }),
+    });
+  });
+  await issueMine.click();
+  await expect(page.getByRole('status')).toHaveText('CHECKOUT NOT OPENED / TRY AGAIN');
+  await expect(page.getByText('HOODIE / M / BONE')).toBeVisible();
+  await expect(page.getByText('$54.00')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'ISSUE MINE' })).toBeEnabled();
+  await capture(page, `11-checkout-recovery-${testInfo.project.name}`);
 });
 
 test('the first question fits the viewport without horizontal overflow', async ({ page }, testInfo) => {
