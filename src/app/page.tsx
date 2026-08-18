@@ -12,7 +12,7 @@ export default function Home() {
 
         <div className={styles.heroBody}>
           <span className={styles.index}>ENTRY / 00</span>
-          <h1 id="entry-prompt">
+          <h1 id="entry-prompt" aria-label="A piece of your mind. Issued for you.">
             A piece of your mind.
             <br />
             <em>Issued for you.</em>
