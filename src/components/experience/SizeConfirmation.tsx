@@ -6,7 +6,7 @@ import type { ObjectType } from './ObjectSelection';
 export type SizeOption = {
   code: string;
   label: string;
-  measurements: string;
+  measurements?: string;
 };
 
 type SizeConfirmationProps = {
@@ -47,11 +47,13 @@ export function SizeConfirmation({ object, sizes, onConfirm }: SizeConfirmationP
               value={size.code}
               checked={selected === size.code}
               onChange={() => setSelected(size.code)}
-              aria-label={`${size.label} — ${size.measurements}`}
+              aria-label={size.measurements ? `${size.label} — ${size.measurements}` : size.label}
             />
             <span className="size-confirmation__code">{size.code}</span>
             <span className="size-confirmation__label">{size.label}</span>
-            <span className="size-confirmation__measurements">{size.measurements}</span>
+            {size.measurements ? (
+              <span className="size-confirmation__measurements">{size.measurements}</span>
+            ) : null}
           </label>
         ))}
       </fieldset>
