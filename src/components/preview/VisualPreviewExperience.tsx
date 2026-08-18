@@ -15,6 +15,7 @@ const VISUAL_QA_SIZE_CATALOG = {
     { code: 'L', label: 'Large', measurements: 'Chest 24 in · Length 28 in' },
   ],
   hat: [{ code: 'OS', label: 'One size', measurements: 'Adjustable closure' }],
+  tote: [{ code: 'OS', label: 'One size', measurements: 'One size' }],
 } as const;
 
 const VISUAL_QA_BASE_COLOR_CATALOG = {
@@ -49,6 +50,12 @@ const VISUAL_QA_BASE_COLOR_CATALOG = {
     ],
   },
   hat: {
+    OS: [
+      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
+      { code: 'black', label: 'Black', swatch: '#171713' },
+    ],
+  },
+  tote: {
     OS: [
       { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
       { code: 'black', label: 'Black', swatch: '#171713' },
