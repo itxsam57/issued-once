@@ -16,6 +16,10 @@ const PREVIEW_VARIANTS: Record<string, readonly CatalogVariant[]> = {
     { id: 'hat-os-bone', size: 'OS', colorName: 'Bone', colorSwatch: '#e8e0cf', amountMinor: 3400, currency: 'USD', available: true },
     { id: 'hat-os-black', size: 'OS', colorName: 'Black', colorSwatch: '#171713', amountMinor: 3400, currency: 'USD', available: true },
   ],
+  'preview-tote': [
+    { id: 'tote-os-bone', size: 'OS', colorName: 'Bone', colorSwatch: '#e8e0cf', amountMinor: 3600, currency: 'USD', available: true },
+    { id: 'tote-os-black', size: 'OS', colorName: 'Black', colorSwatch: '#171713', amountMinor: 3600, currency: 'USD', available: true },
+  ],
 };
 
 export class PreviewCatalogGateway implements CatalogGateway {
