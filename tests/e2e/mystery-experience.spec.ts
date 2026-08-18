@@ -2,7 +2,7 @@ import { mkdir } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
 const forbiddenBeforeClose = /\b(?:tee|hoodie|hat|product|garment)\b|shop now/i;
-const forbiddenCreativeControl = /\b(?:artwork|design|preview|sample|recommended)\b/i;
+const forbiddenCreativeControl = /\b(?:artwork|design|preview|sample|recommended|palette|style)\b/i;
 const forbiddenSizeFear = /\b(?:return|refund|final sale|guaranteed fit|perfect fit)\b/i;
 const visualQaPath = '/visual-qa/experience';
 
@@ -16,7 +16,7 @@ async function capture(page: import('@playwright/test').Page, name: string) {
   await page.screenshot({ path: `artifacts/visual/${name}.png`, fullPage: true });
 }
 
-test('the mystery journey crosses from seven private traces through form and size without revealing creative control', async ({ page }, testInfo) => {
+test('the mystery journey crosses seven private traces and only physical choices without creative control', async ({ page }, testInfo) => {
   await page.goto(visualQaPath);
 
   await expect(page.getByText('VISUAL QA / NOT PRODUCTION')).toBeVisible();
@@ -94,6 +94,20 @@ test('the mystery journey crosses from seven private traces through form and siz
   await expect(confirmSize).toBeEnabled();
   await capture(page, `06-size-${testInfo.project.name}`);
   await confirmSize.click();
+
+  await expect(page.getByText('FIT LOCKED / BASE')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Choose the color it begins as.' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Bone' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Black' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Ash' })).toBeVisible();
+  await expect(page.locator('body')).not.toContainText(forbiddenCreativeControl);
+
+  const lockBase = page.getByRole('button', { name: 'LOCK BASE' });
+  await expect(lockBase).toBeDisabled();
+  await page.getByRole('radio', { name: 'Bone' }).check();
+  await expect(lockBase).toBeEnabled();
+  await capture(page, `07-base-${testInfo.project.name}`);
+  await lockBase.click();
 });
 
 test('the first question fits the viewport without horizontal overflow', async ({ page }, testInfo) => {
