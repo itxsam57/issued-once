@@ -4,6 +4,7 @@ import { expect, test } from '@playwright/test';
 const forbiddenBeforeClose = /\b(?:tee|hoodie|hat|product|garment)\b|shop now/i;
 const forbiddenCreativeControl = /\b(?:artwork|design|preview|sample|recommended|palette|style)\b/i;
 const forbiddenSizeFear = /\b(?:return|refund|final sale|guaranteed fit|perfect fit)\b/i;
+const forbiddenCommitmentPressure = /\b(?:countdown|sold out|only\s+\d+\s+left|people are viewing|limited time|hurry|ending soon|return|refund|final sale)\b/i;
 const visualQaPath = '/visual-qa/experience';
 
 async function continueText(page: import('@playwright/test').Page, answer: string) {
@@ -16,7 +17,7 @@ async function capture(page: import('@playwright/test').Page, name: string) {
   await page.screenshot({ path: `artifacts/visual/${name}.png`, fullPage: true });
 }
 
-test('the mystery journey crosses seven private traces and only physical choices without creative control', async ({ page }, testInfo) => {
+test('the mystery journey crosses private traces, physical locks, and conscious commitment without pressure', async ({ page }, testInfo) => {
   await page.goto(visualQaPath);
 
   await expect(page.getByText('VISUAL QA / NOT PRODUCTION')).toBeVisible();
@@ -129,6 +130,16 @@ test('the mystery journey crosses seven private traces and only physical choices
   await expect(lockBase).toBeEnabled();
   await capture(page, `07-base-${testInfo.project.name}`);
   await lockBase.click();
+
+  await expect(page.getByText('FORM COMPLETE')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'From here, it becomes ours to interpret.' })).toBeVisible();
+  await expect(page.getByText('HOODIE / M / BONE')).toBeVisible();
+  await expect(page.getByText('$54.00')).toBeVisible();
+  await expect(page.getByText('Everything else stays unknown until it arrives.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'ISSUE MINE' })).toBeVisible();
+  await expect(page.locator('body')).not.toContainText(forbiddenCommitmentPressure);
+  await expect(page.locator('body')).not.toContainText(forbiddenCreativeControl);
+  await capture(page, `08-commitment-${testInfo.project.name}`);
 });
 
 test('the first question fits the viewport without horizontal overflow', async ({ page }, testInfo) => {
