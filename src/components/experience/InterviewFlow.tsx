@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { QUESTIONS } from '@/domain/experience/questions';
-import type { QuestionId } from '@/domain/experience/types';
+import type { QuestionDefinition, QuestionId } from '@/domain/experience/types';
 import { InterviewQuestion } from './InterviewQuestion';
 
 type AnswerPayload = {
@@ -11,21 +11,29 @@ type AnswerPayload = {
 };
 
 type InterviewFlowProps = {
+  questions?: readonly QuestionDefinition[];
   initialPosition?: number;
+  initiallyComplete?: boolean;
   onAnswer: (payload: AnswerPayload) => Promise<void> | void;
   onComplete?: () => Promise<void> | void;
   onProceed?: () => Promise<void> | void;
 };
 
 export function InterviewFlow({
+  questions = QUESTIONS,
   initialPosition = 1,
+  initiallyComplete = false,
   onAnswer,
   onComplete,
   onProceed,
 }: InterviewFlowProps) {
-  const safeInitialIndex = Math.min(Math.max(initialPosition - 1, 0), QUESTIONS.length - 1);
+  if (questions.length !== 7) {
+    throw new Error('Interview requires exactly seven assigned questions');
+  }
+
+  const safeInitialIndex = Math.min(Math.max(initialPosition - 1, 0), questions.length - 1);
   const [questionIndex, setQuestionIndex] = useState(safeInitialIndex);
-  const [complete, setComplete] = useState(false);
+  const [complete, setComplete] = useState(initiallyComplete);
 
   if (complete) {
     return (
@@ -42,12 +50,12 @@ export function InterviewFlow({
     );
   }
 
-  const question = QUESTIONS[questionIndex];
+  const question = questions[questionIndex];
 
   async function handleAnswer(payload: AnswerPayload) {
     await onAnswer(payload);
 
-    if (questionIndex === QUESTIONS.length - 1) {
+    if (questionIndex === questions.length - 1) {
       setComplete(true);
       await onComplete?.();
       return;
@@ -62,7 +70,7 @@ export function InterviewFlow({
         key={question.id}
         question={question}
         position={questionIndex + 1}
-        total={QUESTIONS.length}
+        total={questions.length}
         onAnswer={handleAnswer}
       />
     </div>
