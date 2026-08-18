@@ -3,7 +3,7 @@ import { hashSessionToken } from '@/server/http/sessionToken';
 import type { CatalogGateway } from './CatalogGateway';
 import type { ObjectType, PhysicalSelectionRepository } from './PhysicalSelectionRepository';
 
-type ProductSlugs = Record<ObjectType, string>;
+type ProductSlugs = Partial<Record<ObjectType, string>>;
 
 type ObjectSelectionServiceDependencies = {
   experienceRepository: Pick<ExperienceRepository, 'findBySessionHash'>;
