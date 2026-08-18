@@ -16,6 +16,45 @@ const VISUAL_QA_SIZE_CATALOG = {
   hat: [{ code: 'OS', label: 'One size', measurements: 'Adjustable closure' }],
 } as const;
 
+const VISUAL_QA_BASE_COLOR_CATALOG = {
+  tee: {
+    S: [
+      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
+      { code: 'black', label: 'Black', swatch: '#171713' },
+    ],
+    M: [
+      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
+      { code: 'black', label: 'Black', swatch: '#171713' },
+      { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
+    ],
+    L: [
+      { code: 'black', label: 'Black', swatch: '#171713' },
+      { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
+    ],
+  },
+  hoodie: {
+    S: [
+      { code: 'black', label: 'Black', swatch: '#171713' },
+      { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
+    ],
+    M: [
+      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
+      { code: 'black', label: 'Black', swatch: '#171713' },
+      { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
+    ],
+    L: [
+      { code: 'black', label: 'Black', swatch: '#171713' },
+      { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
+    ],
+  },
+  hat: {
+    OS: [
+      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
+      { code: 'black', label: 'Black', swatch: '#171713' },
+    ],
+  },
+} as const;
+
 export function VisualPreviewExperience() {
   return (
     <main className="visual-preview">
@@ -27,6 +66,8 @@ export function VisualPreviewExperience() {
         onObjectSelected={async () => undefined}
         sizeCatalog={VISUAL_QA_SIZE_CATALOG}
         onSizeConfirmed={async () => undefined}
+        baseColorCatalog={VISUAL_QA_BASE_COLOR_CATALOG}
+        onBaseColorConfirmed={async () => undefined}
       />
     </main>
   );
