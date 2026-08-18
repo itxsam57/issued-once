@@ -9,10 +9,10 @@
     "currentVerifiedHead": "c5a8f664a02198441679327032045bca594a1c1c"
   },
   "continuationGovernor": {
-    "state": "ACTIVE",
-    "decision": "CONTINUE",
+    "state": "OWNER_REQUIRED",
+    "decision": "STOP_FOR_OWNER_ACTION",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": null
+    "stopReason": "The ISSUED ONCE repository is not imported as a Vercel project. The connected SAMX team currently has zero projects, and the available Vercel deploy action cannot create/import the GitHub project from this chat because its runtime requires a project/file-bundle contract that is not exposed by the connector. A live owner-testable URL cannot be truthfully produced until the repository is imported."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -26,43 +26,43 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "paid-order-privacy-replay-concurrency-green-2026-08-18",
-    "objective": "Harden the paid-order subsystem against provider PII leakage, duplicate replay and concurrent duplicate delivery while preserving the existing customer browser journey.",
+    "cycleId": "front-page-deployment-owner-gate-2026-08-18",
+    "objective": "Move the fully green mystery flow from browser QA into a real owner-testable HTTPS preview without inventing deployment state.",
     "changes": [
-      "Added paid-order privacy regression suite using a provider-shaped payload containing customer email, message, shipping/address and attacker-controlled product/variant/price fields",
-      "Verified minimized envelope and reservation inputs contain none of those private/provider-controlled values",
-      "Added migration structure assertions for event/Issue uniqueness and absence of customer/quiz columns",
-      "Added signed raw-body integration fixture that verifies HMAC, parses the minimized envelope and creates exactly one private Issue",
-      "Replaying the same signed event returns the existing permanent Issue instead of inserting another",
-      "Concurrent duplicate delivery produces one commercial Issue with processed+duplicate outcomes",
-      "Signed Fourthwall test notifications produce zero production Issues",
-      "Integrated the integration suite into normal pnpm test execution"
+      "Confirmed Task 7 CI GREEN on c5a8f664a02198441679327032045bca594a1c1c",
+      "Confirmed full desktop + Pixel-7 Browser QA GREEN on the same head and visual evidence uploaded",
+      "Retried Neon isolated-migration workflow but the Neon connector became unavailable; production migration remains unapplied and is not claimed complete",
+      "Confirmed Vercel team SAMX exists but currently contains zero projects",
+      "Attempted connected Vercel direct deployment; runtime rejected it because the connector requires deployment target/name/files that its exposed contract does not provide",
+      "Rediscovery did not expose a create/import-project action",
+      "Downloaded the current green Chromium artifact so the owner can inspect the current flow while deployment waits on repo import"
     ],
     "verification": {
-      "head": "c5a8f664a02198441679327032045bca594a1c1c",
+      "verifiedProductHead": "c5a8f664a02198441679327032045bca594a1c1c",
       "ciRun": 32129861683,
-      "unitIntegrationTests": "GREEN",
-      "typecheck": "GREEN",
+      "ci": "GREEN",
       "browserQaRun": 32129861614,
-      "desktopMobileBrowserQa": "GREEN",
-      "visualEvidenceUpload": "GREEN",
-      "migrationVerification": "DEFERRED_EXTERNAL: Neon connector became unavailable when isolated verification was attempted"
+      "browserQa": "GREEN desktop + mobile",
+      "browserArtifactId": 9321789707,
+      "databaseMigration": "NOT_APPLIED; isolated verification deferred because Neon connector unavailable",
+      "vercelTeam": "SAMX",
+      "vercelProjectsObserved": 0,
+      "directDeployAttempt": "FAILED_CONNECTOR_CONTRACT; no deployment URL created"
     },
     "frontPageStatus": {
-      "publicPreview": "NOT_DEPLOYED_YET",
+      "codeAndBrowserQa": "GREEN",
+      "publicPreview": "OWNER_REQUIRED_IMPORT",
       "ownerTestableUrl": null,
-      "plannedDomain": "issuedonce.shop",
-      "vercelTeam": "SAMX",
-      "vercelTeamId": "team_iG5Amx3WwHQ3Te5KGbmIOiqs",
-      "vercelProjectsObserved": 0
+      "plannedDomain": "issuedonce.shop"
     },
-    "ownerAction": null,
+    "ownerAction": "In Vercel team SAMX, import the GitHub repository itxsam57/issued-once as a new project. Use the repository root and Next.js defaults. Do not add production secrets yet. After the project exists, tell ChatGPT 'vercel imported'.",
     "nextActions": [
-      "Attempt Vercel preview deployment from the connected deployment tool",
-      "If deployment succeeds, live-test the HTTPS front page and report the exact owner-testable URL",
-      "If deployment cannot create/import a project, enter OWNER_REQUIRED with only the exact GitHub-to-Vercel import action",
-      "Retry isolated Neon migration verification in a later cycle when the connector is available",
-      "Do not apply production database migration without isolated verification"
+      "OWNER_REQUIRED: import itxsam57/issued-once into Vercel team SAMX",
+      "After import, discover the new Vercel project and inspect its first deployment",
+      "Configure only preview-safe environment needed for a testable mystery flow; keep production payment/webhook writes fail-closed until durable external configuration is verified",
+      "Live-test HTTPS front page and full mystery journey, then report the exact owner-testable URL",
+      "Retry isolated Neon migration verification later when the connector is available",
+      "After domain ownership is available, attach issuedonce.shop and reverify TLS + webhook path"
     ]
   }
 }
