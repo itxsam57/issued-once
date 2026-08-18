@@ -28,11 +28,15 @@ type MysteryExperienceProps = {
   initialQuestionPosition?: number;
   onAnswer: (payload: AnswerPayload) => Promise<void> | void;
   onInterviewComplete?: () => Promise<void> | void;
-  onObjectSelected: (object: ObjectType) => Promise<void> | void;
+  onObjectSelected: (object: ObjectType) => Promise<readonly SizeOption[] | void> | readonly SizeOption[] | void;
   sizeCatalog?: SizeCatalog;
-  onSizeConfirmed?: (selection: { object: ObjectType; sizeCode: string }) => Promise<void> | void;
+  onSizeConfirmed?: (
+    selection: { object: ObjectType; sizeCode: string },
+  ) => Promise<readonly BaseColorOption[] | void> | readonly BaseColorOption[] | void;
   baseColorCatalog?: BaseColorCatalog;
-  onBaseColorConfirmed?: (selection: LockedVariant) => Promise<void> | void;
+  onBaseColorConfirmed?: (
+    selection: LockedVariant,
+  ) => Promise<CommitmentQuote | void> | CommitmentQuote | void;
   getCommitmentQuote?: (selection: LockedVariant) => Promise<CommitmentQuote | null>;
   onCheckoutRequested?: (quoteId: string) => Promise<void> | void;
 };
@@ -55,27 +59,31 @@ export function MysteryExperience({
   const [selectedObject, setSelectedObject] = useState<ObjectType | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<{ code: string; label: string } | null>(null);
+  const [availableSizes, setAvailableSizes] = useState<readonly SizeOption[]>([]);
+  const [availableColors, setAvailableColors] = useState<readonly BaseColorOption[]>([]);
   const [commitmentQuote, setCommitmentQuote] = useState<CommitmentQuote | null>(null);
 
   async function handleObjectSelected(object: ObjectType) {
-    await onObjectSelected(object);
-
-    const sizes = sizeCatalog?.[object];
+    const returnedSizes = await onObjectSelected(object);
+    const sizes = returnedSizes?.length ? returnedSizes : sizeCatalog?.[object];
     if (!sizes?.length || !onSizeConfirmed) return;
 
     setSelectedObject(object);
+    setAvailableSizes(sizes);
     setPhase('size');
   }
 
   async function handleSizeConfirmed(sizeCode: string) {
     if (!selectedObject || !onSizeConfirmed) return;
 
-    await onSizeConfirmed({ object: selectedObject, sizeCode });
-
-    const colors = baseColorCatalog?.[selectedObject]?.[sizeCode];
+    const returnedColors = await onSizeConfirmed({ object: selectedObject, sizeCode });
+    const colors = returnedColors?.length
+      ? returnedColors
+      : baseColorCatalog?.[selectedObject]?.[sizeCode];
     if (!colors?.length || !onBaseColorConfirmed) return;
 
     setSelectedSize(sizeCode);
+    setAvailableColors(colors);
     setPhase('base');
   }
 
@@ -87,16 +95,14 @@ export function MysteryExperience({
       sizeCode: selectedSize,
       colorCode,
     };
-    await onBaseColorConfirmed(selection);
+    const returnedQuote = await onBaseColorConfirmed(selection);
+    const quote = returnedQuote ?? (await getCommitmentQuote?.(selection)) ?? null;
+    if (!quote || !onCheckoutRequested) return;
 
-    if (!getCommitmentQuote || !onCheckoutRequested) return;
-
-    const quote = await getCommitmentQuote(selection);
-    if (!quote) return;
-
-    const color = baseColorCatalog?.[selectedObject]?.[selectedSize]?.find(
-      (option) => option.code === colorCode,
-    );
+    const color = availableColors.find((option) => option.code === colorCode)
+      ?? baseColorCatalog?.[selectedObject]?.[selectedSize]?.find(
+        (option) => option.code === colorCode,
+      );
     if (!color) return;
 
     setSelectedColor({ code: color.code, label: color.label });
@@ -126,23 +132,19 @@ export function MysteryExperience({
   }
 
   if (phase === 'base' && selectedObject && selectedSize) {
-    const colors = baseColorCatalog?.[selectedObject]?.[selectedSize] ?? [];
-
     return (
       <BaseColorSelection
-        colors={colors}
+        colors={availableColors}
         onConfirm={handleBaseColorConfirmed}
       />
     );
   }
 
   if (phase === 'size' && selectedObject) {
-    const sizes = sizeCatalog?.[selectedObject] ?? [];
-
     return (
       <SizeConfirmation
         object={selectedObject}
-        sizes={sizes}
+        sizes={availableSizes}
         onConfirm={handleSizeConfirmed}
       />
     );
