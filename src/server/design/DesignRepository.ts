@@ -61,5 +61,6 @@ export interface DesignRepository {
     model: string;
     updatedAt: Date;
   }): Promise<DesignJobRecord>;
+  approve(jobId: string, checks: readonly string[], approvedAt: Date): Promise<DesignJobRecord>;
   markFailed(jobId: string, code: string, updatedAt: Date): Promise<void>;
 }
