@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, test, vi } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { MysteryExperience } from '@/components/experience/MysteryExperience';
 
 async function answerText(user: ReturnType<typeof userEvent.setup>, value: string) {
@@ -43,11 +43,12 @@ test('loads the selected form size facts and requires confirmation before the ne
   await user.click(screen.getByRole('radio', { name: 'TEE' }));
   await user.click(screen.getByRole('button', { name: 'LOCK FORM' }));
 
-  expect(screen.getByRole('heading', { name: 'Choose the size it should become.' })).toBeInTheDocument();
-  expect(screen.getByText('Chest 20 in · Length 29 in')).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Pick your size.' })).toBeInTheDocument();
+  expect(screen.queryByText('Chest 20 in · Length 29 in')).not.toBeInTheDocument();
   expect(screen.queryByText('Adjustable closure')).not.toBeInTheDocument();
 
-  await user.click(screen.getByRole('radio', { name: /Medium/ }));
+  await user.click(screen.getByRole('radio', { name: /^Medium —/ }));
+  expect(screen.getByText('Chest 20 in · Length 29 in')).toBeInTheDocument();
   await user.click(screen.getByRole('button', { name: 'CONFIRM SIZE' }));
 
   expect(onSizeConfirmed).toHaveBeenCalledWith({ object: 'tee', sizeCode: 'M' });
