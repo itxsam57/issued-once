@@ -38,7 +38,7 @@ async function reachPhysicalForm(page: import('@playwright/test').Page) {
   await expect(page.getByText('FORM / UNLOCKED')).toBeVisible();
 }
 
-test('public physical flow reaches provider-backed commitment without sending trusted product facts', async ({ page }, testInfo) => {
+test('public physical flow reaches provider-backed commitment and redirects to hosted checkout without trusted browser product facts', async ({ page }, testInfo) => {
   await reachPhysicalForm(page);
 
   await page.getByRole('radio', { name: 'HOODIE' }).check();
@@ -71,6 +71,35 @@ test('public physical flow reaches provider-backed commitment without sending tr
   await expect(page.getByText('HOODIE / M / BONE')).toBeVisible();
   await expect(page.getByText('$54.00')).toBeVisible();
   await expect(page.getByText('Everything else stays unknown until it arrives.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'ISSUE MINE' })).toBeVisible();
+  const issueMine = page.getByRole('button', { name: 'ISSUE MINE' });
+  await expect(issueMine).toBeVisible();
   await capture(page, `14-public-commitment-${testInfo.project.name}`);
+
+  await page.route('https://checkout.example.test/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'text/html',
+      body: '<!doctype html><html><body><h1>HOSTED CHECKOUT TEST</h1></body></html>',
+    });
+  });
+  await page.route('**/api/checkout/start', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ checkoutUrl: 'https://checkout.example.test/issued-once' }),
+    });
+  });
+
+  const checkoutRequestPromise = page.waitForRequest((request) =>
+    request.url().endsWith('/api/checkout/start') && request.method() === 'POST',
+  );
+  await issueMine.click();
+  const checkoutRequest = await checkoutRequestPromise;
+  const checkoutPayload = checkoutRequest.postDataJSON() as Record<string, unknown>;
+  expect(Object.keys(checkoutPayload)).toEqual(['quoteId']);
+  expect(typeof checkoutPayload.quoteId).toBe('string');
+  expect(String(checkoutPayload.quoteId).length).toBeGreaterThan(0);
+
+  await page.waitForURL('https://checkout.example.test/issued-once');
+  await expect(page.getByRole('heading', { name: 'HOSTED CHECKOUT TEST' })).toBeVisible();
 });
