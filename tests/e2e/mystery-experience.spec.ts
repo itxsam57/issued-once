@@ -203,3 +203,28 @@ test('the public BEGIN link opens the first mystery question without category le
   await expect(page.locator('body')).not.toContainText(forbiddenBeforeClose);
   await capture(page, `09-public-entry-${testInfo.project.name}`);
 });
+
+test('the real public seven-answer path can unlock the physical form instead of ending in a dead end', async ({ page }, testInfo) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: /BEGIN/ }).click();
+
+  await continueText(page, 'old maps, storms, strange machines');
+  await continueText(page, 'a quiet cabin above a valley');
+  await page.getByLabel('4 a.m.').check();
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  await continueText(page, 'quiet does not mean uncertain');
+  await continueText(page, 'a song that feels older than it is');
+  await continueText(page, 'literal portraits');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+
+  await expect(page.getByRole('heading', { name: 'WE HAVE ENOUGH.' })).toBeVisible();
+  const unlockForm = page.getByRole('button', { name: 'UNLOCK FORM' });
+  await expect(unlockForm).toBeVisible();
+  await unlockForm.click();
+
+  await expect(page.getByText('FORM / UNLOCKED')).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'TEE' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'HOODIE' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'HAT' })).toBeVisible();
+  await capture(page, `12-public-form-${testInfo.project.name}`);
+});
