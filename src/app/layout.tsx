@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { PUBLIC_METADATA } from '@/brand/publicMetadata';
 import './globals.css';
 import './object-stage.css';
+import './size-stage.css';
 
 export const metadata: Metadata = PUBLIC_METADATA;
 
