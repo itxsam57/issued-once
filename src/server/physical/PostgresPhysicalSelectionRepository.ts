@@ -1,5 +1,7 @@
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type {
+  BaseSelectionRepository,
+  BaseSelectionTransition,
   ObjectSelectionTransition,
   PhysicalSelectionRecord,
   PhysicalSelectionRepository,
@@ -28,7 +30,7 @@ function isObjectType(value: string): value is PhysicalSelectionRecord['object']
 }
 
 export class PostgresPhysicalSelectionRepository
-  implements PhysicalSelectionRepository, SizeSelectionRepository
+  implements PhysicalSelectionRepository, SizeSelectionRepository, BaseSelectionRepository
 {
   constructor(private readonly sql: SqlExecutor) {}
 
@@ -64,9 +66,7 @@ export class PostgresPhysicalSelectionRepository
       ],
     );
 
-    if (rows.length !== 1) {
-      throw new Error('Physical selection stage conflict');
-    }
+    if (rows.length !== 1) throw new Error('Physical selection stage conflict');
   }
 
   async findByExperienceId(experienceId: string): Promise<PhysicalSelectionRecord | null> {
@@ -88,9 +88,7 @@ export class PostgresPhysicalSelectionRepository
     );
     const row = rows[0];
     if (!row) return null;
-    if (!isObjectType(row.object_type)) {
-      throw new Error('Stored physical object is invalid');
-    }
+    if (!isObjectType(row.object_type)) throw new Error('Stored physical object is invalid');
 
     return {
       experienceId: row.experience_id,
@@ -125,17 +123,49 @@ export class PostgresPhysicalSelectionRepository
          RETURNING selection.experience_id
        )
        SELECT experience_id FROM persisted`,
+      [transition.experienceId, transition.expectedStage, transition.nextStage, transition.sizeCode, transition.updatedAt],
+    );
+
+    if (rows.length !== 1) throw new Error('Physical selection stage conflict');
+  }
+
+  async confirmBaseAndAdvance(transition: BaseSelectionTransition): Promise<void> {
+    const rows = await this.sql.query<TransitionRow>(
+      `WITH advanced AS (
+         UPDATE experiences
+         SET stage = $3,
+             updated_at = $8
+         WHERE id = $1
+           AND stage = $2
+           AND expires_at > $8
+         RETURNING id
+       ), persisted AS (
+         UPDATE experience_physical_selection AS selection
+         SET color_code = $4,
+             color_label = $5,
+             color_swatch = $6,
+             variant_id = $7,
+             updated_at = $8
+         FROM advanced
+         WHERE selection.experience_id = advanced.id
+           AND selection.size_code IS NOT NULL
+           AND selection.color_code IS NULL
+           AND selection.variant_id IS NULL
+         RETURNING selection.experience_id
+       )
+       SELECT experience_id FROM persisted`,
       [
         transition.experienceId,
         transition.expectedStage,
         transition.nextStage,
-        transition.sizeCode,
+        transition.colorCode,
+        transition.colorLabel,
+        transition.colorSwatch,
+        transition.variantId,
         transition.updatedAt,
       ],
     );
 
-    if (rows.length !== 1) {
-      throw new Error('Physical selection stage conflict');
-    }
+    if (rows.length !== 1) throw new Error('Physical selection stage conflict');
   }
 }
