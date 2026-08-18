@@ -53,7 +53,9 @@ async function confirmSize(selection: {
 }
 
 async function confirmBase(selection: LockedVariant): Promise<CommitmentQuote> {
-  return postJson<CommitmentQuote>('/api/experience/base', selection);
+  return postJson<CommitmentQuote>('/api/experience/base', {
+    colorCode: selection.colorCode,
+  });
 }
 
 async function requestCheckout(quoteId: string): Promise<void> {
