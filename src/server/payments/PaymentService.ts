@@ -92,8 +92,8 @@ export class PaymentService {
       provider: 'SAFEPAY', providerEventId: event.providerEventId, providerReference: event.providerReference,
       state: event.state, amountMinor: event.amountMinor, currency: event.currency, reference: event.reference, receivedAt: this.now(),
     });
-    if (!fresh) return { kind: 'duplicate' };
     const attempt = await this.dependencies.payments.findByProviderReference(event.providerReference);
+    if (!fresh) return { kind: 'duplicate', paymentAttemptId: attempt?.id };
     if (!attempt) return { kind: 'exception' };
 
     if (event.state === 'PAID') {
