@@ -55,6 +55,13 @@ const VISUAL_QA_BASE_COLOR_CATALOG = {
   },
 } as const;
 
+const VISUAL_QA_COMMITMENT_QUOTE = {
+  quoteId: 'qa-live-quote-001',
+  amountMinor: 5400,
+  currency: 'USD',
+  expiresAt: '2026-08-18T06:00:00.000Z',
+} as const;
+
 export function VisualPreviewExperience() {
   return (
     <main className="visual-preview">
@@ -68,6 +75,8 @@ export function VisualPreviewExperience() {
         onSizeConfirmed={async () => undefined}
         baseColorCatalog={VISUAL_QA_BASE_COLOR_CATALOG}
         onBaseColorConfirmed={async () => undefined}
+        getCommitmentQuote={async () => VISUAL_QA_COMMITMENT_QUOTE}
+        onCheckoutRequested={async () => undefined}
       />
     </main>
   );
