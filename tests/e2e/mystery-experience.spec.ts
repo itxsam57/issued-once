@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 
 const forbiddenBeforeClose = /\b(?:tee|hoodie|hat|product|garment)\b|shop now/i;
 const forbiddenCreativeControl = /\b(?:artwork|design|preview|sample|recommended)\b/i;
+const forbiddenSizeFear = /\b(?:return|refund|final sale|guaranteed fit|perfect fit)\b/i;
 const visualQaPath = '/visual-qa/experience';
 
 async function continueText(page: import('@playwright/test').Page, answer: string) {
@@ -15,7 +16,7 @@ async function capture(page: import('@playwright/test').Page, name: string) {
   await page.screenshot({ path: `artifacts/visual/${name}.png`, fullPage: true });
 }
 
-test('the mystery journey crosses from seven private traces into physical form without revealing creative control', async ({ page }, testInfo) => {
+test('the mystery journey crosses from seven private traces through form and size without revealing creative control', async ({ page }, testInfo) => {
   await page.goto(visualQaPath);
 
   await expect(page.getByText('VISUAL QA / NOT PRODUCTION')).toBeVisible();
@@ -64,6 +65,20 @@ test('the mystery journey crosses from seven private traces into physical form w
   await expect(lockForm).toBeEnabled();
   await capture(page, `05-form-${testInfo.project.name}`);
   await lockForm.click();
+
+  await expect(page.getByText('FORM LOCKED / FIT')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Choose the size it should become.' })).toBeVisible();
+  await expect(page.getByText('Chest 22 in · Length 27 in')).toBeVisible();
+  await expect(page.locator('body')).not.toContainText(forbiddenSizeFear);
+  await expect(page.locator('body')).not.toContainText(forbiddenCreativeControl);
+
+  const confirmSize = page.getByRole('button', { name: 'CONFIRM SIZE' });
+  await expect(confirmSize).toBeDisabled();
+  await page.getByRole('radio', { name: /Medium/ }).check();
+  await expect(page.getByText('Check this one carefully. This is the size we’ll make.')).toBeVisible();
+  await expect(confirmSize).toBeEnabled();
+  await capture(page, `06-size-${testInfo.project.name}`);
+  await confirmSize.click();
 });
 
 test('the first question fits the viewport without horizontal overflow', async ({ page }, testInfo) => {
