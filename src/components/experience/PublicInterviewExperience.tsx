@@ -1,6 +1,7 @@
 'use client';
 
-import type { QuestionId } from '@/domain/experience/types';
+import { useEffect, useState } from 'react';
+import type { QuestionDefinition, QuestionId } from '@/domain/experience/types';
 import type { BaseColorOption } from './BaseColorSelection';
 import type { CommitmentQuote } from './CommitmentScreen';
 import { MysteryExperience } from './MysteryExperience';
@@ -18,12 +19,19 @@ type LockedVariant = {
   colorCode: string;
 };
 
-async function postJson<T>(path: string, body: unknown): Promise<T> {
+type BootstrapPayload = {
+  stage: string;
+  initialPosition: number;
+  interviewComplete: boolean;
+  questions: QuestionDefinition[];
+};
+
+async function postJson<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(path, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: body === undefined ? undefined : { 'content-type': 'application/json' },
     credentials: 'same-origin',
-    body: JSON.stringify(body),
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -67,8 +75,50 @@ async function requestCheckout(quoteId: string): Promise<void> {
 }
 
 export function PublicInterviewExperience() {
+  const [bootstrap, setBootstrap] = useState<BootstrapPayload | null>(null);
+  const [bootstrapError, setBootstrapError] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void postJson<BootstrapPayload>('/api/experience/start')
+      .then((payload) => {
+        if (!active) return;
+        if (payload.questions.length !== 7) throw new Error('Interview assignment is invalid');
+        setBootstrap(payload);
+      })
+      .catch(() => {
+        if (active) setBootstrapError(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (bootstrapError) {
+    return (
+      <section className="interview-bootstrap" role="alert">
+        <p className="interview-complete__signal">ENTRY / INTERRUPTED</p>
+        <h1>Something didn&apos;t hold.</h1>
+        <p>Refresh to begin again.</p>
+      </section>
+    );
+  }
+
+  if (!bootstrap) {
+    return (
+      <section className="interview-bootstrap" aria-live="polite">
+        <p className="interview-complete__signal">ENTRY / 00</p>
+        <h1>ISSUED ONCE</h1>
+      </section>
+    );
+  }
+
   return (
     <MysteryExperience
+      questions={bootstrap.questions}
+      initialQuestionPosition={bootstrap.initialPosition}
+      interviewInitiallyComplete={bootstrap.interviewComplete}
       onAnswer={submitAnswer}
       onObjectSelected={selectObject}
       onSizeConfirmed={confirmSize}
