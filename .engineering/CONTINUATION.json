@@ -5,8 +5,8 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentBranchHead": "a8165bbec3c1809476745e2da11a9043d277d876",
-    "currentVerifiedHead": "a8165bbec3c1809476745e2da11a9043d277d876"
+    "currentBranchHead": "9e13468ce23bce0ba1a6e6b5adace016f1a9437c",
+    "currentVerifiedHead": "9e13468ce23bce0ba1a6e6b5adace016f1a9437c"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
@@ -26,37 +26,42 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "paid-order-webhook-processor-green-2026-08-18",
-    "objective": "Convert a minimized authenticated Fourthwall paid-order envelope into one idempotent private Issue reservation outcome.",
+    "cycleId": "signed-fourthwall-webhook-route-green-2026-08-18",
+    "objective": "Expose a fail-closed server endpoint that authenticates exact Fourthwall webhook bytes before any payload trust or paid-order processing.",
     "changes": [
-      "Added PaidOrderWebhookService with dependency-injected clock and Issue-code generator",
-      "Authenticated events are recorded before processing",
-      "Fourthwall testMode events are isolated as IGNORED_TEST and never create production Issues",
-      "Missing/unknown quote correlation and quote reconciliation mismatches are terminal/no-Issue outcomes",
-      "Normal reservation passes only event/order/quote identity to the repository; provider/customer/product/price fields are not accepted",
-      "Duplicate reservation returns the existing permanent Issue code",
-      "Issue-code collisions retry with fresh random candidates up to five attempts",
-      "Collision-budget exhaustion and repository failures are classified retryable"
+      "Added durable-only paid-order runtime requiring DATABASE_URL, FOURTHWALL_WEBHOOK_SECRET and FOURTHWALL_SHOP_ID",
+      "Added POST /api/webhooks/fourthwall",
+      "Route reads exact raw bytes once and verifies X-Fourthwall-Hmac-SHA256 before parsing JSON",
+      "Invalid signature returns 401 with no processor call",
+      "Malformed signed payload returns 400",
+      "Authenticated wrong shop/type/version are acknowledged without processing",
+      "test/processed/duplicate/terminal outcomes acknowledge 200",
+      "retryable processing and unavailable runtime return 503",
+      "Unexpected server error logging is generic and does not emit payload/signature/customer content",
+      "Corrected a Vitest hoisting defect in route test doubles without changing production behavior"
     ],
     "verification": {
-      "head": "a8165bbec3c1809476745e2da11a9043d277d876",
-      "ciRun": 32128952142,
+      "head": "9e13468ce23bce0ba1a6e6b5adace016f1a9437c",
+      "ciRun": 32129565977,
       "unitTests": "GREEN",
       "typecheck": "GREEN",
-      "collisionRetryBudget": 5,
-      "testEventProductionIssueWrites": "ZERO by service contract"
+      "webhookPath": "/api/webhooks/fourthwall",
+      "canonicalPlannedUrl": "https://issuedonce.shop/api/webhooks/fourthwall"
     },
     "frontPageStatus": {
       "publicPreview": "NOT_DEPLOYED_YET",
       "ownerTestableUrl": null,
-      "plannedDomain": "issuedonce.shop"
+      "plannedDomain": "issuedonce.shop",
+      "vercelTeam": "SAMX",
+      "vercelProjectsObserved": 0
     },
     "ownerAction": null,
     "nextActions": [
-      "Write RED tests for fail-closed paid-order runtime and signed Next.js webhook route",
-      "Implement /api/webhooks/fourthwall with exact raw-body HMAC verification before parsing",
-      "Then add privacy/replay/concurrency subsystem tests",
-      "Continue implementation plan autonomously"
+      "Add subsystem-wide signed-fixture privacy/replay/concurrency tests",
+      "Run full unit/type/browser gates",
+      "Then verify migrations on isolated Neon if connector is available",
+      "Attempt Vercel preview deployment and live-test front page",
+      "Continue autonomously"
     ]
   }
 }
