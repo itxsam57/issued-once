@@ -5,14 +5,14 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentBranchHead": "c5a8f664a02198441679327032045bca594a1c1c",
+    "currentBranchHead": "399f218adb85776209b16b8ce05244c06441c46d",
     "currentVerifiedHead": "c5a8f664a02198441679327032045bca594a1c1c"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "decision": "STOP_FOR_OWNER_ACTION",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The ISSUED ONCE repository is not imported as a Vercel project. The connected SAMX team currently has zero projects, and the available Vercel deploy action cannot create/import the GitHub project from this chat because its runtime requires a project/file-bundle contract that is not exposed by the connector. A live owner-testable URL cannot be truthfully produced until the repository is imported."
+    "stopReason": "The approved webhook/Issue-registry spec and implementation plan are present and the product/browser gates have progressed to a verified green front-page flow. The remaining blocker to an owner-testable HTTPS URL is external: Vercel team SAMX currently contains zero projects, and the available connector exposes no create/import-project action. The repository must be imported once by the owner before ChatGPT can inspect and continue deployment."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -26,43 +26,37 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "front-page-deployment-owner-gate-2026-08-18",
-    "objective": "Move the fully green mystery flow from browser QA into a real owner-testable HTTPS preview without inventing deployment state.",
+    "cycleId": "spec-approved-vercel-import-gate-2026-08-18",
+    "objective": "Honor owner approval, recover canonical implementation state, verify the next external boundary, and avoid duplicating work already completed in the repository.",
     "changes": [
-      "Confirmed Task 7 CI GREEN on c5a8f664a02198441679327032045bca594a1c1c",
-      "Confirmed full desktop + Pixel-7 Browser QA GREEN on the same head and visual evidence uploaded",
-      "Retried Neon isolated-migration workflow but the Neon connector became unavailable; production migration remains unapplied and is not claimed complete",
-      "Confirmed Vercel team SAMX exists but currently contains zero projects",
-      "Attempted connected Vercel direct deployment; runtime rejected it because the connector requires deployment target/name/files that its exposed contract does not provide",
-      "Rediscovery did not expose a create/import-project action",
-      "Downloaded the current green Chromium artifact so the owner can inspect the current flow while deployment waits on repo import"
+      "Accepted owner approval of the paid-order webhook/private Issue registry spec",
+      "Recovered the repo-local implementation plan already present at docs/superpowers/plans/2026-08-18-issued-once-order-webhook-issue-registry.md",
+      "Recovered latest PR head 399f218adb85776209b16b8ce05244c06441c46d instead of continuing from stale conversational state",
+      "Confirmed the last verified product/browser head remains c5a8f664a02198441679327032045bca594a1c1c",
+      "Re-queried connected Vercel team SAMX and confirmed it still contains zero projects",
+      "Preserved fail-closed production payment/webhook/database boundaries until external deployment and secrets are configured"
     ],
     "verification": {
+      "spec": "APPROVED",
+      "implementationPlan": "PRESENT_IN_REPO",
       "verifiedProductHead": "c5a8f664a02198441679327032045bca594a1c1c",
-      "ciRun": 32129861683,
-      "ci": "GREEN",
-      "browserQaRun": 32129861614,
-      "browserQa": "GREEN desktop + mobile",
-      "browserArtifactId": 9321789707,
-      "databaseMigration": "NOT_APPLIED; isolated verification deferred because Neon connector unavailable",
+      "frontPageCodeAndBrowserQa": "GREEN per prior verified cycle",
       "vercelTeam": "SAMX",
+      "vercelTeamId": "team_iG5Amx3WwHQ3Te5KGbmIOiqs",
       "vercelProjectsObserved": 0,
-      "directDeployAttempt": "FAILED_CONNECTOR_CONTRACT; no deployment URL created"
-    },
-    "frontPageStatus": {
-      "codeAndBrowserQa": "GREEN",
-      "publicPreview": "OWNER_REQUIRED_IMPORT",
       "ownerTestableUrl": null,
-      "plannedDomain": "issuedonce.shop"
+      "plannedDomain": "issuedonce.shop",
+      "databaseMigration": "NOT_CLAIMED_APPLIED"
     },
-    "ownerAction": "In Vercel team SAMX, import the GitHub repository itxsam57/issued-once as a new project. Use the repository root and Next.js defaults. Do not add production secrets yet. After the project exists, tell ChatGPT 'vercel imported'.",
+    "ownerAction": "Open Vercel team SAMX and import GitHub repository itxsam57/issued-once as a new project. Use repository root and Next.js defaults. Do not add production Fourthwall/Neon/webhook secrets yet. After the project exists, tell ChatGPT: vercel imported.",
     "nextActions": [
       "OWNER_REQUIRED: import itxsam57/issued-once into Vercel team SAMX",
-      "After import, discover the new Vercel project and inspect its first deployment",
-      "Configure only preview-safe environment needed for a testable mystery flow; keep production payment/webhook writes fail-closed until durable external configuration is verified",
-      "Live-test HTTPS front page and full mystery journey, then report the exact owner-testable URL",
-      "Retry isolated Neon migration verification later when the connector is available",
-      "After domain ownership is available, attach issuedonce.shop and reverify TLS + webhook path"
+      "Immediately after import, discover the project and inspect first deployment/build logs",
+      "Configure preview-safe environment only; keep production checkout/webhook writes fail-closed",
+      "Live-test HTTPS homepage and complete mystery flow on desktop/mobile",
+      "Report exact owner-testable URL",
+      "Retry isolated Neon migration verification when connector becomes available",
+      "Attach issuedonce.shop after domain ownership/DNS is available and reverify TLS plus webhook endpoint"
     ]
   }
 }
