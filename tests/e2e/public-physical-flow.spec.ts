@@ -20,10 +20,10 @@ async function continueText(
 
 async function reachPhysicalForm(page: import('@playwright/test').Page) {
   await page.goto('/');
-  await page.getByRole('link', { name: /BEGIN/ }).click();
+  await page.getByRole('link', { name: /BEGIN/ }).first().click();
   await expect(page.getByText('01 / 07')).toBeVisible();
 
-  await continueText(page, 'old maps, storms, strange machines', '02 / 07');
+  await continueText(page, 'The Master and Margarita', '02 / 07');
   await continueText(page, 'a quiet cabin above a valley', '03 / 07');
   await page.getByLabel('4 a.m.').check();
   await page.getByRole('button', { name: 'CONTINUE' }).click();
@@ -35,27 +35,28 @@ async function reachPhysicalForm(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: 'CONTINUE' }).click();
   await expect(page.getByRole('heading', { name: 'WE HAVE ENOUGH.' })).toBeVisible();
   await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
-  await expect(page.getByText('FORM / UNLOCKED')).toBeVisible();
+  await expect(page.getByText('FORM / CURRENT ISSUE')).toBeVisible();
 }
 
 test('public physical flow reaches provider-backed commitment and redirects to hosted checkout without trusted browser product facts', async ({ page }, testInfo) => {
   await reachPhysicalForm(page);
 
-  await page.getByRole('radio', { name: 'HOODIE' }).check();
+  await page.getByRole('radio', { name: 'TEE' }).check();
   await page.getByRole('button', { name: 'LOCK FORM' }).click();
 
   await expect(page.getByText('FORM LOCKED / FIT')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Choose the size it should become.' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'M' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pick your size.' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: /^Medium/ })).toBeVisible();
   await capture(page, `12-public-fit-${testInfo.project.name}`);
 
-  await page.getByRole('radio', { name: 'M' }).check();
+  await page.getByRole('radio', { name: /^Medium/ }).check();
   await page.getByRole('button', { name: 'CONFIRM SIZE' }).click();
 
   await expect(page.getByText('FIT LOCKED / BASE')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Choose the color it begins as.' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'Bone' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'Black' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Color your issue.' })).toBeVisible();
+  for (const color of ['Bone', 'Black', 'Ash', 'Navy', 'Forest']) {
+    await expect(page.getByRole('radio', { name: color })).toBeVisible();
+  }
   await capture(page, `13-public-base-${testInfo.project.name}`);
 
   await page.getByRole('radio', { name: 'Bone' }).check();
@@ -68,8 +69,8 @@ test('public physical flow reaches provider-backed commitment and redirects to h
 
   await expect(page.getByText('FORM COMPLETE')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'From here, it becomes ours to interpret.' })).toBeVisible();
-  await expect(page.getByText('HOODIE / M / BONE')).toBeVisible();
-  await expect(page.getByText('$54.00')).toBeVisible();
+  await expect(page.getByText('TEE / M / BONE')).toBeVisible();
+  await expect(page.getByText('$32.00')).toBeVisible();
   await expect(page.getByText('Everything else stays unknown until it arrives.')).toBeVisible();
   const issueMine = page.getByRole('button', { name: 'ISSUE MINE' });
   await expect(issueMine).toBeVisible();
