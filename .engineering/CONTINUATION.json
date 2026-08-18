@@ -5,14 +5,14 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentBranchHead": "2fbfe6f3e288f572ff5272cc93b7adf16bda68c5",
+    "currentBranchHead": "f9629b52a3c15d35fb67a709dddff91b62b26d43",
     "currentVerifiedHead": "c5a8f664a02198441679327032045bca594a1c1c"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "decision": "STOP_FOR_OWNER_ACTION",
+    "state": "WAIT_EXTERNAL",
+    "decision": "CONTINUE_DEPLOYMENT_DISCOVERY",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The verified ISSUED ONCE app is ready for HTTPS preview, but Vercel team SAMX still contains zero projects. The direct deploy action is visible, but its runtime still requires target/name/files while the exposed connector contract supplies no arguments, so ChatGPT cannot create/import the GitHub project from this chat."
+    "stopReason": "Owner reports the Vercel import is complete. The connected SAMX scope still reports zero projects immediately after that action, so this governor-only commit intentionally provides a fresh feat/mystery-foundation push to trigger Git-integrated preview creation without altering product behavior."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -26,40 +26,42 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "continuation-vercel-owner-gate-confirmed-2026-08-18",
-    "objective": "Resume from the canonical branch without drift, verify whether the Vercel owner gate has changed, and stop only if the configured governor still requires owner action.",
+    "cycleId": "vercel-import-acknowledged-preview-trigger-2026-08-18",
+    "objective": "Acknowledge the completed owner import, discover the Vercel project, and trigger a fresh feature-branch preview without changing product behavior.",
     "changes": [
-      "Recovered the canonical source of truth from feat/mystery-foundation instead of replaying the pasted chat",
-      "Confirmed PR #3 remains open on feat/mystery-foundation and the branch head before this state write was 2fbfe6f3e288f572ff5272cc93b7adf16bda68c5",
-      "Re-verified CI run 32129861683 and Browser QA run 32129861614 are both successful for verified product head c5a8f664a02198441679327032045bca594a1c1c",
-      "Re-queried Vercel team SAMX and confirmed it still contains zero projects",
-      "Retried the direct Vercel deploy action and confirmed the connector/runtime mismatch remains: target, name, and files are required but not exposed to this chat",
-      "Made no production code changes and preserved fail-closed payment, webhook, database, and secret boundaries"
+      "Accepted owner confirmation that the repository was imported into Vercel",
+      "Re-queried connected Vercel team SAMX; it still reported zero projects immediately after the owner action",
+      "Confirmed SAMX remains the only Vercel team exposed by the connected account",
+      "Confirmed Vercel project slug issued-once is not yet discoverable in SAMX through the connector",
+      "Confirmed GitHub PR #3 is open on feat/mystery-foundation at head f9629b52a3c15d35fb67a709dddff91b62b26d43 before this state write",
+      "Confirmed no Vercel deployment status or PR comment is attached to that pre-import feature-branch head",
+      "Used this governor-only commit as a safe post-import feature-branch push so Vercel Git integration can create a preview if the imported project is correctly connected",
+      "Made no product, checkout, webhook, database, or secret changes"
     ],
     "verification": {
       "verifiedProductHead": "c5a8f664a02198441679327032045bca594a1c1c",
       "ciRun": 32129861683,
-      "ci": "GREEN",
+      "ci": "GREEN on verified product head",
       "browserQaRun": 32129861614,
-      "browserQa": "GREEN desktop + mobile",
-      "browserArtifactId": 9321789707,
+      "browserQa": "GREEN desktop + mobile on verified product head",
       "vercelTeam": "SAMX",
       "vercelTeamId": "team_iG5Amx3WwHQ3Te5KGbmIOiqs",
-      "vercelProjectsObserved": 0,
-      "vercelDeployAction": "VISIBLE_BUT_CONNECTOR_CONTRACT_MISMATCH",
+      "vercelProjectsObservedImmediatelyAfterOwnerImport": 0,
+      "preTriggerVercelStatusOnFeatureHead": "NONE",
       "ownerTestableUrl": null,
       "plannedDomain": "issuedonce.shop",
       "databaseMigration": "NOT_CLAIMED_APPLIED"
     },
-    "ownerAction": "In Vercel team SAMX, import GitHub repository itxsam57/issued-once as a new project using the repository root and Next.js defaults. Do not add production Fourthwall/Neon/webhook secrets yet. Then tell ChatGPT: vercel imported.",
+    "ownerAction": "NONE - import was reported complete",
     "nextActions": [
-      "OWNER_REQUIRED: import itxsam57/issued-once into Vercel team SAMX",
-      "Immediately discover the imported project and inspect its first deployment/build logs",
-      "Configure preview-safe environment only; keep production checkout/webhook writes fail-closed",
-      "Live-test HTTPS homepage and complete mystery flow on desktop/mobile",
-      "Report the exact owner-testable URL",
+      "Re-query Vercel project inventory after this post-import feature-branch push",
+      "Inspect the newest deployment and build logs as soon as the project becomes discoverable",
+      "Inspect GitHub status/check evidence for a Vercel preview on the new feature head",
+      "Keep production checkout/webhook/database writes fail-closed",
+      "Live-test the HTTPS homepage and complete mystery flow on desktop/mobile",
+      "Report the exact owner-testable URL only after fresh live verification",
       "Retry isolated Neon migration verification when connector access is available",
-      "Attach issuedonce.shop after domain ownership/DNS is available and reverify TLS plus webhook endpoint"
+      "Attach issuedonce.shop only after domain ownership/DNS is available and reverify TLS plus webhook endpoint"
     ]
   }
 }
