@@ -31,14 +31,18 @@ function formatMoney(amountMinor: number, currency: string): string {
 
 export function CommitmentScreen({ selection, quote, onCommit }: CommitmentScreenProps) {
   const [submitting, setSubmitting] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const lockedSelection = `${selection.object.toUpperCase()} / ${selection.sizeCode.toUpperCase()} / ${selection.colorLabel.toUpperCase()}`;
 
   async function commit() {
     if (submitting) return;
 
     setSubmitting(true);
+    setCheckoutError(null);
     try {
       await onCommit(quote.quoteId);
+    } catch {
+      setCheckoutError('CHECKOUT NOT OPENED / TRY AGAIN');
     } finally {
       setSubmitting(false);
     }
@@ -56,8 +60,14 @@ export function CommitmentScreen({ selection, quote, onCommit }: CommitmentScree
 
       <p className="commitment__unknown">Everything else stays unknown until it arrives.</p>
 
+      {checkoutError ? (
+        <p className="commitment__checkout-state" role="status">
+          {checkoutError}
+        </p>
+      ) : null}
+
       <button type="button" onClick={commit} disabled={submitting}>
-        {submitting ? '...' : 'ISSUE MINE'}
+        {submitting ? 'OPENING CHECKOUT' : 'ISSUE MINE'}
       </button>
     </section>
   );
