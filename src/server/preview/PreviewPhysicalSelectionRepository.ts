@@ -1,4 +1,6 @@
 import type {
+  BaseSelectionRepository,
+  BaseSelectionTransition,
   ObjectSelectionTransition,
   PhysicalSelectionRecord,
   PhysicalSelectionRepository,
@@ -8,7 +10,7 @@ import type {
 import { getPreviewStore } from './PreviewExperienceRepository';
 
 export class PreviewPhysicalSelectionRepository
-  implements PhysicalSelectionRepository, SizeSelectionRepository
+  implements PhysicalSelectionRepository, SizeSelectionRepository, BaseSelectionRepository
 {
   private readonly store = getPreviewStore();
 
@@ -51,6 +53,31 @@ export class PreviewPhysicalSelectionRepository
     }
 
     selection.sizeCode = transition.sizeCode;
+    selection.updatedAt = transition.updatedAt;
+    record.stage = transition.nextStage;
+    record.updatedAt = transition.updatedAt;
+  }
+
+  async confirmBaseAndAdvance(transition: BaseSelectionTransition): Promise<void> {
+    const record = [...this.store.experiences.values()].find(
+      (candidate) => candidate.id === transition.experienceId,
+    );
+    const selection = this.store.physicalSelections.get(transition.experienceId);
+    if (!record || !selection) throw new Error('Physical selection not found');
+    if (
+      record.stage !== transition.expectedStage ||
+      record.expiresAt <= transition.updatedAt ||
+      !selection.sizeCode ||
+      selection.colorCode ||
+      selection.variantId
+    ) {
+      throw new Error('Physical selection stage conflict');
+    }
+
+    selection.colorCode = transition.colorCode;
+    selection.colorLabel = transition.colorLabel;
+    selection.colorSwatch = transition.colorSwatch;
+    selection.variantId = transition.variantId;
     selection.updatedAt = transition.updatedAt;
     record.stage = transition.nextStage;
     record.updatedAt = transition.updatedAt;
