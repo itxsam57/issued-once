@@ -62,6 +62,26 @@ const VISUAL_QA_COMMITMENT_QUOTE = {
   expiresAt: '2026-08-18T06:00:00.000Z',
 } as const;
 
+async function requestCheckout(quoteId: string): Promise<void> {
+  const response = await fetch('/api/checkout/start', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ quoteId }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Checkout could not be opened');
+  }
+
+  const payload = (await response.json()) as { checkoutUrl?: string };
+  if (!payload.checkoutUrl) {
+    throw new Error('Checkout response is invalid');
+  }
+
+  window.location.assign(payload.checkoutUrl);
+}
+
 export function VisualPreviewExperience() {
   return (
     <main className="visual-preview">
@@ -76,7 +96,7 @@ export function VisualPreviewExperience() {
         baseColorCatalog={VISUAL_QA_BASE_COLOR_CATALOG}
         onBaseColorConfirmed={async () => undefined}
         getCommitmentQuote={async () => VISUAL_QA_COMMITMENT_QUOTE}
-        onCheckoutRequested={async () => undefined}
+        onCheckoutRequested={requestCheckout}
       />
     </main>
   );
