@@ -34,7 +34,7 @@ class MemoryExperienceRepository implements ExperienceRepository {
 }
 
 beforeAll(() => {
-  process.env.PRIVATE_PAYLOAD_KEY_V1 = Buffer.alloc(32, 9).toString('base64');
+  process.env.QUIZ_ENCRYPTION_KEY_V1 = Buffer.alloc(32, 9).toString('base64');
 });
 
 describe('ExperienceService', () => {
@@ -59,7 +59,7 @@ describe('ExperienceService', () => {
     const savedAnswer = repository.answers.get(`${stored?.id}:q1`);
     expect(savedAnswer).toBeDefined();
     expect(JSON.stringify(savedAnswer)).not.toContain('maps, moths, and late-night radio');
-    expect(decryptPrivatePayload(savedAnswer!.encryptedPayload)).toEqual({
+    expect(await decryptPrivatePayload(savedAnswer!.encryptedPayload)).toEqual({
       answer: 'maps, moths, and late-night radio',
     });
   });
