@@ -14,7 +14,7 @@ describe('VisualPreviewExperience', () => {
 
     expect(screen.getByText('VISUAL QA / NOT PRODUCTION')).toBeInTheDocument();
     expect(screen.getByText('01 / 07')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Name three things you can talk about for hours.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: "So tell me. What's your favourite book?" })).toBeInTheDocument();
     expect(screen.queryByText(/tee|hoodie|hat|cap|tote|shop now/i)).not.toBeInTheDocument();
   });
 
@@ -22,7 +22,7 @@ describe('VisualPreviewExperience', () => {
     const user = userEvent.setup();
     render(<VisualPreviewExperience mode="owner" />);
 
-    await continueText(user, 'old maps, storms, strange machines');
+    await continueText(user, 'The Master and Margarita');
     await continueText(user, 'a quiet cabin above a valley');
     await user.click(screen.getByLabelText('4 a.m.'));
     await user.click(screen.getByRole('button', { name: 'CONTINUE' }));
