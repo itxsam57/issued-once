@@ -183,8 +183,7 @@ export class PostgresContactRepository implements ContactRepository {
          SELECT $4,$2,$5,$6,$7,$8,$9,$10,$3,$3
          WHERE EXISTS (SELECT 1 FROM consumed)
          ON CONFLICT (experience_id) DO UPDATE
-         SET id = EXCLUDED.id,
-             email_hash = EXCLUDED.email_hash,
+         SET email_hash = EXCLUDED.email_hash,
              payload_version = EXCLUDED.payload_version,
              key_version = EXCLUDED.key_version,
              iv = EXCLUDED.iv,
