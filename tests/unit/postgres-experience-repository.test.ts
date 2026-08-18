@@ -4,7 +4,7 @@ import { PostgresExperienceRepository } from '@/server/experience/PostgresExperi
 const record = {
   id: 'exp-1',
   publicSessionHash: 'hash-1',
-  stage: 'q1' as const,
+  stage: 'QUESTION_1' as const,
   hookId: 'public-entry',
   createdAt: new Date('2026-08-18T06:00:00.000Z'),
   updatedAt: new Date('2026-08-18T06:00:00.000Z'),
@@ -64,8 +64,8 @@ describe('PostgresExperienceRepository', () => {
         },
         answeredAt: new Date('2026-08-18T06:01:00.000Z'),
       },
-      expectedStage: 'q1',
-      nextStage: 'q2',
+      expectedStage: 'QUESTION_1',
+      nextStage: 'QUESTION_2',
       updatedAt: new Date('2026-08-18T06:01:00.000Z'),
     });
 
@@ -96,8 +96,8 @@ describe('PostgresExperienceRepository', () => {
           },
           answeredAt: new Date('2026-08-18T06:01:00.000Z'),
         },
-        expectedStage: 'q1',
-        nextStage: 'q2',
+        expectedStage: 'QUESTION_1',
+        nextStage: 'QUESTION_2',
         updatedAt: new Date('2026-08-18T06:01:00.000Z'),
       }),
     ).rejects.toThrow('Experience stage conflict');
