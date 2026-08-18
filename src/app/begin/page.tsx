@@ -3,7 +3,7 @@ import { VisualPreviewExperience } from '@/components/preview/VisualPreviewExper
 
 export default function BeginPage() {
   if (process.env.VERCEL_ENV === 'preview') {
-    return <VisualPreviewExperience />;
+    return <VisualPreviewExperience mode="owner" />;
   }
 
   return (
