@@ -1,8 +1,11 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
+import { ManufacturingEventService } from './ManufacturingEventService';
 import { ManufacturingService } from './ManufacturingService';
+import { PostgresManufacturingEventRepository } from './PostgresManufacturingEventRepository';
 import { PostgresManufacturingRepository } from './PostgresManufacturingRepository';
 import { PrintfulGateway } from './PrintfulGateway';
 import { PrintfulVariantMap } from './PrintfulVariantMap';
+import { PrintfulWebhookVerifier } from './PrintfulWebhookVerifier';
 
 export class ManufacturingRuntimeUnavailableError extends Error {
   constructor(message = 'Manufacturing runtime is not configured') {
@@ -26,5 +29,16 @@ export function createManufacturingService(): ManufacturingService {
       storeId: process.env.PRINTFUL_STORE_ID?.trim() || undefined,
     }),
     new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON')),
+  );
+}
+
+export function createManufacturingEventService(): ManufacturingEventService {
+  const sql = createNeonSqlExecutor(env('DATABASE_URL'));
+  return new ManufacturingEventService(
+    new PrintfulWebhookVerifier({
+      publicKey: env('PRINTFUL_WEBHOOK_PUBLIC_KEY'),
+      secretKeyHex: env('PRINTFUL_WEBHOOK_SECRET_HEX'),
+    }),
+    new PostgresManufacturingEventRepository(sql),
   );
 }
