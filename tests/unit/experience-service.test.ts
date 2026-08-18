@@ -4,6 +4,7 @@ import { decryptPrivatePayload } from '@/server/crypto/privatePayload';
 import { hashSessionToken } from '@/server/http/sessionToken';
 import { ExperienceService } from '@/server/experience/ExperienceService';
 import type {
+  AnswerTransition,
   ExperienceRecord,
   ExperienceRepository,
   StoredAnswer,
@@ -21,15 +22,19 @@ class MemoryExperienceRepository implements ExperienceRepository {
     return this.experiences.get(publicSessionHash) ?? null;
   }
 
-  async saveAnswer(answer: StoredAnswer): Promise<void> {
-    this.answers.set(`${answer.experienceId}:${answer.questionId}`, structuredClone(answer));
-  }
-
-  async updateStage(experienceId: string, stage: ExperienceStage, updatedAt: Date): Promise<void> {
-    const record = [...this.experiences.values()].find((item) => item.id === experienceId);
+  async saveAnswerAndAdvance(transition: AnswerTransition): Promise<void> {
+    const record = [...this.experiences.values()].find(
+      (item) => item.id === transition.answer.experienceId,
+    );
     if (!record) throw new Error('experience missing');
-    record.stage = stage;
-    record.updatedAt = updatedAt;
+    if (record.stage !== transition.expectedStage) throw new Error('stage conflict');
+
+    this.answers.set(
+      `${transition.answer.experienceId}:${transition.answer.questionId}`,
+      structuredClone(transition.answer),
+    );
+    record.stage = transition.nextStage;
+    record.updatedAt = transition.updatedAt;
   }
 }
 
