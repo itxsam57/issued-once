@@ -1,3 +1,4 @@
+import { enqueueDesignIssue } from '@/server/design/designQueue';
 import {
   createIssueService,
   IssueRuntimeUnavailableError,
@@ -16,8 +17,9 @@ export async function POST(request: Request) {
       headers: request.headers,
     });
 
-    if (result.kind === 'paid' && result.paymentAttemptId) {
+    if ((result.kind === 'paid' || result.kind === 'duplicate') && result.paymentAttemptId) {
       const issue = await createIssueService().reserveForPaidAttempt(result.paymentAttemptId);
+      await enqueueDesignIssue(issue.issue.id);
       return Response.json({
         received: true,
         kind: result.kind,
