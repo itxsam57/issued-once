@@ -35,7 +35,7 @@ export function SizeConfirmation({ object, sizes, onConfirm }: SizeConfirmationP
   return (
     <section className="size-confirmation" aria-labelledby="size-confirmation-heading" data-object={object}>
       <p className="size-confirmation__signal">FORM LOCKED / FIT</p>
-      <h1 id="size-confirmation-heading">Choose the size it should become.</h1>
+      <h1 id="size-confirmation-heading">Pick your size.</h1>
 
       <fieldset className="size-confirmation__options">
         <legend className="sr-only">Size</legend>
@@ -51,15 +51,17 @@ export function SizeConfirmation({ object, sizes, onConfirm }: SizeConfirmationP
             />
             <span className="size-confirmation__code">{size.code}</span>
             <span className="size-confirmation__label">{size.label}</span>
-            {size.measurements ? (
-              <span className="size-confirmation__measurements">{size.measurements}</span>
-            ) : null}
           </label>
         ))}
       </fieldset>
 
       {selectedSize ? (
-        <p className="size-confirmation__check">Check this one carefully. This is the size we’ll make.</p>
+        <div className="size-confirmation__detail" aria-live="polite">
+          {selectedSize.measurements ? (
+            <p className="size-confirmation__measurements">{selectedSize.measurements}</p>
+          ) : null}
+          <p className="size-confirmation__check">Check this one carefully. This is the size we’ll make.</p>
+        </div>
       ) : null}
 
       <button type="button" onClick={confirm} disabled={!selected || submitting}>
