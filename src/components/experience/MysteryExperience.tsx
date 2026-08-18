@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { QuestionId } from '@/domain/experience/types';
+import type { QuestionDefinition, QuestionId } from '@/domain/experience/types';
 import { BaseColorSelection, type BaseColorOption } from './BaseColorSelection';
 import { CommitmentScreen, type CommitmentQuote } from './CommitmentScreen';
 import { InterviewFlow } from './InterviewFlow';
@@ -25,7 +25,9 @@ type BaseColorCatalog = Partial<
 >;
 
 type MysteryExperienceProps = {
+  questions?: readonly QuestionDefinition[];
   initialQuestionPosition?: number;
+  interviewInitiallyComplete?: boolean;
   onAnswer: (payload: AnswerPayload) => Promise<void> | void;
   onInterviewComplete?: () => Promise<void> | void;
   onObjectSelected: (object: ObjectType) => Promise<readonly SizeOption[] | void> | readonly SizeOption[] | void;
@@ -44,7 +46,9 @@ type MysteryExperienceProps = {
 type ExperiencePhase = 'interview' | 'form' | 'size' | 'base' | 'commitment';
 
 export function MysteryExperience({
+  questions,
   initialQuestionPosition,
+  interviewInitiallyComplete,
   onAnswer,
   onInterviewComplete,
   onObjectSelected,
@@ -156,7 +160,9 @@ export function MysteryExperience({
 
   return (
     <InterviewFlow
+      questions={questions}
       initialPosition={initialQuestionPosition}
+      initiallyComplete={interviewInitiallyComplete}
       onAnswer={onAnswer}
       onComplete={onInterviewComplete}
       onProceed={() => setPhase('form')}
