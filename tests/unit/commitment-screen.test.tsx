@@ -33,4 +33,24 @@ describe('CommitmentScreen', () => {
     await user.click(screen.getByRole('button', { name: 'ISSUE MINE' }));
     expect(onCommit).toHaveBeenCalledWith('qa-quote-001');
   });
+
+  test('keeps the locked commitment intact and offers retry when checkout cannot open', async () => {
+    const user = userEvent.setup();
+    const onCommit = vi.fn().mockRejectedValue(new Error('Quote changed'));
+
+    render(
+      <CommitmentScreen
+        selection={{ object: 'hoodie', sizeCode: 'M', colorLabel: 'Bone' }}
+        quote={quote}
+        onCommit={onCommit}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'ISSUE MINE' }));
+
+    expect(screen.getByText('HOODIE / M / BONE')).toBeInTheDocument();
+    expect(screen.getByText('$54.00')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('CHECKOUT NOT OPENED / TRY AGAIN');
+    expect(screen.getByRole('button', { name: 'ISSUE MINE' })).toBeEnabled();
+  });
 });
