@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "project": "ISSUED ONCE",
+  "sourceOfTruth": {
+    "repository": "itxsam57/issued-once",
+    "branch": "feat/mystery-foundation",
+    "pullRequest": 3,
+    "headShaAtRecovery": "3da8fc874d33503ec8d395a04a97c807a5045259"
+  },
+  "continuationGovernor": {
+    "state": "ACTIVE",
+    "decision": "CONTINUE",
+    "allowedStopStates": [
+      "OWNER_REQUIRED",
+      "BLOCKED",
+      "WAIT_EXTERNAL",
+      "LOOP_DETECTED",
+      "COMPLETE"
+    ],
+    "stopReason": null
+  },
+  "engineeringFactory": {
+    "mode": "REPO_LOCAL_PROTOCOL",
+    "externalPluginDetected": false,
+    "rules": [
+      "Treat mapped GitHub repo/branch as canonical source of truth",
+      "Use evidence-first systematic debugging",
+      "Use test-first changes for behavior and bug fixes",
+      "Keep production and preview/runtime boundaries fail-closed",
+      "Update this continuation state after every meaningful work cycle"
+    ]
+  },
+  "lastMeaningfulCycle": {
+    "cycleId": "recovery-and-browser-root-cause-2026-08-18",
+    "updatedAt": "2026-08-18T13:43:00+05:00",
+    "objective": "Recover canonical branch state and diagnose the only failing verification gate after FIT-to-BASE wiring.",
+    "evidence": {
+      "ci": "GREEN on head 3da8fc874d33503ec8d395a04a97c807a5045259",
+      "publicPhysicalDesktop": "GREEN through HOODIE -> FIT -> M -> BASE",
+      "publicPhysicalMobile": "GREEN through HOODIE -> FIT -> M -> BASE",
+      "browserQa": "RED only in legacy desktop seven-answer unlock test",
+      "legacyFailure": "CONTINUE remained disabled because the helper filled/clicked before waiting for the next question state",
+      "workingReference": "tests/e2e/public-physical-flow.spec.ts waits for each exact NN / 07 transition before continuing"
+    },
+    "rootCause": "Legacy Playwright helper lacks condition-based synchronization between server-accepted answer transitions; this is a test synchronization defect, not a product regression.",
+    "nextActions": [
+      "Make the legacy public seven-answer test use condition-based question-state waits",
+      "Run fresh CI and Browser QA on the new branch head",
+      "If both gates are green, continue to the base-color -> exact variant -> opaque quote -> commitment boundary"
+    ]
+  }
+}
