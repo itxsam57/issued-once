@@ -38,7 +38,7 @@ async function reachPhysicalForm(page: import('@playwright/test').Page) {
   await expect(page.getByText('FORM / UNLOCKED')).toBeVisible();
 }
 
-test('public physical flow reaches provider-backed fit and base facts', async ({ page }, testInfo) => {
+test('public physical flow reaches provider-backed commitment without sending trusted product facts', async ({ page }, testInfo) => {
   await reachPhysicalForm(page);
 
   await page.getByRole('radio', { name: 'HOODIE' }).check();
@@ -57,4 +57,20 @@ test('public physical flow reaches provider-backed fit and base facts', async ({
   await expect(page.getByRole('radio', { name: 'Bone' })).toBeVisible();
   await expect(page.getByRole('radio', { name: 'Black' })).toBeVisible();
   await capture(page, `13-public-base-${testInfo.project.name}`);
+
+  await page.getByRole('radio', { name: 'Bone' }).check();
+  const baseRequestPromise = page.waitForRequest((request) =>
+    request.url().endsWith('/api/experience/base') && request.method() === 'POST',
+  );
+  await page.getByRole('button', { name: 'LOCK BASE' }).click();
+  const baseRequest = await baseRequestPromise;
+  expect(baseRequest.postDataJSON()).toEqual({ colorCode: 'Bone' });
+
+  await expect(page.getByText('FORM COMPLETE')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'From here, it becomes ours to interpret.' })).toBeVisible();
+  await expect(page.getByText('HOODIE / M / BONE')).toBeVisible();
+  await expect(page.getByText('$54.00')).toBeVisible();
+  await expect(page.getByText('Everything else stays unknown until it arrives.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'ISSUE MINE' })).toBeVisible();
+  await capture(page, `14-public-commitment-${testInfo.project.name}`);
 });
