@@ -5,8 +5,8 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentBranchHead": "a057af7314df0b42b352910000261c99b59b8abb",
-    "currentVerifiedHead": "a057af7314df0b42b352910000261c99b59b8abb"
+    "currentBranchHead": "a8165bbec3c1809476745e2da11a9043d277d876",
+    "currentVerifiedHead": "a8165bbec3c1809476745e2da11a9043d277d876"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
@@ -26,24 +26,25 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "paid-order-event-inbox-private-registry-green-2026-08-18",
-    "objective": "Create the durable idempotency boundary and one-statement private Issue reservation path for authenticated paid-order events.",
+    "cycleId": "paid-order-webhook-processor-green-2026-08-18",
+    "objective": "Convert a minimized authenticated Fourthwall paid-order envelope into one idempotent private Issue reservation outcome.",
     "changes": [
-      "Added webhook_events inbox with provider/event uniqueness and explicit processing states",
-      "Added private issues registry with unique Issue code, Fourthwall order/event and quote constraints",
-      "Issue rows contain only order correlation and locked physical facts; no customer/quiz columns",
-      "Added PostgresPaidOrderRepository with idempotent authenticated-event recording",
-      "Added one-statement CTE reservation that reads product/variant/size/color from checkout_quotes + locked physical selection and marks PROCESSED only for reserved/duplicate outcomes",
-      "Fixed pre-existing migration-chain defect by aligning experience_physical_selection.experience_id from UUID to TEXT to match experiences.id",
-      "Matched issues.quote_id TEXT to the live checkout_quotes.id schema"
+      "Added PaidOrderWebhookService with dependency-injected clock and Issue-code generator",
+      "Authenticated events are recorded before processing",
+      "Fourthwall testMode events are isolated as IGNORED_TEST and never create production Issues",
+      "Missing/unknown quote correlation and quote reconciliation mismatches are terminal/no-Issue outcomes",
+      "Normal reservation passes only event/order/quote identity to the repository; provider/customer/product/price fields are not accepted",
+      "Duplicate reservation returns the existing permanent Issue code",
+      "Issue-code collisions retry with fresh random candidates up to five attempts",
+      "Collision-budget exhaustion and repository failures are classified retryable"
     ],
     "verification": {
-      "head": "a057af7314df0b42b352910000261c99b59b8abb",
-      "ciRun": 32128458110,
+      "head": "a8165bbec3c1809476745e2da11a9043d277d876",
+      "ciRun": 32128952142,
       "unitTests": "GREEN",
       "typecheck": "GREEN",
-      "atomicityModel": "single Postgres data-modifying CTE statement; database uniqueness/expected-state rules are concurrency authority",
-      "piiRegistryColumns": "NONE"
+      "collisionRetryBudget": 5,
+      "testEventProductionIssueWrites": "ZERO by service contract"
     },
     "frontPageStatus": {
       "publicPreview": "NOT_DEPLOYED_YET",
@@ -52,9 +53,9 @@
     },
     "ownerAction": null,
     "nextActions": [
-      "Write RED behavior tests for PaidOrderWebhookService",
-      "Implement test-event isolation, missing/unknown quote terminal handling, duplicate safety and bounded Issue-ID collision retry",
-      "Then add fail-closed runtime and signed Next.js webhook route",
+      "Write RED tests for fail-closed paid-order runtime and signed Next.js webhook route",
+      "Implement /api/webhooks/fourthwall with exact raw-body HMAC verification before parsing",
+      "Then add privacy/replay/concurrency subsystem tests",
       "Continue implementation plan autonomously"
     ]
   }
