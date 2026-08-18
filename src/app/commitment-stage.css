@@ -1,0 +1,169 @@
+.commitment {
+  width: 100%;
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  padding: clamp(28px, 5vw, 76px);
+  position: relative;
+  overflow: hidden;
+}
+
+.commitment::before {
+  content: '';
+  position: absolute;
+  left: clamp(28px, 5vw, 76px);
+  right: clamp(28px, 5vw, 76px);
+  top: clamp(28px, 5vw, 76px);
+  height: 1px;
+  background: var(--hairline);
+}
+
+.commitment__signal {
+  margin: 0 0 24px;
+  color: var(--signal);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+.commitment h1 {
+  width: min(1120px, 94%);
+  margin: 0 0 clamp(48px, 7vh, 92px);
+  font-family: var(--serif);
+  font-size: clamp(48px, 6.8vw, 108px);
+  font-weight: 400;
+  line-height: 0.94;
+  letter-spacing: -0.052em;
+  text-wrap: balance;
+}
+
+.commitment__ledger {
+  width: min(1180px, 100%);
+  min-height: 132px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.commitment__selection,
+.commitment__price {
+  display: flex;
+  align-items: center;
+  min-height: 132px;
+}
+
+.commitment__selection {
+  padding: 24px 30px 24px 0;
+  color: var(--muted);
+  font-size: clamp(11px, 1vw, 14px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.commitment__selection::before {
+  content: 'LOCKED / ';
+  color: var(--signal);
+}
+
+.commitment__price {
+  padding: 18px 0 18px clamp(28px, 4vw, 64px);
+  border-left: 1px solid var(--hairline);
+  font-family: var(--serif);
+  font-size: clamp(54px, 6.5vw, 96px);
+  line-height: 0.88;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+}
+
+.commitment__unknown {
+  width: min(760px, 100%);
+  margin: clamp(28px, 4vh, 48px) 0 0;
+  color: var(--muted);
+  font-family: var(--serif);
+  font-size: clamp(18px, 1.7vw, 24px);
+  line-height: 1.4;
+}
+
+.commitment button {
+  justify-self: start;
+  min-height: 44px;
+  margin-top: clamp(38px, 5vh, 64px);
+  padding: 13px 0 11px;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  transition: color 160ms ease, letter-spacing 160ms ease;
+}
+
+.commitment button:hover:not(:disabled),
+.commitment button:focus-visible:not(:disabled) {
+  color: var(--signal);
+  letter-spacing: 0.26em;
+  outline: none;
+}
+
+.commitment button:disabled {
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.42;
+}
+
+@media (max-width: 720px) {
+  .commitment {
+    padding: 24px 20px 36px;
+  }
+
+  .commitment::before {
+    left: 20px;
+    right: 20px;
+    top: 24px;
+  }
+
+  .commitment__signal {
+    margin-bottom: 20px;
+  }
+
+  .commitment h1 {
+    width: 100%;
+    margin-bottom: 42px;
+    font-size: clamp(42px, 12vw, 64px);
+  }
+
+  .commitment__ledger {
+    min-height: 0;
+    grid-template-columns: 1fr;
+  }
+
+  .commitment__selection,
+  .commitment__price {
+    min-height: 82px;
+  }
+
+  .commitment__selection {
+    padding: 18px 0;
+  }
+
+  .commitment__price {
+    padding: 18px 0 20px;
+    border-left: 0;
+    border-top: 1px solid var(--hairline);
+    font-size: clamp(54px, 17vw, 76px);
+  }
+
+  .commitment__unknown {
+    margin-top: 24px;
+    font-size: 18px;
+  }
+
+  .commitment button {
+    margin-top: 34px;
+  }
+}
