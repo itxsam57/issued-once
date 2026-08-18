@@ -1,4 +1,4 @@
-import type { ObjectType } from '@/components/experience/ObjectSelection';
+export type IssueObjectType = 'tee' | 'hoodie' | 'hat' | 'tote';
 
 export type IssueStatus =
   | 'RECEIVED'
@@ -20,7 +20,7 @@ export type PaidIssueTruth = {
   quoteId: string;
   productSlug: string;
   variantId: string;
-  objectType: ObjectType;
+  objectType: IssueObjectType;
   sizeCode: string;
   colorCode: string;
   amountMinor: number;
@@ -39,7 +39,7 @@ export type IssueRecord = {
   quoteId: string;
   productSlug: string;
   variantId: string;
-  objectType: ObjectType;
+  objectType: IssueObjectType;
   sizeCode: string;
   colorCode: string;
   amountMinor: number;
