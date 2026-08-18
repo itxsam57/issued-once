@@ -102,6 +102,27 @@ test('the mystery journey crosses seven private traces and only physical choices
   await expect(page.getByRole('radio', { name: 'Ash' })).toBeVisible();
   await expect(page.locator('body')).not.toContainText(forbiddenCreativeControl);
 
+  const boneSurface = page.locator('.base-color__option').filter({ hasText: 'Bone' });
+  const baseMetrics = await boneSurface.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const radio = element.querySelector('input');
+    const swatch = element.querySelector('.base-color__swatch');
+    const radioStyle = radio ? getComputedStyle(radio) : null;
+    const swatchRect = swatch?.getBoundingClientRect();
+    return {
+      display: style.display,
+      height: element.getBoundingClientRect().height,
+      radioAppearance: radioStyle?.appearance ?? '',
+      swatchWidth: swatchRect?.width ?? 0,
+      swatchHeight: swatchRect?.height ?? 0,
+    };
+  });
+  expect(['grid', 'flex']).toContain(baseMetrics.display);
+  expect(baseMetrics.height).toBeGreaterThanOrEqual(100);
+  expect(baseMetrics.radioAppearance).toBe('none');
+  expect(baseMetrics.swatchWidth).toBeGreaterThanOrEqual(40);
+  expect(baseMetrics.swatchHeight).toBeGreaterThanOrEqual(40);
+
   const lockBase = page.getByRole('button', { name: 'LOCK BASE' });
   await expect(lockBase).toBeDisabled();
   await page.getByRole('radio', { name: 'Bone' }).check();
