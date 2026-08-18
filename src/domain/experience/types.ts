@@ -13,6 +13,7 @@ export type ExperienceStage =
   | 'PROFILE_COMPLETE'
   | 'OBJECT_SELECTED'
   | 'SIZE_CONFIRMED'
+  | 'COMMITMENT_READY'
   | 'CHECKOUT_STARTED';
 
 export type QuizAnswer = {
