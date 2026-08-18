@@ -31,7 +31,9 @@ class MemoryRepository implements ManufacturingRepository {
     this.job.state = 'IN_PRODUCTION'; this.job.confirmedAt = input.confirmedAt; this.job.updatedAt = input.confirmedAt;
     return this.job;
   }
-  async markFailed(_jobId: string, _code: string, _updatedAt: Date) {}
+  async markFailed(jobId: string, _code: string, updatedAt: Date) {
+    if (this.job?.id === jobId) { this.job.state = 'FAILED'; this.job.updatedAt = updatedAt; }
+  }
 }
 
 async function validInput(): Promise<ManufacturingInput> {
@@ -84,6 +86,23 @@ test('refuses manufacturing without design approval or without an exact Printful
   repository.input = { ...(await validInput()), sizeCode: 'XL' };
   await expect(new ManufacturingService(repository, gateway, mapping()).createDraft('issue-1')).rejects.toThrow(/mapping/i);
   expect(gateway.createDraft).not.toHaveBeenCalled();
+});
+
+test('retries a failed draft against the same manufacturing identity instead of creating a second job', async () => {
+  const repository = new MemoryRepository(); repository.input = await validInput();
+  repository.job = {
+    id: 'mfg-stable', issueId: 'issue-1', designJobId: 'design-1', state: 'FAILED', provider: 'PRINTFUL',
+    providerOrderId: null, providerStatus: null, printfulVariantId: null,
+    artworkUrl: 'https://blob.example/issue.png', createdAt: new Date(), updatedAt: new Date(), confirmedAt: null,
+  };
+  const gateway: ManufacturerGateway = {
+    createDraft: vi.fn(async () => ({ providerOrderId: '987654', status: 'draft' })),
+    confirmDraft: vi.fn(),
+  };
+  const result = await new ManufacturingService(repository, gateway, mapping()).createDraft('issue-1');
+  expect(result.id).toBe('mfg-stable');
+  expect(result.state).toBe('DRAFT');
+  expect(gateway.createDraft).toHaveBeenCalledTimes(1);
 });
 
 test('confirming manufacturing is a separate explicit action and reuses the existing draft', async () => {
