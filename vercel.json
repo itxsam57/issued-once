@@ -1,4 +1,16 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "functions": {
+    "src/app/api/queue/design/route.ts": {
+      "maxDuration": 300,
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "issued-once-design",
+          "retryAfterSeconds": 60
+        }
+      ]
+    }
+  }
 }
