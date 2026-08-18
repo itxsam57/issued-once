@@ -1,4 +1,3 @@
-import { FourthwallCommerceGateway } from '@/server/checkout/FourthwallCommerceGateway';
 import { PostgresCheckoutQuoteRepository } from '@/server/checkout/PostgresCheckoutQuoteRepository';
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { PostgresExperienceRepository } from '@/server/experience/PostgresExperienceRepository';
@@ -7,25 +6,30 @@ import { PreviewCheckoutQuoteRepository } from '@/server/preview/PreviewCheckout
 import { PreviewExperienceRepository } from '@/server/preview/PreviewExperienceRepository';
 import { PreviewPhysicalSelectionRepository } from '@/server/preview/PreviewPhysicalSelectionRepository';
 import { BaseSelectionService } from './BaseSelectionService';
+import { IssuedOnceCatalogGateway } from './IssuedOnceCatalogGateway';
 import { ObjectSelectionService } from './ObjectSelectionService';
 import { PostgresPhysicalSelectionRepository } from './PostgresPhysicalSelectionRepository';
 import { SizeSelectionService } from './SizeSelectionService';
 
 export class PhysicalRuntimeUnavailableError extends Error {
-  constructor() {
-    super('Physical selection runtime is not configured');
+  constructor(message = 'Physical selection runtime is not configured') {
+    super(message);
     this.name = 'PhysicalRuntimeUnavailableError';
   }
 }
 
 function createProductionDependencies() {
-  const databaseUrl = process.env.DATABASE_URL;
-  const storefrontToken = process.env.FOURTHWALL_STOREFRONT_TOKEN;
-  const shopDomain = process.env.FOURTHWALL_SHOP_DOMAIN;
-  const currency = process.env.FOURTHWALL_CURRENCY?.trim() || 'USD';
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  const catalogJson = process.env.ISSUED_ONCE_CATALOG_JSON?.trim();
+  if (!databaseUrl || !catalogJson) throw new PhysicalRuntimeUnavailableError();
 
-  if (!databaseUrl || !storefrontToken || !shopDomain) {
-    throw new PhysicalRuntimeUnavailableError();
+  let catalog: IssuedOnceCatalogGateway;
+  try {
+    catalog = new IssuedOnceCatalogGateway(catalogJson);
+  } catch (error) {
+    throw new PhysicalRuntimeUnavailableError(
+      error instanceof Error ? error.message : 'ISSUED ONCE catalog is invalid',
+    );
   }
 
   const sql = createNeonSqlExecutor(databaseUrl);
@@ -33,9 +37,23 @@ function createProductionDependencies() {
     experienceRepository: new PostgresExperienceRepository(sql),
     physicalRepository: new PostgresPhysicalSelectionRepository(sql),
     quoteRepository: new PostgresCheckoutQuoteRepository(sql),
-    catalog: new FourthwallCommerceGateway({ storefrontToken, shopDomain }),
-    currency,
+    catalog,
+    currency: catalog.currency(),
   };
+}
+
+function configuredProductSlugs(catalog: IssuedOnceCatalogGateway) {
+  const slugs = {
+    tee: catalog.productSlug('tee'),
+    hat: catalog.productSlug('hat'),
+    tote: catalog.productSlug('tote'),
+  } as { tee: string; hat: string; tote: string; hoodie?: string };
+  try {
+    slugs.hoodie = catalog.productSlug('hoodie');
+  } catch {
+    // Hoodie is intentionally seasonal and optional in the current issue.
+  }
+  return slugs;
 }
 
 export function createObjectSelectionService(): ObjectSelectionService {
@@ -54,23 +72,12 @@ export function createObjectSelectionService(): ObjectSelectionService {
     });
   }
 
-  const teeSlug = process.env.FOURTHWALL_TEE_SLUG;
-  const hatSlug = process.env.FOURTHWALL_HAT_SLUG;
-  const toteSlug = process.env.FOURTHWALL_TOTE_SLUG;
-  const hoodieSlug = process.env.FOURTHWALL_HOODIE_SLUG;
-  if (!teeSlug || !hatSlug || !toteSlug) throw new PhysicalRuntimeUnavailableError();
-
   const dependencies = createProductionDependencies();
   return new ObjectSelectionService({
     experienceRepository: dependencies.experienceRepository,
     physicalRepository: dependencies.physicalRepository,
     catalog: dependencies.catalog,
-    productSlugs: {
-      tee: teeSlug,
-      hat: hatSlug,
-      tote: toteSlug,
-      ...(hoodieSlug ? { hoodie: hoodieSlug } : {}),
-    },
+    productSlugs: configuredProductSlugs(dependencies.catalog),
     currency: dependencies.currency,
   });
 }
