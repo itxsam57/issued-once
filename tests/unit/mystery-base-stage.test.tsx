@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, test, vi } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { MysteryExperience } from '@/components/experience/MysteryExperience';
 
 async function answerText(user: ReturnType<typeof userEvent.setup>, value: string) {
@@ -54,7 +54,7 @@ test('shows only colors available for the locked object and size', async () => {
   await user.click(screen.getByRole('radio', { name: /Medium/ }));
   await user.click(screen.getByRole('button', { name: 'CONFIRM SIZE' }));
 
-  expect(screen.getByRole('heading', { name: 'Choose the color it begins as.' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Color your issue.' })).toBeInTheDocument();
   expect(screen.getByRole('radio', { name: 'Bone' })).toBeInTheDocument();
   expect(screen.getByRole('radio', { name: 'Black' })).toBeInTheDocument();
 
