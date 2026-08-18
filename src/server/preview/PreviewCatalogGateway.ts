@@ -2,9 +2,12 @@ import type { CatalogGateway, CatalogVariant } from '@/server/physical/CatalogGa
 
 const PREVIEW_VARIANTS: Record<string, readonly CatalogVariant[]> = {
   'preview-tee': [
+    { id: 'tee-xs-bone', size: 'XS', colorName: 'Bone', colorSwatch: '#e8e0cf', amountMinor: 3200, currency: 'USD', available: true },
     { id: 'tee-s-bone', size: 'S', colorName: 'Bone', colorSwatch: '#e8e0cf', amountMinor: 3200, currency: 'USD', available: true },
     { id: 'tee-m-black', size: 'M', colorName: 'Black', colorSwatch: '#171713', amountMinor: 3200, currency: 'USD', available: true },
     { id: 'tee-l-ash', size: 'L', colorName: 'Ash', colorSwatch: '#aaa69d', amountMinor: 3200, currency: 'USD', available: true },
+    { id: 'tee-xl-black', size: 'XL', colorName: 'Black', colorSwatch: '#171713', amountMinor: 3200, currency: 'USD', available: true },
+    { id: 'tee-2xl-bone', size: '2XL', colorName: 'Bone', colorSwatch: '#e8e0cf', amountMinor: 3200, currency: 'USD', available: true },
   ],
   'preview-hoodie': [
     { id: 'hoodie-s-black', size: 'S', colorName: 'Black', colorSwatch: '#171713', amountMinor: 5400, currency: 'USD', available: true },
