@@ -11,6 +11,14 @@ const record = {
   expiresAt: new Date('2026-08-19T06:00:00.000Z'),
 };
 
+const encryptedPayload = {
+  version: 1 as const,
+  keyVersion: 'v1' as const,
+  iv: 'iv',
+  tag: 'tag',
+  ciphertext: 'ciphertext',
+};
+
 describe('PostgresExperienceRepository', () => {
   test('creates and reads an anonymous experience without storing a raw browser token', async () => {
     const query = vi
@@ -54,14 +62,7 @@ describe('PostgresExperienceRepository', () => {
       answer: {
         experienceId: 'exp-1',
         questionId: 'q1',
-        encryptedPayload: {
-          version: 1,
-          algorithm: 'AES-256-GCM',
-          keyId: 'quiz-v1',
-          iv: 'iv',
-          tag: 'tag',
-          ciphertext: 'ciphertext',
-        },
+        encryptedPayload,
         answeredAt: new Date('2026-08-18T06:01:00.000Z'),
       },
       expectedStage: 'QUESTION_1',
@@ -75,6 +76,7 @@ describe('PostgresExperienceRepository', () => {
     expect(sql).toContain('AND stage = $2');
     expect(sql).toContain('INSERT INTO experience_answers');
     expect(params).toContain('ciphertext');
+    expect(params).toContain('v1');
   });
 
   test('rejects a stale or duplicate transition when expected stage no longer matches', async () => {
@@ -86,14 +88,7 @@ describe('PostgresExperienceRepository', () => {
         answer: {
           experienceId: 'exp-1',
           questionId: 'q1',
-          encryptedPayload: {
-            version: 1,
-            algorithm: 'AES-256-GCM',
-            keyId: 'quiz-v1',
-            iv: 'iv',
-            tag: 'tag',
-            ciphertext: 'ciphertext',
-          },
+          encryptedPayload,
           answeredAt: new Date('2026-08-18T06:01:00.000Z'),
         },
         expectedStage: 'QUESTION_1',
