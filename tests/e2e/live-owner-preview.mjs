@@ -67,12 +67,12 @@ async function runJourney(browser, profile) {
   await waitForCurrentDeployment(page);
 
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-  await page.getByRole('link', { name: 'BEGIN' }).click();
+  await page.getByRole('link', { name: 'BEGIN' }).first().click();
   await page.waitForURL('**/begin');
   await page.getByText('OWNER PREVIEW / NO PAYMENT').waitFor();
   await page.getByText('01 / 07').waitFor();
 
-  await continueText(page, 'old maps, storms, strange machines');
+  await continueText(page, 'The Master and Margarita');
   await continueText(page, 'a quiet cabin above a valley');
   await page.getByLabel('4 a.m.').check();
   await page.getByRole('button', { name: 'CONTINUE' }).click();
@@ -82,9 +82,9 @@ async function runJourney(browser, profile) {
   await page.getByRole('button', { name: 'CONTINUE' }).click();
 
   await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
-  await page.getByRole('radio', { name: 'HOODIE' }).check();
+  await page.getByRole('radio', { name: 'TEE' }).check();
   await page.getByRole('button', { name: 'LOCK FORM' }).click();
-  await page.getByRole('radio', { name: /Medium/ }).check();
+  await page.getByRole('radio', { name: /^Medium/ }).check();
   await page.getByRole('button', { name: 'CONFIRM SIZE' }).click();
   await page.getByRole('radio', { name: 'Bone' }).check();
   await page.getByRole('button', { name: 'LOCK BASE' }).click();
