@@ -7,7 +7,7 @@ import {
 } from '@/server/physical/runtimePhysical';
 
 const objectSelectionSchema = z.object({
-  object: z.enum(['tee', 'hoodie', 'hat']),
+  object: z.enum(['tee', 'hoodie', 'hat', 'tote']),
 });
 
 export async function POST(request: Request) {
