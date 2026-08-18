@@ -2,6 +2,7 @@ import { mkdir } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
 const forbiddenBeforeClose = /\b(?:tee|hoodie|hat|product|garment)\b|shop now/i;
+const forbiddenCreativeControl = /\b(?:artwork|design|preview|sample|recommended)\b/i;
 const visualQaPath = '/visual-qa/experience';
 
 async function continueText(page: import('@playwright/test').Page, answer: string) {
@@ -14,7 +15,7 @@ async function capture(page: import('@playwright/test').Page, name: string) {
   await page.screenshot({ path: `artifacts/visual/${name}.png`, fullPage: true });
 }
 
-test('the mystery interview completes in a real browser without leaking the object early', async ({ page }, testInfo) => {
+test('the mystery journey crosses from seven private traces into physical form without revealing creative control', async ({ page }, testInfo) => {
   await page.goto(visualQaPath);
 
   await expect(page.getByText('VISUAL QA / NOT PRODUCTION')).toBeVisible();
@@ -46,7 +47,23 @@ test('the mystery interview completes in a real browser without leaking the obje
 
   await expect(page.getByRole('heading', { name: 'WE HAVE ENOUGH.' })).toBeVisible();
   await expect(page.getByText('You decide what it exists on.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'UNLOCK FORM' })).toBeVisible();
   await capture(page, `03-complete-${testInfo.project.name}`);
+
+  await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
+  await expect(page.getByText('FORM / UNLOCKED')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Choose what it exists on.' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'TEE' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'HOODIE' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'HAT' })).toBeVisible();
+  await expect(page.locator('body')).not.toContainText(forbiddenCreativeControl);
+
+  const lockForm = page.getByRole('button', { name: 'LOCK FORM' });
+  await expect(lockForm).toBeDisabled();
+  await page.getByRole('radio', { name: 'HOODIE' }).check();
+  await expect(lockForm).toBeEnabled();
+  await capture(page, `05-form-${testInfo.project.name}`);
+  await lockForm.click();
 });
 
 test('the first question fits the viewport without horizontal overflow', async ({ page }, testInfo) => {
