@@ -72,6 +72,21 @@ test('the mystery journey crosses from seven private traces through form and siz
   await expect(page.locator('body')).not.toContainText(forbiddenSizeFear);
   await expect(page.locator('body')).not.toContainText(forbiddenCreativeControl);
 
+  const mediumSurface = page.locator('.size-confirmation__option').filter({ hasText: 'Medium' });
+  const surfaceMetrics = await mediumSurface.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const radio = element.querySelector('input');
+    const radioStyle = radio ? getComputedStyle(radio) : null;
+    return {
+      display: style.display,
+      height: element.getBoundingClientRect().height,
+      radioAppearance: radioStyle?.appearance ?? '',
+    };
+  });
+  expect(['grid', 'flex']).toContain(surfaceMetrics.display);
+  expect(surfaceMetrics.height).toBeGreaterThanOrEqual(72);
+  expect(surfaceMetrics.radioAppearance).toBe('none');
+
   const confirmSize = page.getByRole('button', { name: 'CONFIRM SIZE' });
   await expect(confirmSize).toBeDisabled();
   await page.getByRole('radio', { name: /Medium/ }).check();
