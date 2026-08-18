@@ -18,7 +18,7 @@ export function ObjectSelection({ onSelect }: ObjectSelectionProps) {
   const [selected, setSelected] = useState<ObjectType | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function chooseShape() {
+  async function lockForm() {
     if (!selected || submitting) return;
 
     setSubmitting(true);
@@ -53,8 +53,8 @@ export function ObjectSelection({ onSelect }: ObjectSelectionProps) {
         ))}
       </fieldset>
 
-      <button type="button" onClick={chooseShape} disabled={!selected || submitting}>
-        {submitting ? '...' : 'THIS SHAPE'}
+      <button type="button" onClick={lockForm} disabled={!selected || submitting}>
+        {submitting ? '...' : 'LOCK FORM'}
       </button>
     </section>
   );
