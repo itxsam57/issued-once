@@ -176,3 +176,16 @@ test('the first question fits the viewport without horizontal overflow', async (
   await expect(page.getByRole('button', { name: 'CONTINUE' })).toBeVisible();
   await capture(page, `04-first-screen-${testInfo.project.name}`);
 });
+
+test('the public BEGIN link opens the first mystery question without category leakage', async ({ page }, testInfo) => {
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { name: 'There is something here that does not exist yet.' })).toBeVisible();
+  await page.getByRole('link', { name: /BEGIN/ }).click();
+
+  await expect(page).toHaveURL(/\/begin$/);
+  await expect(page.getByText('01 / 07')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Name three things you can talk about for hours.' })).toBeVisible();
+  await expect(page.locator('body')).not.toContainText(forbiddenBeforeClose);
+  await capture(page, `09-public-entry-${testInfo.project.name}`);
+});
