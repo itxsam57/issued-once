@@ -5,7 +5,7 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentVerifiedHead": "200205407d33f1cf3df8d91446c57074248fd919"
+    "currentVerifiedHead": "d7948d69899cfe41ad1a7591766b058a6e13a541"
   },
   "continuationGovernor": {
     "state": "ACTIVE",
@@ -25,24 +25,24 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "base-selection-domain-2026-08-18",
-    "objective": "Define and verify the server-owned BASE to commitment quote domain boundary.",
+    "cycleId": "base-selection-persistence-2026-08-18",
+    "objective": "Persist the exact selected base/variant and advance commitment readiness safely.",
     "changes": [
-      "Added COMMITMENT_READY as the state between SIZE_CONFIRMED and CHECKOUT_STARTED",
-      "Added BaseSelectionRepository transition contract",
-      "Added BaseSelectionService that resolves exactly one current available provider variant from the stored product and size",
-      "Added opaque quote creation with a short expiry and ambiguity rejection"
+      "Added durable confirmBaseAndAdvance on PostgresPhysicalSelectionRepository",
+      "Requires an existing confirmed size and unset base/variant fields",
+      "Persists color code, color label, optional swatch and exact provider variant ID",
+      "Advances only SIZE_CONFIRMED -> COMMITMENT_READY"
     ],
     "verification": {
-      "ci": "GREEN on 200205407d33f1cf3df8d91446c57074248fd919",
-      "browserQa": "GREEN on 200205407d33f1cf3df8d91446c57074248fd919",
-      "newBaseDomainTests": "GREEN after an exact missing-service RED; existing suite remained green"
+      "ci": "GREEN on d7948d69899cfe41ad1a7591766b058a6e13a541",
+      "browserQa": "GREEN on d7948d69899cfe41ad1a7591766b058a6e13a541",
+      "persistenceRed": "55 tests passed and only the two missing confirmBaseAndAdvance assertions failed before implementation"
     },
     "nextActions": [
-      "Create a persistence RED for color, swatch, exact variant and SIZE_CONFIRMED -> COMMITMENT_READY",
-      "Implement Postgres and preview base persistence",
+      "Add preview base persistence with the same stage/idempotency rules",
       "Add migration support for COMMITMENT_READY",
-      "Wire fail-closed base runtime and /api/experience/base",
+      "Add route/runtime RED for /api/experience/base accepting only colorCode",
+      "Wire BaseSelectionService with preview/Postgres quote repositories",
       "Prove real public BASE -> COMMITMENT on desktop and mobile"
     ]
   }
