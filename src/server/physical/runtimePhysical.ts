@@ -48,22 +48,29 @@ export function createObjectSelectionService(): ObjectSelectionService {
         tee: 'preview-tee',
         hoodie: 'preview-hoodie',
         hat: 'preview-hat',
+        tote: 'preview-tote',
       },
       currency: 'USD',
     });
   }
 
   const teeSlug = process.env.FOURTHWALL_TEE_SLUG;
-  const hoodieSlug = process.env.FOURTHWALL_HOODIE_SLUG;
   const hatSlug = process.env.FOURTHWALL_HAT_SLUG;
-  if (!teeSlug || !hoodieSlug || !hatSlug) throw new PhysicalRuntimeUnavailableError();
+  const toteSlug = process.env.FOURTHWALL_TOTE_SLUG;
+  const hoodieSlug = process.env.FOURTHWALL_HOODIE_SLUG;
+  if (!teeSlug || !hatSlug || !toteSlug) throw new PhysicalRuntimeUnavailableError();
 
   const dependencies = createProductionDependencies();
   return new ObjectSelectionService({
     experienceRepository: dependencies.experienceRepository,
     physicalRepository: dependencies.physicalRepository,
     catalog: dependencies.catalog,
-    productSlugs: { tee: teeSlug, hoodie: hoodieSlug, hat: hatSlug },
+    productSlugs: {
+      tee: teeSlug,
+      hat: hatSlug,
+      tote: toteSlug,
+      ...(hoodieSlug ? { hoodie: hoodieSlug } : {}),
+    },
     currency: dependencies.currency,
   });
 }
