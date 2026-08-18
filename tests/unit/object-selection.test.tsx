@@ -20,7 +20,7 @@ describe('ObjectSelection', () => {
     expect(screen.queryByRole('radio', { name: 'HOODIE' })).not.toBeInTheDocument();
     expect(screen.queryByText(/artwork|design|preview|sample|recommended/i)).not.toBeInTheDocument();
 
-    const confirm = screen.getByRole('button', { name: 'THIS SHAPE' });
+    const confirm = screen.getByRole('button', { name: 'LOCK FORM' });
     expect(confirm).toBeDisabled();
 
     await user.click(screen.getByRole('radio', { name: 'TEE' }));
