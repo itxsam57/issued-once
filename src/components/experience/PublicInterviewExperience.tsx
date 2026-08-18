@@ -46,7 +46,9 @@ async function confirmSize(selection: {
   object: ObjectType;
   sizeCode: string;
 }): Promise<readonly BaseColorOption[]> {
-  const payload = await postJson<{ colors: BaseColorOption[] }>('/api/experience/size', selection);
+  const payload = await postJson<{ colors: BaseColorOption[] }>('/api/experience/size', {
+    sizeCode: selection.sizeCode,
+  });
   return payload.colors;
 }
 
