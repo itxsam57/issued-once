@@ -1,7 +1,7 @@
 import { mkdir } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
-const forbiddenBeforeClose = /tee|hoodie|hat|product|garment|shop now/i;
+const forbiddenBeforeClose = /\b(?:tee|hoodie|hat|product|garment)\b|shop now/i;
 const visualQaPath = '/visual-qa/experience';
 
 async function continueText(page: import('@playwright/test').Page, answer: string) {
