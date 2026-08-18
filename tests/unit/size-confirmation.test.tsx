@@ -37,4 +37,18 @@ describe('SizeConfirmation', () => {
 
     expect(onConfirm).toHaveBeenCalledWith('M');
   });
+
+  test('renders a provider size cleanly when no measurement facts are supplied', () => {
+    render(
+      <SizeConfirmation
+        object="hoodie"
+        sizes={[{ code: 'M', label: 'M' }]}
+        onConfirm={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('radio', { name: 'M' })).toBeInTheDocument();
+    expect(screen.queryByText(/undefined/i)).not.toBeInTheDocument();
+    expect(document.body.innerHTML).not.toContain('undefined');
+  });
 });
