@@ -258,53 +258,73 @@ Uniqueness constraints provide the final guard under concurrency:
 Production behavior:
 
 - authenticate signature normally;
-- record a minimal inbox event as `IGNORED_TEST` or process it in a strictly isolated test namespace;
-- return success;
+- record a minimal inbox event as `IGNORED_TEST`;
+- return 200;
 - never write a production `issues` row.
 
 Automated integration tests may use a dedicated test repository/transaction to exercise Issue creation semantics, but test data must remain structurally isolated from production Issue IDs.
 
 ## 12. Error and acknowledgement policy
 
+The route uses explicit acknowledgement semantics so authentication failures are rejected, retryable infrastructure failures can be retried, and terminal commercial mismatches do not create infinite provider retry loops.
+
 ### Invalid authentication
 
-- missing/invalid signature: reject with 401/403 equivalent;
+- missing or invalid `X-Fourthwall-Hmac-SHA256`: return `401`;
 - no durable event or Issue write.
 
-### Unsupported/malformed event
+### Authenticated malformed envelope
 
-- authenticated but unsupported type/version/shop: terminal rejection/ignore according to explicit policy;
-- no Issue creation.
+- valid signature but JSON cannot be parsed or required top-level fields are invalid: return `200` after emitting a sanitized terminal diagnostic;
+- no Issue creation;
+- no raw body or customer data is logged.
 
-### Duplicate already processed
+The signed body cannot become valid on retry, so repeated provider delivery is not useful.
 
-- return 200 acknowledgement;
-- no new Issue.
+### Authenticated wrong shop / unsupported type / unsupported API version
 
-### Retryable internal inconsistency
+- classify as terminal/ignored;
+- return `200`;
+- create no Issue.
+
+### Duplicate already processed or ignored test event
+
+- return `200`;
+- create no new Issue.
+
+### Retryable infrastructure failure
 
 Examples:
 
-- temporary database failure
-- quote expected but temporarily unreadable
-- transaction deadlock
+- database connection/query failure
+- transaction deadlock/serialization failure
+- temporary repository failure
 - Issue ID collision retry budget unexpectedly exhausted
 
 Behavior:
 
-- event remains/changes to `FAILED_RETRYABLE` where a durable inbox row exists;
-- return non-2xx so provider retry remains useful;
-- observable sanitized failure code is recorded.
+- if an inbox row exists, leave/change it to `FAILED_RETRYABLE` with a sanitized failure code;
+- return `503`;
+- never mark the event `PROCESSED`;
+- never leave a partial Issue.
 
 ### Terminal commercial mismatch
 
 Examples:
 
-- valid event but missing required `io_quote_id`
-- quote permanently unknown
-- order cannot be reconciled to a server-locked provider variant
+- valid `ORDER_PLACED` but missing required `io_quote_id`
+- successful quote lookup returns no matching quote
+- quote exists but cannot reconcile to the server-locked provider variant
+- paid order is already bound to a conflicting commercial reservation
 
-The processor must create no Issue. The event should be marked `FAILED_TERMINAL` with a non-PII failure code and surfaced operationally. The HTTP acknowledgement policy should avoid an infinite provider retry loop for a proven terminal mismatch.
+Behavior:
+
+- mark the event `FAILED_TERMINAL` with a non-PII failure code when the inbox is available;
+- create no Issue;
+- return `200` so a proven terminal mismatch does not retry forever;
+- surface the mismatch through operational metrics/logging for manual investigation.
+
+A database/query exception while checking the quote is **not** an unknown quote; it is a retryable infrastructure failure and returns `503`.
 
 ## 13. Privacy and data minimization
 
@@ -406,6 +426,7 @@ Implementation is not complete until automated tests prove at least:
 15. The Issue registry contains no quiz answers/customer PII.
 16. Provider event/customer fields are not emitted into application logs.
 17. Concurrent duplicate deliveries remain single-reservation safe.
+18. Retryable infrastructure failures return `503`; terminal authenticated mismatches return `200` with no Issue.
 
 ## 19. Integration test gates
 
