@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, test, vi } from 'vitest';
 import { InterviewFlow } from '@/components/experience/InterviewFlow';
+import type { QuestionDefinition } from '@/domain/experience/types';
 
 async function answerText(user: ReturnType<typeof userEvent.setup>, value: string) {
   await user.type(screen.getByLabelText('Your answer'), value);
@@ -41,5 +42,19 @@ describe('InterviewFlow', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('heading', { name: 'WE HAVE ENOUGH.' })).toBeInTheDocument();
     expect(screen.getByText('You decide what it exists on.')).toBeInTheDocument();
+  });
+
+  test('renders the seven prompts assigned to this experience instead of global defaults', () => {
+    const assigned = Array.from({ length: 7 }, (_, index) => ({
+      id: `q${index + 1}`,
+      prompt: `Assigned prompt ${index + 1}`,
+      kind: 'text',
+      optional: index === 6,
+    })) as QuestionDefinition[];
+
+    render(<InterviewFlow questions={assigned} onAnswer={vi.fn()} />);
+
+    expect(screen.getByRole('heading', { name: 'Assigned prompt 1' })).toBeInTheDocument();
+    expect(screen.queryByText("So tell me. What's your favourite book?")).not.toBeInTheDocument();
   });
 });
