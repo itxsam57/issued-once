@@ -5,10 +5,11 @@ import type {
   ExperienceRepository,
   StoredAnswer,
 } from '@/server/experience/ExperienceRepository';
+import type { ObjectType } from '@/server/physical/PhysicalSelectionRepository';
 
 export type PreviewPhysicalSelection = {
   experienceId: string;
-  object: 'tee' | 'hoodie' | 'hat';
+  object: ObjectType;
   productSlug: string;
   sizeCode?: string;
   colorCode?: string;
