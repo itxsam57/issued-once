@@ -2,23 +2,23 @@
 
 import { useState } from 'react';
 
-export type ObjectType = 'tee' | 'hoodie' | 'hat';
+export type ObjectType = 'tee' | 'hoodie' | 'hat' | 'tote';
 
 type ObjectSelectionProps = {
   onSelect: (object: ObjectType) => Promise<void> | void;
 };
 
-const OBJECTS: Array<{ value: ObjectType; label: string; index: string }> = [
+const CURRENT_ISSUE_OBJECTS: Array<{ value: ObjectType; label: string; index: string }> = [
   { value: 'tee', label: 'TEE', index: '01' },
-  { value: 'hoodie', label: 'HOODIE', index: '02' },
-  { value: 'hat', label: 'HAT', index: '03' },
+  { value: 'hat', label: 'CAP', index: '02' },
+  { value: 'tote', label: 'TOTE', index: '03' },
 ];
 
 export function ObjectSelection({ onSelect }: ObjectSelectionProps) {
   const [selected, setSelected] = useState<ObjectType | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function lockForm() {
+  async function chooseShape() {
     if (!selected || submitting) return;
 
     setSubmitting(true);
@@ -31,12 +31,12 @@ export function ObjectSelection({ onSelect }: ObjectSelectionProps) {
 
   return (
     <section className="object-selection" aria-labelledby="object-selection-heading">
-      <p className="object-selection__signal">FORM / UNLOCKED</p>
-      <h1 id="object-selection-heading">Choose what it exists on.</h1>
+      <p className="object-selection__signal">FORM / CURRENT ISSUE</p>
+      <h1 id="object-selection-heading">Pick the shape your issue lives on.</h1>
 
       <fieldset className="object-selection__options">
-        <legend className="sr-only">Physical form</legend>
-        {OBJECTS.map((object) => (
+        <legend className="sr-only">Shape</legend>
+        {CURRENT_ISSUE_OBJECTS.map((object) => (
           <label key={object.value} className="object-selection__option">
             <input
               type="radio"
@@ -53,8 +53,8 @@ export function ObjectSelection({ onSelect }: ObjectSelectionProps) {
         ))}
       </fieldset>
 
-      <button type="button" onClick={lockForm} disabled={!selected || submitting}>
-        {submitting ? '...' : 'LOCK FORM'}
+      <button type="button" onClick={chooseShape} disabled={!selected || submitting}>
+        {submitting ? '...' : 'THIS SHAPE'}
       </button>
     </section>
   );
