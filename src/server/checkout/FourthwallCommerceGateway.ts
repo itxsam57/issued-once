@@ -3,6 +3,7 @@ import type {
   CommerceVariant,
   CreateCartInput,
 } from './CheckoutService';
+import type { CatalogGateway, CatalogVariant } from '@/server/physical/CatalogGateway';
 
 type FourthwallCommerceGatewayOptions = {
   storefrontToken: string;
@@ -10,18 +11,30 @@ type FourthwallCommerceGatewayOptions = {
   fetchImpl?: typeof fetch;
 };
 
+type ProductVariantResponse = {
+  id?: string;
+  unitPrice?: {
+    value?: number;
+    currency?: string;
+  };
+  attributes?: {
+    description?: string;
+    color?: {
+      name?: string;
+      swatch?: string;
+    };
+    size?: {
+      name?: string;
+    };
+  };
+  stock?: {
+    type?: string;
+    inStock?: number;
+  };
+};
+
 type ProductResponse = {
-  variants?: Array<{
-    id?: string;
-    unitPrice?: {
-      value?: number;
-      currency?: string;
-    };
-    stock?: {
-      type?: string;
-      inStock?: number;
-    };
-  }>;
+  variants?: ProductVariantResponse[];
 };
 
 type CartResponse = {
@@ -50,7 +63,7 @@ function toMinorUnits(value: number): number {
   return Math.round((value + Number.EPSILON) * 100);
 }
 
-export class FourthwallCommerceGateway implements CommerceGateway {
+export class FourthwallCommerceGateway implements CommerceGateway, CatalogGateway {
   private readonly storefrontToken: string;
   private readonly shopDomain: string;
   private readonly fetchImpl: typeof fetch;
@@ -65,11 +78,7 @@ export class FourthwallCommerceGateway implements CommerceGateway {
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
-  async getVariant(
-    productSlug: string,
-    variantId: string,
-    currency: string,
-  ): Promise<CommerceVariant | null> {
+  private async fetchProduct(productSlug: string, currency: string): Promise<ProductResponse> {
     const url = new URL(
       `/v1/products/${encodeURIComponent(productSlug)}`,
       'https://storefront-api.fourthwall.com',
@@ -86,7 +95,47 @@ export class FourthwallCommerceGateway implements CommerceGateway {
       throw new Error('Fourthwall product lookup failed');
     }
 
-    const product = (await response.json()) as ProductResponse;
+    return (await response.json()) as ProductResponse;
+  }
+
+  async listVariants(productSlug: string, currency: string): Promise<readonly CatalogVariant[]> {
+    const product = await this.fetchProduct(productSlug, currency);
+    const variants: CatalogVariant[] = [];
+
+    for (const variant of product.variants ?? []) {
+      const id = variant.id?.trim();
+      const size = variant.attributes?.size?.name?.trim();
+      const colorName = variant.attributes?.color?.name?.trim();
+      const colorSwatch = variant.attributes?.color?.swatch?.trim() || null;
+      const value = variant.unitPrice?.value;
+      const providerCurrency = variant.unitPrice?.currency?.trim();
+
+      if (!id || !size || !colorName) continue;
+      if (typeof value !== 'number' || !providerCurrency) {
+        throw new Error('Fourthwall variant price is invalid');
+      }
+
+      const inStock = variant.stock?.inStock;
+      variants.push({
+        id,
+        size,
+        colorName,
+        colorSwatch,
+        amountMinor: toMinorUnits(value),
+        currency: providerCurrency,
+        available: typeof inStock === 'number' ? inStock > 0 : true,
+      });
+    }
+
+    return variants;
+  }
+
+  async getVariant(
+    productSlug: string,
+    variantId: string,
+    currency: string,
+  ): Promise<CommerceVariant | null> {
+    const product = await this.fetchProduct(productSlug, currency);
     const variant = product.variants?.find((candidate) => candidate.id === variantId);
     if (!variant) return null;
 
