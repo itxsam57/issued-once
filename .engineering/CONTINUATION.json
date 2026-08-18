@@ -5,14 +5,14 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentBranchHead": "210d4a782052fb2117f9cc8c7a0e9ea5342a42d5",
+    "currentBranchHead": "dd6946cec5b9ebf5a36842a3c29e2a3b3b8c57ab",
     "currentVerifiedHead": "e0d44f6438f6191ccbd2525cb439062499c997ae"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "decision": "STOP_FOR_SPEC_APPROVAL",
+    "state": "ACTIVE",
+    "decision": "CONTINUE",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Owner approved the webhook/private issue-registry architecture. The formal architectural spec is now written and self-reviewed. Superpowers requires owner review/approval of the written spec before writing-plans and implementation may begin."
+    "stopReason": null
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -26,44 +26,43 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "paid-order-webhook-spec-2026-08-18",
-    "objective": "Convert the owner-approved paid-order webhook/private Issue architecture into an implementation-ready written specification without weakening privacy or idempotency guarantees.",
+    "cycleId": "paid-order-webhook-plan-2026-08-18",
+    "objective": "Translate the owner-approved paid-order webhook/private Issue registry specification into an executable TDD plan and resume autonomous implementation.",
     "changes": [
-      "Recovered .engineering/CONTINUATION.json before acting and used the mapped repo/branch as source of truth",
-      "Verified the current Fourthwall ORDER_PLACED, unique event id, testMode, and raw-body HMAC-SHA256 contracts against official documentation",
-      "Wrote docs/superpowers/specs/2026-08-18-issued-once-order-webhook-issue-registry-design.md",
-      "Specified signed raw-body webhook verification, durable event inbox, duplicate safety, opaque io_quote_id correlation, private RESERVED Issue creation, random permanent Issue IDs, privacy exclusions, concurrency model, observability and deployment sequence",
-      "Self-reviewed the spec and removed ambiguous acknowledgement semantics",
-      "Locked invalid signature to 401/no write, retryable infrastructure failure to 503, and authenticated terminal mismatch to 200/no Issue",
-      "Recorded issuedonce.shop as the intended canonical customer/webhook domain while preserving Vercel preview as the pre-domain deployment path"
+      "Recorded owner written-spec approval from the conversation",
+      "Wrote docs/superpowers/plans/2026-08-18-issued-once-order-webhook-issue-registry.md",
+      "Self-reviewed plan coverage, placeholders, type consistency and scope",
+      "Selected inline execution because the owner already instructed Continuation Governor to continue autonomously",
+      "Kept front-page Vercel preview as an independent final deployment task so page availability cannot mask webhook correctness"
     ],
     "verification": {
-      "architectureOwnerApproval": "APPROVED in conversation on 2026-08-18",
+      "architectureApproval": "APPROVED",
+      "writtenSpecApproval": "APPROVED",
       "specPath": "docs/superpowers/specs/2026-08-18-issued-once-order-webhook-issue-registry-design.md",
-      "specHead": "210d4a782052fb2117f9cc8c7a0e9ea5342a42d5",
-      "selfReview": "PASS: no placeholders; trust boundary, retry/terminal semantics, privacy exclusions, idempotency, collision handling and scaling seam are explicit",
-      "fourthwallPaidTruth": "ORDER_PLACED is documented as fired when a new order is successfully placed and paid",
-      "fourthwallSignature": "Shop webhooks use base64 HMAC-SHA256 in X-Fourthwall-Hmac-SHA256 over the complete raw body",
-      "fourthwallIdempotency": "Webhook event id is unique and repeated ids are duplicates",
-      "fourthwallTestMode": "testMode=true identifies test notifications and must not create a production Issue",
+      "planPath": "docs/superpowers/plans/2026-08-18-issued-once-order-webhook-issue-registry.md",
+      "planHead": "dd6946cec5b9ebf5a36842a3c29e2a3b3b8c57ab",
+      "planSelfReview": "PASS",
       "lastVerifiedGreenProductHead": "e0d44f6438f6191ccbd2525cb439062499c997ae",
-      "unverifiedPrivacyRedStillPresent": "eaf7807 removed experience id from expected cart metadata and keeps only opaque io_quote_id; do not mark verified until corresponding implementation and fresh gates are GREEN"
+      "knownActiveRed": "CheckoutService still sends io_experience_id while checkout-service.test.ts requires only io_quote_id"
     },
     "frontPageStatus": {
-      "code": "Existing mystery front page and flow are already implemented in the branch and have prior desktop/mobile Chromium evidence",
+      "code": "Mystery front page and flow already exist with prior desktop/mobile Chromium evidence",
       "publicPreview": "NOT_DEPLOYED_YET",
       "ownerTestableUrl": null,
       "plannedDomain": "issuedonce.shop",
-      "nextDeploymentGoal": "After the written-spec gate and implementation-plan transition, keep building while preparing a Vercel preview URL for owner hands-on testing before DNS attachment"
+      "nextDeploymentGoal": "After core paid-order work remains green, publish and live-test a Vercel preview, then report the exact URL"
     },
-    "ownerAction": "Review and approve the written spec at docs/superpowers/specs/2026-08-18-issued-once-order-webhook-issue-registry-design.md. A reply of 'spec approved' is sufficient.",
+    "ownerAction": null,
     "nextActions": [
-      "OWNER_REQUIRED: approve the written webhook/private Issue registry spec",
-      "After approval, invoke Superpowers writing-plans and commit the implementation plan",
-      "Resume autonomous TDD implementation under Continuation Governor",
-      "Make the existing front-page flow owner-testable on a Vercel preview and report the URL when verified",
-      "Later attach issuedonce.shop when the owner provides/controls the domain",
-      "Keep the eaf7807 privacy RED separate until its matching implementation and fresh CI/browser gates are GREEN"
+      "Close the current io_experience_id cart-metadata privacy RED and obtain fresh GREEN CI",
+      "Implement exact raw-body Fourthwall HMAC verification and minimized envelope parsing test-first",
+      "Implement random non-sequential Issue ID generator",
+      "Add durable webhook inbox/private Issue registry migration and repository",
+      "Implement paid-order processor and signed route",
+      "Run full unit/type/browser privacy and replay gates",
+      "Verify migration on isolated Neon branch if connector is available",
+      "Publish and live-test owner-testable Vercel preview",
+      "Later attach issuedonce.shop when domain control is available"
     ]
   }
 }
