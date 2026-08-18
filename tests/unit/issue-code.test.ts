@@ -4,11 +4,11 @@ import { generateIssueCode } from '@/server/issues/IssueCode';
 const alphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 
 describe('generateIssueCode', () => {
-  test('produces a human-readable non-sequential Issue code with no ambiguous characters', () => {
+  test('produces a human-readable non-sequential Issue code with no ambiguous random characters', () => {
     const code = generateIssueCode(() => Uint8Array.from([0, 1, 2, 3, 4, 5, 6, 7]));
 
     expect(code).toMatch(/^IO-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}$/);
-    expect(code).not.toMatch(/[01ILO]/);
+    expect(code.slice(3)).not.toMatch(/[01ILO]/);
     expect(code).toBe(
       `IO-${alphabet[0]}${alphabet[1]}${alphabet[2]}${alphabet[3]}-${alphabet[4]}${alphabet[5]}${alphabet[6]}${alphabet[7]}`,
     );
