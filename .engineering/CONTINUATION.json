@@ -5,13 +5,14 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
+    "currentBranchHead": "eaf7807bf3cb18098cdfc132c574c2c87b1ff102",
     "currentVerifiedHead": "e0d44f6438f6191ccbd2525cb439062499c997ae"
   },
   "continuationGovernor": {
-    "state": "ACTIVE",
-    "decision": "CONTINUE",
+    "state": "OWNER_REQUIRED",
+    "decision": "STOP_FOR_OWNER_APPROVAL",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": null
+    "stopReason": "The next continuation step creates a new inbound webhook trust boundary, durable idempotency ledger, private issue registry, permanent random Issue ID allocator, and later public verification read model. Superpowers classifies this as architectural and requires an approved design before implementation. No approved webhook/issue-registry design exists in the mapped branch."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -25,27 +26,74 @@
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "hosted-checkout-redirect-acceptance-2026-08-18",
-    "objective": "Prove the public customer can consciously commit and leave ISSUED ONCE for a hosted HTTPS checkout without exposing trusted product facts.",
+    "cycleId": "continuation-recovery-webhook-architecture-gate-2026-08-18",
+    "objective": "Recover canonical repository state, verify the next continuation boundary, and establish the minimum safe architecture for paid-order truth before implementation.",
     "changes": [
-      "Extended the real public browser acceptance path through ISSUE MINE",
-      "Asserted checkout POST contains only opaque quoteId",
-      "Intercepted checkout API with a safe HTTPS hosted destination and intercepted that destination itself for deterministic browser proof"
+      "Recovered .engineering/CONTINUATION.json before acting and treated the mapped branch as source of truth",
+      "Detected branch progress beyond the last verified head: eaf7807 is a test-only privacy RED requiring Fourthwall cart metadata to contain only opaque io_quote_id and no experience identifier",
+      "Verified no approved ORDER_PLACED webhook / issue-registry design or spec exists in the branch",
+      "Researched the current official Fourthwall webhook contract and signature rules",
+      "Classified the next subsystem as architectural and stopped at the mandatory owner approval gate instead of implementing unapproved architecture"
     ],
     "verification": {
-      "ci": "GREEN on e0d44f6438f6191ccbd2525cb439062499c997ae",
-      "browserQa": "GREEN on e0d44f6438f6191ccbd2525cb439062499c997ae",
-      "desktopRedirect": "GREEN: ISSUE MINE caused top-level HTTPS navigation to hosted checkout test destination",
-      "mobileRedirect": "GREEN: ISSUE MINE caused top-level HTTPS navigation to hosted checkout test destination",
-      "wireContract": "Checkout request body contains only non-empty quoteId",
-      "recovery": "Existing checkout 503 retry/recovery browser proof remains GREEN"
+      "lastVerifiedGreenHead": "e0d44f6438f6191ccbd2525cb439062499c997ae",
+      "currentBranchHead": "eaf7807bf3cb18098cdfc132c574c2c87b1ff102",
+      "currentHeadIntent": "RED/privacy hardening: remove io_experience_id from provider cart metadata; retain only opaque io_quote_id",
+      "fourthwallPaidTruth": "Official ORDER_PLACED documentation states the event fires when a new order is successfully placed and paid",
+      "fourthwallSignature": "Verify the exact raw request body with HMAC-SHA256 and compare against X-Fourthwall-Hmac-SHA256; Platform Apps use X-Fourthwall-Hmac-Apps-SHA256",
+      "fourthwallIdempotency": "Webhook event id is unique; repeated ids are duplicates; delivery is at-least-once",
+      "designSearch": "No approved repo-local ORDER_PLACED / issue-registry design found"
     },
+    "proposedArchitecture": {
+      "classification": "ARCHITECTURAL",
+      "recommendedApproach": "Signed event inbox plus atomic issue reservation",
+      "flow": [
+        "POST /api/webhooks/fourthwall reads raw bytes before JSON parsing",
+        "Reject missing or invalid Fourthwall HMAC before any database write",
+        "Accept only ORDER_PLACED for V1-compatible payloads and the configured shop",
+        "Insert webhook event id into an idempotency ledger with a uniqueness constraint",
+        "Recover only opaque io_quote_id from order/cart metadata; never require customer identity or quiz answers",
+        "Resolve the quote and locked physical selection server-side",
+        "Atomically create one private RESERVED issue with a cryptographically random nonsequential permanent Issue ID",
+        "Use a database uniqueness constraint plus bounded collision retry; issued/void/cancelled IDs are never reusable",
+        "Return 200 for an already-processed duplicate event without creating a second issue",
+        "Keep public verification out of this first implementation slice until private reservation is durable"
+      ],
+      "minimumPrivateIssueFacts": [
+        "issueId",
+        "status=RESERVED",
+        "fourthwallOrderId",
+        "fourthwallWebhookEventId",
+        "quoteId",
+        "productSlug or productId",
+        "variantId",
+        "sizeCode",
+        "colorCode",
+        "createdAt"
+      ],
+      "explicitlyExcluded": [
+        "quiz answers",
+        "customer name",
+        "customer email",
+        "shipping address",
+        "artwork preview",
+        "public sales sequence/count"
+      ],
+      "testGates": [
+        "invalid signature produces no writes",
+        "duplicate event id produces exactly one RESERVED issue",
+        "unknown quote id produces no issue and an observable recoverable processing failure",
+        "random Issue ID collision retries without reusing any existing ID",
+        "payload cannot choose variant/product/price independently of the server quote",
+        "testMode events never create production RESERVED issues"
+      ]
+    },
+    "ownerAction": "Approve or revise the proposed webhook + private issue registry architecture. On approval, write the architectural spec, self-review it, request spec approval, then create the implementation plan and resume TDD implementation.",
     "nextActions": [
-      "Implement authenticated Fourthwall ORDER_PLACED webhook handling using current official webhook contract",
-      "Create an idempotent private issue registry and RESERVED issue record only from verified paid-order truth",
-      "Generate random nonsequential permanent Issue IDs with collision protection and never reuse void/cancelled IDs",
-      "Link only minimum order/physical-selection facts needed for fulfillment while keeping quiz answers private",
-      "Add public verification read model only after private issue reservation is durable"
+      "OWNER_REQUIRED: approve or revise proposed webhook/private issue registry architecture",
+      "After architecture approval, write docs/superpowers/specs/2026-08-18-issued-once-order-webhook-issue-registry-design.md",
+      "After spec approval, invoke writing-plans and implement test-first",
+      "Keep eaf7807 privacy RED separate and do not mark it verified until its corresponding implementation and fresh gates are GREEN"
     ]
   }
 }
