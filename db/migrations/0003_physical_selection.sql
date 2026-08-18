@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS experience_physical_selection (
-  experience_id UUID PRIMARY KEY REFERENCES experiences(id) ON DELETE CASCADE,
+  experience_id TEXT PRIMARY KEY REFERENCES experiences(id) ON DELETE CASCADE,
   object_type TEXT NOT NULL CHECK (object_type IN ('tee', 'hoodie', 'hat')),
   product_slug TEXT NOT NULL,
   size_code TEXT,
