@@ -18,8 +18,8 @@ export class ManufacturingService {
   ) {}
 
   async createDraft(issueId: string): Promise<ManufacturingJobRecord> {
-    const existing = await this.repository.findByIssueId(issueId);
-    if (existing) return existing;
+    let job = await this.repository.findByIssueId(issueId);
+    if (job && job.state !== 'FAILED') return job;
 
     const input = await this.repository.loadInput(issueId);
     if (!input) throw new Error('Manufacturing input is unavailable');
@@ -33,22 +33,26 @@ export class ManufacturingService {
       sizeCode: input.sizeCode,
       colorCode: input.colorCode,
     });
-    const now = this.now();
-    const reservation = await this.repository.reserve({
-      id: this.idGenerator(),
-      issueId: input.issueId,
-      designJobId: input.designJobId,
-      state: 'RESERVED',
-      provider: 'PRINTFUL',
-      providerOrderId: null,
-      providerStatus: null,
-      printfulVariantId: null,
-      artworkUrl: input.artworkUrl,
-      createdAt: now,
-      updatedAt: now,
-      confirmedAt: null,
-    });
-    if (!reservation.created) return reservation.job;
+
+    if (!job) {
+      const now = this.now();
+      const reservation = await this.repository.reserve({
+        id: this.idGenerator(),
+        issueId: input.issueId,
+        designJobId: input.designJobId,
+        state: 'RESERVED',
+        provider: 'PRINTFUL',
+        providerOrderId: null,
+        providerStatus: null,
+        printfulVariantId: null,
+        artworkUrl: input.artworkUrl,
+        createdAt: now,
+        updatedAt: now,
+        confirmedAt: null,
+      });
+      job = reservation.job;
+      if (!reservation.created && job.state !== 'FAILED') return job;
+    }
 
     try {
       const [{ email }, address] = await Promise.all([
@@ -73,7 +77,7 @@ export class ManufacturingService {
         },
       });
       return await this.repository.attachDraft({
-        jobId: reservation.job.id,
+        jobId: job.id,
         providerOrderId: draft.providerOrderId,
         providerStatus: draft.status,
         printfulVariantId: mapping.variantId,
@@ -81,7 +85,7 @@ export class ManufacturingService {
       });
     } catch (error) {
       await this.repository.markFailed(
-        reservation.job.id,
+        job.id,
         error instanceof Error ? error.name : 'PRINTFUL_DRAFT_FAILURE',
         this.now(),
       );
