@@ -27,6 +27,7 @@ export function InterviewQuestion({
 }: InterviewQuestionProps) {
   const [answer, setAnswer] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const canContinue = question.optional || answer.trim().length > 0;
 
@@ -34,11 +35,19 @@ export function InterviewQuestion({
     if (!canContinue || submitting) return;
 
     setSubmitting(true);
+    setSaveError(null);
     try {
       await onAnswer({ questionId: question.id, answer: answer.trim() });
+    } catch {
+      setSaveError('NOT SAVED / TRY AGAIN');
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function updateAnswer(value: string) {
+    setAnswer(value);
+    if (saveError) setSaveError(null);
   }
 
   return (
@@ -60,7 +69,7 @@ export function InterviewQuestion({
                 name={question.id}
                 value={choice.value}
                 checked={answer === choice.value}
-                onChange={(event) => setAnswer(event.target.value)}
+                onChange={(event) => updateAnswer(event.target.value)}
               />
               <span>{choice.label}</span>
             </label>
@@ -73,13 +82,19 @@ export function InterviewQuestion({
             className="ph-no-capture"
             aria-label="Your answer"
             value={answer}
-            onChange={(event) => setAnswer(event.target.value)}
+            onChange={(event) => updateAnswer(event.target.value)}
             rows={3}
             autoComplete="off"
             spellCheck="true"
           />
         </label>
       )}
+
+      {saveError ? (
+        <p className="interview-question__save-state" role="status">
+          {saveError}
+        </p>
+      ) : null}
 
       <button type="button" onClick={submit} disabled={!canContinue || submitting}>
         {submitting ? '...' : 'CONTINUE'}
