@@ -5,71 +5,105 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "currentBranchHead": "c9f540b7698bac70da6225a05ee7c70526654580",
-    "currentVerifiedHead": "c0260b64f10dea9c2cb6c937a42c2d37cbc18c4f",
-    "currentVercelBuildVerifiedHead": "3ab52972ea133b27575e3432b206b0c80caf1ccb"
+    "lastFullCiVerifiedHead": "c0260b64f10dea9c2cb6c937a42c2d37cbc18c4f",
+    "latestImplementationHeadVerification": "NOT_CLAIMED"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "OWNER_REVIEW_SAFEPAY_PRINTFUL_MVP_SPEC",
-    "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Owner selected the launch architecture: existing ISSUED ONCE website + Safepay for customer payment + owner-controlled manual Printful manufacturing payment/approval for the first complete real cycle, with a later Stripe migration after demand validation and an eligible entity. The architectural design has been written and committed. Per the approved engineering process, implementation must not begin until the owner reviews the written spec."
+    "decision": "FINAL_COMMERCIAL_SPINE_IMPLEMENTED_AWAITING_EXECUTABLE_VERIFICATION_AND_PROVIDER_CONFIGURATION",
+    "allowedStopStates": [
+      "OWNER_REQUIRED",
+      "BLOCKED",
+      "WAIT_EXTERNAL",
+      "LOOP_DETECTED",
+      "COMPLETE"
+    ],
+    "stopReason": "The final commercial architecture has been implemented on the feature branch, but the newest branch head has not received an executable green CI/browser/build proof in this cycle. Production database migrations are not claimed applied and Safepay/OpenAI/Vercel Blob+Queue/Resend/Printful production credentials are not claimed configured. No real Safepay charge or Printful production confirmation has been executed."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "externalPluginDetected": false,
     "rules": [
       "Treat mapped GitHub repo/branch as canonical source of truth",
-      "Use evidence-first systematic debugging",
-      "Use test-first changes for behavior and bug fixes",
-      "Keep production and preview/runtime boundaries fail-closed",
-      "Never call a gate green when the runner did not execute",
-      "Update this continuation state after every meaningful work cycle"
+      "Use test-first changes for behavioral work",
+      "Keep payment, design and manufacturing boundaries fail-closed",
+      "Never infer paid truth from a browser redirect",
+      "Never allow model output to enter manufacturing without explicit approval",
+      "Never allow Printful production confirmation without owner auth, kill switch and typed confirmation",
+      "Never call a verification gate green when it did not execute"
     ]
   },
   "lastMeaningfulCycle": {
-    "cycleId": "safepay-printful-mvp-architecture-2026-08-19",
-    "objective": "Lock the simplest architecture capable of proving one complete paid ISSUED ONCE order from randomized private questions through payment, design, manufacturing, shipment and customer delivery before optimizing fees or incorporating a foreign payment entity.",
+    "cycleId": "final-commercial-cycle-2026-08-19",
+    "objective": "Complete the full ISSUED ONCE path from randomized private questionnaire through verified contact, Safepay payment, canonical Issue identity, automatic design, owner quality approval, Printful draft/confirmation, shipment tracking, notifications, private status and support.",
+    "architecture": "ISSUED ONCE -> Safepay -> canonical Issue -> OpenAI design worker -> owner approval -> Printful draft -> owner confirmation -> fulfillment/tracking",
     "changes": [
-      "Selected the existing ISSUED ONCE Next.js website as the only customer storefront; Shopify and Fourthwall are out of the first-cycle architecture",
-      "Selected Safepay as the launch customer-payment adapter while keeping payment infrastructure behind a replaceable PaymentGateway boundary",
-      "Explicitly accepted Safepay-to-bank-to-Printful money movement and its temporary fee/FX inefficiency as validation cost",
-      "Selected Printful as the first ManufacturerGateway with manufacturing manually approved/paid for the first cycle",
-      "Required paid orders to remain blocked from manufacturing until the design and production-quality gates pass",
-      "Defined the immutable identity spine from Experience -> Question Set -> Answers -> Contact -> Physical Selection -> Payment Attempt -> Issue -> Design Job -> Manufacturing Job -> Shipment",
-      "Defined a versioned randomized Question Vault with seven distinct design-signal families so different customers can receive different questions without sacrificing useful creative information",
-      "Kept raw answers encrypted and excluded from Safepay and Printful",
-      "Added verified-email OTP requirements without requiring a customer password/account",
-      "Assigned shipping-address collection to ISSUED ONCE because Safepay is only the payment processor in this architecture",
-      "Defined customer status projection, support-by-Issue-Code, failure handling, and first-cycle acceptance criteria",
-      "Defined future migration from SafepayPaymentGateway to StripePaymentGateway after commercial validation and eligible entity formation without rewriting the product/domain core",
-      "Committed the architecture spec at docs/superpowers/specs/2026-08-19-issued-once-safepay-printful-mvp-design.md"
+      "Replaced the fixed seven prompts with a versioned 70-question vault: ten questions in each of seven required design-signal families, with a persisted balanced seven-question assignment per experience",
+      "Added encrypted verified email OTP using Resend delivery, HMAC lookup identities, attempt limits, expiry, resend cooldown and single-use verification",
+      "Added encrypted shipping snapshots tied to the verified contact and locked before checkout",
+      "Added Safepay tracker creation and authenticated HMAC webhook payment truth; browser return never marks payment paid",
+      "Added provider-independent canonical Issue identity freezing payment attempt, experience, contact, shipping, logical variant, size, color, amount and currency",
+      "Added an internal Issue UUID prerequisite migration so the legacy issue_code registry can support the final design/manufacturing foreign-key spine",
+      "Added durable Vercel Queue design work, privacy-minimized OpenAI interpretation, separate image generation, Vercel Blob artwork storage and idempotent design job claiming",
+      "Added deterministic artwork quality checks and explicit owner design approval before manufacturing eligibility",
+      "Added an explicit ISSUED ONCE retail catalog so active production product/price selection no longer depends on Fourthwall",
+      "Added explicit Printful variant mapping, draft-only order creation, separate production confirmation and idempotent manufacturing jobs",
+      "Added signed Printful shipment webhook verification, provider-order plus Issue-Code cross-checking, tracking state and Issue timeline projection",
+      "Added customer payment/production/shipped/delivered milestone emails through a durable notification queue",
+      "Added a private Issue page showing only Issue Code, physical truth, human status and verified carrier tracking",
+      "Added encrypted support requests with Issue-Code routing and verified-email reply path without exposing questionnaire answers",
+      "Added OTP and shipping screens to the public premium journey before commitment/Safepay",
+      "Added a private owner operations room at /ops for artwork review, approval, Printful draft creation and typed production confirmation without showing raw answers, email or address",
+      "Hard-disabled legacy /api/checkout/start and /api/webhooks/fourthwall with HTTP 410 at the Next.js proxy",
+      "Added production environment contract, migration order and controlled first-live-cycle runbook"
     ],
-    "verification": {
-      "designSpecCommit": "c9f540b7698bac70da6225a05ee7c70526654580",
-      "designSpecPath": "docs/superpowers/specs/2026-08-19-issued-once-safepay-printful-mvp-design.md",
-      "designSpecSelfReview": "PASSED_NO_TBD_NO_PLACEHOLDER_NO_KNOWN_CONTRADICTION",
-      "lastFullCiVerifiedHead": "c0260b64f10dea9c2cb6c937a42c2d37cbc18c4f",
-      "lastFullCiAtThatHead": "GREEN unit tests + typecheck + production build",
-      "currentVercelBuildVerifiedHead": "3ab52972ea133b27575e3432b206b0c80caf1ccb",
-      "latestArchitectureChangesAreDocumentationOnly": true,
-      "githubActionsPreviousRunnerState": "FAILED_BEFORE_STEPS_NO_LOGS",
-      "productionPaymentsEnabled": false,
-      "productionManufacturingEnabled": false,
-      "databaseMigration0006": "CREATED_NOT_CLAIMED_APPLIED",
-      "plannedDomain": "issuedonce.shop"
+    "databaseMigrations": {
+      "created": [
+        "0007_question_vault.sql",
+        "0008_contact_shipping.sql",
+        "0009_payments.sql",
+        "0009a_issue_uuid_prerequisite.sql",
+        "0010_issue_identity_spine.sql",
+        "0011_design_jobs.sql",
+        "0012_manufacturing.sql",
+        "0013_notifications_support.sql"
+      ],
+      "productionApplied": false
     },
-    "ownerAction": "Review docs/superpowers/specs/2026-08-19-issued-once-safepay-printful-mvp-design.md. If it matches the intended first-cycle workflow, approve the written spec so the next step can be the implementation plan.",
+    "irreversibleSafety": {
+      "safepayBrowserRedirectCanMarkPaid": false,
+      "rawAnswersSentToSafepay": false,
+      "rawAnswersSentToPrintful": false,
+      "modelCanAutoApproveArtwork": false,
+      "printfulDraftConfirmsAutomatically": false,
+      "printfulConfirmRequiresOwnerSessionOrBearer": true,
+      "printfulConfirmRequiresKillSwitch": true,
+      "printfulConfirmRequiresTypedIssueConfirmation": true,
+      "legacyFourthwallEndpointsActive": false
+    },
+    "verification": {
+      "latestImplementationUnitTests": "NOT_EXECUTED_TO_GREEN_IN_THIS_CYCLE",
+      "latestImplementationTypecheck": "NOT_EXECUTED_TO_GREEN_IN_THIS_CYCLE",
+      "latestImplementationProductionBuild": "NOT_EXECUTED_TO_GREEN_IN_THIS_CYCLE",
+      "latestImplementationBrowserQA": "NOT_EXECUTED_TO_GREEN_IN_THIS_CYCLE",
+      "githubActionsEvidence": "No executable green runner evidence obtained for the latest commercial-cycle head; do not treat workflow-record creation as test execution",
+      "databaseMigrations": "CREATED_NOT_CLAIMED_APPLIED",
+      "safepayLiveCharge": "NOT_RUN",
+      "openaiProductionDesign": "NOT_RUN",
+      "printfulProductionOrder": "NOT_RUN",
+      "printfulShipmentWebhook": "NOT_LIVE_VERIFIED",
+      "resendProductionDomain": "NOT_CLAIMED_VERIFIED"
+    },
+    "ownerAction": "Use docs/operations/production-environment.md and docs/operations/first-live-cycle.md. Restore an executable CI/build/browser gate first, then configure the real provider secrets, apply migrations in docs/operations/migration-order.md, prove the Safepay sandbox cycle, review the generated artwork in /ops, create a Printful draft, inspect the exact recipient/variant/artwork, and only then enable the Printful confirmation kill switch for the deliberate first production submission.",
     "nextActions": [
-      "After owner approval of the written spec, create the implementation plan before touching production behavior",
-      "Implement the Question Vault and persistent randomized seven-question assignment test-first",
-      "Implement verified contact/OTP and encrypted shipping identity",
-      "Replace the future commerce path with a Safepay PaymentGateway while keeping current production writes fail-closed until configured",
-      "Create the Issue/design/manufacturing identity links and manual Printful approval workflow",
-      "Build the private Issue status/support path and event-driven customer updates",
-      "Run one controlled end-to-end paid cycle before automating Printful confirmation or optimizing payment economics",
-      "If the commercial cycle validates demand, evaluate an eligible entity and migrate the payment adapter to Stripe without changing the domain core",
-      "Restore executable CI/Browser QA runner availability before claiming final production gates green"
+      "Restore executable unit/typecheck/build/browser verification on the latest branch head and fix any real failures before provider rollout",
+      "Apply migrations 0007 through 0013 including 0009a in an approved database migration cycle and verify schema invariants",
+      "Configure ISSUED_ONCE_CATALOG_JSON only with real retail variants intended for sale",
+      "Configure Safepay sandbox credentials and signed webhook, then prove one sandbox payment end to end",
+      "Configure Resend sender/domain, Vercel Blob, Vercel Queue and OpenAI model access and prove one design reaches DESIGN_REVIEW",
+      "Physically sample/approve Printful products and populate exact PRINTFUL_VARIANT_MAP_JSON values; never use example IDs",
+      "Configure signed Printful webhook and leave PRINTFUL_ALLOW_CONFIRM disabled until the owner has inspected the first real draft",
+      "Run the controlled first paid cycle and preserve evidence from payment through delivered shipment",
+      "Only after a successful commercial cycle evaluate LLC/Stripe migration; keep the Issue/design/manufacturing spine unchanged"
     ]
   }
 }
