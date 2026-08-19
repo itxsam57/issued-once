@@ -1,6 +1,12 @@
 import { expect, test, vi } from 'vitest';
 import { ReadinessService } from '@/server/ops/ReadinessService';
 
+const placement = {
+  fileType: 'front',
+  printArea: { width: 1800, height: 2400, dpi: 150 },
+  position: { width: 900, height: 1350, top: 300, left: 450 },
+};
+
 const completeEnv: NodeJS.ProcessEnv = {
   DATABASE_URL: 'postgresql://hidden',
   QUIZ_ENCRYPTION_KEY_V1: 'hidden-key',
@@ -28,12 +34,9 @@ const completeEnv: NodeJS.ProcessEnv = {
   PRINTFUL_WEBHOOK_PUBLIC_KEY: 'hidden-public-key',
   PRINTFUL_WEBHOOK_SECRET_HEX: 'aa'.repeat(32),
   PRINTFUL_VARIANT_MAP_JSON: JSON.stringify({
-    'tee:M:Black': {
-      variantId: 4012,
-      fileType: 'front',
-      printArea: { width: 1800, height: 2400, dpi: 150 },
-      position: { width: 900, height: 1350, top: 300, left: 450 },
-    },
+    'tee:M:Black': { variantId: 4012, ...placement },
+    'hat:OS:Black': { variantId: 5012, ...placement, position: { width: 900, height: 900, top: 300, left: 450 } },
+    'tote:OS:Bone': { variantId: 6012, ...placement },
   }),
 };
 
