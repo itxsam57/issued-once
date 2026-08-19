@@ -21,6 +21,15 @@ function present(env: NodeJS.ProcessEnv, ...names: string[]) {
   return names.every((name) => Boolean(env[name]?.trim()));
 }
 
+function isBase64Key32(value: string | undefined) {
+  if (!value?.trim()) return false;
+  try {
+    return Buffer.from(value.trim(), 'base64').length === 32;
+  } catch {
+    return false;
+  }
+}
+
 function safeFetchError(response: Response) {
   return `HTTP ${response.status}`;
 }
@@ -54,9 +63,15 @@ export class ReadinessService {
       }
     }
 
-    checks.push(present(this.env, 'QUIZ_ENCRYPTION_KEY_V1', 'IDENTITY_HMAC_KEY')
-      ? { key: 'privacy', label: 'Privacy keys', state: 'ready', detail: 'Encryption and identity-HMAC keys are configured.' }
-      : { key: 'privacy', label: 'Privacy keys', state: 'missing', detail: 'Encryption and identity-HMAC keys are required.' });
+    const hasPrivacyValues = present(this.env, 'QUIZ_ENCRYPTION_KEY_V1', 'IDENTITY_HMAC_KEY');
+    const privacyKeysValid =
+      isBase64Key32(this.env.QUIZ_ENCRYPTION_KEY_V1) &&
+      isBase64Key32(this.env.IDENTITY_HMAC_KEY);
+    checks.push(!hasPrivacyValues
+      ? { key: 'privacy', label: 'Privacy keys', state: 'missing', detail: 'Encryption and identity-HMAC keys are required.' }
+      : privacyKeysValid
+        ? { key: 'privacy', label: 'Privacy keys', state: 'ready', detail: 'Both privacy keys decode to the required 32 bytes.' }
+        : { key: 'privacy', label: 'Privacy keys', state: 'blocked', detail: 'Privacy keys are present but do not decode to exactly 32 bytes.' });
 
     let availableFactoryKeys: string[] = [];
     const catalogJson = this.env.ISSUED_ONCE_CATALOG_JSON?.trim();
