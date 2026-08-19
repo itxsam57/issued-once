@@ -1,11 +1,12 @@
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type {
   ManufacturingEventApplyResult,
+  ManufacturingEventKind,
   ManufacturingEventRepository,
 } from './ManufacturingEventRepository';
 import type { NormalizedPrintfulEvent } from './PrintfulWebhookVerifier';
 
-type OutcomeRow = { outcome: ManufacturingEventApplyResult };
+type OutcomeRow = { outcome: ManufacturingEventKind; issue_id: string | null };
 
 function targetStates(event: NormalizedPrintfulEvent): {
   manufacturingState: string | null;
@@ -80,13 +81,16 @@ export class PostgresManufacturingEventRepository implements ManufacturingEventR
          FROM updated_issue
          RETURNING issue_id
        )
-       SELECT 'mismatch'::text AS outcome WHERE EXISTS (SELECT 1 FROM mismatch)
+       SELECT 'mismatch'::text AS outcome, (SELECT issue_id FROM target LIMIT 1) AS issue_id
+       WHERE EXISTS (SELECT 1 FROM mismatch)
        UNION ALL
-       SELECT 'unknown-order'::text AS outcome WHERE NOT EXISTS (SELECT 1 FROM target)
+       SELECT 'unknown-order'::text AS outcome, NULL::uuid AS issue_id
+       WHERE NOT EXISTS (SELECT 1 FROM target)
        UNION ALL
-       SELECT 'applied'::text AS outcome WHERE EXISTS (SELECT 1 FROM updated_job)
+       SELECT 'applied'::text AS outcome, (SELECT issue_id FROM updated_job LIMIT 1) AS issue_id
+       WHERE EXISTS (SELECT 1 FROM updated_job)
        UNION ALL
-       SELECT 'duplicate'::text AS outcome
+       SELECT 'duplicate'::text AS outcome, (SELECT issue_id FROM target LIMIT 1) AS issue_id
        WHERE EXISTS (SELECT 1 FROM target)
          AND NOT EXISTS (SELECT 1 FROM mismatch)
          AND NOT EXISTS (SELECT 1 FROM inserted_event)
@@ -108,6 +112,10 @@ export class PostgresManufacturingEventRepository implements ManufacturingEventR
         target.issueEvent,
       ],
     );
-    return rows[0]?.outcome ?? 'unknown-order';
+    const row = rows[0];
+    return {
+      kind: row?.outcome ?? 'unknown-order',
+      ...(row?.issue_id ? { issueId: row.issue_id } : {}),
+    };
   }
 }
