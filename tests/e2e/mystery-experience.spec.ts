@@ -16,9 +16,7 @@ async function continueText(
   const continueButton = page.getByRole('button', { name: 'CONTINUE' });
   await expect(continueButton).toBeEnabled();
   await continueButton.click();
-  if (nextProgress) {
-    await expect(page.getByText(nextProgress)).toBeVisible();
-  }
+  if (nextProgress) await expect(page.getByText(nextProgress)).toBeVisible();
 }
 
 async function capture(page: import('@playwright/test').Page, name: string) {
@@ -26,7 +24,22 @@ async function capture(page: import('@playwright/test').Page, name: string) {
   await page.screenshot({ path: `artifacts/visual/${name}.png`, fullPage: true });
 }
 
-test('the mystery journey crosses private traces, physical locks, and conscious commitment without pressure', async ({ page }, testInfo) => {
+async function completePreviewIdentity(page: import('@playwright/test').Page) {
+  await expect(page.getByRole('heading', { name: 'Where do we find you?' })).toBeVisible();
+  await page.getByLabel('Email').fill('qa@example.com');
+  await page.getByRole('button', { name: 'SEND CODE' }).click();
+  await page.getByLabel('Verification code').fill('123456');
+  await page.getByRole('button', { name: 'VERIFY' }).click();
+  await expect(page.getByRole('heading', { name: 'Where does it go?' })).toBeVisible();
+  await page.getByLabel('Name').fill('QA Customer');
+  await page.getByLabel('Address').fill('1 QA Street');
+  await page.getByLabel('City').fill('Peshawar');
+  await page.getByLabel('Postal code').fill('25000');
+  await page.getByLabel('Country').selectOption('PK');
+  await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
+}
+
+test('the mystery journey crosses private traces, physical locks, identity, destination, and commitment without pressure', async ({ page }, testInfo) => {
   await page.goto(visualQaPath);
 
   await expect(page.getByText('VISUAL QA / NOT PRODUCTION')).toBeVisible();
@@ -39,14 +52,12 @@ test('the mystery journey crosses private traces, physical locks, and conscious 
   await continueText(page, 'The Master and Margarita');
   await expect(page.getByText('02 / 07')).toBeVisible();
   await continueText(page, 'a cabin above a foggy valley');
-
   await expect(page.getByText('03 / 07')).toBeVisible();
   await page.getByLabel('4 a.m.').check();
   await expect(page.getByLabel('4 a.m.')).toBeChecked();
   await expect(page.locator('body')).not.toContainText(forbiddenBeforeClose);
   await capture(page, `02-q3-${testInfo.project.name}`);
   await page.getByRole('button', { name: 'CONTINUE' }).click();
-
   await continueText(page, 'quiet does not mean uncertain');
   await continueText(page, 'a strange old song with too much bass');
   await continueText(page, 'literal portraits');
@@ -58,10 +69,9 @@ test('the mystery journey crosses private traces, physical locks, and conscious 
 
   await expect(page.getByRole('heading', { name: 'WE HAVE ENOUGH.' })).toBeVisible();
   await expect(page.getByText('You decide what it exists on.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'UNLOCK FORM' })).toBeVisible();
   await capture(page, `03-complete-${testInfo.project.name}`);
-
   await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
+
   await expect(page.getByText('FORM / CURRENT ISSUE')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Pick the shape your issue lives on.' })).toBeVisible();
   await expect(page.getByRole('radio', { name: 'TEE' })).toBeVisible();
@@ -133,6 +143,7 @@ test('the mystery journey crosses private traces, physical locks, and conscious 
   await capture(page, `07-base-${testInfo.project.name}`);
   await lockBase.click();
 
+  await completePreviewIdentity(page);
   await expect(page.getByText('FORM COMPLETE')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'From here, it becomes ours to interpret.' })).toBeVisible();
   await expect(page.getByText('TEE / M / BONE')).toBeVisible();
@@ -167,7 +178,6 @@ test('the mystery journey crosses private traces, physical locks, and conscious 
   expect(commitmentMetrics.buttonBorderTop).toBe(0);
 
   await capture(page, `08-commitment-${testInfo.project.name}`);
-
   await issueMine.click();
   await expect(page.getByRole('heading', { name: 'PREVIEW COMPLETE.' })).toBeVisible();
   await expect(page.getByText('No payment was attempted.')).toBeVisible();
@@ -176,7 +186,6 @@ test('the mystery journey crosses private traces, physical locks, and conscious 
 
 test('the first question fits the viewport without horizontal overflow', async ({ page }, testInfo) => {
   await page.goto(visualQaPath);
-
   const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   expect(horizontalOverflow).toBe(false);
   await expect(page.getByLabel('Your answer')).toBeVisible();
@@ -186,10 +195,8 @@ test('the first question fits the viewport without horizontal overflow', async (
 
 test('the public BEGIN link opens the first mystery question without category leakage', async ({ page }, testInfo) => {
   await page.goto('/');
-
   await expect(page.getByRole('heading', { name: 'A piece of your mind. Issued for you.' })).toBeVisible();
   await page.getByRole('link', { name: /BEGIN/ }).first().click();
-
   await expect(page).toHaveURL(/\/begin$/);
   await expect(page.getByText('01 / 07')).toBeVisible();
   await expect(page.getByRole('heading', { name: "So tell me. What's your favourite book?" })).toBeVisible();
@@ -201,7 +208,6 @@ test('the real public seven-answer path can unlock the current issue instead of 
   await page.goto('/');
   await page.getByRole('link', { name: /BEGIN/ }).first().click();
   await expect(page.getByText('01 / 07')).toBeVisible();
-
   await continueText(page, 'The Master and Margarita', '02 / 07');
   await continueText(page, 'a quiet cabin above a valley', '03 / 07');
   await page.getByLabel('4 a.m.').check();
@@ -212,16 +218,13 @@ test('the real public seven-answer path can unlock the current issue instead of 
   await continueText(page, 'quiet does not mean uncertain', '05 / 07');
   await continueText(page, 'a song that feels older than it is', '06 / 07');
   await continueText(page, 'literal portraits', '07 / 07');
-
   const finalContinue = page.getByRole('button', { name: 'CONTINUE' });
   await expect(finalContinue).toBeEnabled();
   await finalContinue.click();
-
   await expect(page.getByRole('heading', { name: 'WE HAVE ENOUGH.' })).toBeVisible();
   const unlockForm = page.getByRole('button', { name: 'UNLOCK FORM' });
   await expect(unlockForm).toBeVisible();
   await unlockForm.click();
-
   await expect(page.getByText('FORM / CURRENT ISSUE')).toBeVisible();
   await expect(page.getByRole('radio', { name: 'TEE' })).toBeVisible();
   await expect(page.getByRole('radio', { name: 'CAP' })).toBeVisible();
