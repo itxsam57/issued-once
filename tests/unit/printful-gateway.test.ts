@@ -9,10 +9,12 @@ const recipient = {
 
 const draftInput = {
   externalId: 'IO-ABCD-EFGH', variantId: 4012, artworkUrl: 'https://blob.example/issue.png',
-  fileType: 'front', recipient,
+  fileType: 'front',
+  placement: { areaWidth: 1800, areaHeight: 2400, width: 900, height: 1350, top: 300, left: 450 },
+  recipient,
 };
 
-test('checks Issue external ID before creating an unconfirmed Printful order with exact variant and production art', async () => {
+test('checks Issue external ID before creating an unconfirmed Printful order with exact variant, art, and placement', async () => {
   const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
     if (url === 'https://api.printful.com/orders/%40IO-ABCD-EFGH') {
       expect(init?.method).toBe('GET');
@@ -35,7 +37,19 @@ test('checks Issue external ID before creating an unconfirmed Printful order wit
       items: [{
         variant_id: 4012,
         quantity: 1,
-        files: [{ type: 'front', url: 'https://blob.example/issue.png' }],
+        files: [{
+          type: 'front',
+          url: 'https://blob.example/issue.png',
+          position: {
+            area_width: 1800,
+            area_height: 2400,
+            width: 900,
+            height: 1350,
+            top: 300,
+            left: 450,
+            limit_to_print_area: true,
+          },
+        }],
       }],
     });
     return new Response(JSON.stringify({ code: 200, result: { id: 987654, status: 'draft' } }), {
