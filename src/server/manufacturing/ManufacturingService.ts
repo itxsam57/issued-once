@@ -118,6 +118,11 @@ export class ManufacturingService {
     if (job.state === 'IN_PRODUCTION' || job.state === 'SHIPPED' || job.state === 'DELIVERED') return job;
     if (job.state !== 'DRAFT' || !job.providerOrderId) throw new Error('Manufacturing draft is not ready to confirm');
 
+    const current = await this.repository.loadInput(issueId);
+    if (!current || current.issueStatus !== 'MANUFACTURING_DRAFT' || current.designState !== 'APPROVED') {
+      throw new Error('Issue is no longer eligible for manufacturing confirmation');
+    }
+
     await this.gateway.confirmDraft(job.providerOrderId);
     return this.repository.markConfirmed({ jobId: job.id, confirmedAt: this.now() });
   }
