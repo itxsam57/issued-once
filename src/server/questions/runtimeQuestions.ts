@@ -1,7 +1,7 @@
 import { QUESTION_VAULT } from '@/domain/questions/QuestionVault';
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
+import { PostgresLiveQuestionSelectionService } from './PostgresLiveQuestionSelectionService';
 import { PostgresQuestionSetRepository } from './PostgresQuestionSetRepository';
-import { QuestionSelectionService } from './QuestionSelectionService';
 
 export class QuestionAssignmentUnavailableError extends Error {
   constructor() {
@@ -10,12 +10,9 @@ export class QuestionAssignmentUnavailableError extends Error {
   }
 }
 
-export function getQuestionSelectionService(): QuestionSelectionService {
+export function getQuestionSelectionService(): PostgresLiveQuestionSelectionService {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new QuestionAssignmentUnavailableError();
-
-  return new QuestionSelectionService(
-    new PostgresQuestionSetRepository(createNeonSqlExecutor(databaseUrl)),
-    QUESTION_VAULT,
-  );
+  const sql = createNeonSqlExecutor(databaseUrl);
+  return new PostgresLiveQuestionSelectionService(sql, new PostgresQuestionSetRepository(sql), QUESTION_VAULT);
 }
