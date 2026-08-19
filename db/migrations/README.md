@@ -29,6 +29,7 @@ Apply in lexicographic filename order. Stop on first failure.
 25. `0024_owner_os_scale_indexes.sql`
 26. `0025_delivered_metric_projection.sql`
 27. `0026_issue_ledger_filter_indexes.sql`
+28. `0027_issue_prefix_search_indexes.sql`
 
 `CURRENT` points to the latest migration represented by this repository. It does **not** assert that any production database has been migrated.
 
@@ -47,6 +48,7 @@ Apply in lexicographic filename order. Stop on first failure.
 - `0024` adds bounded operational indexes for recent paid sales, Issue status, payment exceptions, payment outcomes, design/manufacturing/notification/support queues, and newest-first Issue events.
 - `0025` projects delivered counts independently of lifecycle timing so lifetime delivery totals do not require scanning delivered Issues.
 - `0026` adds newest-first Issue-ledger paging plus both sides of the country-filter join (`issues.shipping_snapshot_id` and `shipping_snapshots.country_code`) without indexing decrypted customer data.
+- `0027` enables PostgreSQL trigram search and adds GIN indexes for case-insensitive prefix lookup by Issue Code, Safepay provider reference, Printful order ID, and tracking number, matching the Owner OS ledger's existing `ILIKE` search behavior.
 
 ## Verification state
 
@@ -55,5 +57,7 @@ On 2026-08-19, migrations `0020`–`0022` were exercised on isolated Neon branch
 On 2026-08-19, migrations `0023`–`0025` were exercised on isolated Neon branch `owner-os-metric-buckets-proof-20260819` (`br-still-boat-axp76bq8`) against representative prerequisite tables. Verification confirmed incremental projection for start/answer/physical/verified/shipping/checkout/paid funnel stages, gross paid sales, Tee/size/color/country dimensions, start-to-paid timing, paid-to-production timing, production-to-delivery timing, design approval/rework, support activity, refund value, failed-payment count, and delivered count. A synthetic $54 USD Issue produced the expected $54 gross bucket, one paid order, one Tee/M/Black/PK dimension count, 16-minute start-to-paid, 24-hour paid-to-production, 72-hour production-to-delivery, one $54 refund when refunded, and one failed-payment event on a separate attempt. Verification also confirmed all 9 Owner OS scale indexes. The temporary branch was deleted after verification.
 
 On 2026-08-19, migration `0026` was re-proved after completing the country-filter join index set on isolated Neon branch `owner-os-issue-index-proof-v2-20260819` (`br-tiny-morning-axmzz103`) against representative Issue/shipping tables. Verification confirmed all three intended Issue-ledger filter indexes. The temporary branch was deleted after verification. The earlier two-index proof branch was also deleted and is superseded by this result.
+
+On 2026-08-19, migration `0027` was exercised on isolated Neon branch `owner-os-prefix-search-proof-20260819` (`br-weathered-pine-ax2ywpyh`). Verification confirmed the `pg_trgm` extension and all four prefix-search indexes. With sequential scans disabled only for the proof query, PostgreSQL planned the existing case-insensitive Issue Code predicate as a Bitmap Index Scan on `issues_issue_code_trgm_idx`, confirming the index is eligible for the Owner OS `ILIKE 'prefix%'` search pattern. The temporary branch was deleted after verification.
 
 The connected production/default Neon database was inspected during these proofs and did not contain the canonical `issues` table. Therefore production is **not** considered migrated. The complete ordered chain above must be applied and verified on the production branch before real payment/design/manufacturing traffic is enabled.
