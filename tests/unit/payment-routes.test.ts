@@ -1,14 +1,33 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 
-const { cookiesMock, createPaymentServiceMock } = vi.hoisted(() => ({
+const {
+  cookiesMock,
+  createPaymentServiceMock,
+  createIssueServiceMock,
+  enqueueDesignIssueMock,
+  enqueueIssueNotificationMock,
+} = vi.hoisted(() => ({
   cookiesMock: vi.fn(),
   createPaymentServiceMock: vi.fn(),
+  createIssueServiceMock: vi.fn(),
+  enqueueDesignIssueMock: vi.fn(),
+  enqueueIssueNotificationMock: vi.fn(),
 }));
 
 vi.mock('next/headers', () => ({ cookies: cookiesMock }));
 vi.mock('@/server/payments/runtimePayments', () => ({
   createPaymentService: createPaymentServiceMock,
   PaymentRuntimeUnavailableError: class PaymentRuntimeUnavailableError extends Error {},
+}));
+vi.mock('@/server/issues/runtimeIssues', () => ({
+  createIssueService: createIssueServiceMock,
+  IssueRuntimeUnavailableError: class IssueRuntimeUnavailableError extends Error {},
+}));
+vi.mock('@/server/design/designQueue', () => ({
+  enqueueDesignIssue: enqueueDesignIssueMock,
+}));
+vi.mock('@/server/notifications/notificationQueue', () => ({
+  enqueueIssueNotification: enqueueIssueNotificationMock,
 }));
 
 import { POST as createPayment } from '@/app/api/payments/create/route';
@@ -17,6 +36,14 @@ import { POST as safepayWebhook } from '@/app/api/webhooks/safepay/route';
 beforeEach(() => {
   vi.clearAllMocks();
   cookiesMock.mockResolvedValue({ get: vi.fn().mockReturnValue({ value: 'session-token' }) });
+  createIssueServiceMock.mockReturnValue({
+    reserveForPaidAttempt: vi.fn().mockResolvedValue({
+      kind: 'reserved',
+      issue: { id: '11111111-1111-4111-8111-111111111111', issueCode: 'IO-ABCD-EFGH' },
+    }),
+  });
+  enqueueDesignIssueMock.mockResolvedValue({ messageId: 'design-message' });
+  enqueueIssueNotificationMock.mockResolvedValue({ messageId: 'notification-message' });
 });
 
 test('payment creation derives experience and return origin server-side', async () => {
@@ -40,7 +67,7 @@ test('payment creation derives experience and return origin server-side', async 
   });
 });
 
-test('safepay webhook passes untouched body and headers into authenticated service', async () => {
+test('safepay paid webhook preserves raw authentication evidence, mints one Issue, and queues design plus payment email', async () => {
   const handleWebhook = vi.fn().mockResolvedValue({ kind: 'paid', paymentAttemptId: 'attempt-1' });
   createPaymentServiceMock.mockReturnValue({ handleWebhook });
   const raw = '{"data":{"token":"evt-1"}}';
@@ -53,9 +80,28 @@ test('safepay webhook passes untouched body and headers into authenticated servi
   const response = await safepayWebhook(request);
   expect(response.status).toBe(200);
   expect(handleWebhook).toHaveBeenCalledWith({ rawBody: raw, headers: request.headers });
+  expect(createIssueServiceMock().reserveForPaidAttempt).toHaveBeenCalledWith('attempt-1');
+  expect(enqueueDesignIssueMock).toHaveBeenCalledWith('11111111-1111-4111-8111-111111111111');
+  expect(enqueueIssueNotificationMock).toHaveBeenCalledWith(
+    '11111111-1111-4111-8111-111111111111',
+    'PAYMENT_RECEIVED',
+  );
 });
 
-test('invalid authenticated webhook evidence is rejected and never returns success', async () => {
+test('duplicate paid evidence can resume downstream queues without minting another Issue', async () => {
+  createPaymentServiceMock.mockReturnValue({
+    handleWebhook: vi.fn().mockResolvedValue({ kind: 'duplicate', paymentAttemptId: 'attempt-1' }),
+  });
+  const response = await safepayWebhook(new Request('https://issuedonce.shop/api/webhooks/safepay', {
+    method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'abc' },
+  }));
+
+  expect(response.status).toBe(200);
+  expect(enqueueDesignIssueMock).toHaveBeenCalledTimes(1);
+  expect(enqueueIssueNotificationMock).toHaveBeenCalledTimes(1);
+});
+
+test('invalid authenticated webhook evidence is rejected and never triggers downstream work', async () => {
   createPaymentServiceMock.mockReturnValue({
     handleWebhook: vi.fn(() => { throw new Error('Safepay webhook signature is invalid'); }),
   });
@@ -63,4 +109,6 @@ test('invalid authenticated webhook evidence is rejected and never returns succe
     method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'bad' },
   }));
   expect(response.status).toBe(401);
+  expect(enqueueDesignIssueMock).not.toHaveBeenCalled();
+  expect(enqueueIssueNotificationMock).not.toHaveBeenCalled();
 });
