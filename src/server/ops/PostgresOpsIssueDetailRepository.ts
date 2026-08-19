@@ -93,6 +93,7 @@ export class PostgresOpsIssueDetailRepository implements OpsIssueDetailRepositor
     const cursor = input.cursor ? decodeCursor(input.cursor) : null;
     const search = input.search?.trim() ? `${input.search.trim()}%` : null;
     const f = input.filters;
+    if (f.updatedFrom && f.updatedTo && f.updatedFrom.getTime() > f.updatedTo.getTime()) throw new Error('Invalid Issue date range');
     const rows = await this.sql.query<ListRow>(
       `SELECT
         issue.id AS issue_id,
@@ -114,6 +115,7 @@ export class PostgresOpsIssueDetailRepository implements OpsIssueDetailRepositor
       LEFT JOIN payment_attempts AS payment ON payment.id=issue.payment_attempt_id
       LEFT JOIN design_jobs AS design ON design.issue_id=issue.id
       LEFT JOIN manufacturing_jobs AS manufacturing ON manufacturing.issue_id=issue.id
+      LEFT JOIN shipping_snapshots AS shipping ON shipping.id=issue.shipping_snapshot_id
       WHERE (
         $1::text IS NULL OR
         issue.issue_code ILIKE $1 OR
@@ -128,10 +130,28 @@ export class PostgresOpsIssueDetailRepository implements OpsIssueDetailRepositor
         AND ($6::text IS NULL OR issue.object_type=$6)
         AND ($7::boolean IS NULL OR EXISTS (SELECT 1 FROM support_requests support WHERE support.issue_id=issue.id AND support.status='OPEN')=$7)
         AND ($8::boolean IS NULL OR (issue.payment_exception_code IS NOT NULL)=$8)
-        AND ($9::timestamptz IS NULL OR (issue.updated_at,issue.id) < ($9::timestamptz,$10::uuid))
+        AND ($9::text IS NULL OR shipping.country_code=$9)
+        AND ($10::timestamptz IS NULL OR issue.updated_at >= $10)
+        AND ($11::timestamptz IS NULL OR issue.updated_at <= $11)
+        AND ($12::timestamptz IS NULL OR (issue.updated_at,issue.id) < ($12::timestamptz,$13::uuid))
       ORDER BY issue.updated_at DESC, issue.id DESC
-      LIMIT $11`,
-      [search, f.issueStatus ?? null, f.paymentStatus ?? null, f.designState ?? null, f.manufacturingState ?? null, f.objectType ?? null, f.supportOpen ?? null, f.paymentException ?? null, cursor?.updatedAt ?? null, cursor?.id ?? null, limit + 1],
+      LIMIT $14`,
+      [
+        search,
+        f.issueStatus ?? null,
+        f.paymentStatus ?? null,
+        f.designState ?? null,
+        f.manufacturingState ?? null,
+        f.objectType ?? null,
+        f.supportOpen ?? null,
+        f.paymentException ?? null,
+        f.countryCode?.trim().toUpperCase() || null,
+        f.updatedFrom ?? null,
+        f.updatedTo ?? null,
+        cursor?.updatedAt ?? null,
+        cursor?.id ?? null,
+        limit + 1,
+      ],
     );
     const mapped = rows.map(listItem);
     const hasMore = mapped.length > limit;
