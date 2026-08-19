@@ -82,6 +82,7 @@ export class PaymentService {
 
   async handleWebhook(input: { rawBody: string; headers: Headers }): Promise<
     | { kind: 'paid'; paymentAttemptId: string }
+    | { kind: 'refunded'; paymentAttemptId: string }
     | { kind: 'failed'; paymentAttemptId: string }
     | { kind: 'pending'; paymentAttemptId: string }
     | { kind: 'duplicate'; paymentAttemptId?: string }
@@ -93,8 +94,8 @@ export class PaymentService {
       state: event.state, amountMinor: event.amountMinor, currency: event.currency, reference: event.reference, receivedAt: this.now(),
     });
     const attempt = await this.dependencies.payments.findByProviderReference(event.providerReference);
-    if (!fresh) return { kind: 'duplicate', paymentAttemptId: attempt?.id };
-    if (!attempt) return { kind: 'exception' };
+    if (!attempt) return { kind: fresh ? 'exception' : 'duplicate' };
+    if (!fresh) return { kind: 'duplicate', paymentAttemptId: attempt.id };
 
     if (event.state === 'PAID') {
       const outcome = await this.dependencies.payments.markPaid({
@@ -102,6 +103,17 @@ export class PaymentService {
         currency: event.currency, paidAt: event.occurredAt,
       });
       if (outcome === 'paid') return { kind: 'paid', paymentAttemptId: attempt.id };
+      if (outcome === 'duplicate') return { kind: 'duplicate', paymentAttemptId: attempt.id };
+      return { kind: 'exception', paymentAttemptId: attempt.id };
+    }
+    if (event.state === 'REFUNDED') {
+      const outcome = await this.dependencies.payments.markRefunded({
+        attemptId: attempt.id,
+        amountMinor: event.amountMinor,
+        currency: event.currency,
+        refundedAt: event.occurredAt,
+      });
+      if (outcome === 'refunded') return { kind: 'refunded', paymentAttemptId: attempt.id };
       if (outcome === 'duplicate') return { kind: 'duplicate', paymentAttemptId: attempt.id };
       return { kind: 'exception', paymentAttemptId: attempt.id };
     }
