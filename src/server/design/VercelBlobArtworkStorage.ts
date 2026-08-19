@@ -15,7 +15,7 @@ export class VercelBlobArtworkStorage implements ArtworkStorageGateway {
     if (!input.bytes.length) throw new Error('Artwork cannot be empty');
     const pathname = `issues/${encodeURIComponent(input.issueId)}/design/${encodeURIComponent(input.designJobId)}.png`;
     const blob = await put(pathname, input.bytes, {
-      access: 'public',
+      access: 'private',
       contentType: input.mimeType,
       addRandomSuffix: false,
       allowOverwrite: false,
