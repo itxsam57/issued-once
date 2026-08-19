@@ -1,4 +1,5 @@
 import { beforeAll, expect, test, vi } from 'vitest';
+import type { ArtworkAccessGateway } from '@/server/design/VercelBlobArtworkAccess';
 import { encryptPrivatePayload } from '@/server/crypto/privatePayload';
 import type { ManufacturerGateway } from '@/server/manufacturing/ManufacturerGateway';
 import type {
@@ -12,6 +13,16 @@ import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
 beforeAll(() => {
   process.env.QUIZ_ENCRYPTION_KEY_V1 = Buffer.alloc(32, 9).toString('base64');
 });
+
+const canonicalArtwork = 'https://store.private.blob.vercel-storage.com/issues/issue-1/design/design-1.png';
+const signedArtwork = `${canonicalArtwork}?signed=factory`;
+const artworkAccess: ArtworkAccessGateway = {
+  createReadUrl: vi.fn(async (url, ttlMs) => {
+    expect(url).toBe(canonicalArtwork);
+    expect(ttlMs).toBe(6 * 24 * 60 * 60 * 1000);
+    return signedArtwork;
+  }),
+};
 
 class MemoryRepository implements ManufacturingRepository {
   input: ManufacturingInput | null = null;
@@ -39,7 +50,7 @@ class MemoryRepository implements ManufacturingRepository {
 async function validInput(): Promise<ManufacturingInput> {
   return {
     issueId: 'issue-1', issueCode: 'IO-ABCD-EFGH', issueStatus: 'DESIGN_APPROVED',
-    designJobId: 'design-1', designState: 'APPROVED', artworkUrl: 'https://blob.example/issue.png',
+    designJobId: 'design-1', designState: 'APPROVED', artworkUrl: canonicalArtwork,
     objectType: 'tee', sizeCode: 'M', colorCode: 'Black',
     encryptedEmail: await encryptPrivatePayload({ email: 'sam@example.com' }),
     encryptedAddress: await encryptPrivatePayload({
@@ -55,12 +66,12 @@ function mapping() {
   }));
 }
 
-test('creates one Printful draft with the exact approved variant, artwork and decrypted recipient only at the factory boundary', async () => {
+test('creates one Printful draft with a temporary artwork URL and decrypted recipient only at the factory boundary', async () => {
   const repository = new MemoryRepository(); repository.input = await validInput();
   const gateway: ManufacturerGateway = {
     createDraft: vi.fn(async (input) => {
       expect(input).toMatchObject({
-        externalId: 'IO-ABCD-EFGH', variantId: 4012, artworkUrl: 'https://blob.example/issue.png', fileType: 'front',
+        externalId: 'IO-ABCD-EFGH', variantId: 4012, artworkUrl: signedArtwork, fileType: 'front',
         recipient: { name: 'Sam Example', email: 'sam@example.com', address1: '1 Quiet Street', city: 'London', countryCode: 'GB' },
       });
       expect(JSON.stringify(input)).not.toContain('private answer');
@@ -68,7 +79,7 @@ test('creates one Printful draft with the exact approved variant, artwork and de
     }),
     confirmDraft: vi.fn(),
   };
-  const service = new ManufacturingService(repository, gateway, mapping(), () => 'mfg-1', () => new Date('2026-08-19T02:00:00Z'));
+  const service = new ManufacturingService(repository, gateway, mapping(), artworkAccess, () => 'mfg-1', () => new Date('2026-08-19T02:00:00Z'));
 
   const result = await service.createDraft('issue-1');
   expect(result).toMatchObject({ id: 'mfg-1', state: 'DRAFT', providerOrderId: '987654', printfulVariantId: 4012 });
@@ -81,25 +92,25 @@ test('refuses manufacturing without design approval or without an exact Printful
   const repository = new MemoryRepository();
   repository.input = { ...(await validInput()), designState: 'REVIEW', issueStatus: 'DESIGN_REVIEW' };
   const gateway = { createDraft: vi.fn(), confirmDraft: vi.fn() } as ManufacturerGateway;
-  await expect(new ManufacturingService(repository, gateway, mapping()).createDraft('issue-1')).rejects.toThrow(/approved/i);
+  await expect(new ManufacturingService(repository, gateway, mapping(), artworkAccess).createDraft('issue-1')).rejects.toThrow(/approved/i);
 
   repository.input = { ...(await validInput()), sizeCode: 'XL' };
-  await expect(new ManufacturingService(repository, gateway, mapping()).createDraft('issue-1')).rejects.toThrow(/mapping/i);
+  await expect(new ManufacturingService(repository, gateway, mapping(), artworkAccess).createDraft('issue-1')).rejects.toThrow(/mapping/i);
   expect(gateway.createDraft).not.toHaveBeenCalled();
 });
 
-test('retries a failed draft against the same manufacturing identity instead of creating a second job', async () => {
+test('retries a failed draft against the same manufacturing identity and refreshes temporary artwork access', async () => {
   const repository = new MemoryRepository(); repository.input = await validInput();
   repository.job = {
     id: 'mfg-stable', issueId: 'issue-1', designJobId: 'design-1', state: 'FAILED', provider: 'PRINTFUL',
     providerOrderId: null, providerStatus: null, printfulVariantId: null,
-    artworkUrl: 'https://blob.example/issue.png', createdAt: new Date(), updatedAt: new Date(), confirmedAt: null,
+    artworkUrl: canonicalArtwork, createdAt: new Date(), updatedAt: new Date(), confirmedAt: null,
   };
   const gateway: ManufacturerGateway = {
     createDraft: vi.fn(async () => ({ providerOrderId: '987654', status: 'draft' })),
     confirmDraft: vi.fn(),
   };
-  const result = await new ManufacturingService(repository, gateway, mapping()).createDraft('issue-1');
+  const result = await new ManufacturingService(repository, gateway, mapping(), artworkAccess).createDraft('issue-1');
   expect(result.id).toBe('mfg-stable');
   expect(result.state).toBe('DRAFT');
   expect(gateway.createDraft).toHaveBeenCalledTimes(1);
@@ -110,10 +121,10 @@ test('confirming manufacturing is a separate explicit action and reuses the exis
   repository.job = {
     id: 'mfg-1', issueId: 'issue-1', designJobId: 'design-1', state: 'DRAFT', provider: 'PRINTFUL',
     providerOrderId: '987654', providerStatus: 'draft', printfulVariantId: 4012,
-    artworkUrl: 'https://blob.example/issue.png', createdAt: new Date(), updatedAt: new Date(), confirmedAt: null,
+    artworkUrl: canonicalArtwork, createdAt: new Date(), updatedAt: new Date(), confirmedAt: null,
   };
   const gateway: ManufacturerGateway = { createDraft: vi.fn(), confirmDraft: vi.fn(async () => undefined) };
-  const result = await new ManufacturingService(repository, gateway, mapping(), undefined, () => new Date('2026-08-19T02:05:00Z')).confirmDraft('issue-1');
+  const result = await new ManufacturingService(repository, gateway, mapping(), artworkAccess, undefined, () => new Date('2026-08-19T02:05:00Z')).confirmDraft('issue-1');
   expect(gateway.confirmDraft).toHaveBeenCalledWith('987654');
   expect(result.state).toBe('IN_PRODUCTION');
 });
