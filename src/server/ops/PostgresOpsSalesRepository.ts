@@ -1,7 +1,16 @@
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type { OpsSalesRepository, OpsSalesSnapshot } from './OpsSalesRepository';
 
-type TotalsRow = { gross_minor: number | string; refunded_minor: number | string; paid_orders: number | string; average_order_minor: number | string; failed_payments: number | string; exception_payments: number | string };
+type TotalsRow = {
+  currency: string | null;
+  currency_count: number | string;
+  gross_minor: number | string;
+  refunded_minor: number | string;
+  paid_orders: number | string;
+  average_order_minor: number | string;
+  failed_payments: number | string;
+  exception_payments: number | string;
+};
 type DistributionRow = { object_type?: string; country_code?: string; orders: number | string };
 type FunnelRow = { started: number | string; answered: number | string; physical: number | string; verified: number | string; shipping: number | string; checkout: number | string; paid: number | string };
 const n = (value: number | string | null | undefined) => Number(value ?? 0);
@@ -15,6 +24,8 @@ export class PostgresOpsSalesRepository implements OpsSalesRepository {
     const [totalsRows, productRows, countryRows, funnelRows] = await Promise.all([
       this.sql.query<TotalsRow>(
         `SELECT
+          MIN(issue.currency) AS currency,
+          COUNT(DISTINCT issue.currency) AS currency_count,
           COALESCE(SUM(issue.amount_minor),0) AS gross_minor,
           COALESCE(SUM(issue.amount_minor) FILTER (WHERE issue.payment_exception_code='PAYMENT_REFUNDED'),0) AS refunded_minor,
           COUNT(*) AS paid_orders,
@@ -56,11 +67,15 @@ export class PostgresOpsSalesRepository implements OpsSalesRepository {
     ]);
 
     const totals = totalsRows[0] ?? {} as TotalsRow;
+    if (n(totals.currency_count) > 1) {
+      throw new Error('Owner OS sales cannot aggregate mixed currencies');
+    }
     const grossMinor = n(totals.gross_minor);
     const refundedMinor = n(totals.refunded_minor);
     const funnel = funnelRows[0] ?? {} as FunnelRow;
     return {
       days,
+      currency: totals.currency ?? null,
       grossMinor,
       refundedMinor,
       netAfterRefundMinor: Math.max(0, grossMinor - refundedMinor),
