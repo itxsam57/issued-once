@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { decryptPrivatePayload, type EncryptedPayload } from '@/server/crypto/privatePayload';
 import type { OpsAuditService } from './OpsAuditService';
 
@@ -56,11 +57,12 @@ export class OpsSupportService {
     const context = await this.store.getReplyContext(input.requestId);
     if (!context) throw new Error('Support reply context is unavailable');
     const { email } = await decryptPrivatePayload<{ email: string }>(context.encryptedEmail);
+    const digest = createHash('sha256').update(message, 'utf8').digest('hex').slice(0, 24);
     const delivered = await this.reply.send({
       to: email,
       issueCode: context.issueCode,
       message,
-      idempotencyKey: `issued-once/owner-support/${input.requestId}/${Buffer.from(message).length}`,
+      idempotencyKey: `issued-once/owner-support/${input.requestId}/${digest}`,
     });
     await this.audit.record({
       actor: 'OWNER', action: 'SUPPORT_REPLY_SENT', issueId: context.issueId,
