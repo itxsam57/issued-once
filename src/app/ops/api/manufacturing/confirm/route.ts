@@ -1,10 +1,8 @@
 import { z } from 'zod';
-import {
-  createManufacturingService,
-  ManufacturingRuntimeUnavailableError,
-} from '@/server/manufacturing/runtimeManufacturing';
+import { ManufacturingRuntimeUnavailableError } from '@/server/manufacturing/runtimeManufacturing';
 import { enqueueIssueNotification } from '@/server/notifications/notificationQueue';
 import { hasOpsSession } from '@/server/ops/opsRequest';
+import { createOpsManufacturingService } from '@/server/ops/runtimeOwnerOs';
 import { createOpsRepository, OpsRuntimeUnavailableError } from '@/server/ops/runtimeOps';
 
 const schema = z.object({
@@ -28,7 +26,7 @@ export async function POST(request: Request) {
       return Response.json({ error: `Type CONFIRM ${issue.issueCode}` }, { status: 400 });
     }
 
-    const job = await createManufacturingService().confirmDraft(parsed.data.issueId);
+    const job = await createOpsManufacturingService().confirmDraft(parsed.data.issueId);
     await enqueueIssueNotification(job.issueId, 'IN_PRODUCTION');
     return Response.json({ manufacturingJobId: job.id, state: job.state });
   } catch (error) {
@@ -38,7 +36,7 @@ export async function POST(request: Request) {
     ) {
       return Response.json({ error: 'Manufacturing is unavailable' }, { status: 503 });
     }
-    if (error instanceof Error && /draft|confirm|printful/i.test(error.message)) {
+    if (error instanceof Error && /draft|confirm|printful|eligible/i.test(error.message)) {
       return Response.json({ error: 'Manufacturing draft is not ready to confirm' }, { status: 409 });
     }
     console.error('ops manufacturing confirmation failed', error);
