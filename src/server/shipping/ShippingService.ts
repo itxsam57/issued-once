@@ -27,7 +27,14 @@ function normalizeAddress(input: ShippingAddress): ShippingAddress {
     phone: clean(input.phone, 40),
   };
 
-  if (!address.recipientName || !address.line1 || !address.city || !address.postalCode) {
+  if (
+    !address.recipientName ||
+    !address.line1 ||
+    !address.city ||
+    !address.region ||
+    !address.postalCode ||
+    !address.phone
+  ) {
     throw new Error('Shipping address is incomplete');
   }
   return address;
