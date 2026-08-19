@@ -5,12 +5,13 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
+    "implementationHeadAtCheckpoint": "e993695451b845df6e1c2ca9e677c76439a82966",
     "lastFullCiVerifiedHead": "c0260b64f10dea9c2cb6c937a42c2d37cbc18c4f",
-    "latestImplementationHeadVerification": "NOT_CLAIMED"
+    "latestImplementationHeadVerification": "EXTERNAL_RUNNERS_DID_NOT_EXECUTE"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "decision": "OWNER_OS_WRITTEN_SPEC_READY_FOR_USER_REVIEW",
+    "state": "WAIT_EXTERNAL",
+    "decision": "OWNER_OS_SOURCE_HARDENED_WAIT_FOR_EXECUTABLE_CI_AND_PREVIEW_BUILD",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -18,13 +19,13 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "The user approved the Owner OS design in chat. The architecture has now been written and self-reviewed at docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md. Superpowers requires the user to review/approve the written spec before writing-plans or implementation begins. Existing commercial production gates also remain unresolved."
+    "stopReason": "Owner OS source hardening and isolated Neon migration proofs are complete for this cycle, but the exact implementation head cannot be executed by the available hosted verification paths. GitHub CI job 96079510059 and Browser QA job 96079511446 both completed with steps=null, meaning no checkout/test/build/browser step ran. Vercel reports build-rate-limit. Production database/provider launch gates also remain fail-closed and are not claimed green."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
     "rules": [
       "Treat mapped GitHub repo/branch as canonical source of truth",
-      "Use Superpowers brainstorming -> written spec review -> writing-plans -> TDD for architectural work",
+      "Use Superpowers brainstorming -> written spec -> implementation plan -> TDD/debugging/verification for architectural work",
       "Maintain .engineering/CONTINUATION.json after every meaningful work cycle",
       "Keep payment, design and manufacturing boundaries fail-closed",
       "Never infer paid truth from a browser redirect",
@@ -32,95 +33,112 @@
       "Never allow Owner OS to bypass domain state machines or irreversible factory gates",
       "Never allow model output to enter manufacturing without explicit approval",
       "Never allow Printful production confirmation without owner auth, kill switch, typed Issue confirmation and last-moment state reload",
+      "Never add unlike currencies together",
       "Never call a verification gate green when it did not execute"
     ]
   },
   "currentArchitecture": {
     "commercialSpine": "ISSUED ONCE -> Safepay -> canonical Issue -> OpenAI design worker -> owner approval -> Printful draft -> owner confirmation -> fulfillment/tracking",
-    "ownerControlPlane": "Private /ops Owner OS over dashboard, Issues, Designer, Manufacturing, Sales, Customers, Support, Website, System and Audit",
+    "ownerControlPlane": "Private /ops Owner OS over Home, Issues, Designer, Manufacturing, Sales, Customers, Support, Website, System and Audit",
     "ownerOsSpec": "docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md",
-    "ownerOsSpecCommit": "a0cf146e784b52147e0dc6e0b86334fca9d74fd1",
-    "ownerOsSpecReview": "SELF_REVIEWED_AWAITING_USER_REVIEW"
+    "ownerOsPlan": "docs/superpowers/plans/2026-08-19-issued-once-owner-os.md",
+    "ownerOsSpecReview": "APPROVED_AND_IMPLEMENTED_TO_CURRENT_SOURCE_SCOPE",
+    "canonicalIdentity": "Issue ID / Issue Code",
+    "historicalAnalytics": "daily commercial_metric_buckets for 90-day/lifetime reads; bounded canonical OLTP for recent operating windows"
   },
-  "ownerOsLockedDesign": {
-    "modules": [
-      "Home live business pulse and Attention Required queue",
-      "Canonical Issue ledger/detail/timeline with safe indexed search",
-      "Audited single-Issue sensitive-data reveal",
-      "Designer Studio with retry, reinterpret, candidate regeneration, selection and approval",
-      "Manufacturing Control with Printful draft/recovery/tracking and unchanged production confirmation locks",
-      "Sales/customer analytics using event-derived aggregate buckets",
-      "Support Desk with masked message lists, audited reveal, replies and internal notes",
-      "Website control for versioned retail catalog and audited Question Vault management",
-      "System/provider readiness",
-      "Append-only owner audit log"
-    ],
-    "requiredFutureSchema": [
-      "ops_audit_events",
-      "ops_internal_notes",
-      "design_candidates",
-      "catalog_versions",
-      "catalog_variants",
-      "commercial_metric_buckets",
-      "keyed phone_lookup_hash search representation"
-    ],
-    "privacy": {
-      "listViewsDecryptCustomerData": false,
-      "bulkPrivateExport": false,
-      "privateRevealRequiresReason": true,
-      "privateRevealAudited": true,
-      "fullDesignInterpretationProtected": true,
-      "supportPlaintextProtected": true
-    },
-    "scale": {
-      "cursorPagination": true,
-      "noLoadAllIssuesEndpoint": true,
-      "bucketedHistoricalMetrics": true,
-      "providerCallsPerListRow": false,
-      "historicalOrdersImmutableAcrossCatalogQuestionChanges": true
-    }
+  "ownerOsBuildState": {
+    "home": "Attention Required + bounded live pulse + bucket-backed lifetime sales/delivery + recent activity",
+    "issues": "cursor ledger, indexed case-insensitive prefix search, full operational filters, canonical detail/timeline, explicit audited private reveal",
+    "designer": "queue, review, approve, failed retry, regenerate, reinterpret, candidate history and candidate selection with pre-factory safety guards",
+    "manufacturing": "draft creation/recovery by Issue Code external-ID lookup, quarantine, tracking visibility and unchanged deliberate confirmation locks",
+    "sales": "currency-safe live 7/30-day metrics plus bucket-backed 90-day/lifetime revenue, refund, funnel, form/size/color/country mix and lifecycle timing",
+    "customers": "verified-contact hash grouping with currency-safe lifetime value and no plaintext list identity",
+    "support": "open/closed desk, encrypted message reveal, internal notes, verified reply, failed-notification retry with queue-distinct attempt keys",
+    "website": "versioned catalog controls, Printful mapping validation, live weighted Question Vault controls and safe question version creation",
+    "system": "provider/readiness view and factory confirmation safety state",
+    "audit": "append-only owner actions, safe metadata, cursor pagination, action/Issue/target/date filters, owner login/logout auditing",
+    "browserAcceptanceSource": "tests/e2e/owner-os.spec.ts uses real owner-session gate and mocked downstream /ops APIs so it cannot charge, send mail, call OpenAI or confirm Printful"
   },
-  "commercialBuildState": {
-    "questionVault": "70 questions across seven persisted signal families",
-    "contactShipping": "OTP + encrypted contact/shipping; phone and province/state required in final shipping contract",
-    "payments": "Safepay adapter with signed webhook truth, exact amount/currency checks and refund/exception handling",
-    "issueIdentity": "Canonical immutable Issue spine",
-    "design": "Queued privacy-minimized interpretation/image generation with review approval gate",
-    "manufacturing": "Printful draft-only creation, explicit mappings, private artwork access, deliberate confirmation",
-    "tracking": "Signed Printful fulfillment events",
-    "notificationsSupport": "Queued customer milestones + encrypted support",
-    "legacyFourthwall": "Active legacy checkout/webhook paths disabled"
+  "privacySecurity": {
+    "opsRobots": "noindex,nofollow,nocache with Google noimageindex",
+    "opsCookie": "HttpOnly SameSite=strict scoped to /ops; logout endpoint is inside /ops so the prior session cookie is visible for auditing",
+    "productionLoginAuditFailure": "FAIL_CLOSED",
+    "logoutAuditFailure": "COOKIE_STILL_CLEARED",
+    "listViewsDecryptCustomerData": false,
+    "bulkPrivateExport": false,
+    "privateRevealRequiresReason": true,
+    "privateRevealAudited": true,
+    "fullDesignInterpretationProtected": true,
+    "supportPlaintextProtected": true,
+    "paymentProviderEventTruth": "signed/idempotent provider events",
+    "manufacturingProviderEventTruth": "unique provider event reservation prevents duplicate canonical event projection"
+  },
+  "scale": {
+    "cursorPagination": true,
+    "noLoadAllIssuesEndpoint": true,
+    "providerCallsPerListRow": false,
+    "historicalOrdersImmutableAcrossCatalogQuestionChanges": true,
+    "recentSalesWindow": "bounded to <=30 days on indexed canonical tables",
+    "historicalSalesWindow": "90-day/lifetime from daily commercial metric buckets",
+    "lifetimeDashboard": "orders/revenue/refunds/delivered from metric buckets",
+    "issueLedgerIndexes": "newest-first paging, country join indexes, status/exception queue indexes",
+    "issuePrefixSearch": "pg_trgm GIN indexes matching ILIKE prefix search for Issue Code, Safepay reference, Printful order ID and tracking"
   },
   "database": {
-    "currentMigrationHead": "0019_payment_exception_timeline.sql",
+    "currentMigrationHead": "0027_issue_prefix_search_indexes.sql",
     "productionApplied": false,
-    "productionState": "NOT_CLAIMED_MIGRATED",
-    "ownerOsMigrations": "NOT_WRITTEN_UNTIL_WRITTEN_SPEC_APPROVAL_AND_IMPLEMENTATION_PLAN",
-    "migrationSafety": "Use Neon prepare -> temporary branch verification -> explicit owner approval -> complete migration. Never bypass the approval gate."
+    "productionState": "CONNECTED_DEFAULT_DATABASE_INSPECTED_EMPTY_NOT_MIGRATED",
+    "migrationManifest": "db/migrations/README.md",
+    "isolatedProofs": [
+      "0020-0022: br-shy-fire-axkuvyf8; Owner OS tables/indexes/status rework guard verified; branch deleted",
+      "0023-0025: br-still-boat-axp76bq8; metric projections, lifecycle timing, refund/failure, delivered and 9 scale indexes verified; branch deleted",
+      "0026 final: br-tiny-morning-axmzz103; 3/3 Issue ledger/country join indexes verified; branch deleted",
+      "0027: br-weathered-pine-ax2ywpyh; pg_trgm + 4/4 search indexes verified and EXPLAIN showed Bitmap Index Scan for existing ILIKE Issue prefix; branch deleted"
+    ],
+    "migrationSafety": "Before production apply, use Neon prepare_database_migration -> test temporary branch -> obtain exact migration ID -> explicit owner approval -> complete_database_migration. Never bypass the migration-ID approval gate."
   },
   "verification": {
-    "latestImplementationUnitTests": "NOT_EXECUTED_TO_GREEN",
-    "latestImplementationTypecheck": "NOT_EXECUTED_TO_GREEN",
-    "latestImplementationProductionBuild": "NOT_EXECUTED_TO_GREEN",
-    "latestImplementationBrowserQA": "OWNER_PREVIEW_FLOW_REPORTED_SMOOTH_BEFORE_LATEST_HARDENING; NOT_EXECUTABLE_GREEN_ON_LATEST_HEAD",
-    "githubActions": "Latest observed CI/Browser QA jobs failed before execution with steps=null; treat as runner/account infrastructure evidence, not product test failure",
-    "vercel": "Latest observed GitHub Vercel status failed with target indicating build-rate-limit; no compiler result obtained",
-    "neonProduction": "Production migrations not applied",
+    "exactImplementationHead": "e993695451b845df6e1c2ca9e677c76439a82966",
+    "latestImplementationUnitTests": "NOT_EXECUTED_TO_GREEN_ON_EXACT_HEAD",
+    "latestImplementationTypecheck": "NOT_EXECUTED_TO_GREEN_ON_EXACT_HEAD",
+    "latestImplementationLint": "NOT_EXECUTED_TO_GREEN_ON_EXACT_HEAD",
+    "latestImplementationProductionBuild": "NOT_EXECUTED_TO_GREEN_ON_EXACT_HEAD",
+    "latestImplementationBrowserQA": "ACCEPTANCE_SPEC_WRITTEN_BUT_HOSTED_RUNNER_DID_NOT_EXECUTE",
+    "githubActions": {
+      "ciRun": 32256562630,
+      "ciJob": 96079510059,
+      "ciSteps": null,
+      "browserRun": 32256563070,
+      "browserJob": 96079511446,
+      "browserSteps": null,
+      "interpretation": "runner/account provisioning failure before workflow steps, not evidence of a product-test failure or success"
+    },
+    "vercel": "Exact implementation head status failure points to upgradeToPro=build-rate-limit; no current compiler result obtained",
+    "neonMigrationSlices": "GREEN_ON_ISOLATED_TEMP_BRANCH_PROOFS",
+    "neonProduction": "NOT_MIGRATED",
     "safepaySandboxCycle": "NOT_PROVEN_END_TO_END",
     "openaiDeployedDesign": "NOT_PROVEN",
     "resendRealDelivery": "NOT_PROVEN",
-    "printfulDraft": "NOT_PROVEN_WITH_REAL_SAMPLED_MAPPING",
+    "printfulDraft": "NOT_PROVEN_WITH_REAL_PRODUCTION_TOKEN_AND_SAMPLE_MAPPING",
     "printfulProduction": "NOT_RUN",
     "printfulSignedFulfillment": "NOT_LIVE_PROVEN"
   },
-  "nextOwnerAction": "Review docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md and explicitly approve the written spec. After that invoke Superpowers writing-plans and implement Owner OS test-first. Existing payment/factory production remains fail-closed while external verification/provider/database gates are unresolved.",
-  "nextActionsAfterWrittenSpecApproval": [
-    "Invoke Superpowers writing-plans for Owner OS",
-    "Implement forward Owner OS schema migrations without rewriting 0001-0019",
-    "Build audit foundation and safe read models first",
-    "Expand /ops module-by-module through Issues, privacy reveal, Designer, Manufacturing, Support, Website, Sales/Customers, System and Audit",
-    "Run unit/typecheck/build/browser/scale/security verification against the exact head when platform runners are available",
-    "Prepare and verify database migrations on Neon temporary branch, then request explicit production migration approval",
-    "Keep Safepay/Printful production money and factory confirmation disabled until their independent launch gates are proven"
-  ]
+  "remainingNonLaunchP1": [
+    "Owner-edited full structured design brief workflow is not exposed; current safe controls are retry/regenerate/reinterpret/select/approve",
+    "Provider-specific cancel/reconcile UI is not exposed because the current Printful gateway safely implements lookup/create draft and confirm only; quarantine remains the safe owner stop action",
+    "Home activity is bounded to latest 30 rather than cursor-paginated historical browsing",
+    "Extended ratios such as design rejection/regeneration rate, design-approved-to-draft, shipped-to-delivered and support-per-order are not all surfaced yet",
+    "Keyed phone lookup in Owner OS search is deferred; email lookup hash and canonical Issue/provider/tracking searches are implemented"
+  ],
+  "nextActions": [
+    "Restore an executable GitHub Actions runner/account state and Vercel build allowance, then run unit tests, typecheck, lint, production build and Playwright against the exact current code head",
+    "Fix only evidence-backed failures from those executable gates; do not change application code to address zero-step runner failures",
+    "After exact-head verification is green, prepare the complete 0001-0027 production Neon migration through the guarded migration workflow and request approval using the returned migration ID",
+    "Run Safepay sandbox paid/refund/exception cycle with real signed webhook evidence",
+    "Run deployed OpenAI design generation and owner review evidence",
+    "Run Resend real delivery evidence",
+    "Create a real Printful draft with sampled mapping; keep production confirmation disabled until final deliberate launch approval",
+    "Only after all release gates are green consider closing P1 control-plane refinements and marking the PR ready for review"
+  ],
+  "nextOwnerAction": "Restore/allow hosted verification execution (GitHub Actions currently provisions zero steps; Vercel is blocked by build-rate-limit). No production database or provider activation is requested yet because exact-head code verification must execute first."
 }
