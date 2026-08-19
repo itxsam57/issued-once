@@ -25,6 +25,42 @@ test('returns canonical sales totals, mix, timing and funnel without private dat
   expect(JSON.stringify(result)).not.toMatch(/email|phone|address|ciphertext/i);
 });
 
+test('historical windows read only aggregate metric buckets', async () => {
+  let queryText = '';
+  const sql: SqlExecutor = { query: async (text) => {
+    queryText = text;
+    return [
+      { metric_key: 'gross_paid', dimension_key: 'all', currency_scope: 'USD', event_count: 10, value_minor: 54000, value_seconds: 0 },
+      { metric_key: 'refund', dimension_key: 'all', currency_scope: 'USD', event_count: 1, value_minor: 5400, value_seconds: 0 },
+      { metric_key: 'paid_order', dimension_key: 'all', currency_scope: 'USD', event_count: 10, value_minor: 0, value_seconds: 0 },
+      { metric_key: 'paid_order', dimension_key: 'object:tee', currency_scope: 'USD', event_count: 8, value_minor: 0, value_seconds: 0 },
+      { metric_key: 'paid_order', dimension_key: 'size:M', currency_scope: 'USD', event_count: 6, value_minor: 0, value_seconds: 0 },
+      { metric_key: 'paid_order', dimension_key: 'color:Black', currency_scope: 'USD', event_count: 7, value_minor: 0, value_seconds: 0 },
+      { metric_key: 'paid_order', dimension_key: 'country:PK', currency_scope: 'USD', event_count: 6, value_minor: 0, value_seconds: 0 },
+      { metric_key: 'payment_failed', dimension_key: 'all', currency_scope: '*', event_count: 2, value_minor: 0, value_seconds: 0 },
+      { metric_key: 'payment_exception', dimension_key: 'all', currency_scope: '*', event_count: 1, value_minor: 0, value_seconds: 0 },
+      { metric_key: 'funnel_started', dimension_key: 'all', currency_scope: '*', event_count: 20, value_minor: 0, value_seconds: 0 },
+      { metric_key: 'funnel_paid', dimension_key: 'all', currency_scope: '*', event_count: 10, value_minor: 0, value_seconds: 0 },
+      { metric_key: 'timing_start_to_paid', dimension_key: 'all', currency_scope: '*', event_count: 10, value_minor: 0, value_seconds: 18000 },
+      { metric_key: 'timing_paid_to_production', dimension_key: 'all', currency_scope: '*', event_count: 10, value_minor: 0, value_seconds: 648000 },
+    ] as never;
+  }};
+
+  const result = await new PostgresOpsSalesRepository(sql).getSnapshot({ days: 90, now: new Date('2026-08-19T06:00:00Z') });
+
+  expect(queryText).toContain('commercial_metric_buckets');
+  expect(queryText).not.toMatch(/FROM issues|FROM payment_attempts|FROM experiences/i);
+  expect(result.grossMinor).toBe(54000);
+  expect(result.netAfterRefundMinor).toBe(48600);
+  expect(result.averageOrderMinor).toBe(5400);
+  expect(result.byProduct[0]).toEqual({ key: 'tee', orders: 8 });
+  expect(result.byCountry[0]).toEqual({ key: 'PK', orders: 6 });
+  expect(result.timing.averageHoursStartToPaid).toBe(0.5);
+  expect(result.timing.averageHoursPaidToProduction).toBe(18);
+  expect(result.funnel.started).toBe(20);
+  expect(result.funnel.paid).toBe(10);
+});
+
 test('refuses to aggregate mixed currencies', async () => {
   const sql: SqlExecutor = { query: async () => [{ currency: 'PKR', currency_count: 2 }] as never };
   await expect(new PostgresOpsSalesRepository(sql).getSnapshot({ days: 30, now: new Date('2026-08-19T06:00:00Z') }))
