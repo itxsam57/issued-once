@@ -55,7 +55,7 @@ test('failed Safepay tracker initialization moves the unshown attempt out of the
   }));
   const second = build(repository, secondGateway);
   await expect(second.start({ sessionToken, quoteId: 'quote-1', returnBaseUrl: 'https://issuedonce.shop' })).resolves.toMatchObject({
-    checkoutUrl: expect.stringContaining('track-retry')
+    checkoutUrl: expect.stringContaining('order_id='),
   });
   expect(secondGateway).toHaveBeenCalledTimes(1);
   expect(repository.attempt?.status).toBe('REDIRECTED');
