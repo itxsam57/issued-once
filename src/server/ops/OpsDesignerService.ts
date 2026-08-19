@@ -23,6 +23,7 @@ export type OpsDesignerQueueItem = {
 export interface OpsDesignerStore {
   listQueue(limit: number): Promise<OpsDesignerQueueItem[]>;
   prepareRework(issueId: string, mode: OpsDesignReworkMode): Promise<{ issueId: string; generationKey: string; mode: OpsDesignReworkMode }>;
+  prepareRetry(issueId: string): Promise<{ issueId: string; generationKey: string }>;
   selectCandidate(issueId: string, candidateId: string): Promise<void>;
 }
 
@@ -48,6 +49,17 @@ export class OpsDesignerService {
       safeMetadata: { state: 'APPROVED' },
     });
     return result;
+  }
+
+  async retryFailed(issueId: string) {
+    const prepared = await this.store.prepareRetry(issueId);
+    await this.actions.enqueue(prepared.issueId, 'reinterpret', prepared.generationKey);
+    await this.audit.record({
+      actor: 'OWNER', action: 'DESIGN_RETRY', issueId,
+      targetType: 'design_job', targetId: issueId, reason: null,
+      safeMetadata: { generationKey: prepared.generationKey, mode: 'reinterpret' },
+    });
+    return prepared;
   }
 
   async rework(input: { issueId: string; mode: OpsDesignReworkMode; reason: string }) {
