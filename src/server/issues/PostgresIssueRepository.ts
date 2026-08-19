@@ -214,4 +214,44 @@ export class PostgresIssueRepository implements IssueRepository {
       issue: issueFromRow(row),
     };
   }
+
+  async flagPaymentException(input: {
+    paymentAttemptId: string;
+    reason: 'PAYMENT_REFUNDED' | 'PAYMENT_EXCEPTION';
+    updatedAt: Date;
+  }): Promise<{ issueId: string } | null> {
+    const rows = await this.sql.query<{ issue_id: string }>(
+      `WITH flagged AS (
+         UPDATE issues
+         SET payment_exception_code = CASE
+               WHEN $2 = 'PAYMENT_REFUNDED' THEN 'PAYMENT_REFUNDED'
+               ELSE COALESCE(payment_exception_code, 'PAYMENT_EXCEPTION')
+             END,
+             payment_exception_at = COALESCE(payment_exception_at, $3),
+             status = CASE
+               WHEN status IN ('RECEIVED','BEING_INTERPRETED','DESIGN_REVIEW','DESIGN_APPROVED','MANUFACTURING_DRAFT')
+                 THEN 'EXCEPTION'
+               ELSE status
+             END,
+             updated_at = GREATEST(updated_at, $3)
+         WHERE payment_attempt_id = $1
+         RETURNING id
+       ), recorded AS (
+         INSERT INTO issue_events (issue_id, event_type, source, safe_detail, created_at)
+         SELECT id, $2, 'SAFEPAY', NULL, $3
+         FROM flagged
+         WHERE NOT EXISTS (
+           SELECT 1
+           FROM issue_events existing
+           WHERE existing.issue_id = flagged.id
+             AND existing.event_type = $2
+             AND existing.source = 'SAFEPAY'
+         )
+         RETURNING issue_id
+       )
+       SELECT id AS issue_id FROM flagged LIMIT 1`,
+      [input.paymentAttemptId, input.reason, input.updatedAt],
+    );
+    return rows[0] ? { issueId: rows[0].issue_id } : null;
+  }
 }
