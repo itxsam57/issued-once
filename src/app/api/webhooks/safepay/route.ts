@@ -17,9 +17,10 @@ export async function POST(request: Request) {
       rawBody,
       headers: request.headers,
     });
+    const issueService = createIssueService();
 
     if ((result.kind === 'paid' || result.kind === 'duplicate') && result.paymentAttemptId) {
-      const issue = await createIssueService().reserveForPaidAttempt(result.paymentAttemptId);
+      const issue = await issueService.reserveForPaidAttempt(result.paymentAttemptId);
       await enqueueDesignIssue(issue.issue.id);
       await enqueueIssueNotification(issue.issue.id, 'PAYMENT_RECEIVED');
       return Response.json({
@@ -27,6 +28,16 @@ export async function POST(request: Request) {
         kind: result.kind,
         issueCode: issue.issue.issueCode,
       });
+    }
+
+    if (result.kind === 'refunded' && result.paymentAttemptId) {
+      await issueService.flagPaymentException(result.paymentAttemptId, 'PAYMENT_REFUNDED');
+      return Response.json({ received: true, kind: result.kind });
+    }
+
+    if (result.kind === 'exception' && result.paymentAttemptId) {
+      await issueService.flagPaymentException(result.paymentAttemptId, 'PAYMENT_EXCEPTION');
+      return Response.json({ received: true, kind: result.kind });
     }
 
     return Response.json({ received: true, kind: result.kind });
