@@ -13,7 +13,8 @@ type AttemptRow = {
   created_at: Date | string; updated_at: Date | string;
 };
 type BoolRow = { inserted: boolean };
-type OutcomeRow = { outcome: 'paid' | 'duplicate' | 'mismatch' };
+type PaidOutcomeRow = { outcome: 'paid' | 'duplicate' | 'mismatch' };
+type RefundOutcomeRow = { outcome: 'refunded' | 'duplicate' | 'mismatch' };
 
 const d = (v: Date | string) => v instanceof Date ? v : new Date(v);
 const fromRow = (r: AttemptRow): PaymentAttemptRecord => ({
@@ -79,20 +80,28 @@ export class PostgresPaymentRepository implements PaymentRepository {
   }
 
   async markPaid(input: { attemptId: string; providerEventId: string; amountMinor: number; currency: string; paidAt: Date }) {
-    const rows = await this.sql.query<OutcomeRow>(
-      `WITH current AS (SELECT status, amount_minor, currency FROM payment_attempts WHERE id=$1 FOR UPDATE),
-       mismatch AS (
-         UPDATE payment_attempts SET status='EXCEPTION', updated_at=$5
-         WHERE id=$1 AND EXISTS (SELECT 1 FROM current WHERE status<>'PAID' AND (amount_minor<>$3 OR currency<>$4))
-         RETURNING 'mismatch'::text AS outcome
+    const rows = await this.sql.query<PaidOutcomeRow>(
+      `WITH current AS (
+         SELECT status,amount_minor,currency FROM payment_attempts WHERE id=$1 FOR UPDATE
+       ), mismatch AS (
+         UPDATE payment_attempts SET status='EXCEPTION',updated_at=$5
+         WHERE id=$1 AND EXISTS (
+           SELECT 1 FROM current
+           WHERE status IN ('CREATED','REDIRECTED') AND (amount_minor<>$3 OR currency<>$4)
+         ) RETURNING 'mismatch'::text AS outcome
        ), paid AS (
-         UPDATE payment_attempts SET status='PAID', updated_at=$5
-         WHERE id=$1 AND EXISTS (SELECT 1 FROM current WHERE status<>'PAID' AND amount_minor=$3 AND currency=$4)
-           AND NOT EXISTS (SELECT 1 FROM mismatch)
+         UPDATE payment_attempts SET status='PAID',updated_at=$5
+         WHERE id=$1 AND EXISTS (
+           SELECT 1 FROM current
+           WHERE status IN ('CREATED','REDIRECTED') AND amount_minor=$3 AND currency=$4
+         ) AND NOT EXISTS (SELECT 1 FROM mismatch)
          RETURNING 'paid'::text AS outcome
        )
-       SELECT outcome FROM mismatch UNION ALL SELECT outcome FROM paid UNION ALL
-       SELECT 'duplicate'::text AS outcome WHERE EXISTS (SELECT 1 FROM current WHERE status='PAID') LIMIT 1`,
+       SELECT outcome FROM mismatch
+       UNION ALL SELECT outcome FROM paid
+       UNION ALL SELECT 'duplicate'::text AS outcome WHERE EXISTS (SELECT 1 FROM current WHERE status='PAID')
+       UNION ALL SELECT 'mismatch'::text AS outcome WHERE EXISTS (SELECT 1 FROM current WHERE status NOT IN ('CREATED','REDIRECTED','PAID'))
+       LIMIT 1`,
       [input.attemptId,input.providerEventId,input.amountMinor,input.currency,input.paidAt],
     );
     if (!rows[0]) throw new Error('Payment attempt not found');
@@ -100,6 +109,36 @@ export class PostgresPaymentRepository implements PaymentRepository {
   }
 
   async markFailed(attemptId: string, _providerEventId: string, at: Date) {
-    await this.sql.query(`UPDATE payment_attempts SET status='FAILED', updated_at=$2 WHERE id=$1 AND status IN ('CREATED','REDIRECTED')`, [attemptId, at]);
+    await this.sql.query(
+      `UPDATE payment_attempts SET status='FAILED',updated_at=$2 WHERE id=$1 AND status IN ('CREATED','REDIRECTED')`,
+      [attemptId,at],
+    );
+  }
+
+  async markRefunded(input: { attemptId: string; amountMinor: number; currency: string; refundedAt: Date }) {
+    const rows = await this.sql.query<RefundOutcomeRow>(
+      `WITH current AS (
+         SELECT status,amount_minor,currency FROM payment_attempts WHERE id=$1 FOR UPDATE
+       ), mismatch AS (
+         UPDATE payment_attempts SET status='EXCEPTION',updated_at=$4
+         WHERE id=$1 AND EXISTS (
+           SELECT 1 FROM current
+           WHERE status<>'REFUNDED' AND (status<>'PAID' OR amount_minor<>$2 OR currency<>$3)
+         ) RETURNING 'mismatch'::text AS outcome
+       ), refunded AS (
+         UPDATE payment_attempts SET status='REFUNDED',updated_at=$4
+         WHERE id=$1 AND EXISTS (
+           SELECT 1 FROM current WHERE status='PAID' AND amount_minor=$2 AND currency=$3
+         ) AND NOT EXISTS (SELECT 1 FROM mismatch)
+         RETURNING 'refunded'::text AS outcome
+       )
+       SELECT outcome FROM mismatch
+       UNION ALL SELECT outcome FROM refunded
+       UNION ALL SELECT 'duplicate'::text AS outcome WHERE EXISTS (SELECT 1 FROM current WHERE status='REFUNDED')
+       LIMIT 1`,
+      [input.attemptId,input.amountMinor,input.currency,input.refundedAt],
+    );
+    if (!rows[0]) throw new Error('Payment attempt not found');
+    return rows[0].outcome;
   }
 }
