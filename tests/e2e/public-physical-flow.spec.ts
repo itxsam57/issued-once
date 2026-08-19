@@ -38,7 +38,7 @@ async function reachPhysicalForm(page: import('@playwright/test').Page) {
   await expect(page.getByText('FORM / CURRENT ISSUE')).toBeVisible();
 }
 
-test('public physical flow reaches provider-backed commitment and redirects to hosted checkout without trusted browser product facts', async ({ page }, testInfo) => {
+test('public physical flow requires verified contact and shipping before Safepay redirect', async ({ page }, testInfo) => {
   await reachPhysicalForm(page);
 
   await page.getByRole('radio', { name: 'TEE' }).check();
@@ -59,6 +59,41 @@ test('public physical flow reaches provider-backed commitment and redirects to h
   }
   await capture(page, `13-public-base-${testInfo.project.name}`);
 
+  await page.route('**/api/contact/request-otp', async (route) => {
+    const body = route.request().postDataJSON() as { email: string };
+    expect(body).toEqual({ email: 'sam@example.com' });
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ challengeId: 'challenge-e2e', retryAfterSeconds: 60 }),
+    });
+  });
+  await page.route('**/api/contact/verify-otp', async (route) => {
+    const body = route.request().postDataJSON() as { challengeId: string; code: string };
+    expect(body).toEqual({ challengeId: 'challenge-e2e', code: '123456' });
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ verified: true }),
+    });
+  });
+  await page.route('**/api/shipping', async (route) => {
+    const body = route.request().postDataJSON() as Record<string, string>;
+    expect(body).toMatchObject({
+      recipientName: 'Sam Example',
+      line1: '1 Quiet Street',
+      city: 'Peshawar',
+      postalCode: '25000',
+      countryCode: 'PK',
+    });
+    expect(body).not.toHaveProperty('email');
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ saved: true }),
+    });
+  });
+
   await page.getByRole('radio', { name: 'Bone' }).check();
   const baseRequestPromise = page.waitForRequest((request) =>
     request.url().endsWith('/api/experience/base') && request.method() === 'POST',
@@ -66,6 +101,20 @@ test('public physical flow reaches provider-backed commitment and redirects to h
   await page.getByRole('button', { name: 'LOCK BASE' }).click();
   const baseRequest = await baseRequestPromise;
   expect(baseRequest.postDataJSON()).toEqual({ colorCode: 'Bone' });
+
+  await expect(page.getByRole('heading', { name: 'Where do we find you?' })).toBeVisible();
+  await page.getByLabel('Email').fill('sam@example.com');
+  await page.getByRole('button', { name: 'SEND CODE' }).click();
+  await page.getByLabel('Verification code').fill('123456');
+  await page.getByRole('button', { name: 'VERIFY' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Where does it go?' })).toBeVisible();
+  await page.getByLabel('Name').fill('Sam Example');
+  await page.getByLabel('Address').fill('1 Quiet Street');
+  await page.getByLabel('City').fill('Peshawar');
+  await page.getByLabel('Postal code').fill('25000');
+  await page.getByLabel('Country').selectOption('PK');
+  await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
 
   await expect(page.getByText('FORM COMPLETE')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'From here, it becomes ours to interpret.' })).toBeVisible();
@@ -76,31 +125,34 @@ test('public physical flow reaches provider-backed commitment and redirects to h
   await expect(issueMine).toBeVisible();
   await capture(page, `14-public-commitment-${testInfo.project.name}`);
 
-  await page.route('https://checkout.example.test/**', async (route) => {
+  await page.route('https://sandbox.api.getsafepay.com/checkout/**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'text/html',
-      body: '<!doctype html><html><body><h1>HOSTED CHECKOUT TEST</h1></body></html>',
+      body: '<!doctype html><html><body><h1>SAFEPAY HOSTED CHECKOUT TEST</h1></body></html>',
     });
   });
-  await page.route('**/api/checkout/start', async (route) => {
+  await page.route('**/api/payments/create', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ checkoutUrl: 'https://checkout.example.test/issued-once' }),
+      body: JSON.stringify({
+        paymentAttemptId: 'payment-e2e',
+        checkoutUrl: 'https://sandbox.api.getsafepay.com/checkout/pay?beacon=e2e',
+      }),
     });
   });
 
-  const checkoutRequestPromise = page.waitForRequest((request) =>
-    request.url().endsWith('/api/checkout/start') && request.method() === 'POST',
+  const paymentRequestPromise = page.waitForRequest((request) =>
+    request.url().endsWith('/api/payments/create') && request.method() === 'POST',
   );
   await issueMine.click();
-  const checkoutRequest = await checkoutRequestPromise;
-  const checkoutPayload = checkoutRequest.postDataJSON() as Record<string, unknown>;
-  expect(Object.keys(checkoutPayload)).toEqual(['quoteId']);
-  expect(typeof checkoutPayload.quoteId).toBe('string');
-  expect(String(checkoutPayload.quoteId).length).toBeGreaterThan(0);
+  const paymentRequest = await paymentRequestPromise;
+  const paymentPayload = paymentRequest.postDataJSON() as Record<string, unknown>;
+  expect(Object.keys(paymentPayload)).toEqual(['quoteId']);
+  expect(typeof paymentPayload.quoteId).toBe('string');
+  expect(String(paymentPayload.quoteId).length).toBeGreaterThan(0);
 
-  await page.waitForURL('https://checkout.example.test/issued-once');
-  await expect(page.getByRole('heading', { name: 'HOSTED CHECKOUT TEST' })).toBeVisible();
+  await page.waitForURL('https://sandbox.api.getsafepay.com/checkout/pay?beacon=e2e');
+  await expect(page.getByRole('heading', { name: 'SAFEPAY HOSTED CHECKOUT TEST' })).toBeVisible();
 });
