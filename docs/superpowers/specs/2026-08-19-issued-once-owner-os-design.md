@@ -99,7 +99,7 @@ Requirements:
 - `noindex, nofollow`
 - no secret value returned to browser
 - session logout/expiry supported
-- every privileged write records an audit event
+- successful login/logout and every privileged write record an audit event
 
 Future role expansion must build on explicit permissions; it must not weaken the OWNER model by sharing one permanent browser token among employees.
 
@@ -175,9 +175,9 @@ Exact/prefix search may resolve:
 - Printful order ID
 - tracking number
 - verified contact lookup hash derived server-side from an owner-entered email
-- normalized phone lookup only after a privacy-preserving phone lookup representation is explicitly added
+- keyed phone lookup hash derived server-side from a canonical normalized phone entered by the owner
 
-Raw email/phone are not indexed as plaintext.
+Raw email/phone are not indexed as plaintext. The browser submits an owner search term to the authenticated server; only the server derives the keyed lookup value.
 
 ### Filters
 
@@ -413,16 +413,17 @@ Support Desk provides:
 
 - OPEN / CLOSED queues
 - Issue Code
-- support-message state
+- support-message presence/state without plaintext in list views
 - current Issue/payment/design/manufacturing state
-- verified reply address through reveal/delivery boundary
+- verified reply-address presence
 - internal owner notes
 - timeline
 
-Message plaintext is revealed only when the owner opens a specific support case; list views do not decrypt support messages.
+Opening support case metadata does not decrypt its message. Reading message plaintext or verified reply address uses an explicit `REVEAL` action with a reason and the same audited private-data gate defined above.
 
 Owner can:
 
+- reveal/read one case when needed
 - reply using the configured support mail path
 - close/reopen case
 - add an internal note
@@ -552,7 +553,7 @@ Add a canonical owner audit stream.
 
 Examples:
 
-- login/logout/session events where practical
+- successful login/logout
 - private-data reveal
 - catalog draft/publish change
 - question activation/version/weight change
@@ -589,6 +590,7 @@ Implementation will use forward migrations after the current commercial migratio
 - `catalog_versions` — immutable catalog version metadata with explicit draft/published state
 - `catalog_variants` — logical sellable variants belonging to a catalog version
 - `commercial_metric_buckets` — event-derived hourly/daily operational aggregates for scalable sales/flow charts
+- a keyed `phone_lookup_hash` on the shipping/contact search boundary so Owner OS can find a customer by phone without storing plaintext phone outside ciphertext
 
 Question definitions continue using the existing versioned Question Vault tables; no duplicate question-management schema is introduced.
 
@@ -679,7 +681,7 @@ Implementation is test-first.
 ### Repository tests
 
 - cursor pagination
-- search by canonical identifiers
+- search by canonical identifiers and keyed email/phone lookup
 - aggregate correctness
 - no plaintext sensitive fields in read models
 - append-only audit behavior
