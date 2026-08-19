@@ -30,10 +30,10 @@ function isBase64Key32(value: string | undefined) {
   }
 }
 
-function isStrongHexSecret(value: string | undefined) {
+function isValidHexSecret(value: string | undefined) {
   const secret = value?.trim() ?? '';
   if (!/^[0-9a-f]+$/i.test(secret) || secret.length % 2 !== 0) return false;
-  return Buffer.from(secret, 'hex').length >= 32;
+  return Buffer.from(secret, 'hex').length > 0;
 }
 
 function safeFetchError(response: Response) {
@@ -169,8 +169,8 @@ export class ReadinessService {
     );
     if (!printfulConfigured) {
       checks.push({ key: 'printful', label: 'Printful', state: 'missing', detail: 'Printful API, mapping, and signed-webhook configuration are required.' });
-    } else if (!isStrongHexSecret(this.env.PRINTFUL_WEBHOOK_SECRET_HEX)) {
-      checks.push({ key: 'printful', label: 'Printful', state: 'blocked', detail: 'Printful webhook secret must be valid hexadecimal with at least 32 decoded bytes.' });
+    } else if (!isValidHexSecret(this.env.PRINTFUL_WEBHOOK_SECRET_HEX)) {
+      checks.push({ key: 'printful', label: 'Printful', state: 'blocked', detail: 'Printful webhook secret must be non-empty, even-length hexadecimal.' });
     } else {
       try {
         const map = new PrintfulVariantMap(this.env.PRINTFUL_VARIANT_MAP_JSON!);
