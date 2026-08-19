@@ -78,45 +78,25 @@ type VisualPreviewExperienceProps = {
   mode?: 'qa' | 'owner';
 };
 
-async function requestCheckout(quoteId: string): Promise<void> {
-  const response = await fetch('/api/checkout/start', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    credentials: 'same-origin',
-    body: JSON.stringify({ quoteId }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Checkout could not be opened');
-  }
-
-  const payload = (await response.json()) as { checkoutUrl?: string };
-  if (!payload.checkoutUrl) {
-    throw new Error('Checkout response is invalid');
-  }
-
-  window.location.assign(payload.checkoutUrl);
-}
-
 export function VisualPreviewExperience({ mode = 'qa' }: VisualPreviewExperienceProps) {
-  const [ownerComplete, setOwnerComplete] = useState(false);
+  const [previewComplete, setPreviewComplete] = useState(false);
   const isOwnerPreview = mode === 'owner';
   const marker = isOwnerPreview
     ? 'OWNER PREVIEW / NO PAYMENT'
     : 'VISUAL QA / NOT PRODUCTION';
 
-  if (ownerComplete) {
+  if (previewComplete) {
     return (
       <main className="visual-preview">
         <div className="visual-preview__marker" role="note">
-          OWNER PREVIEW / NO PAYMENT
+          {marker}
         </div>
         <section className="commitment" aria-labelledby="owner-preview-complete-heading">
           <p className="commitment__signal">PREVIEW / COMPLETE</p>
           <h1 id="owner-preview-complete-heading">PREVIEW COMPLETE.</h1>
           <p className="commitment__unknown">No payment was attempted.</p>
           <p className="commitment__unknown">
-            Live checkout stays disabled until production commerce is configured.
+            Live payment exists only in the production customer journey.
           </p>
         </section>
       </main>
@@ -136,11 +116,7 @@ export function VisualPreviewExperience({ mode = 'qa' }: VisualPreviewExperience
         baseColorCatalog={VISUAL_QA_BASE_COLOR_CATALOG}
         onBaseColorConfirmed={async () => undefined}
         getCommitmentQuote={async () => VISUAL_QA_COMMITMENT_QUOTE}
-        onCheckoutRequested={
-          isOwnerPreview
-            ? async () => setOwnerComplete(true)
-            : requestCheckout
-        }
+        onCheckoutRequested={async () => setPreviewComplete(true)}
       />
     </main>
   );
