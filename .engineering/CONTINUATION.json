@@ -10,7 +10,7 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "FINAL_COMMERCIAL_SPINE_IMPLEMENTED_AWAITING_EXECUTABLE_VERIFICATION_AND_PROVIDER_CONFIGURATION",
+    "decision": "OWNER_OS_WRITTEN_SPEC_READY_FOR_USER_REVIEW",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -18,92 +18,109 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "The final commercial architecture has been implemented on the feature branch, but the newest branch head has not received an executable green CI/browser/build proof in this cycle. Production database migrations are not claimed applied and Safepay/OpenAI/Vercel Blob+Queue/Resend/Printful production credentials are not claimed configured. No real Safepay charge or Printful production confirmation has been executed."
+    "stopReason": "The user approved the Owner OS design in chat. The architecture has now been written and self-reviewed at docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md. Superpowers requires the user to review/approve the written spec before writing-plans or implementation begins. Existing commercial production gates also remain unresolved."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
     "rules": [
       "Treat mapped GitHub repo/branch as canonical source of truth",
-      "Use test-first changes for behavioral work",
+      "Use Superpowers brainstorming -> written spec review -> writing-plans -> TDD for architectural work",
+      "Maintain .engineering/CONTINUATION.json after every meaningful work cycle",
       "Keep payment, design and manufacturing boundaries fail-closed",
       "Never infer paid truth from a browser redirect",
+      "Never expose bulk decrypted customer data through Owner OS",
+      "Never allow Owner OS to bypass domain state machines or irreversible factory gates",
       "Never allow model output to enter manufacturing without explicit approval",
-      "Never allow Printful production confirmation without owner auth, kill switch and typed confirmation",
+      "Never allow Printful production confirmation without owner auth, kill switch, typed Issue confirmation and last-moment state reload",
       "Never call a verification gate green when it did not execute"
     ]
   },
-  "lastMeaningfulCycle": {
-    "cycleId": "final-commercial-cycle-2026-08-19",
-    "objective": "Complete the full ISSUED ONCE path from randomized private questionnaire through verified contact, Safepay payment, canonical Issue identity, automatic design, owner quality approval, Printful draft/confirmation, shipment tracking, notifications, private status and support.",
-    "architecture": "ISSUED ONCE -> Safepay -> canonical Issue -> OpenAI design worker -> owner approval -> Printful draft -> owner confirmation -> fulfillment/tracking",
-    "changes": [
-      "Replaced the fixed seven prompts with a versioned 70-question vault: ten questions in each of seven required design-signal families, with a persisted balanced seven-question assignment per experience",
-      "Added encrypted verified email OTP using Resend delivery, HMAC lookup identities, attempt limits, expiry, resend cooldown and single-use verification",
-      "Added encrypted shipping snapshots tied to the verified contact and locked before checkout",
-      "Added Safepay tracker creation and authenticated HMAC webhook payment truth; browser return never marks payment paid",
-      "Added provider-independent canonical Issue identity freezing payment attempt, experience, contact, shipping, logical variant, size, color, amount and currency",
-      "Added an internal Issue UUID prerequisite migration so the legacy issue_code registry can support the final design/manufacturing foreign-key spine",
-      "Added durable Vercel Queue design work, privacy-minimized OpenAI interpretation, separate image generation, Vercel Blob artwork storage and idempotent design job claiming",
-      "Added deterministic artwork quality checks and explicit owner design approval before manufacturing eligibility",
-      "Added an explicit ISSUED ONCE retail catalog so active production product/price selection no longer depends on Fourthwall",
-      "Added explicit Printful variant mapping, draft-only order creation, separate production confirmation and idempotent manufacturing jobs",
-      "Added signed Printful shipment webhook verification, provider-order plus Issue-Code cross-checking, tracking state and Issue timeline projection",
-      "Added customer payment/production/shipped/delivered milestone emails through a durable notification queue",
-      "Added a private Issue page showing only Issue Code, physical truth, human status and verified carrier tracking",
-      "Added encrypted support requests with Issue-Code routing and verified-email reply path without exposing questionnaire answers",
-      "Added OTP and shipping screens to the public premium journey before commitment/Safepay",
-      "Added a private owner operations room at /ops for artwork review, approval, Printful draft creation and typed production confirmation without showing raw answers, email or address",
-      "Hard-disabled legacy /api/checkout/start and /api/webhooks/fourthwall with HTTP 410 at the Next.js proxy",
-      "Added production environment contract, migration order and controlled first-live-cycle runbook"
+  "currentArchitecture": {
+    "commercialSpine": "ISSUED ONCE -> Safepay -> canonical Issue -> OpenAI design worker -> owner approval -> Printful draft -> owner confirmation -> fulfillment/tracking",
+    "ownerControlPlane": "Private /ops Owner OS over dashboard, Issues, Designer, Manufacturing, Sales, Customers, Support, Website, System and Audit",
+    "ownerOsSpec": "docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md",
+    "ownerOsSpecCommit": "a0cf146e784b52147e0dc6e0b86334fca9d74fd1",
+    "ownerOsSpecReview": "SELF_REVIEWED_AWAITING_USER_REVIEW"
+  },
+  "ownerOsLockedDesign": {
+    "modules": [
+      "Home live business pulse and Attention Required queue",
+      "Canonical Issue ledger/detail/timeline with safe indexed search",
+      "Audited single-Issue sensitive-data reveal",
+      "Designer Studio with retry, reinterpret, candidate regeneration, selection and approval",
+      "Manufacturing Control with Printful draft/recovery/tracking and unchanged production confirmation locks",
+      "Sales/customer analytics using event-derived aggregate buckets",
+      "Support Desk with masked message lists, audited reveal, replies and internal notes",
+      "Website control for versioned retail catalog and audited Question Vault management",
+      "System/provider readiness",
+      "Append-only owner audit log"
     ],
-    "databaseMigrations": {
-      "created": [
-        "0007_question_vault.sql",
-        "0008_contact_shipping.sql",
-        "0009_payments.sql",
-        "0009a_issue_uuid_prerequisite.sql",
-        "0010_issue_identity_spine.sql",
-        "0011_design_jobs.sql",
-        "0012_manufacturing.sql",
-        "0013_notifications_support.sql"
-      ],
-      "productionApplied": false
+    "requiredFutureSchema": [
+      "ops_audit_events",
+      "ops_internal_notes",
+      "design_candidates",
+      "catalog_versions",
+      "catalog_variants",
+      "commercial_metric_buckets",
+      "keyed phone_lookup_hash search representation"
+    ],
+    "privacy": {
+      "listViewsDecryptCustomerData": false,
+      "bulkPrivateExport": false,
+      "privateRevealRequiresReason": true,
+      "privateRevealAudited": true,
+      "fullDesignInterpretationProtected": true,
+      "supportPlaintextProtected": true
     },
-    "irreversibleSafety": {
-      "safepayBrowserRedirectCanMarkPaid": false,
-      "rawAnswersSentToSafepay": false,
-      "rawAnswersSentToPrintful": false,
-      "modelCanAutoApproveArtwork": false,
-      "printfulDraftConfirmsAutomatically": false,
-      "printfulConfirmRequiresOwnerSessionOrBearer": true,
-      "printfulConfirmRequiresKillSwitch": true,
-      "printfulConfirmRequiresTypedIssueConfirmation": true,
-      "legacyFourthwallEndpointsActive": false
-    },
-    "verification": {
-      "latestImplementationUnitTests": "NOT_EXECUTED_TO_GREEN_IN_THIS_CYCLE",
-      "latestImplementationTypecheck": "NOT_EXECUTED_TO_GREEN_IN_THIS_CYCLE",
-      "latestImplementationProductionBuild": "NOT_EXECUTED_TO_GREEN_IN_THIS_CYCLE",
-      "latestImplementationBrowserQA": "NOT_EXECUTED_TO_GREEN_IN_THIS_CYCLE",
-      "githubActionsEvidence": "No executable green runner evidence obtained for the latest commercial-cycle head; do not treat workflow-record creation as test execution",
-      "databaseMigrations": "CREATED_NOT_CLAIMED_APPLIED",
-      "safepayLiveCharge": "NOT_RUN",
-      "openaiProductionDesign": "NOT_RUN",
-      "printfulProductionOrder": "NOT_RUN",
-      "printfulShipmentWebhook": "NOT_LIVE_VERIFIED",
-      "resendProductionDomain": "NOT_CLAIMED_VERIFIED"
-    },
-    "ownerAction": "Use docs/operations/production-environment.md and docs/operations/first-live-cycle.md. Restore an executable CI/build/browser gate first, then configure the real provider secrets, apply migrations in docs/operations/migration-order.md, prove the Safepay sandbox cycle, review the generated artwork in /ops, create a Printful draft, inspect the exact recipient/variant/artwork, and only then enable the Printful confirmation kill switch for the deliberate first production submission.",
-    "nextActions": [
-      "Restore executable unit/typecheck/build/browser verification on the latest branch head and fix any real failures before provider rollout",
-      "Apply migrations 0007 through 0013 including 0009a in an approved database migration cycle and verify schema invariants",
-      "Configure ISSUED_ONCE_CATALOG_JSON only with real retail variants intended for sale",
-      "Configure Safepay sandbox credentials and signed webhook, then prove one sandbox payment end to end",
-      "Configure Resend sender/domain, Vercel Blob, Vercel Queue and OpenAI model access and prove one design reaches DESIGN_REVIEW",
-      "Physically sample/approve Printful products and populate exact PRINTFUL_VARIANT_MAP_JSON values; never use example IDs",
-      "Configure signed Printful webhook and leave PRINTFUL_ALLOW_CONFIRM disabled until the owner has inspected the first real draft",
-      "Run the controlled first paid cycle and preserve evidence from payment through delivered shipment",
-      "Only after a successful commercial cycle evaluate LLC/Stripe migration; keep the Issue/design/manufacturing spine unchanged"
-    ]
-  }
+    "scale": {
+      "cursorPagination": true,
+      "noLoadAllIssuesEndpoint": true,
+      "bucketedHistoricalMetrics": true,
+      "providerCallsPerListRow": false,
+      "historicalOrdersImmutableAcrossCatalogQuestionChanges": true
+    }
+  },
+  "commercialBuildState": {
+    "questionVault": "70 questions across seven persisted signal families",
+    "contactShipping": "OTP + encrypted contact/shipping; phone and province/state required in final shipping contract",
+    "payments": "Safepay adapter with signed webhook truth, exact amount/currency checks and refund/exception handling",
+    "issueIdentity": "Canonical immutable Issue spine",
+    "design": "Queued privacy-minimized interpretation/image generation with review approval gate",
+    "manufacturing": "Printful draft-only creation, explicit mappings, private artwork access, deliberate confirmation",
+    "tracking": "Signed Printful fulfillment events",
+    "notificationsSupport": "Queued customer milestones + encrypted support",
+    "legacyFourthwall": "Active legacy checkout/webhook paths disabled"
+  },
+  "database": {
+    "currentMigrationHead": "0019_payment_exception_timeline.sql",
+    "productionApplied": false,
+    "productionState": "NOT_CLAIMED_MIGRATED",
+    "ownerOsMigrations": "NOT_WRITTEN_UNTIL_WRITTEN_SPEC_APPROVAL_AND_IMPLEMENTATION_PLAN",
+    "migrationSafety": "Use Neon prepare -> temporary branch verification -> explicit owner approval -> complete migration. Never bypass the approval gate."
+  },
+  "verification": {
+    "latestImplementationUnitTests": "NOT_EXECUTED_TO_GREEN",
+    "latestImplementationTypecheck": "NOT_EXECUTED_TO_GREEN",
+    "latestImplementationProductionBuild": "NOT_EXECUTED_TO_GREEN",
+    "latestImplementationBrowserQA": "OWNER_PREVIEW_FLOW_REPORTED_SMOOTH_BEFORE_LATEST_HARDENING; NOT_EXECUTABLE_GREEN_ON_LATEST_HEAD",
+    "githubActions": "Latest observed CI/Browser QA jobs failed before execution with steps=null; treat as runner/account infrastructure evidence, not product test failure",
+    "vercel": "Latest observed GitHub Vercel status failed with target indicating build-rate-limit; no compiler result obtained",
+    "neonProduction": "Production migrations not applied",
+    "safepaySandboxCycle": "NOT_PROVEN_END_TO_END",
+    "openaiDeployedDesign": "NOT_PROVEN",
+    "resendRealDelivery": "NOT_PROVEN",
+    "printfulDraft": "NOT_PROVEN_WITH_REAL_SAMPLED_MAPPING",
+    "printfulProduction": "NOT_RUN",
+    "printfulSignedFulfillment": "NOT_LIVE_PROVEN"
+  },
+  "nextOwnerAction": "Review docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md and explicitly approve the written spec. After that invoke Superpowers writing-plans and implement Owner OS test-first. Existing payment/factory production remains fail-closed while external verification/provider/database gates are unresolved.",
+  "nextActionsAfterWrittenSpecApproval": [
+    "Invoke Superpowers writing-plans for Owner OS",
+    "Implement forward Owner OS schema migrations without rewriting 0001-0019",
+    "Build audit foundation and safe read models first",
+    "Expand /ops module-by-module through Issues, privacy reveal, Designer, Manufacturing, Support, Website, Sales/Customers, System and Audit",
+    "Run unit/typecheck/build/browser/scale/security verification against the exact head when platform runners are available",
+    "Prepare and verify database migrations on Neon temporary branch, then request explicit production migration approval",
+    "Keep Safepay/Printful production money and factory confirmation disabled until their independent launch gates are proven"
+  ]
 }
