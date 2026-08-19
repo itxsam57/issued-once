@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { QuestionDefinition, QuestionId } from '@/domain/experience/types';
+import type { ShippingAddress } from '@/server/shipping/ShippingRepository';
 import type { BaseColorOption } from './BaseColorSelection';
 import type { CommitmentQuote } from './CommitmentScreen';
 import { MysteryExperience } from './MysteryExperience';
@@ -66,10 +67,31 @@ async function confirmBase(selection: LockedVariant): Promise<CommitmentQuote> {
   });
 }
 
-async function requestCheckout(quoteId: string): Promise<void> {
-  const payload = await postJson<{ checkoutUrl: string }>('/api/checkout/start', { quoteId });
+async function requestOtp(email: string) {
+  return postJson<{ challengeId: string; retryAfterSeconds: number }>(
+    '/api/contact/request-otp',
+    { email },
+  );
+}
+
+async function verifyOtp(challengeId: string, code: string) {
+  return postJson<{ verified: true }>('/api/contact/verify-otp', {
+    challengeId,
+    code,
+  });
+}
+
+async function saveShipping(address: ShippingAddress): Promise<void> {
+  await postJson<{ shippingSnapshotId: string }>('/api/shipping', address);
+}
+
+async function requestPayment(quoteId: string): Promise<void> {
+  const payload = await postJson<{ checkoutUrl: string; paymentAttemptId: string }>(
+    '/api/payments/create',
+    { quoteId },
+  );
   if (!payload.checkoutUrl) {
-    throw new Error('Checkout response is invalid.');
+    throw new Error('Payment response is invalid.');
   }
   window.location.assign(payload.checkoutUrl);
 }
@@ -123,7 +145,10 @@ export function PublicInterviewExperience() {
       onObjectSelected={selectObject}
       onSizeConfirmed={confirmSize}
       onBaseColorConfirmed={confirmBase}
-      onCheckoutRequested={requestCheckout}
+      onRequestOtp={requestOtp}
+      onVerifyOtp={verifyOtp}
+      onShippingSubmitted={saveShipping}
+      onCheckoutRequested={requestPayment}
     />
   );
 }
