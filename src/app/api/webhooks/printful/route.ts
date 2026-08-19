@@ -2,6 +2,7 @@ import {
   createManufacturingEventService,
   ManufacturingRuntimeUnavailableError,
 } from '@/server/manufacturing/runtimeManufacturing';
+import { enqueueIssueNotification } from '@/server/notifications/notificationQueue';
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
@@ -10,6 +11,18 @@ export async function POST(request: Request) {
       rawBody,
       headers: request.headers,
     });
+
+    if (
+      result.issueId &&
+      (result.kind === 'applied' || result.kind === 'duplicate')
+    ) {
+      if (result.eventType === 'SHIPMENT_SENT') {
+        await enqueueIssueNotification(result.issueId, 'SHIPPED');
+      } else if (result.eventType === 'SHIPMENT_DELIVERED') {
+        await enqueueIssueNotification(result.issueId, 'DELIVERED');
+      }
+    }
+
     return Response.json({ received: true, kind: result.kind });
   } catch (error) {
     if (error instanceof ManufacturingRuntimeUnavailableError) {
