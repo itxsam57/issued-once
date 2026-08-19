@@ -14,7 +14,15 @@ export async function GET(request: Request) {
       emailHash: email ? emailLookupHash(email) : null,
     });
     return Response.json({
-      items: result.items.map(({ emailHash: _emailHash, ...item }) => ({ ...item, lastSeenAt: item.lastSeenAt.toISOString() })),
+      items: result.items.map((item) => ({
+        contactAlias: item.contactAlias,
+        issueCount: item.issueCount,
+        paidMinor: item.paidMinor,
+        refundedIssues: item.refundedIssues,
+        activeDeliveries: item.activeDeliveries,
+        supportCount: item.supportCount,
+        lastSeenAt: item.lastSeenAt.toISOString(),
+      })),
       nextCursor: result.nextCursor,
     }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
