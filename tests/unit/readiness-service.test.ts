@@ -9,8 +9,8 @@ const placement = {
 
 const completeEnv: NodeJS.ProcessEnv = {
   DATABASE_URL: 'postgresql://hidden',
-  QUIZ_ENCRYPTION_KEY_V1: 'hidden-key',
-  IDENTITY_HMAC_KEY: 'hidden-hmac',
+  QUIZ_ENCRYPTION_KEY_V1: Buffer.alloc(32, 1).toString('base64'),
+  IDENTITY_HMAC_KEY: Buffer.alloc(32, 2).toString('base64'),
   ISSUED_ONCE_CATALOG_JSON: JSON.stringify({
     currency: 'USD',
     products: {
@@ -59,6 +59,7 @@ test('reports live/read-only boundaries separately from configured-only and safe
   const result = await service.check();
   expect(result.checks).toEqual(expect.arrayContaining([
     expect.objectContaining({ key: 'database', state: 'ready' }),
+    expect.objectContaining({ key: 'privacy', state: 'ready' }),
     expect.objectContaining({ key: 'openai', state: 'ready' }),
     expect.objectContaining({ key: 'blob', state: 'ready' }),
     expect.objectContaining({ key: 'printful', state: 'ready' }),
@@ -71,7 +72,23 @@ test('reports live/read-only boundaries separately from configured-only and safe
   expect(result.readyForProduction).toBe(false);
 });
 
-test('missing/invalid boundaries fail closed and never report production ready', async () => {
+test('malformed privacy key material is blocked instead of treated as configured', async () => {
+  const service = new ReadinessService({
+    env: { ...completeEnv, QUIZ_ENCRYPTION_KEY_V1: 'not-a-32-byte-key' },
+    databasePing: vi.fn(async () => true),
+    blobPing: vi.fn(async () => true),
+    fetchImpl: vi.fn(async (url: string) => {
+      if (url.startsWith('https://api.openai.com/')) return new Response('{}', { status: 200 });
+      if (url === 'https://api.printful.com/stores') return new Response(JSON.stringify({ result: [{ id: 123 }] }), { status: 200 });
+      return new Response(null, { status: 404 });
+    }) as typeof fetch,
+  });
+  const result = await service.check();
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'privacy', state: 'blocked' }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
+test('missing boundaries fail closed and never report production ready', async () => {
   const service = new ReadinessService({
     env: { SAFEPAY_ENVIRONMENT: 'production', PRINTFUL_ALLOW_CONFIRM: 'true' },
     databasePing: vi.fn(async () => false),
