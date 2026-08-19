@@ -6,27 +6,33 @@ import styles from './owner-os.module.css';
 
 type Item = { kind: string; priority: number; issueId: string | null; issueCode: string | null; targetId: string; detail: string; createdAt: string };
 const SECTION: Record<string, OwnerOsSection> = {
-  PAID_WITHOUT_ISSUE: 'Issues',
-  PAYMENT_EXCEPTION: 'Issues',
-  FACTORY_MAPPING_MISSING: 'System',
-  PROVIDER_STATE_MISMATCH: 'Manufacturing',
-  DESIGN_FAILED: 'Designer',
-  DESIGN_STUCK: 'Designer',
-  MANUFACTURING_FAILED: 'Manufacturing',
-  NOTIFICATION_FAILED: 'Support',
-  SUPPORT_AGING: 'Support',
+  PAID_WITHOUT_ISSUE: 'Issues', PAYMENT_EXCEPTION: 'Issues', FACTORY_MAPPING_MISSING: 'System',
+  PROVIDER_STATE_MISMATCH: 'Manufacturing', DESIGN_FAILED: 'Designer', DESIGN_STUCK: 'Designer',
+  MANUFACTURING_FAILED: 'Manufacturing', NOTIFICATION_FAILED: 'Support', SUPPORT_AGING: 'Support',
 };
+
+async function fetchAttention(): Promise<Item[]> {
+  const response = await fetch('/ops/api/attention', { credentials: 'same-origin', cache: 'no-store' });
+  const payload = await response.json() as { items?: Item[]; error?: string };
+  if (!response.ok) throw new Error(payload.error || 'Attention queue unavailable');
+  return payload.items ?? [];
+}
 
 export function AttentionPanel({ onNavigate }: { onNavigate: (section: OwnerOsSection) => void }) {
   const [items, setItems] = useState<Item[]>([]);
   const [error, setError] = useState<string | null>(null);
+
   async function refresh() {
-    const response = await fetch('/ops/api/attention', { credentials: 'same-origin', cache: 'no-store' });
-    const payload = await response.json() as { items?: Item[]; error?: string };
-    if (!response.ok) throw new Error(payload.error || 'Attention queue unavailable');
-    setItems(payload.items ?? []);
+    setItems(await fetchAttention());
   }
-  useEffect(() => { void refresh().catch((cause) => setError(cause instanceof Error ? cause.message : 'Attention unavailable')); }, []);
+
+  useEffect(() => {
+    let alive = true;
+    void fetchAttention()
+      .then((next) => { if (alive) setItems(next); })
+      .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Attention unavailable'); });
+    return () => { alive = false; };
+  }, []);
 
   async function resumePaid(item: Item) {
     const response = await fetch('/ops/api/recovery/paid-issue', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ paymentAttemptId: item.targetId }) });

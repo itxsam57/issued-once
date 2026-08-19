@@ -7,6 +7,22 @@ type Audit = { id: string; actor: 'OWNER'; action: string; issueId: string | nul
 type Filters = { action: string; issueCode: string; target: string; from: string; to: string };
 const EMPTY_FILTERS: Filters = { action: '', issueCode: '', target: '', from: '', to: '' };
 
+type AuditPage = { items: Audit[]; nextCursor: string | null };
+
+async function fetchAudit(next: string | null, active: Filters): Promise<AuditPage> {
+  const params = new URLSearchParams();
+  if (next) params.set('cursor', next);
+  if (active.action.trim()) params.set('action', active.action.trim());
+  if (active.issueCode.trim()) params.set('issueCode', active.issueCode.trim());
+  if (active.target.trim()) params.set('target', active.target.trim());
+  if (active.from) params.set('from', new Date(`${active.from}T00:00:00`).toISOString());
+  if (active.to) params.set('to', new Date(`${active.to}T23:59:59.999`).toISOString());
+  const response = await fetch(`/ops/api/audit?${params}`, { credentials: 'same-origin', cache: 'no-store' });
+  const payload = await response.json() as { items?: Audit[]; nextCursor?: string | null; error?: string };
+  if (!response.ok) throw new Error(payload.error || 'Audit unavailable');
+  return { items: payload.items ?? [], nextCursor: payload.nextCursor ?? null };
+}
+
 export function AuditPanel() {
   const [items, setItems] = useState<Audit[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -15,21 +31,22 @@ export function AuditPanel() {
   const [error, setError] = useState<string | null>(null);
 
   async function load(next: string | null = null, append = false, active: Filters = applied) {
-    const params = new URLSearchParams();
-    if (next) params.set('cursor', next);
-    if (active.action.trim()) params.set('action', active.action.trim());
-    if (active.issueCode.trim()) params.set('issueCode', active.issueCode.trim());
-    if (active.target.trim()) params.set('target', active.target.trim());
-    if (active.from) params.set('from', new Date(`${active.from}T00:00:00`).toISOString());
-    if (active.to) params.set('to', new Date(`${active.to}T23:59:59.999`).toISOString());
-    const response = await fetch(`/ops/api/audit?${params}`, { credentials: 'same-origin', cache: 'no-store' });
-    const payload = await response.json() as { items?: Audit[]; nextCursor?: string | null; error?: string };
-    if (!response.ok) throw new Error(payload.error || 'Audit unavailable');
-    setItems((current) => append ? [...current, ...(payload.items ?? [])] : (payload.items ?? []));
-    setCursor(payload.nextCursor ?? null);
+    const page = await fetchAudit(next, active);
+    setItems((current) => append ? [...current, ...page.items] : page.items);
+    setCursor(page.nextCursor);
   }
 
-  useEffect(() => { void load(null, false, EMPTY_FILTERS).catch((cause) => setError(cause instanceof Error ? cause.message : 'Audit unavailable')); }, []);
+  useEffect(() => {
+    let alive = true;
+    void fetchAudit(null, EMPTY_FILTERS)
+      .then((page) => {
+        if (!alive) return;
+        setItems(page.items);
+        setCursor(page.nextCursor);
+      })
+      .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Audit unavailable'); });
+    return () => { alive = false; };
+  }, []);
 
   async function applyFilters() {
     setError(null);

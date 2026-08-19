@@ -14,6 +14,12 @@ async function post(path: string, body: unknown) {
   if (!response.ok) throw new Error(payload.error || 'Website control failed');
   return payload;
 }
+async function fetchWebsiteState(): Promise<State> {
+  const response = await fetch('/ops/api/website', { credentials: 'same-origin', cache: 'no-store' });
+  const payload = await response.json() as State & { error?: string };
+  if (!response.ok) throw new Error(payload.error || 'Website controls unavailable');
+  return payload;
+}
 
 export function WebsitePanel() {
   const [state, setState] = useState<State | null>(null);
@@ -23,13 +29,21 @@ export function WebsitePanel() {
   const [newQuestion, setNewQuestion] = useState({ questionId: '', family: 'culture', prompt: '', optional: false });
 
   async function refresh() {
-    const response = await fetch('/ops/api/website', { credentials: 'same-origin', cache: 'no-store' });
-    const payload = await response.json() as State & { error?: string };
-    if (!response.ok) throw new Error(payload.error || 'Website controls unavailable');
+    const payload = await fetchWebsiteState();
     setState(payload);
     setCatalog(structuredClone(payload.catalog.payload));
   }
-  useEffect(() => { void refresh().catch((cause) => setError(cause instanceof Error ? cause.message : 'Website controls unavailable')); }, []);
+  useEffect(() => {
+    let alive = true;
+    void fetchWebsiteState()
+      .then((payload) => {
+        if (!alive) return;
+        setState(payload);
+        setCatalog(structuredClone(payload.catalog.payload));
+      })
+      .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Website controls unavailable'); });
+    return () => { alive = false; };
+  }, []);
 
   const groupedQuestions = useMemo(() => {
     const groups: Record<string, Question[]> = {};
@@ -60,29 +74,22 @@ export function WebsitePanel() {
       <div className={styles.panelHead}><div><h2>Retail catalog</h2><p>Changes affect future selections only. Existing quotes and Issues remain frozen.</p></div><button disabled={working} type="button" onClick={() => void run(() => post('/ops/api/website/catalog', catalog))}>PUBLISH CATALOG</button></div>
       {Object.entries(catalog.products).map(([productKey, product]) => <article className={styles.configCard} key={productKey}>
         <h3>{productKey.toUpperCase()} <small>{product.slug}</small></h3>
-        <div className={styles.configTable}>
-          {product.variants.map((variant, index) => <div key={`${variant.id}-${index}`}>
-            <input aria-label={`${productKey} variant id`} value={variant.id} onChange={(event) => mutateVariant(productKey, index, { id: event.target.value })} />
-            <input aria-label={`${productKey} size`} value={variant.size} onChange={(event) => mutateVariant(productKey, index, { size: event.target.value })} />
-            <input aria-label={`${productKey} color`} value={variant.colorName} onChange={(event) => mutateVariant(productKey, index, { colorName: event.target.value })} />
-            <input aria-label={`${productKey} price`} type="number" min="1" value={variant.amountMinor} onChange={(event) => mutateVariant(productKey, index, { amountMinor: Number(event.target.value) })} />
-            <label><input type="checkbox" checked={variant.available} onChange={(event) => mutateVariant(productKey, index, { available: event.target.checked })} /> SELL</label>
-          </div>)}
-        </div>
+        <div className={styles.configTable}>{product.variants.map((variant, index) => <div key={`${variant.id}-${index}`}>
+          <input aria-label={`${productKey} variant id`} value={variant.id} onChange={(event) => mutateVariant(productKey, index, { id: event.target.value })} />
+          <input aria-label={`${productKey} size`} value={variant.size} onChange={(event) => mutateVariant(productKey, index, { size: event.target.value })} />
+          <input aria-label={`${productKey} color`} value={variant.colorName} onChange={(event) => mutateVariant(productKey, index, { colorName: event.target.value })} />
+          <input aria-label={`${productKey} price`} type="number" min="1" value={variant.amountMinor} onChange={(event) => mutateVariant(productKey, index, { amountMinor: Number(event.target.value) })} />
+          <label><input type="checkbox" checked={variant.available} onChange={(event) => mutateVariant(productKey, index, { available: event.target.checked })} /> SELL</label>
+        </div>)}</div>
       </article>)}
     </section> : null}
-
     <section className={styles.configSection}>
-      <h2>Question Vault</h2>
-      <p>Future sessions only. Stored question snapshots never change.</p>
+      <h2>Question Vault</h2><p>Future sessions only. Stored question snapshots never change.</p>
       {Object.entries(groupedQuestions).map(([family, questions]) => <article className={styles.configCard} key={family}>
         <h3>{family.toUpperCase()} / ACTIVE {questions.filter((q) => q.active).length}</h3>
         {questions.map((question) => <div className={styles.questionRow} key={`${question.questionId}-${question.version}`}>
           <div><strong>{question.prompt}</strong><small>{question.questionId} / V{question.version} / USED {question.usageCount}</small></div>
-          <label>WEIGHT <input type="number" min="0.1" max="100" step="0.1" defaultValue={question.weight} onBlur={(event) => {
-            const weight = Number(event.currentTarget.value);
-            if (weight !== question.weight) void run(() => post('/ops/api/website/questions', { questionId: question.questionId, version: question.version, active: question.active, weight }));
-          }} /></label>
+          <label>WEIGHT <input type="number" min="0.1" max="100" step="0.1" defaultValue={question.weight} onBlur={(event) => { const weight = Number(event.currentTarget.value); if (weight !== question.weight) void run(() => post('/ops/api/website/questions', { questionId: question.questionId, version: question.version, active: question.active, weight })); }} /></label>
           <button disabled={working} type="button" onClick={() => void run(() => post('/ops/api/website/questions', { questionId: question.questionId, version: question.version, active: !question.active, weight: question.weight }))}>{question.active ? 'RETIRE' : 'ACTIVATE'}</button>
         </div>)}
       </article>)}
@@ -92,10 +99,7 @@ export function WebsitePanel() {
         <select value={newQuestion.family} onChange={(event) => setNewQuestion((current) => ({ ...current, family: event.target.value }))}>{['culture','place','rhythm','identity','music','boundary','wildcard'].map((family) => <option key={family}>{family}</option>)}</select>
         <textarea placeholder="Prompt" value={newQuestion.prompt} onChange={(event) => setNewQuestion((current) => ({ ...current, prompt: event.target.value }))} />
         <label><input type="checkbox" checked={newQuestion.optional} onChange={(event) => setNewQuestion((current) => ({ ...current, optional: event.target.checked }))} /> OPTIONAL</label>
-        <button disabled={working || !newQuestion.questionId.trim() || !newQuestion.prompt.trim()} type="button" onClick={() => void run(async () => {
-          await post('/ops/api/website/questions/version', { ...newQuestion, kind: 'text' });
-          setNewQuestion({ questionId: '', family: 'culture', prompt: '', optional: false });
-        })}>CREATE VERSION</button>
+        <button disabled={working || !newQuestion.questionId.trim() || !newQuestion.prompt.trim()} type="button" onClick={() => void run(async () => { await post('/ops/api/website/questions/version', { ...newQuestion, kind: 'text' }); setNewQuestion({ questionId: '', family: 'culture', prompt: '', optional: false }); })}>CREATE VERSION</button>
       </article>
     </section>
   </div>;
