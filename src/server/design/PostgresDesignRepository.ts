@@ -90,14 +90,14 @@ export class PostgresDesignRepository implements DesignRepository {
          RETURNING *, true AS created
        ), transitioned AS (
          UPDATE issues SET status='BEING_INTERPRETED', updated_at=$3
-         WHERE id=$2::uuid AND EXISTS (SELECT 1 FROM inserted)
+         WHERE id=$2::uuid AND status='RECEIVED' AND EXISTS (SELECT 1 FROM inserted)
          RETURNING id
        ), event AS (
          INSERT INTO issue_events (issue_id,event_type,source,safe_detail,created_at)
          SELECT id,'BEING_INTERPRETED','DESIGN',NULL,$3 FROM transitioned
          RETURNING issue_id
        )
-       SELECT * FROM inserted
+       SELECT * FROM inserted WHERE EXISTS (SELECT 1 FROM transitioned)
        UNION ALL
        SELECT existing.*, false AS created FROM design_jobs AS existing
        WHERE existing.issue_id=$2::uuid AND NOT EXISTS (SELECT 1 FROM inserted)
@@ -111,10 +111,15 @@ export class PostgresDesignRepository implements DesignRepository {
 
   async claim(jobId: string, updatedAt: Date) {
     const rows = await this.sql.query<{ id: string }>(
-      `UPDATE design_jobs
+      `UPDATE design_jobs AS design
        SET state='INTERPRETING', failure_code=NULL, updated_at=$2
-       WHERE id=$1::uuid AND state IN ('QUEUED','FAILED')
-       RETURNING id`,
+       WHERE design.id=$1::uuid
+         AND design.state IN ('QUEUED','FAILED')
+         AND EXISTS (
+           SELECT 1 FROM issues AS issue
+           WHERE issue.id=design.issue_id AND issue.status='BEING_INTERPRETED'
+         )
+       RETURNING design.id`,
       [jobId, updatedAt],
     );
     return Boolean(rows[0]);
@@ -127,19 +132,26 @@ export class PostgresDesignRepository implements DesignRepository {
     const b = input.encryptedBrief;
     const rows = await this.sql.query<JobRow>(
       `WITH updated AS (
-         UPDATE design_jobs SET state='REVIEW', brief_payload_version=$2, brief_key_version=$3,
+         UPDATE design_jobs AS design
+         SET state='REVIEW', brief_payload_version=$2, brief_key_version=$3,
            brief_iv=$4, brief_auth_tag=$5, brief_ciphertext=$6, artwork_url=$7,
            artwork_mime_type=$8, artwork_bytes=$9, artwork_width=$10, artwork_height=$11,
            provider=$12, model=$13, failure_code=NULL, updated_at=$14
-         WHERE id=$1::uuid AND state IN ('INTERPRETING','GENERATING')
+         WHERE design.id=$1::uuid
+           AND design.state IN ('INTERPRETING','GENERATING')
+           AND EXISTS (
+             SELECT 1 FROM issues AS issue
+             WHERE issue.id=design.issue_id AND issue.status='BEING_INTERPRETED'
+           )
          RETURNING *
        ), issue_update AS (
          UPDATE issues SET status='DESIGN_REVIEW', updated_at=$14
-         WHERE id=(SELECT issue_id FROM updated LIMIT 1) RETURNING id
+         WHERE id=(SELECT issue_id FROM updated LIMIT 1) AND status='BEING_INTERPRETED'
+         RETURNING id
        ), event AS (
          INSERT INTO issue_events (issue_id,event_type,source,safe_detail,created_at)
          SELECT id,'DESIGN_REVIEW','DESIGN',NULL,$14 FROM issue_update RETURNING issue_id
-       ) SELECT * FROM updated`,
+       ) SELECT * FROM updated WHERE EXISTS (SELECT 1 FROM issue_update)`,
       [input.jobId,b.version,b.keyVersion,b.iv,b.tag,b.ciphertext,input.artworkUrl,input.artworkMimeType,
        input.artworkBytes,input.width,input.height,input.provider,input.model,input.updatedAt],
     );
