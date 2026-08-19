@@ -18,6 +18,7 @@ type LifetimeRow = {
   lifetime_orders: number | string;
   lifetime_gross_minor: number | string;
   refunded_minor: number | string;
+  delivered: number | string;
 };
 
 type OpsRow = {
@@ -25,7 +26,6 @@ type OpsRow = {
   review: number | string;
   production: number | string;
   transit: number | string;
-  delivered: number | string;
   payment_exceptions: number | string;
   design_failures: number | string;
   manufacturing_failures: number | string;
@@ -74,9 +74,10 @@ export class PostgresOpsDashboardRepository implements OpsDashboardRepository {
           COUNT(DISTINCT currency_scope) FILTER (WHERE currency_scope<>'*') AS currency_count,
           COALESCE(SUM(event_count) FILTER (WHERE metric_key='paid_order'),0) AS lifetime_orders,
           COALESCE(SUM(value_minor) FILTER (WHERE metric_key='gross_paid'),0) AS lifetime_gross_minor,
-          COALESCE(SUM(value_minor) FILTER (WHERE metric_key='refund'),0) AS refunded_minor
+          COALESCE(SUM(value_minor) FILTER (WHERE metric_key='refund'),0) AS refunded_minor,
+          COALESCE(SUM(event_count) FILTER (WHERE metric_key='delivered'),0) AS delivered
         FROM commercial_metric_buckets
-        WHERE dimension_key='all' AND metric_key IN ('paid_order','gross_paid','refund')`,
+        WHERE dimension_key='all' AND metric_key IN ('paid_order','gross_paid','refund','delivered')`,
       ),
       this.sql.query<OpsRow>(
         `SELECT
@@ -84,7 +85,6 @@ export class PostgresOpsDashboardRepository implements OpsDashboardRepository {
           (SELECT COUNT(*) FROM design_jobs WHERE state='REVIEW') AS review,
           (SELECT COUNT(*) FROM issues WHERE status='IN_PRODUCTION') AS production,
           (SELECT COUNT(*) FROM issues WHERE status='IN_TRANSIT') AS transit,
-          (SELECT COUNT(*) FROM issues WHERE status='DELIVERED') AS delivered,
           (SELECT COUNT(*) FROM issues WHERE payment_exception_code IS NOT NULL) AS payment_exceptions,
           (SELECT COUNT(*) FROM design_jobs WHERE state='FAILED') AS design_failures,
           (SELECT COUNT(*) FROM manufacturing_jobs WHERE state='FAILED') AS manufacturing_failures,
@@ -127,7 +127,7 @@ export class PostgresOpsDashboardRepository implements OpsDashboardRepository {
         review: n(ops.review),
         production: n(ops.production),
         transit: n(ops.transit),
-        delivered: n(ops.delivered),
+        delivered: n(lifetime.delivered),
       },
       attention: {
         paymentExceptions: n(ops.payment_exceptions),
