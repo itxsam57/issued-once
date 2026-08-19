@@ -13,6 +13,7 @@ import { PostgresOpsDesignerStore } from './PostgresOpsDesignerStore';
 import { PostgresOpsIssueDetailRepository } from './PostgresOpsIssueDetailRepository';
 import { PostgresOpsManufacturingStore } from './PostgresOpsManufacturingStore';
 import { PostgresOpsPrivateSource } from './PostgresOpsPrivateSource';
+import { PostgresOpsSalesRepository } from './PostgresOpsSalesRepository';
 import { OpsRuntimeUnavailableError } from './runtimeOps';
 
 function sql() {
@@ -76,4 +77,8 @@ export function createOpsManufacturingService() {
     },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
+}
+
+export function createOpsSalesRepository() {
+  return new PostgresOpsSalesRepository(sql());
 }
