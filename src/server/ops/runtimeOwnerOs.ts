@@ -6,6 +6,7 @@ import { OpsDesignerService } from './OpsDesignerService';
 import { OpsPrivateRevealService } from './OpsPrivateRevealService';
 import { PostgresOpsAuditRepository } from './PostgresOpsAuditRepository';
 import { PostgresOpsDashboardRepository } from './PostgresOpsDashboardRepository';
+import { PostgresOpsDesignCandidateRepository } from './PostgresOpsDesignCandidateRepository';
 import { PostgresOpsDesignerStore } from './PostgresOpsDesignerStore';
 import { PostgresOpsIssueDetailRepository } from './PostgresOpsIssueDetailRepository';
 import { PostgresOpsPrivateSource } from './PostgresOpsPrivateSource';
@@ -39,6 +40,10 @@ export function createOpsPrivateRevealService() {
 
 export function createOpsDesignerStore() {
   return new PostgresOpsDesignerStore(sql());
+}
+
+export function createOpsDesignCandidateRepository() {
+  return new PostgresOpsDesignCandidateRepository(sql());
 }
 
 export function createOpsDesignerService() {
