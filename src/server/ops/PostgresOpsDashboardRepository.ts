@@ -2,6 +2,8 @@ import type { SqlExecutor } from '@/server/experience/PostgresExperienceReposito
 import type { OpsDashboardRepository, OpsDashboardSnapshot } from './OpsDashboardRepository';
 
 type SalesRow = {
+  currency: string | null;
+  currency_count: number | string;
   today_orders: number | string;
   today_gross_minor: number | string;
   seven_day_orders: number | string;
@@ -49,6 +51,8 @@ export class PostgresOpsDashboardRepository implements OpsDashboardRepository {
           $1::timestamptz - INTERVAL '30 days' AS thirty_start
       )
       SELECT
+        MIN(issue.currency) AS currency,
+        COUNT(DISTINCT issue.currency) AS currency_count,
         COUNT(*) FILTER (WHERE issue.reserved_at >= bounds.today_start) AS today_orders,
         COALESCE(SUM(issue.amount_minor) FILTER (WHERE issue.reserved_at >= bounds.today_start),0) AS today_gross_minor,
         COUNT(*) FILTER (WHERE issue.reserved_at >= bounds.seven_start) AS seven_day_orders,
@@ -89,9 +93,13 @@ export class PostgresOpsDashboardRepository implements OpsDashboardRepository {
     );
 
     const sales = salesRows[0] ?? {} as SalesRow;
+    if (n(sales.currency_count) > 1) {
+      throw new Error('Owner OS dashboard cannot aggregate mixed currencies');
+    }
     const ops = operationRows[0] ?? {} as OpsRow;
     return {
       sales: {
+        currency: sales.currency ?? null,
         today: { orders: n(sales.today_orders), grossMinor: n(sales.today_gross_minor) },
         sevenDays: { orders: n(sales.seven_day_orders), grossMinor: n(sales.seven_day_gross_minor) },
         thirtyDays: { orders: n(sales.thirty_day_orders), grossMinor: n(sales.thirty_day_gross_minor) },
