@@ -28,7 +28,7 @@ export class BaseSelectionService {
   constructor(private readonly dependencies: BaseSelectionServiceDependencies) {
     this.now = dependencies.now ?? (() => new Date());
     this.createQuoteId = dependencies.createQuoteId ?? (() => randomUUID());
-    this.quoteTtlMs = dependencies.quoteTtlMs ?? 10 * 60 * 1000;
+    this.quoteTtlMs = dependencies.quoteTtlMs ?? 60 * 60 * 1000;
   }
 
   async confirm(input: { sessionToken: string; colorCode: string }): Promise<{
