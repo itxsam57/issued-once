@@ -8,6 +8,8 @@ test('returns bounded canonical sales, attention, operations and activity aggreg
     query: async () => {
       call += 1;
       if (call === 1) return [{
+        currency: 'USD',
+        currency_count: 1,
         today_orders: 2,
         today_gross_minor: 10800,
         seven_day_orders: 5,
@@ -43,6 +45,7 @@ test('returns bounded canonical sales, attention, operations and activity aggreg
 
   const dashboard = await new PostgresOpsDashboardRepository(sql).getDashboard(new Date('2026-08-19T06:00:00Z'));
 
+  expect(dashboard.sales.currency).toBe('USD');
   expect(dashboard.sales.today).toEqual({ orders: 2, grossMinor: 10800 });
   expect(dashboard.sales.lifetime).toEqual({ orders: 12, grossMinor: 64800 });
   expect(dashboard.sales.refundedMinor).toBe(5400);
@@ -50,4 +53,12 @@ test('returns bounded canonical sales, attention, operations and activity aggreg
   expect(dashboard.attention.notificationFailures).toBe(2);
   expect(dashboard.activity).toHaveLength(1);
   expect(dashboard.activity[0].issueCode).toBe('IO-ABCD-EFGH');
+});
+
+test('refuses to aggregate mixed currencies', async () => {
+  const sql: SqlExecutor = {
+    query: async () => [{ currency: 'PKR', currency_count: 2 }] as never,
+  };
+  await expect(new PostgresOpsDashboardRepository(sql).getDashboard(new Date('2026-08-19T06:00:00Z')))
+    .rejects.toThrow(/mixed currencies/i);
 });
