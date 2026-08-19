@@ -82,7 +82,7 @@ export function createOpsSupportService() {
     new PostgresOpsSupportStore(executor),
     new ResendOpsSupportReplyGateway({ apiKey: env('RESEND_API_KEY'), from: env('RESEND_FROM_EMAIL') }),
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
-    { enqueue: (issueId, eventKey) => enqueueIssueNotification(issueId, eventKey) },
+    { enqueue: (issueId, eventKey, attemptKey) => enqueueIssueNotification(issueId, eventKey, attemptKey) },
   );
 }
 export function createOpsWebsiteService() {
