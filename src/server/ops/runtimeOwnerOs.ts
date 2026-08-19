@@ -2,6 +2,7 @@ import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { OpsAuditService } from './OpsAuditService';
 import { PostgresOpsAuditRepository } from './PostgresOpsAuditRepository';
 import { PostgresOpsDashboardRepository } from './PostgresOpsDashboardRepository';
+import { PostgresOpsIssueDetailRepository } from './PostgresOpsIssueDetailRepository';
 import { OpsRuntimeUnavailableError } from './runtimeOps';
 
 function sql() {
@@ -16,4 +17,8 @@ export function createOpsAuditService() {
 
 export function createOpsDashboardRepository() {
   return new PostgresOpsDashboardRepository(sql());
+}
+
+export function createOpsIssueDetailRepository() {
+  return new PostgresOpsIssueDetailRepository(sql());
 }
