@@ -4,6 +4,8 @@ import type { OpsCustomerRecord, OpsCustomerRepository } from './OpsCustomerRepo
 type Row = {
   email_hash: string;
   issue_count: number | string;
+  currency: string | null;
+  currency_count: number | string;
   paid_minor: number | string;
   refunded_issues: number | string;
   active_deliveries: number | string;
@@ -33,6 +35,8 @@ export class PostgresOpsCustomerRepository implements OpsCustomerRepository {
       `WITH grouped AS (
         SELECT contact.email_hash,
           COUNT(issue.id) AS issue_count,
+          MIN(issue.currency) AS currency,
+          COUNT(DISTINCT issue.currency) AS currency_count,
           COALESCE(SUM(issue.amount_minor),0) AS paid_minor,
           COUNT(issue.id) FILTER (WHERE issue.payment_exception_code='PAYMENT_REFUNDED') AS refunded_issues,
           COUNT(issue.id) FILTER (WHERE issue.status IN ('IN_PRODUCTION','IN_TRANSIT')) AS active_deliveries,
@@ -54,16 +58,20 @@ export class PostgresOpsCustomerRepository implements OpsCustomerRepository {
       LIMIT $4`,
       [input.emailHash ?? null, cursor?.lastSeenAt ?? null, cursor?.emailHash ?? null, limit + 1],
     );
-    const mapped: OpsCustomerRecord[] = rows.map((row) => ({
-      emailHash: row.email_hash,
-      contactAlias: `CONTACT ${row.email_hash.slice(0, 8).toUpperCase()}`,
-      issueCount: n(row.issue_count),
-      paidMinor: n(row.paid_minor),
-      refundedIssues: n(row.refunded_issues),
-      activeDeliveries: n(row.active_deliveries),
-      supportCount: n(row.support_count),
-      lastSeenAt: row.last_seen_at instanceof Date ? row.last_seen_at : new Date(row.last_seen_at),
-    }));
+    const mapped: OpsCustomerRecord[] = rows.map((row) => {
+      const mixed = n(row.currency_count) > 1;
+      return {
+        emailHash: row.email_hash,
+        contactAlias: `CONTACT ${row.email_hash.slice(0, 8).toUpperCase()}`,
+        issueCount: n(row.issue_count),
+        currency: mixed ? null : row.currency,
+        paidMinor: mixed ? null : n(row.paid_minor),
+        refundedIssues: n(row.refunded_issues),
+        activeDeliveries: n(row.active_deliveries),
+        supportCount: n(row.support_count),
+        lastSeenAt: row.last_seen_at instanceof Date ? row.last_seen_at : new Date(row.last_seen_at),
+      };
+    });
     const hasMore = mapped.length > limit;
     const items = hasMore ? mapped.slice(0, limit) : mapped;
     return { items, nextCursor: hasMore && items.length ? encode(items[items.length - 1]) : null };
