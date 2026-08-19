@@ -8,17 +8,14 @@ type QueueRow = {
   provider: string | null; model: string | null; candidate_count: number | string; updated_at: Date | string;
 };
 
-type CandidateRow = {
-  id: string;
-};
+type CandidateRow = { id: string };
 
 export class PostgresOpsDesignerStore implements OpsDesignerStore {
   constructor(private readonly sql: SqlExecutor, private readonly idGenerator: () => string = () => randomUUID()) {}
 
   async listQueue(limit: number): Promise<OpsDesignerQueueItem[]> {
     const rows = await this.sql.query<QueueRow>(
-      `SELECT
-        issue.id AS issue_id, issue.issue_code, issue.status AS issue_status,
+      `SELECT issue.id AS issue_id, issue.issue_code, issue.status AS issue_status,
         issue.object_type, issue.size_code, issue.color_code,
         design.id AS design_job_id, design.state AS design_state,
         design.artwork_url, design.artwork_width, design.artwork_height,
@@ -27,26 +24,16 @@ export class PostgresOpsDesignerStore implements OpsDesignerStore {
         design.updated_at
       FROM design_jobs AS design
       JOIN issues AS issue ON issue.id=design.issue_id
-      ORDER BY
-        CASE design.state WHEN 'REVIEW' THEN 0 WHEN 'FAILED' THEN 1 WHEN 'GENERATING' THEN 2 WHEN 'INTERPRETING' THEN 3 ELSE 4 END,
+      ORDER BY CASE design.state WHEN 'REVIEW' THEN 0 WHEN 'FAILED' THEN 1 WHEN 'GENERATING' THEN 2 WHEN 'INTERPRETING' THEN 3 ELSE 4 END,
         design.updated_at ASC
       LIMIT $1`,
       [Math.min(Math.max(Math.trunc(limit), 1), 100)],
     );
     return rows.map((row) => ({
-      issueId: row.issue_id,
-      issueCode: row.issue_code,
-      issueStatus: row.issue_status,
-      objectType: row.object_type,
-      sizeCode: row.size_code,
-      colorCode: row.color_code,
-      designJobId: row.design_job_id,
-      designState: row.design_state,
-      artworkUrl: row.artwork_url,
-      width: row.artwork_width,
-      height: row.artwork_height,
-      provider: row.provider,
-      model: row.model,
+      issueId: row.issue_id, issueCode: row.issue_code, issueStatus: row.issue_status,
+      objectType: row.object_type, sizeCode: row.size_code, colorCode: row.color_code,
+      designJobId: row.design_job_id, designState: row.design_state, artworkUrl: row.artwork_url,
+      width: row.artwork_width, height: row.artwork_height, provider: row.provider, model: row.model,
       candidateCount: Number(row.candidate_count),
       updatedAt: row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at),
     }));
@@ -90,8 +77,7 @@ export class PostgresOpsDesignerStore implements OpsDesignerStore {
          WHERE id=(SELECT id FROM eligible LIMIT 1)
          RETURNING issue_id
        ), issue_update AS (
-         UPDATE issues
-         SET status='BEING_INTERPRETED', updated_at=NOW()
+         UPDATE issues SET status='BEING_INTERPRETED', updated_at=NOW()
          WHERE id=(SELECT issue_id FROM job_update LIMIT 1)
            AND status IN ('DESIGN_REVIEW','DESIGN_APPROVED')
          RETURNING id
@@ -172,7 +158,7 @@ export class PostgresOpsDesignerStore implements OpsDesignerStore {
        )
        SELECT design.issue_id,design.id,$2,$3,
          design.brief_payload_version,design.brief_key_version,design.brief_iv,design.brief_auth_tag,design.brief_ciphertext,
-         design.artwork_url,design.artwork_mime_type,design.artwork_bytes,design.artwork_width,design.artwork_height,design.provider,design.model,true,NOW()
+         design.artwork_url,design.artwork_mime_type,design.artwork_bytes,design.artwork_width,design.artwork_height,design.provider,design.model,false,NOW()
        FROM design_jobs AS design
        WHERE design.issue_id=$1::uuid AND design.state='REVIEW'
          AND design.artwork_url IS NOT NULL AND design.artwork_mime_type IS NOT NULL AND design.artwork_bytes IS NOT NULL
@@ -181,9 +167,11 @@ export class PostgresOpsDesignerStore implements OpsDesignerStore {
        RETURNING id`,
       [issueId, generationKey, source],
     );
-    if (rows[0]) {
-      await this.sql.query(`UPDATE ops_design_candidates SET selected=(id=$2::uuid) WHERE issue_id=$1::uuid`, [issueId, rows[0].id]);
+    const candidateId = rows[0]?.id;
+    if (candidateId) {
+      await this.sql.query(`UPDATE ops_design_candidates SET selected=false WHERE issue_id=$1::uuid AND selected=true`, [issueId]);
+      await this.sql.query(`UPDATE ops_design_candidates SET selected=true WHERE id=$1::uuid AND issue_id=$2::uuid`, [candidateId, issueId]);
     }
-    return rows[0]?.id ?? null;
+    return candidateId ?? null;
   }
 }
