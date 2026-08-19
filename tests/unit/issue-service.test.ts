@@ -49,6 +49,20 @@ class MemoryIssueRepository implements IssueRepository {
     this.issues.set(issue.id, issue);
     return { kind: 'reserved' as const, issue };
   }
+
+  async flagPaymentException(input: {
+    paymentAttemptId: string;
+    reason: 'PAYMENT_REFUNDED' | 'PAYMENT_EXCEPTION';
+    updatedAt: Date;
+  }) {
+    const issue = await this.findByPaymentAttemptId(input.paymentAttemptId);
+    if (!issue) return null;
+    if (['RECEIVED','BEING_INTERPRETED','DESIGN_REVIEW','DESIGN_APPROVED','MANUFACTURING_DRAFT'].includes(issue.status)) {
+      issue.status = 'EXCEPTION';
+    }
+    issue.updatedAt = input.updatedAt;
+    return { issueId: issue.id };
+  }
 }
 
 const truth: PaidIssueTruth = {
@@ -90,4 +104,14 @@ test('creates exactly one immutable Issue from server-side paid truth', async ()
 test('refuses to mint an Issue when payment/physical/shipping truth is incomplete', async () => {
   const repository = new MemoryIssueRepository();
   await expect(service(repository).reserveForPaidAttempt('missing')).rejects.toThrow(/paid.*truth|payment/i);
+});
+
+test('flags the exact Issue by immutable payment attempt when Safepay refunds it', async () => {
+  const repository = new MemoryIssueRepository();
+  repository.truths.set('pay-1', truth);
+  await service(repository).reserveForPaidAttempt('pay-1');
+
+  await expect(service(repository).flagPaymentException('pay-1', 'PAYMENT_REFUNDED'))
+    .resolves.toEqual({ issueId: 'issue-uuid-1' });
+  expect(repository.issues.get('issue-uuid-1')?.status).toBe('EXCEPTION');
 });
