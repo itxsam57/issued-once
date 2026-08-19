@@ -19,6 +19,17 @@ function optionalBoolean(value: string | null): boolean | null {
   return null;
 }
 
+function optionalDate(value: string | null, endOfDay = false): Date | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  const normalized = /^\d{4}-\d{2}-\d{2}$/.test(trimmed)
+    ? `${trimmed}T${endOfDay ? '23:59:59.999' : '00:00:00.000'}Z`
+    : trimmed;
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) throw new Error('Invalid Issue date filter');
+  return parsed;
+}
+
 export async function GET(request: Request) {
   if (!(await hasOpsSession())) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
@@ -40,6 +51,9 @@ export async function GET(request: Request) {
           objectType: optional(url.searchParams.get('objectType')),
           supportOpen: optionalBoolean(url.searchParams.get('supportOpen')),
           paymentException: optionalBoolean(url.searchParams.get('paymentException')),
+          countryCode: optional(url.searchParams.get('country')),
+          updatedFrom: optionalDate(url.searchParams.get('from')),
+          updatedTo: optionalDate(url.searchParams.get('to'), true),
         },
       });
       return Response.json({
@@ -61,6 +75,9 @@ export async function GET(request: Request) {
     })));
     return Response.json({ issues: safeIssues }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
+    if (error instanceof Error && /Issue date|date range/i.test(error.message)) {
+      return Response.json({ error: 'Invalid Issue filters' }, { status: 400 });
+    }
     if (
       error instanceof OpsRuntimeUnavailableError ||
       error instanceof ArtworkAccessRuntimeUnavailableError
