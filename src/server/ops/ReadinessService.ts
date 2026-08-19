@@ -30,6 +30,12 @@ function isBase64Key32(value: string | undefined) {
   }
 }
 
+function isStrongHexSecret(value: string | undefined) {
+  const secret = value?.trim() ?? '';
+  if (!/^[0-9a-f]+$/i.test(secret) || secret.length % 2 !== 0) return false;
+  return Buffer.from(secret, 'hex').length >= 32;
+}
+
 function safeFetchError(response: Response) {
   return `HTTP ${response.status}`;
 }
@@ -80,6 +86,10 @@ export class ReadinessService {
     } else {
       try {
         const catalog = new IssuedOnceCatalogGateway(catalogJson);
+        const currency = catalog.currency();
+        if (!['USD', 'PKR'].includes(currency)) {
+          throw new Error('Retail catalog currency is unsupported by Safepay');
+        }
         for (const objectType of ['tee', 'hat', 'tote']) catalog.productSlug(objectType);
         const parsed = JSON.parse(catalogJson) as {
           products?: Record<string, { variants?: Array<{ size?: string; colorName?: string; available?: boolean }> }>;
@@ -89,9 +99,9 @@ export class ReadinessService {
             .filter((variant) => variant.available !== false && variant.size && variant.colorName)
             .map((variant) => `${objectType}:${variant.size}:${variant.colorName}`),
         );
-        checks.push({ key: 'catalog', label: 'Retail catalog', state: 'ready', detail: `${availableFactoryKeys.length} sellable logical variant(s) validated.` });
+        checks.push({ key: 'catalog', label: 'Retail catalog', state: 'ready', detail: `${availableFactoryKeys.length} sellable logical variant(s) validated in ${currency}.` });
       } catch {
-        checks.push({ key: 'catalog', label: 'Retail catalog', state: 'blocked', detail: 'Retail catalog is invalid or missing a current Issue form.' });
+        checks.push({ key: 'catalog', label: 'Retail catalog', state: 'blocked', detail: 'Retail catalog is invalid, uses an unsupported Safepay currency, or is missing a current Issue form.' });
       }
     }
 
@@ -159,6 +169,8 @@ export class ReadinessService {
     );
     if (!printfulConfigured) {
       checks.push({ key: 'printful', label: 'Printful', state: 'missing', detail: 'Printful API, mapping, and signed-webhook configuration are required.' });
+    } else if (!isStrongHexSecret(this.env.PRINTFUL_WEBHOOK_SECRET_HEX)) {
+      checks.push({ key: 'printful', label: 'Printful', state: 'blocked', detail: 'Printful webhook secret must be valid hexadecimal with at least 32 decoded bytes.' });
     } else {
       try {
         const map = new PrintfulVariantMap(this.env.PRINTFUL_VARIANT_MAP_JSON!);
