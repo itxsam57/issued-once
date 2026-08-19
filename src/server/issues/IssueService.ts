@@ -4,6 +4,8 @@ import type { IssueRepository } from './IssueRepository';
 
 const ISSUE_CODE_ATTEMPTS = 5;
 
+type PaymentExceptionReason = 'PAYMENT_REFUNDED' | 'PAYMENT_EXCEPTION';
+
 export class IssueService {
   constructor(
     private readonly repository: IssueRepository,
@@ -39,5 +41,14 @@ export class IssueService {
     }
 
     throw new Error('Issue code collision budget exhausted');
+  }
+
+  async flagPaymentException(paymentAttemptId: string, reason: PaymentExceptionReason) {
+    if (!paymentAttemptId) throw new Error('Payment attempt is required');
+    return this.repository.flagPaymentException({
+      paymentAttemptId,
+      reason,
+      updatedAt: this.now(),
+    });
   }
 }
