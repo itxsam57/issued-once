@@ -11,6 +11,16 @@
           "retryAfterSeconds": 60
         }
       ]
+    },
+    "src/app/api/queue/notifications/route.ts": {
+      "maxDuration": 120,
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "issued-once-notifications",
+          "retryAfterSeconds": 60
+        }
+      ]
     }
   }
 }
