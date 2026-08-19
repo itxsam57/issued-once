@@ -37,6 +37,12 @@ export class ManufacturingService {
       sizeCode: input.sizeCode,
       colorCode: input.colorCode,
     });
+    if (
+      input.artworkWidth < mapping.position.width ||
+      input.artworkHeight < mapping.position.height
+    ) {
+      throw new Error('Artwork source pixels are below the mapped Printful placement');
+    }
 
     if (!job) {
       const now = this.now();
@@ -69,6 +75,14 @@ export class ManufacturingService {
         variantId: mapping.variantId,
         artworkUrl: factoryArtworkUrl,
         fileType: mapping.fileType,
+        placement: {
+          areaWidth: mapping.printArea.width,
+          areaHeight: mapping.printArea.height,
+          width: mapping.position.width,
+          height: mapping.position.height,
+          top: mapping.position.top,
+          left: mapping.position.left,
+        },
         recipient: {
           name: address.recipientName,
           email,
