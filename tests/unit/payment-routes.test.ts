@@ -41,6 +41,7 @@ beforeEach(() => {
       kind: 'reserved',
       issue: { id: '11111111-1111-4111-8111-111111111111', issueCode: 'IO-ABCD-EFGH' },
     }),
+    flagPaymentException: vi.fn().mockResolvedValue({ issueId: '11111111-1111-4111-8111-111111111111' }),
   });
   enqueueDesignIssueMock.mockResolvedValue({ messageId: 'design-message' });
   enqueueIssueNotificationMock.mockResolvedValue({ messageId: 'notification-message' });
@@ -99,6 +100,35 @@ test('duplicate paid evidence can resume downstream queues without minting anoth
   expect(response.status).toBe(200);
   expect(enqueueDesignIssueMock).toHaveBeenCalledTimes(1);
   expect(enqueueIssueNotificationMock).toHaveBeenCalledTimes(1);
+});
+
+test('signed refund flags the canonical Issue and never queues new design work', async () => {
+  createPaymentServiceMock.mockReturnValue({
+    handleWebhook: vi.fn().mockResolvedValue({ kind: 'refunded', paymentAttemptId: 'attempt-1' }),
+  });
+  const issueService = createIssueServiceMock();
+  const response = await safepayWebhook(new Request('https://issuedonce.shop/api/webhooks/safepay', {
+    method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'abc' },
+  }));
+
+  expect(response.status).toBe(200);
+  expect(issueService.flagPaymentException).toHaveBeenCalledWith('attempt-1', 'PAYMENT_REFUNDED');
+  expect(enqueueDesignIssueMock).not.toHaveBeenCalled();
+  expect(enqueueIssueNotificationMock).not.toHaveBeenCalledWith(expect.anything(), 'PAYMENT_RECEIVED');
+});
+
+test('provider money exception flags an existing Issue instead of starting downstream work', async () => {
+  createPaymentServiceMock.mockReturnValue({
+    handleWebhook: vi.fn().mockResolvedValue({ kind: 'exception', paymentAttemptId: 'attempt-1' }),
+  });
+  const issueService = createIssueServiceMock();
+  const response = await safepayWebhook(new Request('https://issuedonce.shop/api/webhooks/safepay', {
+    method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'abc' },
+  }));
+
+  expect(response.status).toBe(200);
+  expect(issueService.flagPaymentException).toHaveBeenCalledWith('attempt-1', 'PAYMENT_EXCEPTION');
+  expect(enqueueDesignIssueMock).not.toHaveBeenCalled();
 });
 
 test('invalid authenticated webhook evidence is rejected and never triggers downstream work', async () => {
