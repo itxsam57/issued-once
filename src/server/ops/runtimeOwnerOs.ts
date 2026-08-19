@@ -33,11 +33,21 @@ function env(name: string) {
   return value;
 }
 function sql() { return createNeonSqlExecutor(env('DATABASE_URL')); }
+function factoryMappingKeys(): string[] {
+  const serialized = process.env.PRINTFUL_VARIANT_MAP_JSON?.trim();
+  if (!serialized) return [];
+  try {
+    const parsed = JSON.parse(serialized) as unknown;
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? Object.keys(parsed) : [];
+  } catch {
+    return [];
+  }
+}
 
 export function createOpsAuditService() { return new OpsAuditService(new PostgresOpsAuditRepository(sql())); }
 export function createOpsDashboardRepository() { return new PostgresOpsDashboardRepository(sql()); }
 export function createOpsIssueDetailRepository() { return new PostgresOpsIssueDetailRepository(sql()); }
-export function createOpsAttentionRepository() { return new PostgresOpsAttentionRepository(sql()); }
+export function createOpsAttentionRepository() { return new PostgresOpsAttentionRepository(sql(), factoryMappingKeys()); }
 export function createOpsPrivateRevealService() {
   const executor = sql();
   return new OpsPrivateRevealService(new PostgresOpsPrivateSource(executor), new OpsAuditService(new PostgresOpsAuditRepository(executor)));
