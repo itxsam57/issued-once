@@ -24,6 +24,20 @@ type OpsIssue = {
   updatedAt: string;
 };
 
+type ReadinessCheck = {
+  key: string;
+  label: string;
+  state: 'ready' | 'configured' | 'missing' | 'blocked' | 'safe' | 'armed';
+  detail: string;
+};
+
+type ReadinessPayload = {
+  checkedAt: string;
+  checks: ReadinessCheck[];
+  readyForSandbox: boolean;
+  readyForProduction: boolean;
+};
+
 async function action(path: string, body: unknown) {
   const response = await fetch(path, {
     method: 'POST',
@@ -37,23 +51,34 @@ async function action(path: string, body: unknown) {
 
 export function OpsConsole() {
   const [issues, setIssues] = useState<OpsIssue[]>([]);
+  const [readiness, setReadiness] = useState<ReadinessPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [working, setWorking] = useState<string | null>(null);
   const [confirmations, setConfirmations] = useState<Record<string, string>>({});
 
-  async function refresh() {
-    setError(null);
+  async function refreshIssues() {
     const response = await fetch('/ops/api/issues', { credentials: 'same-origin', cache: 'no-store' });
     if (!response.ok) throw new Error('Operations list could not be loaded');
     const payload = (await response.json()) as { issues: OpsIssue[] };
     setIssues(payload.issues);
+  }
+
+  async function refreshReadiness() {
+    const response = await fetch('/ops/api/readiness', { credentials: 'same-origin', cache: 'no-store' });
+    if (!response.ok) throw new Error('Launch readiness could not be checked');
+    setReadiness((await response.json()) as ReadinessPayload);
+  }
+
+  async function refreshAll() {
+    setError(null);
+    await Promise.all([refreshIssues(), refreshReadiness()]);
     setLoading(false);
   }
 
   useEffect(() => {
-    void refresh().catch((cause) => {
-      setError(cause instanceof Error ? cause.message : 'Operations list could not be loaded');
+    void refreshAll().catch((cause) => {
+      setError(cause instanceof Error ? cause.message : 'Operations room could not be loaded');
       setLoading(false);
     });
   }, []);
@@ -69,7 +94,7 @@ export function OpsConsole() {
     setError(null);
     try {
       await action(path, body);
-      await refresh();
+      await refreshIssues();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Operation failed');
     } finally {
@@ -98,9 +123,45 @@ export function OpsConsole() {
         <span>PRODUCTION / {counts.production}</span>
       </div>
 
+      <section className={styles.readiness} aria-label="Launch readiness">
+        <div className={styles.readinessHead}>
+          <div>
+            <p className={styles.signal}>
+              {readiness?.readyForProduction
+                ? 'LAUNCH / PRODUCTION READY'
+                : readiness?.readyForSandbox
+                  ? 'LAUNCH / SANDBOX READY'
+                  : 'LAUNCH / NOT READY'}
+            </p>
+            <h2>What can actually run.</h2>
+          </div>
+          <button
+            className={styles.quietButton}
+            type="button"
+            disabled={loading}
+            onClick={() => void refreshReadiness().catch((cause) => setError(cause instanceof Error ? cause.message : 'Readiness check failed'))}
+          >CHECK AGAIN</button>
+        </div>
+
+        <div className={styles.readinessGrid}>
+          {readiness?.checks.map((check) => (
+            <article className={styles.readinessItem} key={check.key}>
+              <div>
+                <strong>{check.label}</strong>
+                <span data-state={check.state}>{check.state.toUpperCase()}</span>
+              </div>
+              <p>{check.detail}</p>
+            </article>
+          ))}
+        </div>
+        <p className={styles.readinessNote}>
+          Production never turns green from configuration alone. Signed payment, email, queue, artwork and factory proofs still require observed evidence and the owner launch gate.
+        </p>
+      </section>
+
       <p className={styles.privacy}>This room intentionally excludes raw answers, email and shipping details. Production identity is the Issue.</p>
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
-      {loading ? <p className={styles.loading}>READING ISSUES</p> : null}
+      {loading ? <p className={styles.loading}>READING SYSTEM</p> : null}
 
       <section className={styles.issueList} aria-label="Issues">
         {issues.map((issue) => {
