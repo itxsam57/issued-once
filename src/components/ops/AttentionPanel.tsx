@@ -6,8 +6,15 @@ import styles from './owner-os.module.css';
 
 type Item = { kind: string; priority: number; issueId: string | null; issueCode: string | null; targetId: string; detail: string; createdAt: string };
 const SECTION: Record<string, OwnerOsSection> = {
-  PAYMENT_EXCEPTION: 'Issues', DESIGN_FAILED: 'Designer', DESIGN_STUCK: 'Designer', MANUFACTURING_FAILED: 'Manufacturing',
-  NOTIFICATION_FAILED: 'System', SUPPORT_AGING: 'Support', PAID_WITHOUT_ISSUE: 'Issues',
+  PAID_WITHOUT_ISSUE: 'Issues',
+  PAYMENT_EXCEPTION: 'Issues',
+  FACTORY_MAPPING_MISSING: 'System',
+  PROVIDER_STATE_MISMATCH: 'Manufacturing',
+  DESIGN_FAILED: 'Designer',
+  DESIGN_STUCK: 'Designer',
+  MANUFACTURING_FAILED: 'Manufacturing',
+  NOTIFICATION_FAILED: 'Support',
+  SUPPORT_AGING: 'Support',
 };
 
 export function AttentionPanel({ onNavigate }: { onNavigate: (section: OwnerOsSection) => void }) {
@@ -31,12 +38,15 @@ export function AttentionPanel({ onNavigate }: { onNavigate: (section: OwnerOsSe
   return <section className={styles.attention}>
     <div className={styles.panelHead}><div><p>ATTENTION REQUIRED</p><h2>{items.length ? `${items.length} things need you.` : 'Nothing is waiting on you.'}</h2></div><button type="button" onClick={() => void refresh()}>CHECK AGAIN</button></div>
     {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
-    {items.map((item) => <article key={`${item.kind}-${item.targetId}`}>
-      <div><strong>{item.kind.replaceAll('_',' ')}</strong><span>{item.issueCode ?? item.targetId}</span><p>{item.detail}</p></div>
-      <div>
-        {item.kind === 'PAID_WITHOUT_ISSUE' ? <button type="button" onClick={() => void resumePaid(item).catch((cause) => setError(cause instanceof Error ? cause.message : 'Recovery failed'))}>RESUME ISSUE CREATION</button> : null}
-        <button type="button" onClick={() => onNavigate(SECTION[item.kind] ?? 'Issues')}>OPEN {SECTION[item.kind] ?? 'ISSUES'}</button>
-      </div>
-    </article>)}
+    {items.map((item) => {
+      const section = SECTION[item.kind] ?? 'Issues';
+      return <article key={`${item.kind}-${item.targetId}`}>
+        <div><strong>{item.kind.replaceAll('_',' ')}</strong><span>{item.issueCode ?? item.targetId}</span><p>{item.detail}</p></div>
+        <div>
+          {item.kind === 'PAID_WITHOUT_ISSUE' ? <button type="button" onClick={() => void resumePaid(item).catch((cause) => setError(cause instanceof Error ? cause.message : 'Recovery failed'))}>RESUME ISSUE CREATION</button> : null}
+          <button type="button" onClick={() => onNavigate(section)}>OPEN {section.toUpperCase()}</button>
+        </div>
+      </article>;
+    })}
   </section>;
 }
