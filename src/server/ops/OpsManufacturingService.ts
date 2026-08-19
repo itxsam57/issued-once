@@ -1,3 +1,4 @@
+import type { ManufacturingJobRecord } from '@/server/manufacturing/ManufacturingRepository';
 import type { OpsAuditService } from './OpsAuditService';
 
 export type OpsManufacturingQueueItem = {
@@ -24,15 +25,13 @@ export class OpsManufacturingService {
   constructor(
     private readonly store: OpsManufacturingStore,
     private readonly actions: {
-      createDraft(issueId: string): Promise<any>;
-      confirmDraft(issueId: string): Promise<any>;
+      createDraft(issueId: string): Promise<ManufacturingJobRecord>;
+      confirmDraft(issueId: string): Promise<ManufacturingJobRecord>;
     },
     private readonly audit: Pick<OpsAuditService, 'record'>,
   ) {}
 
-  listQueue(limit = 100) {
-    return this.store.listQueue(Math.min(Math.max(Math.trunc(limit), 1), 100));
-  }
+  listQueue(limit = 100) { return this.store.listQueue(Math.min(Math.max(Math.trunc(limit), 1), 100)); }
 
   async createDraft(issueId: string) {
     const job = await this.actions.createDraft(issueId);
