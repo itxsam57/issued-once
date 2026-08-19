@@ -25,5 +25,7 @@ jobs:
         run: pnpm test
       - name: Typecheck
         run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
       - name: Production build
         run: pnpm build
