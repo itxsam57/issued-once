@@ -2,7 +2,8 @@ export type OpsCustomerRecord = {
   emailHash: string;
   contactAlias: string;
   issueCount: number;
-  paidMinor: number;
+  currency: string | null;
+  paidMinor: number | null;
   refundedIssues: number;
   activeDeliveries: number;
   supportCount: number;
