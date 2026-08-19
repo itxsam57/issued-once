@@ -39,6 +39,23 @@ export class PostgresOpsDesignerStore implements OpsDesignerStore {
     }));
   }
 
+  async prepareRetry(issueId: string) {
+    const generationKey = `retry:${this.idGenerator()}`;
+    const rows = await this.sql.query<{ issue_id: string }>(
+      `UPDATE design_jobs AS design
+       SET state='QUEUED', failure_code=NULL, updated_at=NOW()
+       FROM issues AS issue
+       WHERE design.issue_id=issue.id
+         AND issue.id=$1::uuid
+         AND issue.status='BEING_INTERPRETED'
+         AND design.state='FAILED'
+       RETURNING design.issue_id`,
+      [issueId],
+    );
+    if (!rows[0]) throw new Error('Only a failed design can be retried');
+    return { issueId: rows[0].issue_id, generationKey };
+  }
+
   async prepareRework(issueId: string, mode: OpsDesignReworkMode) {
     const generationKey = this.idGenerator();
     const rows = await this.sql.query<{ issue_id: string }>(
