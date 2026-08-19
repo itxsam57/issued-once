@@ -74,6 +74,29 @@ function experience(stage: ExperienceRecord['stage'] = 'COMMITMENT_READY'): Expe
   };
 }
 
+function verifiedContact(): VerifiedContactRecord {
+  return {
+    id: 'contact-1',
+    experienceId: 'exp-ship',
+    emailHash: 'a'.repeat(64),
+    encryptedEmail: encryptedStub,
+    verifiedAt: now,
+  };
+}
+
+function validAddress() {
+  return {
+    recipientName: 'Sam Example',
+    line1: '1 Quiet Street',
+    line2: '',
+    city: 'London',
+    region: 'Greater London',
+    postalCode: 'SW1A 1AA',
+    countryCode: 'GB',
+    phone: '+44 7000 000000',
+  };
+}
+
 test('refuses shipping until the experience has a verified contact', async () => {
   const service = new ShippingService(
     new MemoryExperienceRepository(experience()),
@@ -84,30 +107,34 @@ test('refuses shipping until the experience has a verified contact', async () =>
 
   await expect(service.save({
     experienceToken: token,
-    address: {
-      recipientName: 'Sam Example',
-      line1: '1 Quiet Street',
-      line2: '',
-      city: 'London',
-      region: '',
-      postalCode: 'SW1A 1AA',
-      countryCode: 'GB',
-      phone: '',
-    },
+    address: validAddress(),
   })).rejects.toThrow(/verified contact/i);
+});
+
+test('requires province or state and courier phone at the server boundary', async () => {
+  const service = new ShippingService(
+    new MemoryExperienceRepository(experience()),
+    new MemoryContactRepository(verifiedContact()),
+    new MemoryShippingRepository(),
+    () => now,
+  );
+
+  await expect(service.save({
+    experienceToken: token,
+    address: { ...validAddress(), region: '   ' },
+  })).rejects.toThrow(/shipping address is incomplete/i);
+
+  await expect(service.save({
+    experienceToken: token,
+    address: { ...validAddress(), phone: '   ' },
+  })).rejects.toThrow(/shipping address is incomplete/i);
 });
 
 test('stores the full shipping address only inside encrypted payload', async () => {
   const shipping = new MemoryShippingRepository();
   const service = new ShippingService(
     new MemoryExperienceRepository(experience()),
-    new MemoryContactRepository({
-      id: 'contact-1',
-      experienceId: 'exp-ship',
-      emailHash: 'a'.repeat(64),
-      encryptedEmail: encryptedStub,
-      verifiedAt: now,
-    }),
+    new MemoryContactRepository(verifiedContact()),
     shipping,
     () => now,
   );
@@ -115,14 +142,9 @@ test('stores the full shipping address only inside encrypted payload', async () 
   await service.save({
     experienceToken: token,
     address: {
-      recipientName: 'Sam Example',
-      line1: '1 Quiet Street',
+      ...validAddress(),
       line2: 'Flat 7',
-      city: 'London',
-      region: 'London',
-      postalCode: 'SW1A 1AA',
       countryCode: 'gb',
-      phone: '+44 7000 000000',
     },
   });
 
@@ -134,7 +156,7 @@ test('stores the full shipping address only inside encrypted payload', async () 
     line1: '1 Quiet Street',
     line2: 'Flat 7',
     city: 'London',
-    region: 'London',
+    region: 'Greater London',
     postalCode: 'SW1A 1AA',
     countryCode: 'GB',
     phone: '+44 7000 000000',
@@ -144,13 +166,7 @@ test('stores the full shipping address only inside encrypted payload', async () 
 test('blocks shipping mutation after checkout has started', async () => {
   const service = new ShippingService(
     new MemoryExperienceRepository(experience('CHECKOUT_STARTED')),
-    new MemoryContactRepository({
-      id: 'contact-1',
-      experienceId: 'exp-ship',
-      emailHash: 'a'.repeat(64),
-      encryptedEmail: encryptedStub,
-      verifiedAt: now,
-    }),
+    new MemoryContactRepository(verifiedContact()),
     new MemoryShippingRepository(),
     () => now,
   );
@@ -158,14 +174,8 @@ test('blocks shipping mutation after checkout has started', async () => {
   await expect(service.save({
     experienceToken: token,
     address: {
-      recipientName: 'Sam Example',
+      ...validAddress(),
       line1: 'Changed after payment',
-      line2: '',
-      city: 'London',
-      region: '',
-      postalCode: 'SW1A 1AA',
-      countryCode: 'GB',
-      phone: '',
     },
   })).rejects.toThrow(/locked|checkout/i);
 });
