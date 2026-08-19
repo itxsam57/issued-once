@@ -5,6 +5,7 @@ import styles from './owner-os.module.css';
 
 type Dashboard = {
   sales: {
+    currency: string | null;
     today: { orders: number; grossMinor: number };
     sevenDays: { orders: number; grossMinor: number };
     thirtyDays: { orders: number; grossMinor: number };
@@ -30,7 +31,10 @@ type Dashboard = {
   activity: Array<{ issueCode: string; eventType: string; source: string; createdAt: string }>;
 };
 
-const money = (minor: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(minor / 100);
+function money(minor: number, currency: string | null) {
+  if (!currency) return minor === 0 ? '—' : `${(minor / 100).toFixed(2)} / CURRENCY UNKNOWN`;
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(minor / 100);
+}
 
 export function HomePanel() {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -57,9 +61,9 @@ export function HomePanel() {
       <p>ISSUED ONCE / LIVE BUSINESS</p>
       <h1>What requires attention now.</h1>
       <div className={styles.metricGrid}>
-        <article><span>TODAY</span><strong>{dashboard.sales.today.orders}</strong><small>{money(dashboard.sales.today.grossMinor)}</small></article>
-        <article><span>7 DAYS</span><strong>{dashboard.sales.sevenDays.orders}</strong><small>{money(dashboard.sales.sevenDays.grossMinor)}</small></article>
-        <article><span>30 DAYS</span><strong>{dashboard.sales.thirtyDays.orders}</strong><small>{money(dashboard.sales.thirtyDays.grossMinor)}</small></article>
+        <article><span>TODAY</span><strong>{dashboard.sales.today.orders}</strong><small>{money(dashboard.sales.today.grossMinor, dashboard.sales.currency)}</small></article>
+        <article><span>7 DAYS</span><strong>{dashboard.sales.sevenDays.orders}</strong><small>{money(dashboard.sales.sevenDays.grossMinor, dashboard.sales.currency)}</small></article>
+        <article><span>30 DAYS</span><strong>{dashboard.sales.thirtyDays.orders}</strong><small>{money(dashboard.sales.thirtyDays.grossMinor, dashboard.sales.currency)}</small></article>
         <article><span>ATTENTION</span><strong>{attention}</strong><small>owner actions</small></article>
       </div>
       <div className={styles.metricGrid}>
