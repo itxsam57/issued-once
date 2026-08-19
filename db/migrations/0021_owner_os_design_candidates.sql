@@ -6,6 +6,11 @@ CREATE TABLE IF NOT EXISTS ops_design_candidates (
   design_job_id uuid NOT NULL REFERENCES design_jobs(id) ON DELETE CASCADE,
   generation_key text NOT NULL,
   source text NOT NULL CHECK (source IN ('AUTOMATIC','OWNER_REGENERATE','OWNER_REINTERPRET')),
+  brief_payload_version smallint,
+  brief_key_version text,
+  brief_iv text,
+  brief_auth_tag text,
+  brief_ciphertext text,
   artwork_url text NOT NULL,
   artwork_mime_type text NOT NULL,
   artwork_bytes bigint NOT NULL CHECK (artwork_bytes > 0),
@@ -16,7 +21,12 @@ CREATE TABLE IF NOT EXISTS ops_design_candidates (
   safe_summary text,
   selected boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT NOW(),
-  UNIQUE (issue_id, generation_key)
+  UNIQUE (issue_id, generation_key),
+  CHECK (
+    (brief_payload_version IS NULL AND brief_key_version IS NULL AND brief_iv IS NULL AND brief_auth_tag IS NULL AND brief_ciphertext IS NULL)
+    OR
+    (brief_payload_version = 1 AND brief_key_version = 'v1' AND brief_iv IS NOT NULL AND brief_auth_tag IS NOT NULL AND brief_ciphertext IS NOT NULL)
+  )
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS ops_design_candidates_selected_issue_idx
