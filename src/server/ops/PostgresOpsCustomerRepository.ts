@@ -30,21 +30,28 @@ export class PostgresOpsCustomerRepository implements OpsCustomerRepository {
     const limit = Math.min(Math.max(Math.trunc(input.limit), 1), 100);
     const cursor = input.cursor ? decode(input.cursor) : null;
     const rows = await this.sql.query<Row>(
-      `SELECT contact.email_hash,
-        COUNT(issue.id) AS issue_count,
-        COALESCE(SUM(issue.amount_minor),0) AS paid_minor,
-        COUNT(issue.id) FILTER (WHERE issue.payment_exception_code='PAYMENT_REFUNDED') AS refunded_issues,
-        COUNT(issue.id) FILTER (WHERE issue.status IN ('IN_PRODUCTION','IN_TRANSIT')) AS active_deliveries,
-        COUNT(DISTINCT support.id) AS support_count,
-        GREATEST(MAX(contact.updated_at),MAX(issue.updated_at)) AS last_seen_at
-       FROM verified_contacts AS contact
-       LEFT JOIN issues AS issue ON issue.contact_id=contact.id
-       LEFT JOIN support_requests AS support ON support.issue_id=issue.id
-       WHERE ($1::text IS NULL OR contact.email_hash=$1)
-       GROUP BY contact.email_hash
-       HAVING ($2::timestamptz IS NULL OR (GREATEST(MAX(contact.updated_at),MAX(issue.updated_at)),contact.email_hash) < ($2::timestamptz,$3::text))
-       ORDER BY last_seen_at DESC,contact.email_hash DESC
-       LIMIT $4`,
+      `WITH grouped AS (
+        SELECT contact.email_hash,
+          COUNT(issue.id) AS issue_count,
+          COALESCE(SUM(issue.amount_minor),0) AS paid_minor,
+          COUNT(issue.id) FILTER (WHERE issue.payment_exception_code='PAYMENT_REFUNDED') AS refunded_issues,
+          COUNT(issue.id) FILTER (WHERE issue.status IN ('IN_PRODUCTION','IN_TRANSIT')) AS active_deliveries,
+          GREATEST(MAX(contact.updated_at),COALESCE(MAX(issue.updated_at),MAX(contact.updated_at))) AS last_seen_at
+        FROM verified_contacts AS contact
+        LEFT JOIN issues AS issue ON issue.contact_id=contact.id
+        WHERE ($1::text IS NULL OR contact.email_hash=$1)
+        GROUP BY contact.email_hash
+      )
+      SELECT grouped.*,
+        (SELECT COUNT(*)
+         FROM support_requests support
+         JOIN issues support_issue ON support_issue.id=support.issue_id
+         JOIN verified_contacts support_contact ON support_contact.id=support_issue.contact_id
+         WHERE support_contact.email_hash=grouped.email_hash) AS support_count
+      FROM grouped
+      WHERE ($2::timestamptz IS NULL OR (grouped.last_seen_at,grouped.email_hash) < ($2::timestamptz,$3::text))
+      ORDER BY grouped.last_seen_at DESC,grouped.email_hash DESC
+      LIMIT $4`,
       [input.emailHash ?? null, cursor?.lastSeenAt ?? null, cursor?.emailHash ?? null, limit + 1],
     );
     const mapped: OpsCustomerRecord[] = rows.map((row) => ({
