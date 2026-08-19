@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { MysteryExperience } from '@/components/experience/MysteryExperience';
+import styles from './VisualPreviewExperience.module.css';
 
 const VISUAL_QA_SIZE_CATALOG = {
   tee: [
@@ -71,8 +72,11 @@ const VISUAL_QA_COMMITMENT_QUOTE = {
   quoteId: 'qa-live-quote-001',
   amountMinor: 5400,
   currency: 'USD',
-  expiresAt: '2026-08-18T06:00:00.000Z',
+  expiresAt: '2026-08-18T07:00:00.000Z',
 } as const;
+
+const PREVIEW_CHALLENGE_ID = 'owner-preview-challenge';
+const PREVIEW_OTP = '123456';
 
 type VisualPreviewExperienceProps = {
   mode?: 'qa' | 'owner';
@@ -108,6 +112,11 @@ export function VisualPreviewExperience({ mode = 'qa' }: VisualPreviewExperience
       <div className="visual-preview__marker" role="note">
         {marker}
       </div>
+      {isOwnerPreview ? (
+        <div className={styles.otpHint} role="note">
+          PREVIEW OTP / {PREVIEW_OTP}
+        </div>
+      ) : null}
       <MysteryExperience
         onAnswer={async () => undefined}
         onObjectSelected={async () => undefined}
@@ -116,6 +125,14 @@ export function VisualPreviewExperience({ mode = 'qa' }: VisualPreviewExperience
         baseColorCatalog={VISUAL_QA_BASE_COLOR_CATALOG}
         onBaseColorConfirmed={async () => undefined}
         getCommitmentQuote={async () => VISUAL_QA_COMMITMENT_QUOTE}
+        onRequestOtp={async () => ({ challengeId: PREVIEW_CHALLENGE_ID, retryAfterSeconds: 0 })}
+        onVerifyOtp={async (challengeId, code) => {
+          if (challengeId !== PREVIEW_CHALLENGE_ID || code !== PREVIEW_OTP) {
+            throw new Error('Preview OTP mismatch');
+          }
+          return { verified: true as const };
+        }}
+        onShippingSubmitted={async () => undefined}
         onCheckoutRequested={async () => setPreviewComplete(true)}
       />
     </main>
