@@ -2,11 +2,13 @@ import { expect, test } from 'vitest';
 import { PostgresOpsIssueDetailRepository } from '@/server/ops/PostgresOpsIssueDetailRepository';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 
-test('lists Issues with bounded operational data and no private plaintext', async () => {
+test('lists Issues with bounded operational filters and no private plaintext', async () => {
   const sqlTexts: string[] = [];
+  let params: readonly unknown[] | undefined;
   const sql: SqlExecutor = {
-    query: async (text) => {
+    query: async (text, values) => {
       sqlTexts.push(text);
+      params = values;
       return [{
         issue_id: '11111111-1111-1111-1111-111111111111',
         issue_code: 'IO-ABCD-EFGH',
@@ -27,12 +29,34 @@ test('lists Issues with bounded operational data and no private plaintext', asyn
     },
   };
 
-  const page = await new PostgresOpsIssueDetailRepository(sql).listIssues({ limit: 50, cursor: null, search: 'IO-ABCD', filters: {} });
+  const from = new Date('2026-08-18T00:00:00Z');
+  const to = new Date('2026-08-19T23:59:59.999Z');
+  const page = await new PostgresOpsIssueDetailRepository(sql).listIssues({
+    limit: 50,
+    cursor: null,
+    search: 'IO-ABCD',
+    filters: { countryCode: 'pk', updatedFrom: from, updatedTo: to, supportOpen: true, paymentException: false },
+  });
+
   expect(page.items).toHaveLength(1);
   expect(page.items[0].issueCode).toBe('IO-ABCD-EFGH');
   expect(page.items[0]).not.toHaveProperty('email');
   expect(page.items[0]).not.toHaveProperty('ciphertext');
+  expect(sqlTexts.join('\n')).toContain('LEFT JOIN shipping_snapshots');
   expect(sqlTexts.join('\n')).not.toMatch(/email_ciphertext|shipping.*ciphertext|experience_answers.*ciphertext/i);
+  expect(params?.[8]).toBe('PK');
+  expect(params?.[9]).toEqual(from);
+  expect(params?.[10]).toEqual(to);
+});
+
+test('rejects an inverted Issue date range before querying', async () => {
+  let queried = false;
+  const sql: SqlExecutor = { query: async () => { queried = true; return [] as never; } };
+  await expect(new PostgresOpsIssueDetailRepository(sql).listIssues({
+    limit: 50,
+    filters: { updatedFrom: new Date('2026-08-20T00:00:00Z'), updatedTo: new Date('2026-08-19T00:00:00Z') },
+  })).rejects.toThrow(/date range/i);
+  expect(queried).toBe(false);
 });
 
 test('returns canonical Issue detail with privacy presence flags only', async () => {
