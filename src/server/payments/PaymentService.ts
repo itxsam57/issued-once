@@ -29,6 +29,23 @@ export class PaymentService {
   private readonly now: () => Date;
   constructor(private readonly dependencies: Dependencies) { this.now = dependencies.now ?? (() => new Date()); }
 
+  private async returnRedirectedAttempt(input: {
+    experienceId: string;
+    experienceStage: 'COMMITMENT_READY' | 'CHECKOUT_STARTED';
+    attempt: PaymentAttemptRecord;
+  }): Promise<{ checkoutUrl: string; paymentAttemptId: string }> {
+    if (!input.attempt.checkoutUrl) throw new Error('Redirected payment is missing its checkout URL');
+    if (input.experienceStage === 'COMMITMENT_READY') {
+      await this.dependencies.checkoutStates.advance({
+        experienceId: input.experienceId,
+        expectedStage: 'COMMITMENT_READY',
+        nextStage: 'CHECKOUT_STARTED',
+        updatedAt: this.now(),
+      });
+    }
+    return { checkoutUrl: input.attempt.checkoutUrl, paymentAttemptId: input.attempt.id };
+  }
+
   async start(input: { sessionToken: string; quoteId: string; returnBaseUrl: string }): Promise<{ checkoutUrl: string; paymentAttemptId: string }> {
     const experience = await this.dependencies.experiences.findBySessionHash(hashSessionToken(input.sessionToken));
     if (!experience) throw new Error('Experience not found');
@@ -47,7 +64,13 @@ export class PaymentService {
     if (!shipping || shipping.contactId !== contact.id) throw new Error('Shipping is required before payment');
 
     const reusable = await this.dependencies.payments.findReusable(experience.id, quote.id);
-    if (reusable?.checkoutUrl) return { checkoutUrl: reusable.checkoutUrl, paymentAttemptId: reusable.id };
+    if (reusable?.checkoutUrl) {
+      return this.returnRedirectedAttempt({
+        experienceId: experience.id,
+        experienceStage: experience.stage,
+        attempt: reusable,
+      });
+    }
     if (experience.stage === 'CHECKOUT_STARTED') throw new Error('Checkout has already started');
 
     const now = this.now();
@@ -58,17 +81,44 @@ export class PaymentService {
     };
     const attempt = await this.dependencies.payments.create(proposed);
     if (attempt.id !== proposed.id) {
-      if (attempt.checkoutUrl) return { checkoutUrl: attempt.checkoutUrl, paymentAttemptId: attempt.id };
+      if (attempt.checkoutUrl) {
+        return this.returnRedirectedAttempt({
+          experienceId: experience.id,
+          experienceStage: experience.stage,
+          attempt,
+        });
+      }
       throw new Error('Payment initialization is already in progress');
     }
 
     const origin = safeOrigin(input.returnBaseUrl);
-    const checkout = await this.dependencies.gateway.createCheckout({
-      paymentAttemptId: attempt.id, amountMinor: attempt.amountMinor, currency: attempt.currency,
-      returnUrl: `${origin}/payment/return`, cancelUrl: `${origin}/begin?payment=cancelled`,
-    });
+    let checkout: Awaited<ReturnType<PaymentGateway['createCheckout']>>;
+    try {
+      checkout = await this.dependencies.gateway.createCheckout({
+        paymentAttemptId: attempt.id,
+        amountMinor: attempt.amountMinor,
+        currency: attempt.currency,
+        returnUrl: `${origin}/payment/return`,
+        cancelUrl: `${origin}/begin?payment=cancelled`,
+      });
+    } catch (error) {
+      await this.dependencies.payments.markFailed(
+        attempt.id,
+        `checkout-init:${attempt.id}`,
+        this.now(),
+      );
+      throw error;
+    }
+
     const checkoutUrl = new URL(checkout.checkoutUrl);
-    if (checkoutUrl.protocol !== 'https:') throw new Error('Safepay checkout URL is invalid');
+    if (checkoutUrl.protocol !== 'https:') {
+      await this.dependencies.payments.markFailed(
+        attempt.id,
+        `checkout-url:${attempt.id}`,
+        this.now(),
+      );
+      throw new Error('Safepay checkout URL is invalid');
+    }
 
     await this.dependencies.payments.attachProvider({
       attemptId: attempt.id, providerReference: checkout.providerReference,
@@ -95,7 +145,6 @@ export class PaymentService {
     });
     const attempt = await this.dependencies.payments.findByProviderReference(event.providerReference);
     if (!attempt) return { kind: fresh ? 'exception' : 'duplicate' };
-    if (!fresh) return { kind: 'duplicate', paymentAttemptId: attempt.id };
 
     if (event.state === 'PAID') {
       const outcome = await this.dependencies.payments.markPaid({
@@ -113,8 +162,9 @@ export class PaymentService {
         currency: event.currency,
         refundedAt: event.occurredAt,
       });
-      if (outcome === 'refunded') return { kind: 'refunded', paymentAttemptId: attempt.id };
-      if (outcome === 'duplicate') return { kind: 'duplicate', paymentAttemptId: attempt.id };
+      if (outcome === 'refunded' || outcome === 'duplicate') {
+        return { kind: 'refunded', paymentAttemptId: attempt.id };
+      }
       return { kind: 'exception', paymentAttemptId: attempt.id };
     }
     if (event.state === 'FAILED') {
