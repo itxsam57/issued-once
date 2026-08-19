@@ -45,12 +45,46 @@
   letter-spacing: .12em;
 }
 .content { padding: 30px; }
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 24px 0;
+}
+.metricGrid article {
+  min-height: 118px;
+  display: grid;
+  align-content: space-between;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid rgba(24, 21, 18, .14);
+  background: rgba(255,255,255,.28);
+}
+.metricGrid span, .metricGrid small { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.metricGrid strong { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(28px, 4vw, 48px); font-weight: 400; }
+.activity { margin-top: 36px; border-top: 1px solid rgba(24, 21, 18, .15); }
+.activity h2 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; }
+.activity > div {
+  display: grid;
+  grid-template-columns: minmax(130px, .7fr) minmax(180px, 1.4fr) 1fr;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(24, 21, 18, .1);
+  font-size: 12px;
+}
+.activity small { text-align: right; opacity: .65; }
+
+@media (max-width: 900px) {
+  .metricGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 @media (max-width: 760px) {
   .shell { grid-template-columns: 1fr; }
   .rail { position: static; height: auto; padding: 18px 16px; gap: 16px; border-right: 0; border-bottom: 1px solid rgba(24, 21, 18, .14); }
-  .nav { grid-template-columns: repeat(5, minmax(0, 1fr)); overflow-x: auto; }
+  .nav { grid-template-columns: repeat(5, minmax(86px, 1fr)); overflow-x: auto; }
   .nav button { padding: 8px; text-align: center; font-size: 12px; }
   .logout { display: none; }
   .content { padding: 20px 16px; }
+  .activity > div { grid-template-columns: 1fr; gap: 4px; }
+  .activity small { text-align: left; }
 }
