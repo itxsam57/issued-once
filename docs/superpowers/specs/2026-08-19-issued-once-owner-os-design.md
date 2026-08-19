@@ -1,7 +1,7 @@
 # ISSUED ONCE — Owner OS Control Plane Design
 
 Date: 2026-08-19
-Status: approved design, written-spec review required before implementation planning
+Status: approved design; written spec awaiting final user review before implementation planning
 Branch: `feat/mystery-foundation`
 
 ## 1. Purpose
@@ -160,6 +160,8 @@ The stream is derived from canonical Issue/payment/design/manufacturing/notifica
 
 It must be cursor-paginated. The browser never downloads the complete event history.
 
+The live dashboard uses bounded periodic refresh rather than holding one permanent browser connection open. Event-derived aggregate tables make the refresh cost independent of total historical order count.
+
 ## 8. Issues — canonical operational ledger
 
 The Issue ledger is the central operating view.
@@ -172,8 +174,8 @@ Exact/prefix search may resolve:
 - Safepay provider reference
 - Printful order ID
 - tracking number
-- verified contact lookup hash derived from an owner-entered email
-- normalized phone lookup only if a privacy-preserving lookup representation is explicitly added
+- verified contact lookup hash derived server-side from an owner-entered email
+- normalized phone lookup only after a privacy-preserving phone lookup representation is explicitly added
 
 Raw email/phone are not indexed as plaintext.
 
@@ -217,7 +219,8 @@ One Issue detail page composes:
 #### Design
 - assigned question identities/families
 - design job state
-- encrypted brief presence
+- safe production-summary fields derived for review
+- encrypted full interpretation/brief presence
 - generated artwork via short-lived signed URL
 - dimensions/model/provider
 - QA checks
@@ -249,7 +252,7 @@ Potential reveals are scoped to one Issue and one category:
 - phone
 - shipping address
 - original seven answers
-- structured private design brief
+- full private design interpretation/brief
 - support-message plaintext
 
 A reveal requires:
@@ -258,7 +261,7 @@ A reveal requires:
 2. explicit action on one Issue
 3. a short human reason selected/entered
 4. server-side decrypt at the narrow boundary
-5. no caching
+5. response headers preventing caching
 6. an `OPS_PRIVATE_REVEAL` audit event containing category, Issue ID, timestamp and reason — never the revealed plaintext
 
 Bulk export of decrypted private customer data is not part of this design.
@@ -279,18 +282,17 @@ Designer Studio gives the owner a manual override without breaking Issue identit
 
 ### Review view
 
-For one Issue:
+For one Issue, default review data includes:
 
 - artwork preview using short-lived signed Blob URL
 - form/size/base color
 - source dimensions
 - model/provider
-- structured design brief
-- design rationale/signals
+- safe production summary of composition/palette/placement intent
 - deterministic QA results
-- question families
+- question-family coverage
 
-Raw answers remain behind the explicit sensitive-data reveal gate.
+The **full** structured interpretation/brief and raw answers remain behind the explicit sensitive-data reveal gate because they may contain personal information derived from the customer's answers.
 
 ### Actions
 
@@ -298,8 +300,8 @@ Raw answers remain behind the explicit sensitive-data reveal gate.
 - reject artwork with reason
 - retry failed design
 - re-interpret answers
-- edit a copy of the structured brief
-- generate a new candidate from an owner-edited brief
+- create an owner-edited copy of the full structured brief after explicit reveal
+- generate a new candidate from the owner-edited brief
 - compare candidate generations
 - choose one candidate as the active production artwork
 
@@ -379,7 +381,7 @@ Funnel definitions are fixed/versioned so dashboard percentages do not silently 
 
 ### Scale model
 
-Operational tables remain OLTP truth. Dashboard metrics use bounded aggregate queries initially and may move to event-derived daily/hourly rollup tables as volume grows.
+Operational tables remain OLTP truth. Owner OS reads event-derived hourly/daily commercial metric buckets for historical charts and bounded live queries for the current operating window.
 
 At scale:
 
@@ -411,11 +413,13 @@ Support Desk provides:
 
 - OPEN / CLOSED queues
 - Issue Code
-- support message
+- support-message state
 - current Issue/payment/design/manufacturing state
 - verified reply address through reveal/delivery boundary
 - internal owner notes
 - timeline
+
+Message plaintext is revealed only when the owner opens a specific support case; list views do not decrypt support messages.
 
 Owner can:
 
@@ -429,9 +433,11 @@ Support never receives raw questionnaire answers automatically.
 
 ## 15. Website control
 
-Owner OS also controls current sellable configuration without making historical Issues mutable.
+Owner OS controls current sellable configuration without making historical Issues mutable.
 
 ### Retail catalog
+
+The current environment-JSON catalog is migrated to a **versioned database-backed catalog** with an explicit published version. Environment JSON remains only a bootstrap/fail-closed migration aid until the database catalog is proven, then stops being the active editing surface.
 
 Owner can manage future-sale configuration:
 
@@ -442,13 +448,13 @@ Owner can manage future-sale configuration:
 - color labels/swatches
 - size labels/measurements
 
-Changes are versioned. Existing quotes/payment attempts/Issues preserve their frozen values.
+Changes are drafted and published as a new catalog version. Existing quotes/payment attempts/Issues preserve their frozen values.
 
-A variant cannot be activated for real sale unless readiness confirms its required Printful mapping when manufacturing is enabled.
+A variant cannot be published as sellable unless readiness confirms its required Printful mapping when manufacturing is enabled.
 
 ### Question Vault
 
-Owner can manage future experience assignment:
+Question definitions already carry identity/version/family/active/weight. Owner OS adds audited management over future assignments:
 
 - activate/retire a question
 - adjust selection weight within safe bounds
@@ -456,14 +462,14 @@ Owner can manage future experience assignment:
 - inspect family coverage and usage
 - see completion/skip/design-usefulness statistics when enough data exists
 
-Past experiences retain their persisted prompt snapshots and question versions.
+Prompt text is never edited in place for an existing `(question_id, question_version)`; content changes create a new version. Past experiences retain their persisted prompt snapshots and versions.
 
 ### Storefront operational controls
 
-Owner OS may show:
+Owner OS shows:
 
-- current public catalog version
-- current Question Vault version/state
+- current published catalog version
+- current Question Vault state
 - checkout/payment environment
 - storefront/deployment health
 
@@ -548,7 +554,7 @@ Examples:
 
 - login/logout/session events where practical
 - private-data reveal
-- catalog change
+- catalog draft/publish change
 - question activation/version/weight change
 - design retry/reinterpret/regeneration
 - design approval/rejection
@@ -573,26 +579,28 @@ Audit metadata must never contain raw answers, full address, email plaintext, pa
 
 Audit events are append-only from application behavior.
 
-## 19. Proposed data additions
+## 19. Required data additions
 
-Implementation planning may introduce forward migrations for:
+Implementation will use forward migrations after the current commercial migration head for:
 
-- `ops_audit_events`
-- `ops_internal_notes`
-- versioned catalog configuration if moving retail config from environment JSON into Neon
-- Question Vault operational statistics/read models
-- dashboard aggregate buckets if required by volume
-- design candidate/version history for regeneration/selection
+- `ops_audit_events` — append-only owner action history
+- `ops_internal_notes` — owner-only notes attached to Issues/support/recovery targets
+- `design_candidates` — immutable/versioned generated artwork candidates and selection state
+- `catalog_versions` — immutable catalog version metadata with explicit draft/published state
+- `catalog_variants` — logical sellable variants belonging to a catalog version
+- `commercial_metric_buckets` — event-derived hourly/daily operational aggregates for scalable sales/flow charts
 
-Existing canonical tables remain the source of historical order truth.
+Question definitions continue using the existing versioned Question Vault tables; no duplicate question-management schema is introduced.
 
-Schema changes must be forward migrations; historical migration files are not rewritten.
+Existing canonical payment, Issue, design-job, manufacturing-job, notification and support tables remain the source of historical operational truth.
+
+Historical migration files are not rewritten.
 
 ## 20. API boundaries
 
 Owner endpoints live only under `/ops/api/*`.
 
-Suggested read domains:
+Read domains:
 
 - `/ops/api/dashboard`
 - `/ops/api/issues`
@@ -607,13 +615,13 @@ Suggested read domains:
 - `/ops/api/system/readiness`
 - `/ops/api/audit`
 
-Suggested write domains are capability-specific, for example:
+Write domains are capability-specific, for example:
 
 - design approve/reject/retry/reinterpret/regenerate/select
 - manufacturing create-draft/retry/quarantine/confirm
 - support note/close/reopen/reply
 - notification retry
-- catalog publish/version
+- catalog draft/publish/version
 - question activate/retire/version/weight
 - private-data reveal
 
@@ -648,7 +656,7 @@ Rules:
 - no decryption in list queries
 - sensitive decrypt occurs only after single-Issue authorization
 - artwork URLs are signed only for records currently visible/reviewed
-- expensive sales analytics use aggregate/read models
+- commercial charts read bucketed aggregates rather than scanning all historical orders
 - provider calls are never made for every row in a list render
 - background reconciliation can be queued rather than holding owner HTTP requests open
 
@@ -661,50 +669,53 @@ Implementation is test-first.
 - dashboard metric definitions
 - privacy masking/reveal authorization
 - audit append behavior
-- catalog version freeze
+- catalog version freeze/publish
 - question version persistence
-- design recovery/regeneration state rules
+- design recovery/regeneration/candidate-selection state rules
 - manufacturing safety invariants
 - notification retry idempotency
 - contextual recovery eligibility
 
 ### Repository tests
 
-- pagination
+- cursor pagination
 - search by canonical identifiers
 - aggregate correctness
 - no plaintext sensitive fields in read models
 - append-only audit behavior
+- historical Issue values remain frozen across catalog/question changes
 
 ### Route/auth tests
 
 - every `/ops/api/*` route denies missing/invalid session
 - sensitive reveal requires reason
-- writes cannot bypass domain service eligibility
+- write APIs cannot bypass domain service eligibility
 - production confirmation still requires every existing lock
 
 ### Browser tests
 
-- owner login
+- owner login/logout
 - dashboard navigation
 - search/open Issue
 - masked sensitive data
-- reveal audit flow
-- designer review/regeneration
+- audited reveal flow
+- Designer review/regeneration/candidate selection
 - draft creation
 - typed production confirmation disabled until all locks are met
 - support workflow
+- catalog draft/publish
+- Question Vault management
 - responsive desktop/tablet/mobile owner layouts
 
 ### Scale tests
 
-Use generated datasets to prove bounded pagination/aggregate queries without requiring production customer data.
+Generated datasets prove bounded pagination and aggregate-query behavior without requiring production customer data.
 
 ## 24. Rollout
 
 Owner OS rolls out behind the existing private `/ops` authentication.
 
-Recommended implementation sequence:
+Implementation sequence:
 
 1. audit schema/service foundation
 2. scalable dashboard/read models
@@ -713,8 +724,8 @@ Recommended implementation sequence:
 5. Designer Studio recovery/versioning
 6. Manufacturing Control expansion
 7. support/notifications
-8. website catalog/question controls
-9. sales/customer analytics
+8. versioned website catalog and Question Vault controls
+9. sales/customer analytics and metric buckets
 10. system/readiness expansion
 11. browser/scale/security verification
 
@@ -737,7 +748,7 @@ ISSUED ONCE storefront
 
 It becomes the controlled human layer above that spine.
 
-Safepay may later be replaced by Stripe or another gateway. Printful may later be replaced or supplemented by another manufacturer. Owner OS must consume provider-independent payment/manufacturing interfaces wherever possible, so those migrations do not require rewriting the control plane.
+Safepay may later be replaced by Stripe or another gateway. Printful may later be replaced or supplemented by another manufacturer. Owner OS consumes provider-independent payment/manufacturing interfaces wherever possible, so those migrations do not require rewriting the control plane.
 
 ## 26. Acceptance definition
 
