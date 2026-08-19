@@ -2,40 +2,26 @@ import { chromium, devices } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 
 const baseUrl = process.env.PREVIEW_URL;
-if (!baseUrl) {
-  throw new Error('PREVIEW_URL is required');
-}
+if (!baseUrl) throw new Error('PREVIEW_URL is required');
 
 const profiles = [
-  {
-    name: 'desktop',
-    context: { viewport: { width: 1440, height: 1000 } },
-  },
-  {
-    name: 'mobile',
-    context: { ...devices['Pixel 7'] },
-  },
+  { name: 'desktop', context: { viewport: { width: 1440, height: 1000 } } },
+  { name: 'mobile', context: { ...devices['Pixel 7'] } },
 ];
 
 async function waitForCurrentDeployment(page) {
   let lastDetail = 'no response received';
-
   for (let attempt = 1; attempt <= 4; attempt += 1) {
     try {
-      const response = await page.goto(`${baseUrl}/begin`, {
-        waitUntil: 'domcontentloaded',
-        timeout: 8_000,
-      });
+      const response = await page.goto(`${baseUrl}/begin`, { waitUntil: 'domcontentloaded', timeout: 8_000 });
       const status = response?.status() ?? 'NO_RESPONSE';
       const title = await page.title().catch(() => 'NO_TITLE');
-
       if (!response?.ok()) {
         lastDetail = `attempt ${attempt}: HTTP ${status}, title=${JSON.stringify(title)}`;
         console.log(lastDetail);
         await page.waitForTimeout(2_000);
         continue;
       }
-
       try {
         await page.getByText('OWNER PREVIEW / NO PAYMENT').waitFor({ timeout: 2_500 });
         return;
@@ -51,7 +37,6 @@ async function waitForCurrentDeployment(page) {
       await page.waitForTimeout(2_000);
     }
   }
-
   throw new Error(`Vercel owner preview is not externally testable: ${lastDetail}`);
 }
 
@@ -65,11 +50,11 @@ async function runJourney(browser, profile) {
   const page = await context.newPage();
 
   await waitForCurrentDeployment(page);
-
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('link', { name: 'BEGIN' }).first().click();
   await page.waitForURL('**/begin');
   await page.getByText('OWNER PREVIEW / NO PAYMENT').waitFor();
+  await page.getByText('PREVIEW OTP / 123456').waitFor();
   await page.getByText('01 / 07').waitFor();
 
   await continueText(page, 'The Master and Margarita');
@@ -88,25 +73,34 @@ async function runJourney(browser, profile) {
   await page.getByRole('button', { name: 'CONFIRM SIZE' }).click();
   await page.getByRole('radio', { name: 'Bone' }).check();
   await page.getByRole('button', { name: 'LOCK BASE' }).click();
+
+  await page.getByRole('heading', { name: 'Where do we find you?' }).waitFor();
+  await page.getByLabel('Email').fill('preview@example.com');
+  await page.getByRole('button', { name: 'SEND CODE' }).click();
+  await page.getByLabel('Verification code').fill('123456');
+  await page.getByRole('button', { name: 'VERIFY' }).click();
+
+  await page.getByRole('heading', { name: 'Where does it go?' }).waitFor();
+  await page.getByLabel('Name').fill('Preview Customer');
+  await page.getByLabel('Address').fill('1 Preview Street');
+  await page.getByLabel('City').fill('Peshawar');
+  await page.getByLabel('Postal code').fill('25000');
+  await page.getByLabel('Country').selectOption('PK');
+  await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
+
   await page.getByText('$54.00').waitFor();
   await page.getByRole('button', { name: 'ISSUE MINE' }).click();
   await page.getByRole('heading', { name: 'PREVIEW COMPLETE.' }).waitFor();
   await page.getByText('No payment was attempted.').waitFor();
 
   await mkdir('artifacts/visual', { recursive: true });
-  await page.screenshot({
-    path: `artifacts/visual/live-vercel-${profile.name}.png`,
-    fullPage: true,
-  });
-
+  await page.screenshot({ path: `artifacts/visual/live-vercel-${profile.name}.png`, fullPage: true });
   await context.close();
 }
 
 const browser = await chromium.launch();
 try {
-  for (const profile of profiles) {
-    await runJourney(browser, profile);
-  }
+  for (const profile of profiles) await runJourney(browser, profile);
 } finally {
   await browser.close();
 }
