@@ -1,9 +1,9 @@
 # ISSUED ONCE — Canonical production launch gate
 
 Date: 2026-08-19
-Migration head: `0019_payment_exception_timeline.sql`
+Migration head: `0027_issue_prefix_search_indexes.sql`
 
-This document supersedes older launch snippets that stop at an earlier migration number.
+This document is the canonical production launch checklist. The authoritative migration manifest is `db/migrations/README.md`, and `db/migrations/CURRENT` identifies the repository migration head. If a duplicated migration number in any runbook disagrees with `CURRENT`, stop and reconcile the documentation before migrating.
 
 ## Production stays closed until every gate below has observed evidence
 
@@ -11,6 +11,7 @@ This document supersedes older launch snippets that stop at an earlier migration
 - exact reviewed GitHub head identified
 - executable unit tests complete with zero failures
 - executable TypeScript check completes with zero errors
+- executable lint check completes with zero errors when included in the release verification command set
 - production build completes with exit 0
 - browser journey completes on desktop + mobile
 - Vercel project is visible to the owner/integration again
@@ -18,21 +19,33 @@ This document supersedes older launch snippets that stop at an earlier migration
   - `issued-once-design`
   - `issued-once-notifications`
 
+A workflow record that ends before step 1 exists is infrastructure evidence, not a successful or failed application verification.
+
 ### 2. Database
-Production Neon must receive the complete chain through:
+Production Neon must receive the complete ordered chain described by `db/migrations/README.md` through the file named by `db/migrations/CURRENT`.
 
-`db/migrations/CURRENT -> 0019_payment_exception_timeline.sql`
+Current repository head:
 
-Required post-migration proofs:
+`db/migrations/CURRENT -> 0027_issue_prefix_search_indexes.sql`
+
+Required post-migration proofs include:
 - `payment_attempts.status` allows `REFUNDED`
 - active payment truth freezes referenced contact/shipping snapshots
 - FAILED unshown attempts release that freeze
-- Issue state-machine trigger exists
-- payment exception overlay columns/triggers exist
+- Issue state-machine enforcement exists
+- payment exception overlay enforcement exists
 - contradictory signed provider money can quarantine payment truth
 - pre-production payment exceptions create a canonical Issue timeline event
+- Owner OS audit/private-note storage exists and audit writes remain append-only
+- design candidate history and the guarded pre-manufacturing rework path exist
+- versioned Owner OS website/catalog configuration exists
+- incremental `commercial_metric_buckets` projection exists for long-window analytics
+- delivered-count projection exists independently of lifecycle timing
+- bounded Owner OS operational/queue indexes exist
+- newest-first Issue-ledger and country-filter join indexes exist
+- `pg_trgm` and the four case-insensitive prefix-search indexes exist for Issue Code, Safepay reference, Printful order ID, and tracking number
 
-The connected temporary Neon branch has exercised these rules. Production has not been claimed migrated.
+The isolated Neon proof branches exercised migrations `0020`–`0027` and were deleted afterward. Those proofs do **not** mean production has been migrated. The connected production/default database remains separately evidence-gated.
 
 ### 3. Privacy
 - `QUIZ_ENCRYPTION_KEY_V1`: base64 -> exactly 32 bytes
@@ -41,7 +54,8 @@ The connected temporary Neon branch has exercised these rules. Production has no
 - canonical generated artwork stored in private Vercel Blob
 - `/ops` receives only a short-lived signed artwork read URL
 - Printful receives only a bounded signed artwork read URL at draft time
-- raw seven answers never appear in Safepay, Printful, support, customer status, or ops payloads
+- raw seven answers never appear in Safepay, Printful, support, customer status, or ops list payloads
+- private customer/support/design reveals remain explicit, scoped, and audited
 
 ### 4. Retail money
 - ISSUED ONCE catalog currency is `USD` or `PKR` for the active Safepay adapter
@@ -119,4 +133,4 @@ After confirmation, return the kill switch to disabled if continuous automatic c
 
 ## Stop conditions
 
-If any gate cannot be proven, ISSUED ONCE remains closed for production money/factory confirmation. The correct result is `OWNER_REQUIRED` or `WAIT_EXTERNAL`, never an assumed green launch.
+If any gate cannot be proven, ISSUED ONCE remains closed for production money/factory confirmation. The correct Governor result is `OWNER_REQUIRED`, `WAIT_EXTERNAL`, or another explicit stop state supported by the repo protocol—never an assumed green launch.
