@@ -11,7 +11,7 @@ test('regeneration is queued as artwork-only rework and audited', async () => {
   }, {
     approve: async () => undefined,
     enqueue: async (issueId, mode, generationKey) => { calls.push({ issueId, mode, generationKey }); },
-  }, { record: async (event) => { calls.push(event); } } as never);
+  }, { record: async (event: unknown) => { calls.push(event); } } as never);
 
   await service.rework({ issueId: '11111111-1111-1111-1111-111111111111', mode: 'regenerate', reason: 'composition needs another pass' });
 
@@ -33,7 +33,7 @@ test('retry only uses the FAILED-job retry reservation and is audited', async ()
   }, {
     approve: async () => undefined,
     enqueue: async (queuedIssueId, mode, generationKey) => { calls.push({ queuedIssueId, mode, generationKey }); },
-  }, { record: async (event) => { calls.push(event); } } as never);
+  }, { record: async (event: unknown) => { calls.push(event); } } as never);
 
   await service.retryFailed(issueId);
 

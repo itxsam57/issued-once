@@ -8,6 +8,7 @@ const placement = {
 };
 
 const completeEnv: NodeJS.ProcessEnv = {
+  NODE_ENV: 'test',
   DATABASE_URL: 'postgresql://hidden',
   QUIZ_ENCRYPTION_KEY_V1: Buffer.alloc(32, 1).toString('base64'),
   IDENTITY_HMAC_KEY: Buffer.alloc(32, 2).toString('base64'),
@@ -90,7 +91,7 @@ test('malformed privacy key material is blocked instead of treated as configured
 
 test('missing boundaries fail closed and never report production ready', async () => {
   const service = new ReadinessService({
-    env: { SAFEPAY_ENVIRONMENT: 'production', PRINTFUL_ALLOW_CONFIRM: 'true' },
+    env: { NODE_ENV: 'test', SAFEPAY_ENVIRONMENT: 'production', PRINTFUL_ALLOW_CONFIRM: 'true' },
     databasePing: vi.fn(async () => false),
     blobPing: vi.fn(async () => false),
     fetchImpl: vi.fn() as typeof fetch,

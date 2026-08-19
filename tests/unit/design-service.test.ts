@@ -66,7 +66,7 @@ test('decrypts answers only at design boundary, gives image generation only the 
   const repository = new MemoryDesignRepository();
   repository.input = await paidInput();
   const gateway: DesignGateway = {
-    interpret: vi.fn(async (input) => {
+    interpret: vi.fn(async (input: Parameters<DesignGateway['interpret']>[0]) => {
       expect(input.questions.map((q) => q.answer)).toContain('private answer 1');
       return {
         concept: 'quiet orbit under pressure', motifs: ['broken orbit', 'weather line'], paletteRelation: 'light mark on black',
@@ -75,9 +75,9 @@ test('decrypts answers only at design boundary, gives image generation only the 
         imagePrompt: 'abstract broken orbit and weather-line composition, no text, transparent background',
       };
     }),
-    generateArtwork: vi.fn(async (brief) => {
+    generateArtwork: vi.fn(async (brief: Parameters<DesignGateway['generateArtwork']>[0]) => {
       expect(JSON.stringify(brief)).not.toContain('private answer');
-      return { bytes: Buffer.from('png-bytes'), mimeType: 'image/png', width: 1024, height: 1536, provider: 'OPENAI', model: 'gpt-image-2' };
+      return { bytes: Buffer.from('png-bytes'), mimeType: 'image/png' as const, width: 1024, height: 1536, provider: 'OPENAI', model: 'gpt-image-2' };
     }),
   };
   const storage: ArtworkStorageGateway = {
@@ -135,9 +135,9 @@ test('late design worker cannot resurrect an Issue that becomes an exception dur
   };
   const gateway: DesignGateway = {
     interpret: vi.fn(async () => brief),
-    generateArtwork: vi.fn(async () => {
+    generateArtwork: vi.fn(async (_brief: Parameters<DesignGateway['generateArtwork']>[0]) => {
       if (repository.input) repository.input.issueStatus = 'EXCEPTION';
-      return { bytes: Buffer.from('png-bytes'), mimeType: 'image/png', width: 1024, height: 1536, provider: 'OPENAI', model: 'gpt-image-2' };
+      return { bytes: Buffer.from('png-bytes'), mimeType: 'image/png' as const, width: 1024, height: 1536, provider: 'OPENAI', model: 'gpt-image-2' };
     }),
   };
   const storage: ArtworkStorageGateway = {
@@ -166,9 +166,9 @@ test('regenerates artwork from the existing encrypted brief without reinterpreti
   };
   const gateway: DesignGateway = {
     interpret: vi.fn(),
-    generateArtwork: vi.fn(async (received) => {
+    generateArtwork: vi.fn(async (received: Parameters<DesignGateway['generateArtwork']>[0]) => {
       expect(received.concept).toBe('quiet orbit');
-      return { bytes: Buffer.from('new-png'), mimeType: 'image/png', width: 1024, height: 1536, provider: 'OPENAI', model: 'gpt-image-2' };
+      return { bytes: Buffer.from('new-png'), mimeType: 'image/png' as const, width: 1024, height: 1536, provider: 'OPENAI', model: 'gpt-image-2' };
     }),
   };
   const storage: ArtworkStorageGateway = {

@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { OpsWebsiteService } from '@/server/ops/OpsWebsiteService';
+import { OpsWebsiteService, type OpsCatalogPayload } from '@/server/ops/OpsWebsiteService';
 
-const catalog = { currency: 'USD', products: { tee: { slug: 'issued-tee', variants: [{ id: 'tee-m-black', size: 'M', colorName: 'Black', colorSwatch: '#171713', amountMinor: 5400, available: true }] } } };
+const catalog: OpsCatalogPayload = { currency: 'USD', products: { tee: { slug: 'issued-tee', variants: [{ id: 'tee-m-black', size: 'M', colorName: 'Black', colorSwatch: '#171713', amountMinor: 5400, available: true }] } } };
 
 test('publishes only factory-mapped future-sale catalog and audits it', async () => {
   const audits: unknown[] = [];
@@ -14,7 +14,7 @@ test('publishes only factory-mapped future-sale catalog and audits it', async ()
   }, {
     bootCatalogJson: JSON.stringify(catalog),
     assertFactoryMapping: () => undefined,
-  }, { record: async (event) => { audits.push(event); } } as never);
+  }, { record: async (event: unknown) => { audits.push(event); } } as never);
   const version = await service.publishCatalog(catalog);
   expect(version).toBe(1);
   expect(published).toHaveLength(1);

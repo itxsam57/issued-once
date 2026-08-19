@@ -17,10 +17,10 @@ const issue = {
   artworkUrl: 'https://blob.example/issue.png?signed=ops',
   artworkWidth: 1024,
   artworkHeight: 1536,
-  manufacturingJobId: null,
-  manufacturingState: null,
-  providerOrderId: null,
-  trackingNumber: null,
+  manufacturingJobId: null as string | null,
+  manufacturingState: null as string | null,
+  providerOrderId: null as string | null,
+  trackingNumber: null as string | null,
   updatedAt: '2026-08-19T06:00:00.000Z',
 };
 

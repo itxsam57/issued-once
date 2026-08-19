@@ -32,7 +32,8 @@ class RefundedDesignRepository implements DesignRepository {
   async findByIssueId() { return this.job; }
   async begin(record: DesignJobRecord) { return { created: false, job: record }; }
   async claim() { this.job.state = 'INTERPRETING'; return true; }
-  async saveGenerated() { throw new Error('must never save'); }
+  saveGenerated: DesignRepository['saveGenerated'] = async () => { throw new Error('must never save'); };
+  approve: DesignRepository['approve'] = async () => { throw new Error('must never approve'); };
   async markFailed() { this.job.state = 'FAILED'; }
 }
 

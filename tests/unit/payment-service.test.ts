@@ -66,6 +66,7 @@ class MemoryPaymentRepository implements PaymentRepository {
   async markFailed(attemptId: string, _providerEventId: string, at: Date) {
     const attempt = this.attempts.get(attemptId)!; attempt.status = 'FAILED'; attempt.updatedAt = at;
   }
+  async markRefunded() { return 'mismatch' as const; }
 }
 
 function fixture(options: { contact?: boolean; shipping?: boolean } = {}) {

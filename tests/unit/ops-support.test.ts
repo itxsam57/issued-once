@@ -9,7 +9,7 @@ test('closes a support case and audits the owner action without message plaintex
     addNote: async () => undefined,
     getReplyContext: async () => null,
     assertFailedNotification: async () => undefined,
-  }, { send: async () => ({ providerMessageId: 'r1' }) }, { record: async (event) => { audits.push(event); } } as never, { enqueue: async () => undefined });
+  }, { send: async () => ({ providerMessageId: 'r1' }) }, { record: async (event: unknown) => { audits.push(event); } } as never, { enqueue: async () => undefined });
   await service.setStatus({ requestId: '22222222-2222-2222-2222-222222222222', status: 'CLOSED' });
   expect(JSON.stringify(audits)).toContain('SUPPORT_CLOSED');
   expect(JSON.stringify(audits)).not.toContain('message');
@@ -24,7 +24,7 @@ test('retries only a store-confirmed failed notification and audits the retry', 
     addNote: async () => undefined,
     getReplyContext: async () => null,
     assertFailedNotification: async (candidateIssueId, eventKey) => { calls.push({ candidateIssueId, eventKey }); },
-  }, { send: async () => ({ providerMessageId: 'r1' }) }, { record: async (event) => { calls.push(event); } } as never, {
+  }, { send: async () => ({ providerMessageId: 'r1' }) }, { record: async (event: unknown) => { calls.push(event); } } as never, {
     enqueue: async (candidateIssueId, eventKey) => { calls.push({ queued: candidateIssueId, eventKey }); },
   });
 

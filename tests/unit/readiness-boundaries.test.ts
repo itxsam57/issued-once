@@ -1,8 +1,9 @@
 import { expect, test, vi } from 'vitest';
 import { ReadinessService } from '@/server/ops/ReadinessService';
 
-function env(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
+function env(overrides: Partial<NodeJS.ProcessEnv> = {}): NodeJS.ProcessEnv {
   return {
+    NODE_ENV: 'test',
     DATABASE_URL: 'postgresql://configured',
     QUIZ_ENCRYPTION_KEY_V1: Buffer.alloc(32, 1).toString('base64'),
     IDENTITY_HMAC_KEY: Buffer.alloc(32, 2).toString('base64'),

@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { PaymentService } from '@/server/payments/PaymentService';
 import { hashSessionToken } from '@/server/http/sessionToken';
+import type { PaymentGateway } from '@/server/payments/PaymentGateway';
 import type { PaymentAttemptRecord, PaymentProviderEvent, PaymentRepository } from '@/server/payments/PaymentRepository';
 
 const sessionToken = 'retry-session';
@@ -31,7 +32,7 @@ class Repository implements PaymentRepository {
   }
 }
 
-function build(repository: Repository, createCheckout: ReturnType<typeof vi.fn>) {
+function build(repository: Repository, createCheckout: PaymentGateway['createCheckout']) {
   return new PaymentService({
     experiences: { findBySessionHash: vi.fn(async () => experience) },
     quotes: { findById: vi.fn(async () => ({ id: 'quote-1', experienceId: 'exp-1', productSlug: 'tee', variantId: 't1', amountMinor: 5400, currency: 'USD', expiresAt: new Date(Date.now() + 3_600_000) })) },
@@ -49,7 +50,7 @@ test('failed Safepay tracker initialization moves the unshown attempt out of the
   await expect(first.start({ sessionToken, quoteId: 'quote-1', returnBaseUrl: 'https://issuedonce.shop' })).rejects.toThrow(/network failed/i);
   expect(repository.attempt?.status).toBe('FAILED');
 
-  const secondGateway = vi.fn(async ({ paymentAttemptId }: { paymentAttemptId: string }) => ({
+  const secondGateway: PaymentGateway['createCheckout'] = vi.fn(async ({ paymentAttemptId }) => ({
     providerReference: 'track-retry',
     checkoutUrl: `https://sandbox.api.getsafepay.com/checkout/pay?order_id=${paymentAttemptId}`,
   }));

@@ -17,7 +17,7 @@ test('reveals only one requested category and audits without plaintext', async (
     getDesignBrief: async () => null,
     getSupportMessages: async () => [],
   }, {
-    record: async (event) => { audits.push(event); },
+    record: async (event: unknown) => { audits.push(event); },
   } as never);
 
   const revealed = await service.reveal({

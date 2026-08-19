@@ -25,6 +25,6 @@ test.each([
   [{ variantId: 4012, fileType: 'front' }, /printArea|position/i],
   [{ variantId: 4012, fileType: 'front', printArea: { width: 1800, height: 2400, dpi: 150 }, position: { width: 1900, height: 1350, top: 0, left: 0 } }, /invalid|too_big|custom/i],
   [{ variantId: 4012, fileType: 'front', printArea: { width: 1800, height: 2400, dpi: 150 }, position: { width: 900, height: 1350, top: 1200, left: 450 } }, /invalid|too_big|custom/i],
-])('rejects unsafe Printful mapping %#', (value) => {
-  expect(() => new PrintfulVariantMap(JSON.stringify({ 'tee:M:Black': value }))).toThrow();
+])('rejects unsafe Printful mapping %#', (value, expected) => {
+  expect(() => new PrintfulVariantMap(JSON.stringify({ 'tee:M:Black': value }))).toThrow(expected);
 });

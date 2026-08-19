@@ -36,7 +36,7 @@ test('signed full refund returns the payment identity and changes paid truth to 
   const gateway: PaymentGateway = {
     createCheckout: vi.fn(),
     verifyWebhook: vi.fn(() => ({
-      providerEventId: 'refund-1', providerReference: 'track-1', state: 'REFUNDED',
+      providerEventId: 'refund-1', providerReference: 'track-1', state: 'REFUNDED' as const,
       amountMinor: 5400, currency: 'USD', reference: 'refund-ref', occurredAt: new Date('2026-08-19T05:00:00Z'),
     })),
   };
