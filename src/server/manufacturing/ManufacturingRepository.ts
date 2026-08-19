@@ -9,6 +9,8 @@ export type ManufacturingInput = {
   designJobId: string;
   designState: DesignJobState;
   artworkUrl: string;
+  artworkWidth: number;
+  artworkHeight: number;
   objectType: string;
   sizeCode: string;
   colorCode: string;
