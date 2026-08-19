@@ -122,9 +122,10 @@ test('freezes exact amount/currency and moves checkout only after provider sessi
   expect(states.advance).toHaveBeenCalledWith(expect.objectContaining({ expectedStage: 'COMMITMENT_READY', nextStage: 'CHECKOUT_STARTED' }));
 });
 
-test('only a verified provider event with exact money truth can mark the attempt paid and duplicate events are idempotent', async () => {
+test('only a verified provider event with exact money truth can mark the attempt paid and duplicate events preserve payment identity for recovery', async () => {
   const { service, payments, gateway } = fixture();
   await service.start({ sessionToken: token, quoteId: 'quote-1', returnBaseUrl: 'https://issuedonce.shop' });
+  const attempt = [...payments.attempts.values()][0];
 
   const paid: VerifiedPaymentEvent = {
     providerEventId: 'evt-1', providerReference: 'track-safe-1', state: 'PAID', amountMinor: 5400,
@@ -132,9 +133,13 @@ test('only a verified provider event with exact money truth can mark the attempt
   };
   vi.mocked(gateway.verifyWebhook).mockReturnValue(paid);
 
-  expect(await service.handleWebhook({ rawBody: '{}', headers: new Headers() })).toMatchObject({ kind: 'paid' });
-  expect([...payments.attempts.values()][0].status).toBe('PAID');
-  expect(await service.handleWebhook({ rawBody: '{}', headers: new Headers() })).toMatchObject({ kind: 'duplicate' });
+  expect(await service.handleWebhook({ rawBody: '{}', headers: new Headers() })).toMatchObject({
+    kind: 'paid', paymentAttemptId: attempt.id,
+  });
+  expect(attempt.status).toBe('PAID');
+  expect(await service.handleWebhook({ rawBody: '{}', headers: new Headers() })).toMatchObject({
+    kind: 'duplicate', paymentAttemptId: attempt.id,
+  });
 });
 
 test('authenticated payment with changed amount is quarantined instead of becoming paid', async () => {
