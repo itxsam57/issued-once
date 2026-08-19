@@ -1,9 +1,9 @@
-import type { ExperienceStage } from '@/domain/experience/types';
+import type { ExperienceStage, QuestionDefinition } from '@/domain/experience/types';
 import type { ExperienceRepository } from '@/server/experience/ExperienceRepository';
 import { ExperienceService } from '@/server/experience/ExperienceService';
 import { hashSessionToken } from '@/server/http/sessionToken';
-import type { QuestionDefinition } from '@/domain/experience/types';
-import { QuestionSelectionService, toInterviewQuestions } from './QuestionSelectionService';
+import type { AssignedQuestionRecord } from './QuestionSetRepository';
+import { toInterviewQuestions } from './QuestionSelectionService';
 
 const POSITION_BY_STAGE: Partial<Record<ExperienceStage, number>> = {
   QUESTION_1: 1,
@@ -23,17 +23,19 @@ export type InterviewBootstrap = {
   questions: readonly QuestionDefinition[];
 };
 
+type QuestionAssigner = {
+  assign(experienceId: string): Promise<readonly AssignedQuestionRecord[]>;
+};
+
 export class InterviewBootstrapService {
   constructor(
     private readonly experienceRepository: ExperienceRepository,
-    private readonly questionSelection: QuestionSelectionService,
+    private readonly questionSelection: QuestionAssigner,
   ) {}
 
   async bootstrap(existingToken?: string | null): Promise<InterviewBootstrap> {
     if (existingToken) {
-      const existing = await this.experienceRepository.findBySessionHash(
-        hashSessionToken(existingToken),
-      );
+      const existing = await this.experienceRepository.findBySessionHash(hashSessionToken(existingToken));
       if (existing) {
         const assignment = await this.questionSelection.assign(existing.id);
         return {
@@ -46,12 +48,8 @@ export class InterviewBootstrapService {
       }
     }
 
-    const started = await new ExperienceService(this.experienceRepository).start({
-      hookId: 'public-entry',
-    });
-    const stored = await this.experienceRepository.findBySessionHash(
-      hashSessionToken(started.token),
-    );
+    const started = await new ExperienceService(this.experienceRepository).start({ hookId: 'public-entry' });
+    const stored = await this.experienceRepository.findBySessionHash(hashSessionToken(started.token));
     if (!stored) throw new Error('Started experience could not be recovered');
 
     const assignment = await this.questionSelection.assign(stored.id);
