@@ -1,14 +1,17 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { createDesignService } from '@/server/design/runtimeDesign';
 import { enqueueDesignIssue } from '@/server/design/designQueue';
+import { createManufacturingService } from '@/server/manufacturing/runtimeManufacturing';
 import { OpsAuditService } from './OpsAuditService';
 import { OpsDesignerService } from './OpsDesignerService';
+import { OpsManufacturingService } from './OpsManufacturingService';
 import { OpsPrivateRevealService } from './OpsPrivateRevealService';
 import { PostgresOpsAuditRepository } from './PostgresOpsAuditRepository';
 import { PostgresOpsDashboardRepository } from './PostgresOpsDashboardRepository';
 import { PostgresOpsDesignCandidateRepository } from './PostgresOpsDesignCandidateRepository';
 import { PostgresOpsDesignerStore } from './PostgresOpsDesignerStore';
 import { PostgresOpsIssueDetailRepository } from './PostgresOpsIssueDetailRepository';
+import { PostgresOpsManufacturingStore } from './PostgresOpsManufacturingStore';
 import { PostgresOpsPrivateSource } from './PostgresOpsPrivateSource';
 import { OpsRuntimeUnavailableError } from './runtimeOps';
 
@@ -57,6 +60,19 @@ export function createOpsDesignerService() {
         generationKey,
         source: mode === 'regenerate' ? 'OWNER_REGENERATE' : 'OWNER_REINTERPRET',
       }),
+    },
+    new OpsAuditService(new PostgresOpsAuditRepository(executor)),
+  );
+}
+
+export function createOpsManufacturingService() {
+  const executor = sql();
+  const manufacturing = createManufacturingService();
+  return new OpsManufacturingService(
+    new PostgresOpsManufacturingStore(executor),
+    {
+      createDraft: (issueId) => manufacturing.createDraft(issueId),
+      confirmDraft: (issueId) => manufacturing.confirmDraft(issueId),
     },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
