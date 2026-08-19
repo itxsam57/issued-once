@@ -52,7 +52,7 @@ async function mockOwnerApis(page: Page) {
       timing: { averageHoursStartToPaid: 0.25, averageHoursPaidToProduction: null, averageHoursProductionToDelivered: null },
       funnel: { started: 1, answered: 1, physical: 1, verified: 1, shipping: 1, checkout: 1, paid: 1 },
     });
-    if (path === '/ops/api/customers') return json(route, { items: [{ contactAlias: 'CONTACT A1B2C3D4', issueCount: 1, paidMinor: 5400, refundedIssues: 0, activeDeliveries: 0, supportCount: 1, lastSeenAt: '2026-08-19T10:00:00.000Z' }], nextCursor: null });
+    if (path === '/ops/api/customers') return json(route, { items: [{ contactAlias: 'CONTACT A1B2C3D4', issueCount: 1, currency: 'USD', paidMinor: 5400, refundedIssues: 0, activeDeliveries: 0, supportCount: 1, lastSeenAt: '2026-08-19T10:00:00.000Z' }], nextCursor: null });
     if (path === '/ops/api/support') return json(route, { items: [{ requestId: '33333333-3333-3333-3333-333333333333', issueId: ISSUE_ID, issueCode: ISSUE_CODE, issueStatus: 'DESIGN_REVIEW', status: 'OPEN', createdAt: '2026-08-19T10:00:00.000Z', updatedAt: '2026-08-19T10:00:00.000Z', noteCount: 0, failedNotifications: ['PAYMENT_RECEIVED'] }] });
     if (path.startsWith('/ops/api/support/')) return json(route, { queued: true });
     if (path === '/ops/api/website') return json(route, {
@@ -106,7 +106,7 @@ test('Owner OS protects private data and exposes every control-plane room', asyn
 
   const rooms: Array<[string, RegExp]> = [
     ['Sales', /What actually sold/],
-    ['Customers', /Who has received an Issue/],
+    ['Customers', /People, without turning them into profiles/],
     ['Support', /What needs a human/],
     ['Website', /What the next customer can receive/],
     ['System', /What can actually run/],
