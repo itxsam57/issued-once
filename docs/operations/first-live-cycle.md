@@ -27,15 +27,24 @@ Do not call this gate green if a GitHub Actions job exists but has no executable
 
 ## Gate 1 — database
 
-Apply and verify migrations in order through the latest migration:
+For a fresh database, apply and verify the complete migration chain in order:
 
+- `0001_experience.sql`
+- `0002_checkout_quotes.sql`
+- `0003_physical_selection.sql`
+- `0004_commitment_ready.sql`
+- `0005_webhook_issue_registry.sql`
+- `0006_add_tote_form.sql`
 - `0007_question_vault.sql`
 - `0008_contact_shipping.sql`
 - `0009_payments.sql`
+- `0009a_issue_uuid_prerequisite.sql`
 - `0010_issue_identity_spine.sql`
 - `0011_design_jobs.sql`
 - `0012_manufacturing.sql`
 - `0013_notifications_support.sql`
+
+Do not skip `0009a`: it guarantees the internal Issue UUID required by the final design/manufacturing identity spine.
 
 Verify schema invariants directly:
 
@@ -129,7 +138,7 @@ Manually review:
 
 ## Gate 6 — owner artwork approval
 
-Call the owner-only design approval operation using the internal bearer token.
+Use the private `/ops` room or the equivalent owner-only approval operation.
 
 Evidence:
 
@@ -179,9 +188,9 @@ This is the first irreversible/paid factory action.
 
 Requirements simultaneously:
 
-1. owner bearer token present
+1. owner operations session is valid
 2. `PRINTFUL_ALLOW_CONFIRM=true`
-3. exact request confirmation text `CONFIRM <issue UUID>`
+3. exact confirmation requested for the displayed Issue
 4. owner has visually inspected the Printful draft
 
 After success:
