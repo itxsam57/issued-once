@@ -73,7 +73,7 @@ export class PrintfulWebhookVerifier {
       throw new Error('Printful webhook secret must be hexadecimal');
     }
     this.secret = Buffer.from(options.secretKeyHex, 'hex');
-    if (!this.secret.length) throw new Error('Printful webhook secret is empty');
+    if (this.secret.length < 32) throw new Error('Printful webhook secret must be at least 32 bytes');
   }
 
   verify(input: { rawBody: string; headers: Headers }): NormalizedPrintfulEvent {
