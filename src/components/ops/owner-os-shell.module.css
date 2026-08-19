@@ -1,0 +1,33 @@
+@media (max-width: 760px) {
+  .shell {
+    width: 100%;
+    max-width: 100vw;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .rail {
+    width: 100%;
+    max-width: 100vw;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .nav {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+
+  .navButton {
+    flex: 0 0 auto;
+    min-width: max-content;
+  }
+}

@@ -6,6 +6,7 @@ import type {
   StoredAnswer,
 } from '@/server/experience/ExperienceRepository';
 import type { ObjectType } from '@/server/physical/PhysicalSelectionRepository';
+import type { AssignedQuestionRecord } from '@/server/questions/QuestionSetRepository';
 
 export type PreviewPhysicalSelection = {
   experienceId: string;
@@ -24,6 +25,7 @@ export type PreviewStore = {
   answers: Map<string, StoredAnswer>;
   physicalSelections: Map<string, PreviewPhysicalSelection>;
   checkoutQuotes: Map<string, CheckoutQuoteRecord>;
+  questionAssignments: Map<string, readonly AssignedQuestionRecord[]>;
 };
 
 type PreviewGlobal = typeof globalThis & {
@@ -37,6 +39,7 @@ export function getPreviewStore(): PreviewStore {
     answers: new Map(),
     physicalSelections: new Map(),
     checkoutQuotes: new Map(),
+    questionAssignments: new Map(),
   };
   return runtime.__issuedOncePreviewExperienceStore;
 }

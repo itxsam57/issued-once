@@ -4,7 +4,7 @@ test('public answers advance only after the server accepts them and preserve one
   await page.goto('/begin');
 
   await expect(page.getByText('01 / 07')).toBeVisible();
-  await expect(page.getByRole('heading', { name: "So tell me. What's your favourite book?" })).toBeVisible();
+  await expect(page.getByRole('heading', { name: "So tell me. What's a book you actually remember?" })).toBeVisible();
   await page.getByLabel('Your answer').fill('The Master and Margarita');
   await page.getByRole('button', { name: 'CONTINUE' }).click();
 

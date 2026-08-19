@@ -112,7 +112,7 @@ test('public physical flow requires verified contact and shipping before Safepay
 
   await expect(page.getByRole('heading', { name: 'Where does it go?' })).toBeVisible();
   await page.getByLabel('Name').fill('Sam Example');
-  await page.getByLabel('Address').fill('1 Quiet Street');
+  await page.getByLabel('Address', { exact: true }).fill('1 Quiet Street');
   await page.getByLabel('City').fill('Peshawar');
   await page.getByLabel('Province / state / region').fill('Khyber Pakhtunkhwa');
   await page.getByLabel('Postal code').fill('25000');

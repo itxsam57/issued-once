@@ -32,7 +32,7 @@ async function completePreviewIdentity(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: 'VERIFY' }).click();
   await expect(page.getByRole('heading', { name: 'Where does it go?' })).toBeVisible();
   await page.getByLabel('Name').fill('QA Customer');
-  await page.getByLabel('Address').fill('1 QA Street');
+  await page.getByLabel('Address', { exact: true }).fill('1 QA Street');
   await page.getByLabel('City').fill('Peshawar');
   await page.getByLabel('Province / state / region').fill('Khyber Pakhtunkhwa');
   await page.getByLabel('Postal code').fill('25000');
@@ -201,7 +201,7 @@ test('the public BEGIN link opens the first mystery question without category le
   await page.getByRole('link', { name: /BEGIN/ }).first().click();
   await expect(page).toHaveURL(/\/begin$/);
   await expect(page.getByText('01 / 07')).toBeVisible();
-  await expect(page.getByRole('heading', { name: "So tell me. What's your favourite book?" })).toBeVisible();
+  await expect(page.getByRole('heading', { name: "So tell me. What's a book you actually remember?" })).toBeVisible();
   await expect(page.locator('body')).not.toContainText(forbiddenBeforeClose);
   await capture(page, `09-public-entry-${testInfo.project.name}`);
 });
