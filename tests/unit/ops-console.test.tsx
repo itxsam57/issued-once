@@ -14,7 +14,7 @@ const issue = {
   currency: 'USD',
   designJobId: 'design-1',
   designState: 'REVIEW',
-  artworkUrl: 'https://blob.example/issue.png',
+  artworkUrl: 'https://blob.example/issue.png?signed=ops',
   artworkWidth: 1024,
   artworkHeight: 1536,
   manufacturingJobId: null,
@@ -24,14 +24,41 @@ const issue = {
   updatedAt: '2026-08-19T06:00:00.000Z',
 };
 
+const readiness = {
+  checkedAt: '2026-08-19T06:00:00.000Z',
+  readyForSandbox: false,
+  readyForProduction: false,
+  checks: [
+    { key: 'database', label: 'Neon database', state: 'ready', detail: 'Read-only database ping succeeded.' },
+    { key: 'safepay', label: 'Safepay', state: 'missing', detail: 'Safepay environment, API key, and webhook secret are required.' },
+    { key: 'factory-confirm', label: 'Factory charge switch', state: 'safe', detail: 'Printful production confirmation is disabled by default.' },
+  ],
+};
+
+function mockOpsFetch(issues = [issue]) {
+  vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.includes('/ops/api/readiness')) {
+      return new Response(JSON.stringify(readiness), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    return new Response(JSON.stringify({ issues }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  }));
+}
+
 afterEach(() => vi.unstubAllGlobals());
 
-test('shows production truth and artwork without raw answers, contact or shipping data', async () => {
-  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ issues: [issue] }), {
-    status: 200,
-    headers: { 'content-type': 'application/json' },
-  })));
+test('shows launch readiness and production truth without raw answers, contact or shipping data', async () => {
+  mockOpsFetch();
   render(<OpsConsole />);
+
+  expect(await screen.findByText('LAUNCH / NOT READY')).toBeInTheDocument();
+  expect(screen.getByText('Neon database')).toBeInTheDocument();
+  expect(screen.getByText('READY')).toBeInTheDocument();
+  expect(screen.getByText('Safepay')).toBeInTheDocument();
+  expect(screen.getByText('MISSING')).toBeInTheDocument();
 
   expect(await screen.findByText('ISSUE / IO-ABCD-EFGH')).toBeInTheDocument();
   expect(screen.getByRole('img', { name: 'Production artwork for IO-ABCD-EFGH' })).toBeInTheDocument();
@@ -41,9 +68,7 @@ test('shows production truth and artwork without raw answers, contact or shippin
 
 test('production confirmation remains disabled until the exact public Issue Code phrase is typed', async () => {
   const user = userEvent.setup();
-  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
-    issues: [{ ...issue, status: 'MANUFACTURING_DRAFT', designState: 'APPROVED', manufacturingJobId: 'mfg-1', manufacturingState: 'DRAFT', providerOrderId: '987654' }],
-  }), { status: 200, headers: { 'content-type': 'application/json' } })));
+  mockOpsFetch([{ ...issue, status: 'MANUFACTURING_DRAFT', designState: 'APPROVED', manufacturingJobId: 'mfg-1', manufacturingState: 'DRAFT', providerOrderId: '987654' }]);
   render(<OpsConsole />);
 
   const button = await screen.findByRole('button', { name: 'CONFIRM PRODUCTION' });
