@@ -16,6 +16,8 @@ type InputRow = {
   design_job_id: string;
   design_state: DesignJobState;
   artwork_url: string;
+  artwork_width: number;
+  artwork_height: number;
   object_type: string;
   size_code: string;
   color_code: string;
@@ -84,6 +86,8 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
          design.id AS design_job_id,
          design.state AS design_state,
          design.artwork_url,
+         design.artwork_width,
+         design.artwork_height,
          issue.object_type,
          issue.size_code,
          issue.color_code,
@@ -107,6 +111,8 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
         AND shipping.contact_id = issue.contact_id
        WHERE issue.id = $1::uuid
          AND design.artwork_url IS NOT NULL
+         AND design.artwork_width IS NOT NULL
+         AND design.artwork_height IS NOT NULL
        LIMIT 1`,
       [issueId],
     );
@@ -119,6 +125,8 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
       designJobId: row.design_job_id,
       designState: row.design_state,
       artworkUrl: row.artwork_url,
+      artworkWidth: Number(row.artwork_width),
+      artworkHeight: Number(row.artwork_height),
       objectType: row.object_type,
       sizeCode: row.size_code,
       colorCode: row.color_code,
