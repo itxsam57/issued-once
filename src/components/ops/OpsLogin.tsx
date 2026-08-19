@@ -11,7 +11,7 @@ export function OpsLogin() {
     const form = new FormData(event.currentTarget);
     const token = String(form.get('token') ?? '');
     setState('working');
-    const response = await fetch('/api/ops/session', {
+    const response = await fetch('/ops/api/session', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ token }),
