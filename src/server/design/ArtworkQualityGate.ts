@@ -11,10 +11,10 @@ export type ArtworkReviewCandidate = {
 };
 
 const MIN_DIMENSIONS: Record<string, { width: number; height: number }> = {
-  tee: { width: 900, height: 1300 },
-  hoodie: { width: 900, height: 1300 },
-  tote: { width: 900, height: 1300 },
-  hat: { width: 800, height: 800 },
+  tee: { width: 1024, height: 1536 },
+  hoodie: { width: 1024, height: 1536 },
+  tote: { width: 1024, height: 1536 },
+  hat: { width: 1024, height: 1024 },
 };
 
 export class ArtworkQualityGate {
@@ -27,6 +27,10 @@ export class ArtworkQualityGate {
     const url = new URL(candidate.artworkUrl);
     if (url.protocol !== 'https:') throw new Error('Artwork URL must use HTTPS');
     checks.push('url:https');
+    if (!url.hostname.endsWith('.private.blob.vercel-storage.com')) {
+      throw new Error('Production artwork must use private Blob storage');
+    }
+    checks.push('storage:private');
 
     if (candidate.artworkMimeType !== 'image/png') throw new Error('Production artwork must be PNG');
     checks.push('mime:png');
