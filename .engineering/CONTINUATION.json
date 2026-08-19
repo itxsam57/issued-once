@@ -11,7 +11,7 @@
   },
   "continuationGovernor": {
     "state": "WAIT_EXTERNAL",
-    "decision": "OWNER_OS_SOURCE_HARDENED_WAIT_FOR_EXECUTABLE_CI_AND_PREVIEW_BUILD",
+    "decision": "SOURCE_HARDENING_AND_LAUNCH_CANON_RECONCILED_WAIT_FOR_EXECUTABLE_CI_AND_DEPLOYMENT",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -19,7 +19,7 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "Owner OS source hardening and isolated Neon migration proofs are complete for this cycle, but the exact implementation head cannot be executed by the available hosted verification paths. GitHub CI job 96079510059 and Browser QA job 96079511446 both completed with steps=null, meaning no checkout/test/build/browser step ran. Vercel reports build-rate-limit. Production database/provider launch gates also remain fail-closed and are not claimed green."
+    "stopReason": "The source hardening and migration proofs are complete to the current intended launch scope, and the operational runbooks now agree with the 0027 migration manifest. Fresh reruns of current-head GitHub CI job 96083841813 and Browser QA job 96083882431 again completed with steps=null, proving the hosted runner/account fails before step 1 exists. Vercel still reports build-rate-limit and its connected integration does not expose the historical issued-once project. Production Neon remains empty/not migrated and provider launch gates remain deliberately fail-closed."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -82,7 +82,7 @@
     "historicalSalesWindow": "90-day/lifetime from daily commercial metric buckets",
     "lifetimeDashboard": "orders/revenue/refunds/delivered from metric buckets",
     "issueLedgerIndexes": "newest-first paging, country join indexes, status/exception queue indexes",
-    "issuePrefixSearch": "pg_trgm GIN indexes matching ILIKE prefix search for Issue Code, Safepay reference, Printful order ID and tracking"
+    "issuePrefixSearch": "pg_trgm GIN indexes matching ILIKE prefix search for Issue Code, Safepay provider reference, Printful order ID and tracking"
   },
   "database": {
     "currentMigrationHead": "0027_issue_prefix_search_indexes.sql",
@@ -97,6 +97,13 @@
     ],
     "migrationSafety": "Before production apply, use Neon prepare_database_migration -> test temporary branch -> obtain exact migration ID -> explicit owner approval -> complete_database_migration. Never bypass the migration-ID approval gate."
   },
+  "operationalDocumentation": {
+    "migrationOrder": "ALIGNED_WITH_0027_AND_DEFERS_TO_DB_MANIFEST_CURRENT",
+    "productionLaunchGate": "ALIGNED_WITH_0027_AND_COMPLETE_OWNER_OS_DATABASE_PROOFS",
+    "firstLiveCycle": "NO_SHORTENED_MIGRATION_CHAIN; DEFERS_TO_DB_MANIFEST_CURRENT",
+    "finalAudit": "REFRESHED_FOR_OWNER_OS_0027_AND_CURRENT_EXTERNAL_GATES",
+    "antiDriftRule": "db/migrations/README.md plus db/migrations/CURRENT are authoritative if a duplicated runbook value disagrees"
+  },
   "verification": {
     "exactImplementationHead": "e993695451b845df6e1c2ca9e677c76439a82966",
     "latestImplementationUnitTests": "NOT_EXECUTED_TO_GREEN_ON_EXACT_HEAD",
@@ -104,18 +111,29 @@
     "latestImplementationLint": "NOT_EXECUTED_TO_GREEN_ON_EXACT_HEAD",
     "latestImplementationProductionBuild": "NOT_EXECUTED_TO_GREEN_ON_EXACT_HEAD",
     "latestImplementationBrowserQA": "ACCEPTANCE_SPEC_WRITTEN_BUT_HOSTED_RUNNER_DID_NOT_EXECUTE",
-    "githubActions": {
-      "ciRun": 32256562630,
-      "ciJob": 96079510059,
-      "ciSteps": null,
-      "browserRun": 32256563070,
-      "browserJob": 96079511446,
-      "browserSteps": null,
-      "interpretation": "runner/account provisioning failure before workflow steps, not evidence of a product-test failure or success"
+    "lastExecutableCiBaseline": {
+      "head": "c0260b64f10dea9c2cb6c937a42c2d37cbc18c4f",
+      "run": 32162529744,
+      "job": 95794497291,
+      "unitTests": "96/96 PASSED",
+      "typecheck": "PASSED",
+      "productionBuild": "PASSED",
+      "interpretation": "known-good historical baseline only; substantial commercial and Owner OS changes were added afterward"
     },
-    "vercel": "Exact implementation head status failure points to upgradeToPro=build-rate-limit; no current compiler result obtained",
+    "githubActions": {
+      "ciRun": 32256786960,
+      "ciJob": 96083841813,
+      "ciAttempt": 2,
+      "ciSteps": null,
+      "browserRun": 32256786937,
+      "browserJob": 96083882431,
+      "browserAttempt": 2,
+      "browserSteps": null,
+      "interpretation": "fresh rerun proves runner/account provisioning failure before workflow step 1, not evidence of a product-test failure or success"
+    },
+    "vercel": "Current GitHub status points to upgradeToPro=build-rate-limit; Vercel bot reports free daily deployment limit and connected Vercel integration currently returns no projects for team samx4; no current compiler/deployment result obtained",
     "neonMigrationSlices": "GREEN_ON_ISOLATED_TEMP_BRANCH_PROOFS",
-    "neonProduction": "NOT_MIGRATED",
+    "neonProduction": "EMPTY_NOT_MIGRATED",
     "safepaySandboxCycle": "NOT_PROVEN_END_TO_END",
     "openaiDeployedDesign": "NOT_PROVEN",
     "resendRealDelivery": "NOT_PROVEN",
@@ -123,6 +141,13 @@
     "printfulProduction": "NOT_RUN",
     "printfulSignedFulfillment": "NOT_LIVE_PROVEN"
   },
+  "resolvedDuringContinuationAudit": [
+    "Confirmed the branch had not moved from the supplied 53fcc094 checkpoint before this cycle",
+    "Confirmed reused redirected payment repairs COMMITMENT_READY to CHECKOUT_STARTED before returning the Safepay URL and fails closed if that repair fails",
+    "Confirmed the private Blob readiness probe uses @vercel/blob issueSignedToken and checks delegationToken plus clientSigningToken, matching Vercel's documented return shape",
+    "Confirmed production/default Neon contains no tables and therefore was not partially migrated",
+    "Reconciled stale operational runbooks that still stopped at migrations 0013 or 0019 with the authoritative 0027 manifest"
+  ],
   "remainingNonLaunchP1": [
     "Owner-edited full structured design brief workflow is not exposed; current safe controls are retry/regenerate/reinterpret/select/approve",
     "Provider-specific cancel/reconcile UI is not exposed because the current Printful gateway safely implements lookup/create draft and confirm only; quarantine remains the safe owner stop action",
@@ -131,14 +156,14 @@
     "Keyed phone lookup in Owner OS search is deferred; email lookup hash and canonical Issue/provider/tracking searches are implemented"
   ],
   "nextActions": [
-    "Restore an executable GitHub Actions runner/account state and Vercel build allowance, then run unit tests, typecheck, lint, production build and Playwright against the exact current code head",
+    "Restore an executable GitHub Actions runner/account state or another exact-head executable verification path, then run unit tests, typecheck, lint, production build and Playwright against the current release head",
     "Fix only evidence-backed failures from those executable gates; do not change application code to address zero-step runner failures",
     "After exact-head verification is green, prepare the complete 0001-0027 production Neon migration through the guarded migration workflow and request approval using the returned migration ID",
     "Run Safepay sandbox paid/refund/exception cycle with real signed webhook evidence",
     "Run deployed OpenAI design generation and owner review evidence",
     "Run Resend real delivery evidence",
     "Create a real Printful draft with sampled mapping; keep production confirmation disabled until final deliberate launch approval",
-    "Only after all release gates are green consider closing P1 control-plane refinements and marking the PR ready for review"
+    "Only after all release gates are green consider closing non-launch P1 control-plane refinements and marking the PR ready for review"
   ],
-  "nextOwnerAction": "Restore/allow hosted verification execution (GitHub Actions currently provisions zero steps; Vercel is blocked by build-rate-limit). No production database or provider activation is requested yet because exact-head code verification must execute first."
+  "nextOwnerAction": "Restore/allow executable verification. GitHub Actions still provisions zero steps on a fresh rerun and Vercel remains rate-limited/invisible through the connected project listing. No production database or provider activation is requested yet because exact-head code verification must execute first."
 }
