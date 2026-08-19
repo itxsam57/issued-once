@@ -7,8 +7,18 @@ const recipient = {
   countryCode: 'GB', zip: 'SW1A 1AA',
 };
 
-test('creates an unconfirmed Printful order with exact variant and production art', async () => {
+const draftInput = {
+  externalId: 'IO-ABCD-EFGH', variantId: 4012, artworkUrl: 'https://blob.example/issue.png',
+  fileType: 'front', recipient,
+};
+
+test('checks Issue external ID before creating an unconfirmed Printful order with exact variant and production art', async () => {
   const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+    if (url === 'https://api.printful.com/orders/%40IO-ABCD-EFGH') {
+      expect(init?.method).toBe('GET');
+      return new Response(JSON.stringify({ code: 404 }), { status: 404 });
+    }
+
     expect(url).toBe('https://api.printful.com/orders?confirm=0&update_existing=true');
     expect(init?.method).toBe('POST');
     expect(init?.headers).toMatchObject({
@@ -34,10 +44,32 @@ test('creates an unconfirmed Printful order with exact variant and production ar
     });
   });
   const gateway = new PrintfulGateway({ token: 'pf-token', storeId: 'store-123', fetchImpl: fetchImpl as typeof fetch });
-  expect(await gateway.createDraft({
-    externalId: 'IO-ABCD-EFGH', variantId: 4012, artworkUrl: 'https://blob.example/issue.png',
-    fileType: 'front', recipient,
-  })).toEqual({ providerOrderId: '987654', status: 'draft' });
+  expect(await gateway.createDraft(draftInput)).toEqual({ providerOrderId: '987654', status: 'draft' });
+  expect(fetchImpl).toHaveBeenCalledTimes(2);
+});
+
+test('recovers an existing Printful draft by Issue external ID without creating another remote order', async () => {
+  const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+    expect(url).toBe('https://api.printful.com/orders/%40IO-ABCD-EFGH');
+    expect(init?.method).toBe('GET');
+    return new Response(JSON.stringify({ code: 200, result: { id: 987654, status: 'draft' } }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  });
+  const gateway = new PrintfulGateway({ token: 'pf-token', fetchImpl: fetchImpl as typeof fetch });
+  await expect(gateway.createDraft(draftInput)).resolves.toEqual({ providerOrderId: '987654', status: 'draft' });
+  expect(fetchImpl).toHaveBeenCalledTimes(1);
+});
+
+test('fails closed when the Issue external ID already points at a non-draft Printful state', async () => {
+  const fetchImpl = vi.fn(async () => new Response(
+    JSON.stringify({ code: 200, result: { id: 987654, status: 'pending' } }),
+    { status: 200, headers: { 'content-type': 'application/json' } },
+  ));
+  const gateway = new PrintfulGateway({ token: 'pf-token', fetchImpl: fetchImpl as typeof fetch });
+  await expect(gateway.createDraft(draftInput)).rejects.toThrow(/existing Printful order state/i);
+  expect(fetchImpl).toHaveBeenCalledTimes(1);
 });
 
 test('confirmation is a separate API call and contains no customer/artwork body', async () => {
