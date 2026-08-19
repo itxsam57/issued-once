@@ -16,19 +16,24 @@ beforeAll(() => {
 class MemoryDesignRepository implements DesignRepository {
   input: DesignInput | null = null;
   job: DesignJobRecord | null = null;
-  async loadInput(issueId: string) { return this.input?.issueId === issueId ? this.input : null; }
+  async loadInput(issueId: string) { return this.input?.issueId === issueId ? structuredClone(this.input) : null; }
   async findByIssueId(issueId: string) { return this.job?.issueId === issueId ? this.job : null; }
   async begin(job: DesignJobRecord) {
     if (this.job) return { created: false, job: this.job };
-    this.job = structuredClone(job); return { created: true, job: this.job };
+    this.job = structuredClone(job);
+    if (this.input) this.input.issueStatus = 'BEING_INTERPRETED';
+    return { created: true, job: this.job };
   }
   async claim(jobId: string, updatedAt: Date) {
     if (!this.job || this.job.id !== jobId || !['QUEUED', 'FAILED'].includes(this.job.state)) return false;
+    if (this.input?.issueStatus !== 'BEING_INTERPRETED') return false;
     this.job.state = 'INTERPRETING'; this.job.updatedAt = updatedAt; return true;
   }
   async saveGenerated(input: { jobId: string; encryptedBrief: NonNullable<DesignJobRecord['encryptedBrief']>; artworkUrl: string; artworkMimeType: string; artworkBytes: number; width: number; height: number; provider: string; model: string; updatedAt: Date }) {
     if (!this.job || this.job.id !== input.jobId) throw new Error('missing job');
+    if (this.input?.issueStatus !== 'BEING_INTERPRETED') throw new Error('Issue is no longer eligible for design completion');
     Object.assign(this.job, input, { state: 'REVIEW' as const });
+    if (this.input) this.input.issueStatus = 'DESIGN_REVIEW';
     return this.job;
   }
   async approve(jobId: string, _checks: readonly string[], approvedAt: Date) {
@@ -38,7 +43,7 @@ class MemoryDesignRepository implements DesignRepository {
     return this.job;
   }
   async markFailed(_jobId: string, _code: string, _updatedAt: Date) {
-    if (this.job) this.job.state = 'FAILED';
+    if (this.job && this.job.state !== 'APPROVED') this.job.state = 'FAILED';
   }
 }
 
@@ -107,6 +112,7 @@ test('refuses unpaid/unreceived issue state and reuses a finished design job', a
 test('does not run a second model call when another worker already claimed the queued job', async () => {
   const repository = new MemoryDesignRepository();
   repository.input = await paidInput();
+  repository.input.issueStatus = 'BEING_INTERPRETED';
   repository.job = {
     id: 'job-busy', issueId: 'issue-1', state: 'INTERPRETING', encryptedBrief: null,
     artworkUrl: null, artworkMimeType: null, artworkBytes: null, width: null, height: null,
@@ -117,4 +123,29 @@ test('does not run a second model call when another worker already claimed the q
   const result = await new DesignService(repository, gateway, storage).createForIssue('issue-1');
   expect(result.id).toBe('job-busy');
   expect(gateway.interpret).not.toHaveBeenCalled();
+});
+
+test('late design worker cannot resurrect an Issue that becomes an exception during generation', async () => {
+  const repository = new MemoryDesignRepository();
+  repository.input = await paidInput();
+  const brief = {
+    concept: 'quiet orbit', motifs: ['orbit'], paletteRelation: 'light on dark',
+    composition: 'asymmetric', density: 'sparse', typography: 'none', avoid: [], rationale: ['signal'],
+    imagePrompt: 'abstract orbit, no text, transparent background',
+  };
+  const gateway: DesignGateway = {
+    interpret: vi.fn(async () => brief),
+    generateArtwork: vi.fn(async () => {
+      if (repository.input) repository.input.issueStatus = 'EXCEPTION';
+      return { bytes: Buffer.from('png-bytes'), mimeType: 'image/png', width: 1024, height: 1536, provider: 'OPENAI', model: 'gpt-image-2' };
+    }),
+  };
+  const storage: ArtworkStorageGateway = {
+    put: vi.fn(async () => ({ url: 'https://blob.example/issues/issue-1/design.png', bytes: 900_000 })),
+  };
+
+  await expect(new DesignService(repository, gateway, storage, () => 'job-1').createForIssue('issue-1'))
+    .rejects.toThrow(/no longer eligible|design completion/i);
+  expect(repository.input.issueStatus).toBe('EXCEPTION');
+  expect(repository.job?.state).toBe('FAILED');
 });
