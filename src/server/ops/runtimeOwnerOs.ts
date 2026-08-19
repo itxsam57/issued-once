@@ -2,11 +2,13 @@ import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { createDesignService } from '@/server/design/runtimeDesign';
 import { enqueueDesignIssue } from '@/server/design/designQueue';
 import { createManufacturingService } from '@/server/manufacturing/runtimeManufacturing';
+import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
 import { OpsAuditService } from './OpsAuditService';
 import { OpsDesignerService } from './OpsDesignerService';
 import { OpsManufacturingService } from './OpsManufacturingService';
 import { OpsPrivateRevealService } from './OpsPrivateRevealService';
 import { OpsSupportService } from './OpsSupportService';
+import { OpsWebsiteService, opsCatalogSchema } from './OpsWebsiteService';
 import { PostgresOpsAuditRepository } from './PostgresOpsAuditRepository';
 import { PostgresOpsCustomerRepository } from './PostgresOpsCustomerRepository';
 import { PostgresOpsDashboardRepository } from './PostgresOpsDashboardRepository';
@@ -17,6 +19,7 @@ import { PostgresOpsManufacturingStore } from './PostgresOpsManufacturingStore';
 import { PostgresOpsPrivateSource } from './PostgresOpsPrivateSource';
 import { PostgresOpsSalesRepository } from './PostgresOpsSalesRepository';
 import { PostgresOpsSupportStore } from './PostgresOpsSupportStore';
+import { PostgresOpsWebsiteStore } from './PostgresOpsWebsiteStore';
 import { ResendOpsSupportReplyGateway } from './ResendOpsSupportReplyGateway';
 import { OpsRuntimeUnavailableError } from './runtimeOps';
 
@@ -63,6 +66,17 @@ export function createOpsSupportService() {
   return new OpsSupportService(
     new PostgresOpsSupportStore(executor),
     new ResendOpsSupportReplyGateway({ apiKey: env('RESEND_API_KEY'), from: env('RESEND_FROM_EMAIL') }),
+    new OpsAuditService(new PostgresOpsAuditRepository(executor)),
+  );
+}
+export function createOpsWebsiteService() {
+  const executor = sql();
+  const bootJson = env('ISSUED_ONCE_CATALOG_JSON');
+  const boot = opsCatalogSchema.parse(JSON.parse(bootJson));
+  const mapping = new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON'));
+  return new OpsWebsiteService(
+    new PostgresOpsWebsiteStore(executor, boot),
+    { bootCatalogJson: bootJson, assertFactoryMapping: (input) => { mapping.resolve(input); } },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
 }
