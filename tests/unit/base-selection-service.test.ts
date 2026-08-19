@@ -17,7 +17,7 @@ function experience(stage = 'SIZE_CONFIRMED') {
 }
 
 describe('BaseSelectionService', () => {
-  test('locks one exact live provider variant and creates an opaque expiring quote from the stored product and size', async () => {
+  test('locks one exact live provider variant and gives the customer one hour to finish contact and shipping', async () => {
     const physicalRepository = {
       findByExperienceId: vi.fn().mockResolvedValue({
         experienceId: 'exp-1',
@@ -46,14 +46,13 @@ describe('BaseSelectionService', () => {
       currency: 'USD',
       now: () => new Date('2026-08-18T06:20:00.000Z'),
       createQuoteId: () => 'quote-opaque-001',
-      quoteTtlMs: 600_000,
     });
 
     await expect(service.confirm({ sessionToken: token, colorCode: 'Bone' })).resolves.toEqual({
       quoteId: 'quote-opaque-001',
       amountMinor: 5400,
       currency: 'USD',
-      expiresAt: '2026-08-18T06:30:00.000Z',
+      expiresAt: '2026-08-18T07:20:00.000Z',
     });
 
     expect(catalog.listVariants).toHaveBeenCalledWith('mystery-hoodie', 'USD');
@@ -64,7 +63,7 @@ describe('BaseSelectionService', () => {
       variantId: 'v-m-bone',
       amountMinor: 5400,
       currency: 'USD',
-      expiresAt: new Date('2026-08-18T06:30:00.000Z'),
+      expiresAt: new Date('2026-08-18T07:20:00.000Z'),
     });
     expect(physicalRepository.confirmBaseAndAdvance).toHaveBeenCalledWith({
       experienceId: 'exp-1',
