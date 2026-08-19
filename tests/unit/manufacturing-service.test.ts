@@ -126,8 +126,9 @@ test('retries a failed draft against the same manufacturing identity and refresh
   expect(gateway.createDraft).toHaveBeenCalledTimes(1);
 });
 
-test('confirming manufacturing is a separate explicit action and reuses the existing draft', async () => {
-  const repository = new MemoryRepository(); repository.input = await validInput();
+test('confirming manufacturing rechecks the Issue immediately before the separate paid factory action', async () => {
+  const repository = new MemoryRepository();
+  repository.input = { ...(await validInput()), issueStatus: 'MANUFACTURING_DRAFT' };
   repository.job = {
     id: 'mfg-1', issueId: 'issue-1', designJobId: 'design-1', state: 'DRAFT', provider: 'PRINTFUL',
     providerOrderId: '987654', providerStatus: 'draft', printfulVariantId: 4012,
@@ -137,4 +138,19 @@ test('confirming manufacturing is a separate explicit action and reuses the exis
   const result = await new ManufacturingService(repository, gateway, mapping(), artworkAccess, undefined, () => new Date('2026-08-19T02:05:00Z')).confirmDraft('issue-1');
   expect(gateway.confirmDraft).toHaveBeenCalledWith('987654');
   expect(result.state).toBe('IN_PRODUCTION');
+});
+
+test('refund or payment exception after draft blocks Printful confirmation before any charge', async () => {
+  const repository = new MemoryRepository();
+  repository.input = { ...(await validInput()), issueStatus: 'EXCEPTION' };
+  repository.job = {
+    id: 'mfg-1', issueId: 'issue-1', designJobId: 'design-1', state: 'DRAFT', provider: 'PRINTFUL',
+    providerOrderId: '987654', providerStatus: 'draft', printfulVariantId: 4012,
+    artworkUrl: canonicalArtwork, createdAt: new Date(), updatedAt: new Date(), confirmedAt: null,
+  };
+  const gateway: ManufacturerGateway = { createDraft: vi.fn(), confirmDraft: vi.fn(async () => undefined) };
+
+  await expect(new ManufacturingService(repository, gateway, mapping(), artworkAccess).confirmDraft('issue-1'))
+    .rejects.toThrow(/no longer eligible|Issue state/i);
+  expect(gateway.confirmDraft).not.toHaveBeenCalled();
 });
