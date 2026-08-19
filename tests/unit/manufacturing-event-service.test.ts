@@ -17,21 +17,30 @@ const event = {
   reason: null,
 };
 
-test('verified shipment applies exactly once and duplicates are harmless', async () => {
+const issueId = '11111111-1111-4111-8111-111111111111';
+
+test('verified shipment applies exactly once and duplicate retries preserve Issue identity for downstream recovery', async () => {
   const verifier = { verify: vi.fn(() => event) } as unknown as PrintfulWebhookVerifier;
   let called = 0;
   const repository: ManufacturingEventRepository = {
-    applyProviderEvent: vi.fn(async () => (++called === 1 ? 'applied' as const : 'duplicate' as const)),
+    applyProviderEvent: vi.fn(async () => ({
+      kind: ++called === 1 ? 'applied' as const : 'duplicate' as const,
+      issueId,
+    })),
   };
   const service = new ManufacturingEventService(verifier, repository);
-  expect(await service.handle({ rawBody: '{}', headers: new Headers() })).toEqual({ kind: 'applied' });
-  expect(await service.handle({ rawBody: '{}', headers: new Headers() })).toEqual({ kind: 'duplicate' });
+  expect(await service.handle({ rawBody: '{}', headers: new Headers() })).toEqual({
+    kind: 'applied', issueId, eventType: 'SHIPMENT_SENT',
+  });
+  expect(await service.handle({ rawBody: '{}', headers: new Headers() })).toEqual({
+    kind: 'duplicate', issueId, eventType: 'SHIPMENT_SENT',
+  });
 });
 
 test('cross-link mismatch is quarantined rather than silently accepted', async () => {
   const verifier = { verify: vi.fn(() => event) } as unknown as PrintfulWebhookVerifier;
   const repository: ManufacturingEventRepository = {
-    applyProviderEvent: vi.fn(async () => 'mismatch' as const),
+    applyProviderEvent: vi.fn(async () => ({ kind: 'mismatch' as const, issueId })),
   };
   await expect(new ManufacturingEventService(verifier, repository).handle({ rawBody: '{}', headers: new Headers() }))
     .rejects.toThrow(/mismatch|cross/i);
