@@ -1,5 +1,6 @@
 export type OpsSalesSnapshot = {
   days: number;
+  currency: string | null;
   grossMinor: number;
   refundedMinor: number;
   netAfterRefundMinor: number;
