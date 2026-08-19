@@ -46,10 +46,10 @@ test('public physical flow requires verified contact and shipping before Safepay
 
   await expect(page.getByText('FORM LOCKED / FIT')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Pick your size.' })).toBeVisible();
-  await expect(page.getByRole('radio', { name: /^Medium/ })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'M', exact: true })).toBeVisible();
   await capture(page, `12-public-fit-${testInfo.project.name}`);
 
-  await page.getByRole('radio', { name: /^Medium/ }).check();
+  await page.getByRole('radio', { name: 'M', exact: true }).check();
   await page.getByRole('button', { name: 'CONFIRM SIZE' }).click();
 
   await expect(page.getByText('FIT LOCKED / BASE')).toBeVisible();
