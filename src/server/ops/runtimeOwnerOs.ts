@@ -6,6 +6,7 @@ import { OpsAuditService } from './OpsAuditService';
 import { OpsDesignerService } from './OpsDesignerService';
 import { OpsManufacturingService } from './OpsManufacturingService';
 import { OpsPrivateRevealService } from './OpsPrivateRevealService';
+import { OpsSupportService } from './OpsSupportService';
 import { PostgresOpsAuditRepository } from './PostgresOpsAuditRepository';
 import { PostgresOpsCustomerRepository } from './PostgresOpsCustomerRepository';
 import { PostgresOpsDashboardRepository } from './PostgresOpsDashboardRepository';
@@ -15,17 +16,18 @@ import { PostgresOpsIssueDetailRepository } from './PostgresOpsIssueDetailReposi
 import { PostgresOpsManufacturingStore } from './PostgresOpsManufacturingStore';
 import { PostgresOpsPrivateSource } from './PostgresOpsPrivateSource';
 import { PostgresOpsSalesRepository } from './PostgresOpsSalesRepository';
+import { PostgresOpsSupportStore } from './PostgresOpsSupportStore';
+import { ResendOpsSupportReplyGateway } from './ResendOpsSupportReplyGateway';
 import { OpsRuntimeUnavailableError } from './runtimeOps';
 
-function sql() {
-  const databaseUrl = process.env.DATABASE_URL?.trim();
-  if (!databaseUrl) throw new OpsRuntimeUnavailableError('DATABASE_URL is required');
-  return createNeonSqlExecutor(databaseUrl);
+function env(name: string) {
+  const value = process.env[name]?.trim();
+  if (!value) throw new OpsRuntimeUnavailableError(`${name} is required`);
+  return value;
 }
+function sql() { return createNeonSqlExecutor(env('DATABASE_URL')); }
 
-export function createOpsAuditService() {
-  return new OpsAuditService(new PostgresOpsAuditRepository(sql()));
-}
+export function createOpsAuditService() { return new OpsAuditService(new PostgresOpsAuditRepository(sql())); }
 export function createOpsDashboardRepository() { return new PostgresOpsDashboardRepository(sql()); }
 export function createOpsIssueDetailRepository() { return new PostgresOpsIssueDetailRepository(sql()); }
 export function createOpsPrivateRevealService() {
@@ -56,3 +58,11 @@ export function createOpsManufacturingService() {
 }
 export function createOpsSalesRepository() { return new PostgresOpsSalesRepository(sql()); }
 export function createOpsCustomerRepository() { return new PostgresOpsCustomerRepository(sql()); }
+export function createOpsSupportService() {
+  const executor = sql();
+  return new OpsSupportService(
+    new PostgresOpsSupportStore(executor),
+    new ResendOpsSupportReplyGateway({ apiKey: env('RESEND_API_KEY'), from: env('RESEND_FROM_EMAIL') }),
+    new OpsAuditService(new PostgresOpsAuditRepository(executor)),
+  );
+}
