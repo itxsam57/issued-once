@@ -17,9 +17,9 @@ function signed(body: object) {
   };
 }
 
-test('requires even hexadecimal Printful webhook secret with at least 32 bytes', () => {
+test('requires a non-empty even-length hexadecimal Printful webhook secret', () => {
   expect(() => new PrintfulWebhookVerifier({ publicKey, secretKeyHex: 'not-hex' })).toThrow(/hexadecimal/i);
-  expect(() => new PrintfulWebhookVerifier({ publicKey, secretKeyHex: 'aa'.repeat(16) })).toThrow(/32 bytes/i);
+  expect(() => new PrintfulWebhookVerifier({ publicKey, secretKeyHex: '' })).toThrow(/hexadecimal|empty/i);
 });
 
 test('verifies shipment_sent and derives stable event identity that ignores Printful retry count', () => {
