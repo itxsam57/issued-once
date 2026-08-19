@@ -1,14 +1,18 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { createDesignService } from '@/server/design/runtimeDesign';
 import { enqueueDesignIssue } from '@/server/design/designQueue';
+import { createIssueService } from '@/server/issues/runtimeIssues';
 import { createManufacturingService } from '@/server/manufacturing/runtimeManufacturing';
 import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
+import { enqueueIssueNotification } from '@/server/notifications/notificationQueue';
 import { OpsAuditService } from './OpsAuditService';
 import { OpsDesignerService } from './OpsDesignerService';
 import { OpsManufacturingService } from './OpsManufacturingService';
 import { OpsPrivateRevealService } from './OpsPrivateRevealService';
+import { OpsRecoveryService } from './OpsRecoveryService';
 import { OpsSupportService } from './OpsSupportService';
 import { OpsWebsiteService, opsCatalogSchema } from './OpsWebsiteService';
+import { PostgresOpsAttentionRepository } from './PostgresOpsAttentionRepository';
 import { PostgresOpsAuditRepository } from './PostgresOpsAuditRepository';
 import { PostgresOpsCustomerRepository } from './PostgresOpsCustomerRepository';
 import { PostgresOpsDashboardRepository } from './PostgresOpsDashboardRepository';
@@ -33,6 +37,7 @@ function sql() { return createNeonSqlExecutor(env('DATABASE_URL')); }
 export function createOpsAuditService() { return new OpsAuditService(new PostgresOpsAuditRepository(sql())); }
 export function createOpsDashboardRepository() { return new PostgresOpsDashboardRepository(sql()); }
 export function createOpsIssueDetailRepository() { return new PostgresOpsIssueDetailRepository(sql()); }
+export function createOpsAttentionRepository() { return new PostgresOpsAttentionRepository(sql()); }
 export function createOpsPrivateRevealService() {
   const executor = sql();
   return new OpsPrivateRevealService(new PostgresOpsPrivateSource(executor), new OpsAuditService(new PostgresOpsAuditRepository(executor)));
@@ -75,9 +80,17 @@ export function createOpsWebsiteService() {
   const boot = opsCatalogSchema.parse(JSON.parse(bootJson));
   return new OpsWebsiteService(
     new PostgresOpsWebsiteStore(executor, boot),
+    { bootCatalogJson: bootJson, assertFactoryMapping: (input) => { new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON')).resolve(input); } },
+    new OpsAuditService(new PostgresOpsAuditRepository(executor)),
+  );
+}
+export function createOpsRecoveryService() {
+  const executor = sql();
+  return new OpsRecoveryService(
     {
-      bootCatalogJson: bootJson,
-      assertFactoryMapping: (input) => { new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON')).resolve(input); },
+      reserveIssue: (paymentAttemptId) => createIssueService().reserveForPaidAttempt(paymentAttemptId),
+      enqueueDesign: (issueId) => enqueueDesignIssue(issueId),
+      enqueuePaymentNotification: (issueId) => enqueueIssueNotification(issueId, 'PAYMENT_RECEIVED'),
     },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
