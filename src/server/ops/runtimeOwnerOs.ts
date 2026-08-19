@@ -73,10 +73,12 @@ export function createOpsWebsiteService() {
   const executor = sql();
   const bootJson = env('ISSUED_ONCE_CATALOG_JSON');
   const boot = opsCatalogSchema.parse(JSON.parse(bootJson));
-  const mapping = new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON'));
   return new OpsWebsiteService(
     new PostgresOpsWebsiteStore(executor, boot),
-    { bootCatalogJson: bootJson, assertFactoryMapping: (input) => { mapping.resolve(input); } },
+    {
+      bootCatalogJson: bootJson,
+      assertFactoryMapping: (input) => { new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON')).resolve(input); },
+    },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
 }
