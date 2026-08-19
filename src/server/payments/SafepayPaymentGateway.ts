@@ -41,6 +41,17 @@ function checkoutBase(environment: SafepayEnvironment) {
     : 'https://sandbox.api.getsafepay.com/checkout/pay';
 }
 
+function assertCurrency(value: string) {
+  if (value !== 'USD' && value !== 'PKR') {
+    throw new Error('Safepay currency is unsupported');
+  }
+}
+
+function minorToMajor(value: number): number {
+  if (!Number.isSafeInteger(value) || value <= 0) throw new Error('Payment amount is invalid');
+  return Number((value / 100).toFixed(2));
+}
+
 function decimalToMinor(value: string | number): number {
   const text = String(value).trim();
   if (!/^\d+(?:\.\d{1,2})?$/.test(text)) throw new Error('Safepay amount is invalid');
@@ -81,17 +92,15 @@ export class SafepayPaymentGateway implements PaymentGateway {
     returnUrl: string;
     cancelUrl: string;
   }) {
-    if (!Number.isSafeInteger(input.amountMinor) || input.amountMinor <= 0) {
-      throw new Error('Payment amount is invalid');
-    }
+    const amount = minorToMajor(input.amountMinor);
     const currency = input.currency.trim().toUpperCase();
-    if (!/^[A-Z]{3}$/.test(currency)) throw new Error('Payment currency is invalid');
+    assertCurrency(currency);
 
     const response = await this.fetchImpl(`${apiBase(this.options.environment)}/order/v1/init`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'application/json' },
       body: JSON.stringify({
-        amount: input.amountMinor,
+        amount,
         client: this.options.apiKey,
         currency,
         environment: this.options.environment,
@@ -131,9 +140,13 @@ export class SafepayPaymentGateway implements PaymentGateway {
       .digest('hex');
     if (!safeEqualHex(expected, provided)) throw new Error('Safepay webhook signature is invalid');
 
-    if (data.client_id && data.client_id !== this.options.apiKey) {
+    if (!data.client_id || data.client_id !== this.options.apiKey) {
       throw new Error('Safepay webhook merchant does not match');
     }
+    if (!data.type?.trim().toLowerCase().startsWith('payment:')) {
+      throw new Error('Safepay webhook event type is unsupported');
+    }
+
     const notification = data.notification;
     const providerEventId = data.token?.trim();
     const providerReference = notification?.tracker?.trim();
@@ -143,6 +156,7 @@ export class SafepayPaymentGateway implements PaymentGateway {
     if (!providerEventId || !providerReference || !currency || !providerState || !timestamp) {
       throw new Error('Safepay webhook payload is incomplete');
     }
+    assertCurrency(currency);
     if (notification?.amount === undefined) throw new Error('Safepay webhook amount is missing');
     const occurredAt = new Date(timestamp);
     if (Number.isNaN(occurredAt.getTime())) throw new Error('Safepay webhook timestamp is invalid');
