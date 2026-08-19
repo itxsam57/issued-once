@@ -1,8 +1,30 @@
 import { z } from 'zod';
 
+const printAreaSchema = z.object({
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  dpi: z.number().int().min(72).max(600),
+});
+
+const positionSchema = z.object({
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  top: z.number().int().nonnegative(),
+  left: z.number().int().nonnegative(),
+});
+
 const mappingValue = z.object({
   variantId: z.number().int().positive(),
   fileType: z.string().trim().min(1).max(80).default('front'),
+  printArea: printAreaSchema,
+  position: positionSchema,
+}).superRefine((value, ctx) => {
+  if (value.position.width + value.position.left > value.printArea.width) {
+    ctx.addIssue({ code: 'custom', message: 'Print position exceeds print area width', path: ['position'] });
+  }
+  if (value.position.height + value.position.top > value.printArea.height) {
+    ctx.addIssue({ code: 'custom', message: 'Print position exceeds print area height', path: ['position'] });
+  }
 });
 
 const mappingSchema = z.record(z.string().min(1), mappingValue);
