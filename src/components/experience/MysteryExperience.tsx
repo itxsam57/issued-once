@@ -2,10 +2,13 @@
 
 import { useState } from 'react';
 import type { QuestionDefinition, QuestionId } from '@/domain/experience/types';
+import type { ShippingAddress } from '@/server/shipping/ShippingRepository';
 import { BaseColorSelection, type BaseColorOption } from './BaseColorSelection';
 import { CommitmentScreen, type CommitmentQuote } from './CommitmentScreen';
+import { ContactVerification } from './ContactVerification';
 import { InterviewFlow } from './InterviewFlow';
 import { ObjectSelection, type ObjectType } from './ObjectSelection';
+import { ShippingAddressForm } from './ShippingAddressForm';
 import { SizeConfirmation, type SizeOption } from './SizeConfirmation';
 
 type AnswerPayload = {
@@ -40,10 +43,20 @@ type MysteryExperienceProps = {
     selection: LockedVariant,
   ) => Promise<CommitmentQuote | void> | CommitmentQuote | void;
   getCommitmentQuote?: (selection: LockedVariant) => Promise<CommitmentQuote | null>;
+  onRequestOtp?: (email: string) => Promise<{ challengeId: string; retryAfterSeconds: number }>;
+  onVerifyOtp?: (challengeId: string, code: string) => Promise<{ verified: true }>;
+  onShippingSubmitted?: (address: ShippingAddress) => Promise<void>;
   onCheckoutRequested?: (quoteId: string) => Promise<void> | void;
 };
 
-type ExperiencePhase = 'interview' | 'form' | 'size' | 'base' | 'commitment';
+type ExperiencePhase =
+  | 'interview'
+  | 'form'
+  | 'size'
+  | 'base'
+  | 'contact'
+  | 'shipping'
+  | 'commitment';
 
 export function MysteryExperience({
   questions,
@@ -57,6 +70,9 @@ export function MysteryExperience({
   baseColorCatalog,
   onBaseColorConfirmed,
   getCommitmentQuote,
+  onRequestOtp,
+  onVerifyOtp,
+  onShippingSubmitted,
   onCheckoutRequested,
 }: MysteryExperienceProps) {
   const [phase, setPhase] = useState<ExperiencePhase>('interview');
@@ -66,6 +82,10 @@ export function MysteryExperience({
   const [availableSizes, setAvailableSizes] = useState<readonly SizeOption[]>([]);
   const [availableColors, setAvailableColors] = useState<readonly BaseColorOption[]>([]);
   const [commitmentQuote, setCommitmentQuote] = useState<CommitmentQuote | null>(null);
+
+  const requiresContactAndShipping = Boolean(
+    onRequestOtp && onVerifyOtp && onShippingSubmitted,
+  );
 
   async function handleObjectSelected(object: ObjectType) {
     const returnedSizes = await onObjectSelected(object);
@@ -111,7 +131,7 @@ export function MysteryExperience({
 
     setSelectedColor({ code: color.code, label: color.label });
     setCommitmentQuote(quote);
-    setPhase('commitment');
+    setPhase(requiresContactAndShipping ? 'contact' : 'commitment');
   }
 
   if (
@@ -131,6 +151,27 @@ export function MysteryExperience({
         }}
         quote={commitmentQuote}
         onCommit={onCheckoutRequested}
+      />
+    );
+  }
+
+  if (phase === 'shipping' && onShippingSubmitted) {
+    return (
+      <ShippingAddressForm
+        onSubmit={async (address) => {
+          await onShippingSubmitted(address);
+          setPhase('commitment');
+        }}
+      />
+    );
+  }
+
+  if (phase === 'contact' && onRequestOtp && onVerifyOtp) {
+    return (
+      <ContactVerification
+        onRequestOtp={onRequestOtp}
+        onVerifyOtp={onVerifyOtp}
+        onComplete={() => setPhase('shipping')}
       />
     );
   }
