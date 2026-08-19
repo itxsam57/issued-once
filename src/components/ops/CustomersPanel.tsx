@@ -4,9 +4,14 @@ import { useEffect, useState } from 'react';
 import styles from './owner-os.module.css';
 
 type Customer = {
-  contactAlias: string; issueCount: number; paidMinor: number; refundedIssues: number;
+  contactAlias: string; issueCount: number; currency: string | null; paidMinor: number | null; refundedIssues: number;
   activeDeliveries: number; supportCount: number; lastSeenAt: string;
 };
+
+function lifetimeValue(customer: Customer) {
+  if (customer.currency === null || customer.paidMinor === null) return 'MULTI-CURRENCY';
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: customer.currency }).format(customer.paidMinor / 100);
+}
 
 export function CustomersPanel() {
   const [email, setEmail] = useState('');
@@ -41,7 +46,7 @@ export function CustomersPanel() {
       {items.map((customer) => <article key={`${customer.contactAlias}-${customer.lastSeenAt}`}>
         <strong>{customer.contactAlias}</strong>
         <div><span>ISSUES</span><b>{customer.issueCount}</b></div>
-        <div><span>PAID VALUE</span><b>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(customer.paidMinor / 100)}</b></div>
+        <div><span>PAID VALUE</span><b>{lifetimeValue(customer)}</b></div>
         <div><span>ACTIVE DELIVERY</span><b>{customer.activeDeliveries}</b></div>
         <div><span>REFUNDED</span><b>{customer.refundedIssues}</b></div>
         <div><span>SUPPORT</span><b>{customer.supportCount}</b></div>
