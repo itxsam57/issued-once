@@ -2,7 +2,7 @@ import { createHmac } from 'node:crypto';
 import { expect, test } from 'vitest';
 import { PrintfulWebhookVerifier } from '@/server/manufacturing/PrintfulWebhookVerifier';
 
-const secretHex = Buffer.from('printful-webhook-secret').toString('hex');
+const secretHex = Buffer.alloc(32, 7).toString('hex');
 const publicKey = 'cHJpbnRmdWwtcHVibGljLWtleQ==';
 
 function signed(body: object) {
@@ -16,6 +16,11 @@ function signed(body: object) {
     }),
   };
 }
+
+test('requires even hexadecimal Printful webhook secret with at least 32 bytes', () => {
+  expect(() => new PrintfulWebhookVerifier({ publicKey, secretKeyHex: 'not-hex' })).toThrow(/hexadecimal/i);
+  expect(() => new PrintfulWebhookVerifier({ publicKey, secretKeyHex: 'aa'.repeat(16) })).toThrow(/32 bytes/i);
+});
 
 test('verifies shipment_sent and derives stable event identity that ignores Printful retry count', () => {
   const verifier = new PrintfulWebhookVerifier({ publicKey, secretKeyHex: secretHex });
