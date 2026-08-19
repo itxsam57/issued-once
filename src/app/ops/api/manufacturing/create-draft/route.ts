@@ -1,9 +1,7 @@
 import { z } from 'zod';
-import {
-  createManufacturingService,
-  ManufacturingRuntimeUnavailableError,
-} from '@/server/manufacturing/runtimeManufacturing';
+import { ManufacturingRuntimeUnavailableError } from '@/server/manufacturing/runtimeManufacturing';
 import { hasOpsSession } from '@/server/ops/opsRequest';
+import { createOpsManufacturingService } from '@/server/ops/runtimeOwnerOs';
 
 const schema = z.object({ issueId: z.string().uuid() });
 
@@ -13,7 +11,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return Response.json({ error: 'Invalid issue' }, { status: 400 });
 
   try {
-    const job = await createManufacturingService().createDraft(parsed.data.issueId);
+    const job = await createOpsManufacturingService().createDraft(parsed.data.issueId);
     return Response.json({
       manufacturingJobId: job.id,
       state: job.state,
