@@ -1,0 +1,63 @@
+name: Browser QA
+
+on:
+  pull_request:
+    paths:
+      - 'src/app/**'
+      - 'src/components/**'
+      - 'tests/e2e/**'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/browser-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ENABLE_VISUAL_PREVIEW: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml', 'package.json') }}
+      - name: Install Chromium system dependencies
+        run: pnpm exec playwright install-deps chromium
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+      - name: Browser tests
+        run: pnpm test:e2e
+      - name: Live Vercel owner preview
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/mystery-foundation'
+        env:
+          PREVIEW_URL: https://issued-once-git-feat-mystery-foundation-samx4.vercel.app
+        run: node tests/e2e/live-owner-preview.mjs
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issued-once-browser-qa
+          path: |
+            artifacts/visual
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7
