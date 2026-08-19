@@ -18,7 +18,7 @@ export function OwnerOsConsole() {
   const [active, setActive] = useState<OwnerOsSection>('Home');
 
   async function logout() {
-    await fetch('/api/ops/session', { method: 'DELETE' }).catch(() => null);
+    await fetch('/ops/api/session', { method: 'DELETE' }).catch(() => null);
     window.location.reload();
   }
 
