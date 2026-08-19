@@ -52,4 +52,10 @@ export interface PaymentRepository {
     paidAt: Date;
   }): Promise<'paid' | 'duplicate' | 'mismatch'>;
   markFailed(attemptId: string, providerEventId: string, at: Date): Promise<void>;
+  markRefunded(input: {
+    attemptId: string;
+    amountMinor: number;
+    currency: string;
+    refundedAt: Date;
+  }): Promise<'refunded' | 'duplicate' | 'mismatch'>;
 }
