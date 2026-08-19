@@ -17,7 +17,7 @@ export class DesignService {
 
   async createForIssue(issueId: string): Promise<DesignJobRecord> {
     let job = await this.repository.findByIssueId(issueId);
-    const input = await this.repository.loadInput(issueId);
+    let input = await this.repository.loadInput(issueId);
     if (!input) throw new Error('Design input is unavailable');
 
     if (!job) {
@@ -30,11 +30,15 @@ export class DesignService {
         width: null, height: null, provider: null, model: null, createdAt: now, updatedAt: now,
       });
       job = reservation.job;
+      input = (await this.repository.loadInput(issueId)) ?? input;
     }
 
     if (job.state === 'REVIEW' || job.state === 'APPROVED') return job;
     if (job.state === 'INTERPRETING' || job.state === 'GENERATING') return job;
     if (job.state !== 'QUEUED' && job.state !== 'FAILED') throw new Error('Design job is not claimable');
+    if (input.issueStatus !== 'BEING_INTERPRETED') {
+      throw new Error('Issue is no longer eligible for design work');
+    }
 
     const claimed = await this.repository.claim(job.id, this.now());
     if (!claimed) return (await this.repository.findByIssueId(issueId)) ?? job;
@@ -59,6 +63,10 @@ export class DesignService {
         questions,
       });
       const artwork = await this.gateway.generateArtwork(brief);
+      const completionInput = await this.repository.loadInput(issueId);
+      if (!completionInput || completionInput.issueStatus !== 'BEING_INTERPRETED') {
+        throw new Error('Issue is no longer eligible for design completion');
+      }
       const stored = await this.storage.put({
         issueId,
         designJobId: job.id,
