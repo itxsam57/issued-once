@@ -51,6 +51,7 @@ async function validInput(): Promise<ManufacturingInput> {
   return {
     issueId: 'issue-1', issueCode: 'IO-ABCD-EFGH', issueStatus: 'DESIGN_APPROVED',
     designJobId: 'design-1', designState: 'APPROVED', artworkUrl: canonicalArtwork,
+    artworkWidth: 1024, artworkHeight: 1536,
     objectType: 'tee', sizeCode: 'M', colorCode: 'Black',
     encryptedEmail: await encryptPrivatePayload({ email: 'sam@example.com' }),
     encryptedAddress: await encryptPrivatePayload({
@@ -62,16 +63,22 @@ async function validInput(): Promise<ManufacturingInput> {
 
 function mapping() {
   return new PrintfulVariantMap(JSON.stringify({
-    'tee:M:Black': { variantId: 4012, fileType: 'front' },
+    'tee:M:Black': {
+      variantId: 4012,
+      fileType: 'front',
+      printArea: { width: 1800, height: 2400, dpi: 150 },
+      position: { width: 900, height: 1350, top: 300, left: 450 },
+    },
   }));
 }
 
-test('creates one Printful draft with a temporary artwork URL and decrypted recipient only at the factory boundary', async () => {
+test('creates one Printful draft with temporary artwork access, sampled placement, and decrypted recipient only at factory boundary', async () => {
   const repository = new MemoryRepository(); repository.input = await validInput();
   const gateway: ManufacturerGateway = {
     createDraft: vi.fn(async (input) => {
       expect(input).toMatchObject({
         externalId: 'IO-ABCD-EFGH', variantId: 4012, artworkUrl: signedArtwork, fileType: 'front',
+        placement: { areaWidth: 1800, areaHeight: 2400, width: 900, height: 1350, top: 300, left: 450 },
         recipient: { name: 'Sam Example', email: 'sam@example.com', address1: '1 Quiet Street', city: 'London', countryCode: 'GB' },
       });
       expect(JSON.stringify(input)).not.toContain('private answer');
@@ -88,7 +95,7 @@ test('creates one Printful draft with a temporary artwork URL and decrypted reci
   expect(gateway.createDraft).toHaveBeenCalledTimes(1);
 });
 
-test('refuses manufacturing without design approval or without an exact Printful variant mapping', async () => {
+test('refuses manufacturing without design approval, exact mapping, or enough source pixels for the sampled placement', async () => {
   const repository = new MemoryRepository();
   repository.input = { ...(await validInput()), designState: 'REVIEW', issueStatus: 'DESIGN_REVIEW' };
   const gateway = { createDraft: vi.fn(), confirmDraft: vi.fn() } as ManufacturerGateway;
@@ -96,6 +103,9 @@ test('refuses manufacturing without design approval or without an exact Printful
 
   repository.input = { ...(await validInput()), sizeCode: 'XL' };
   await expect(new ManufacturingService(repository, gateway, mapping(), artworkAccess).createDraft('issue-1')).rejects.toThrow(/mapping/i);
+
+  repository.input = { ...(await validInput()), artworkWidth: 800 };
+  await expect(new ManufacturingService(repository, gateway, mapping(), artworkAccess).createDraft('issue-1')).rejects.toThrow(/source pixels/i);
   expect(gateway.createDraft).not.toHaveBeenCalled();
 });
 
