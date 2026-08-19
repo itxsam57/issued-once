@@ -23,6 +23,14 @@ test('contact step asks once, sends OTP, and cannot continue until verification 
   expect(complete).toHaveBeenCalledTimes(1);
 });
 
+test('shipping step requires province or state and courier phone before fulfillment', async () => {
+  const submit = vi.fn(async () => undefined);
+  render(<ShippingAddressForm onSubmit={submit} />);
+
+  expect(screen.getByLabelText('Province / state / region')).toBeRequired();
+  expect(screen.getByLabelText('Phone')).toBeRequired();
+});
+
 test('shipping step collects fulfillment fields without exposing internal ids', async () => {
   const user = userEvent.setup();
   const submit = vi.fn(async () => undefined);
@@ -32,12 +40,20 @@ test('shipping step collects fulfillment fields without exposing internal ids', 
   await user.type(screen.getByLabelText('Name'), 'Sam Example');
   await user.type(screen.getByLabelText('Address'), '1 Quiet Street');
   await user.type(screen.getByLabelText('City'), 'London');
+  await user.type(screen.getByLabelText('Province / state / region'), 'Greater London');
   await user.type(screen.getByLabelText('Postal code'), 'SW1A 1AA');
   await user.selectOptions(screen.getByLabelText('Country'), 'GB');
+  await user.type(screen.getByLabelText('Phone'), '+44 7000 000000');
   await user.click(screen.getByRole('button', { name: 'USE THIS ADDRESS' }));
 
   expect(submit).toHaveBeenCalledWith(expect.objectContaining({
-    recipientName: 'Sam Example', line1: '1 Quiet Street', city: 'London', postalCode: 'SW1A 1AA', countryCode: 'GB',
+    recipientName: 'Sam Example',
+    line1: '1 Quiet Street',
+    city: 'London',
+    region: 'Greater London',
+    postalCode: 'SW1A 1AA',
+    countryCode: 'GB',
+    phone: '+44 7000 000000',
   }));
   expect(screen.queryByText(/issue id|contact id/i)).not.toBeInTheDocument();
 });
