@@ -34,8 +34,10 @@ async function completePreviewIdentity(page: import('@playwright/test').Page) {
   await page.getByLabel('Name').fill('QA Customer');
   await page.getByLabel('Address').fill('1 QA Street');
   await page.getByLabel('City').fill('Peshawar');
+  await page.getByLabel('Province / state / region').fill('Khyber Pakhtunkhwa');
   await page.getByLabel('Postal code').fill('25000');
   await page.getByLabel('Country').selectOption('PK');
+  await page.getByLabel('Phone').fill('+923001234567');
   await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
 }
 
