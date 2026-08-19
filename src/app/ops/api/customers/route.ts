@@ -17,6 +17,7 @@ export async function GET(request: Request) {
       items: result.items.map((item) => ({
         contactAlias: item.contactAlias,
         issueCount: item.issueCount,
+        currency: item.currency,
         paidMinor: item.paidMinor,
         refundedIssues: item.refundedIssues,
         activeDeliveries: item.activeDeliveries,
