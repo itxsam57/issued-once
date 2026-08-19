@@ -3,12 +3,12 @@ import { afterEach, expect, test, vi } from 'vitest';
 const {
   hasOpsSessionMock,
   createOpsRepositoryMock,
-  createManufacturingServiceMock,
+  createOpsManufacturingServiceMock,
   enqueueIssueNotificationMock,
 } = vi.hoisted(() => ({
   hasOpsSessionMock: vi.fn(),
   createOpsRepositoryMock: vi.fn(),
-  createManufacturingServiceMock: vi.fn(),
+  createOpsManufacturingServiceMock: vi.fn(),
   enqueueIssueNotificationMock: vi.fn(),
 }));
 
@@ -17,8 +17,10 @@ vi.mock('@/server/ops/runtimeOps', () => ({
   createOpsRepository: createOpsRepositoryMock,
   OpsRuntimeUnavailableError: class OpsRuntimeUnavailableError extends Error {},
 }));
+vi.mock('@/server/ops/runtimeOwnerOs', () => ({
+  createOpsManufacturingService: createOpsManufacturingServiceMock,
+}));
 vi.mock('@/server/manufacturing/runtimeManufacturing', () => ({
-  createManufacturingService: createManufacturingServiceMock,
   ManufacturingRuntimeUnavailableError: class ManufacturingRuntimeUnavailableError extends Error {},
 }));
 vi.mock('@/server/notifications/notificationQueue', () => ({
@@ -40,7 +42,7 @@ test('requires owner session, kill switch and exact public Issue Code phrase bef
     findById: vi.fn().mockResolvedValue({ issueId, issueCode: 'IO-ABCD-EFGH' }),
   });
   const confirmDraft = vi.fn().mockResolvedValue({ id: 'mfg-1', issueId, state: 'IN_PRODUCTION' });
-  createManufacturingServiceMock.mockReturnValue({ confirmDraft });
+  createOpsManufacturingServiceMock.mockReturnValue({ confirmDraft });
   enqueueIssueNotificationMock.mockResolvedValue(undefined);
 
   const disabled = await POST(new Request('https://issuedonce.shop/ops/api/manufacturing/confirm', {
@@ -75,5 +77,5 @@ test('unauthenticated owner room request never reaches factory', async () => {
     body: JSON.stringify({ issueId, confirmation: 'CONFIRM IO-ABCD-EFGH' }),
   }));
   expect(response.status).toBe(401);
-  expect(createManufacturingServiceMock).not.toHaveBeenCalled();
+  expect(createOpsManufacturingServiceMock).not.toHaveBeenCalled();
 });
