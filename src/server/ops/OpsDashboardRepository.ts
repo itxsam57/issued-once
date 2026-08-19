@@ -5,7 +5,7 @@ export type OpsSalesWindow = {
 
 export type OpsDashboardSnapshot = {
   sales: {
-    currency: string;
+    currency: string | null;
     today: OpsSalesWindow;
     sevenDays: OpsSalesWindow;
     thirtyDays: OpsSalesWindow;
