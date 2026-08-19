@@ -51,6 +51,16 @@ export class PrintfulGateway implements ManufacturerGateway {
     const externalId = input.externalId.trim();
     if (!/^[A-Za-z0-9_-]{1,32}$/.test(externalId)) throw new Error('Printful external ID is invalid');
 
+    const p = input.placement;
+    if (
+      ![p.areaWidth, p.areaHeight, p.width, p.height].every((value) => Number.isSafeInteger(value) && value > 0) ||
+      ![p.top, p.left].every((value) => Number.isSafeInteger(value) && value >= 0) ||
+      p.left + p.width > p.areaWidth ||
+      p.top + p.height > p.areaHeight
+    ) {
+      throw new Error('Printful placement is invalid');
+    }
+
     const lookup = await this.fetchImpl(
       `https://api.printful.com/orders/${encodeURIComponent(`@${externalId}`)}`,
       {
@@ -85,7 +95,19 @@ export class PrintfulGateway implements ManufacturerGateway {
         items: [{
           variant_id: input.variantId,
           quantity: 1,
-          files: [{ type: input.fileType, url: artwork.toString() }],
+          files: [{
+            type: input.fileType,
+            url: artwork.toString(),
+            position: {
+              area_width: p.areaWidth,
+              area_height: p.areaHeight,
+              width: p.width,
+              height: p.height,
+              top: p.top,
+              left: p.left,
+              limit_to_print_area: true,
+            },
+          }],
         }],
       }),
       cache: 'no-store',
