@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { ArtworkAccessGateway } from '@/server/design/VercelBlobArtworkAccess';
 import { decryptPrivatePayload } from '@/server/crypto/privatePayload';
 import type { ShippingAddress } from '@/server/shipping/ShippingRepository';
 import type { ManufacturerGateway } from './ManufacturerGateway';
@@ -8,11 +9,14 @@ import type {
 } from './ManufacturingRepository';
 import type { PrintfulVariantMap } from './PrintfulVariantMap';
 
+const FACTORY_ARTWORK_READ_TTL_MS = 6 * 24 * 60 * 60 * 1000;
+
 export class ManufacturingService {
   constructor(
     private readonly repository: ManufacturingRepository,
     private readonly gateway: ManufacturerGateway,
     private readonly variantMap: PrintfulVariantMap,
+    private readonly artworkAccess: ArtworkAccessGateway,
     private readonly idGenerator: () => string = () => randomUUID(),
     private readonly now: () => Date = () => new Date(),
   ) {}
@@ -55,14 +59,15 @@ export class ManufacturingService {
     }
 
     try {
-      const [{ email }, address] = await Promise.all([
+      const [{ email }, address, factoryArtworkUrl] = await Promise.all([
         decryptPrivatePayload<{ email: string }>(input.encryptedEmail),
         decryptPrivatePayload<ShippingAddress>(input.encryptedAddress),
+        this.artworkAccess.createReadUrl(input.artworkUrl, FACTORY_ARTWORK_READ_TTL_MS),
       ]);
       const draft = await this.gateway.createDraft({
         externalId: input.issueCode,
         variantId: mapping.variantId,
-        artworkUrl: input.artworkUrl,
+        artworkUrl: factoryArtworkUrl,
         fileType: mapping.fileType,
         recipient: {
           name: address.recipientName,
