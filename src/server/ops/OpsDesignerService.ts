@@ -67,6 +67,19 @@ export class OpsDesignerService {
     return prepared;
   }
 
+  async reject(input: { issueId: string; reason: string; next: OpsDesignReworkMode = 'regenerate' }) {
+    const reason = input.reason.trim();
+    if (!reason || reason.length > 500) throw new Error('A rejection reason is required');
+    const prepared = await this.store.prepareRework(input.issueId, input.next);
+    await this.actions.enqueue(prepared.issueId, prepared.mode, prepared.generationKey);
+    await this.audit.record({
+      actor: 'OWNER', action: 'DESIGN_REJECTED', issueId: input.issueId,
+      targetType: 'design_job', targetId: input.issueId, reason,
+      safeMetadata: { next: prepared.mode, generationKey: prepared.generationKey },
+    });
+    return prepared;
+  }
+
   async selectCandidate(input: { issueId: string; candidateId: string; reason: string }) {
     const reason = input.reason.trim();
     if (!reason || reason.length > 500) throw new Error('A candidate selection reason is required');
