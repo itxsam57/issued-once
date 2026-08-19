@@ -70,6 +70,7 @@ export function DesignerPanel() {
             <p>ISSUE / {selected.issueCode}</p><h2>{selected.designState}</h2>
             {selected.artworkUrl ? <img className={styles.largeArtwork} src={selected.artworkUrl} alt={`Artwork for ${selected.issueCode}`} /> : <div className={styles.emptyArtwork}>NO ARTWORK YET</div>}
             <p>{selected.width && selected.height ? `${selected.width} × ${selected.height}` : 'DIMENSIONS PENDING'} · {selected.model ?? 'MODEL PENDING'}</p>
+            {selected.designState === 'FAILED' ? <div className={styles.actionRow}><button disabled={working} type="button" onClick={() => void run(() => post(`/ops/api/designer/${selected.issueId}/retry`, {}))}>RETRY FAILED DESIGN</button></div> : null}
             {selected.designState === 'REVIEW' ? <>
               <div className={styles.actionRow}><button disabled={working} type="button" onClick={() => void run(() => post(`/ops/api/designer/${selected.issueId}/review`, { decision: 'approve' }))}>APPROVE</button></div>
               <label>Reason for revision<input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="What should change?" /></label>
