@@ -82,7 +82,7 @@ async function verifyOtp(challengeId: string, code: string) {
 }
 
 async function saveShipping(address: ShippingAddress): Promise<void> {
-  await postJson<{ shippingSnapshotId: string }>('/api/shipping', address);
+  await postJson<{ saved: true }>('/api/shipping', address);
 }
 
 async function requestPayment(quoteId: string): Promise<void> {
