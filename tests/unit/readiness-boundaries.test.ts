@@ -49,7 +49,7 @@ test('catalog currency outside Safepay USD/PKR blocks sandbox readiness', async 
   expect(result.readyForSandbox).toBe(false);
 });
 
-test('Printful webhook secret must be even-length hexadecimal and at least 32 bytes', async () => {
+test('Printful webhook secret must be non-empty even-length hexadecimal', async () => {
   const result = await service(env({ PRINTFUL_WEBHOOK_SECRET_HEX: 'not-hex' })).check();
   expect(result.checks).toContainEqual(expect.objectContaining({ key: 'printful', state: 'blocked' }));
   expect(result.readyForSandbox).toBe(false);
