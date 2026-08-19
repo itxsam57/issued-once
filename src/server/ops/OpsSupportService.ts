@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { decryptPrivatePayload, type EncryptedPayload } from '@/server/crypto/privatePayload';
 import type { NotificationEventKey } from '@/server/notifications/NotificationRepository';
 import type { OpsAuditService } from './OpsAuditService';
@@ -32,7 +32,8 @@ export class OpsSupportService {
     private readonly store: OpsSupportStore,
     private readonly reply: OpsSupportReplyGateway,
     private readonly audit: Pick<OpsAuditService, 'record'>,
-    private readonly notifications: { enqueue(issueId: string, eventKey: NotificationEventKey): Promise<unknown> },
+    private readonly notifications: { enqueue(issueId: string, eventKey: NotificationEventKey, attemptKey: string): Promise<unknown> },
+    private readonly retryId: () => string = () => randomUUID(),
   ) {}
 
   list(status: 'OPEN' | 'CLOSED' | null, limit = 100) { return this.store.list(status, Math.min(Math.max(Math.trunc(limit), 1), 100)); }
@@ -57,11 +58,12 @@ export class OpsSupportService {
 
   async retryNotification(input: { issueId: string; eventKey: NotificationEventKey }) {
     await this.store.assertFailedNotification(input.issueId, input.eventKey);
-    await this.notifications.enqueue(input.issueId, input.eventKey);
+    const attemptKey = `owner-retry:${this.retryId()}`;
+    await this.notifications.enqueue(input.issueId, input.eventKey, attemptKey);
     await this.audit.record({
       actor: 'OWNER', action: 'NOTIFICATION_RETRY', issueId: input.issueId,
       targetType: 'notification_delivery', targetId: `${input.issueId}:${input.eventKey}`, reason: null,
-      safeMetadata: { eventKey: input.eventKey, priorState: 'FAILED' },
+      safeMetadata: { eventKey: input.eventKey, priorState: 'FAILED', attemptKey },
     });
   }
 
