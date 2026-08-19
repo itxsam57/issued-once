@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { decryptPrivatePayload, encryptPrivatePayload } from '@/server/crypto/privatePayload';
 import type { ArtworkStorageGateway } from './ArtworkStorageGateway';
 import { ArtworkQualityGate } from './ArtworkQualityGate';
-import type { DesignGateway } from './DesignGateway';
+import type { DesignGateway, StructuredDesignBrief } from './DesignGateway';
 import type { DesignJobRecord, DesignRepository } from './DesignRepository';
 
 export class DesignService {
@@ -87,6 +87,53 @@ export class DesignService {
       });
     } catch (error) {
       await this.repository.markFailed(job.id, error instanceof Error ? error.name : 'DESIGN_FAILURE', this.now());
+      throw error;
+    }
+  }
+
+  async regenerateArtwork(issueId: string): Promise<DesignJobRecord> {
+    const [input, initialJob] = await Promise.all([
+      this.repository.loadInput(issueId),
+      this.repository.findByIssueId(issueId),
+    ]);
+    if (!input || !initialJob) throw new Error('Design regeneration is unavailable');
+    if (initialJob.state === 'REVIEW' || initialJob.state === 'APPROVED') return initialJob;
+    if (initialJob.state === 'INTERPRETING' || initialJob.state === 'GENERATING') return initialJob;
+    if (!initialJob.encryptedBrief) throw new Error('Existing private design brief is required for regeneration');
+    if (!['QUEUED', 'FAILED'].includes(initialJob.state) || input.issueStatus !== 'BEING_INTERPRETED') {
+      throw new Error('Issue is not eligible for artwork regeneration');
+    }
+
+    const claimed = await this.repository.claim(initialJob.id, this.now());
+    if (!claimed) return (await this.repository.findByIssueId(issueId)) ?? initialJob;
+
+    try {
+      const brief = await decryptPrivatePayload<StructuredDesignBrief>(initialJob.encryptedBrief);
+      const artwork = await this.gateway.generateArtwork(brief);
+      const completionInput = await this.repository.loadInput(issueId);
+      if (!completionInput || completionInput.issueStatus !== 'BEING_INTERPRETED') {
+        throw new Error('Issue is no longer eligible for design completion');
+      }
+      const stored = await this.storage.put({
+        issueId,
+        designJobId: initialJob.id,
+        bytes: artwork.bytes,
+        mimeType: artwork.mimeType,
+      });
+      return await this.repository.saveGenerated({
+        jobId: initialJob.id,
+        encryptedBrief: initialJob.encryptedBrief,
+        artworkUrl: stored.url,
+        artworkMimeType: artwork.mimeType,
+        artworkBytes: stored.bytes,
+        width: artwork.width,
+        height: artwork.height,
+        provider: artwork.provider,
+        model: artwork.model,
+        updatedAt: this.now(),
+      });
+    } catch (error) {
+      await this.repository.markFailed(initialJob.id, error instanceof Error ? error.name : 'DESIGN_REGENERATION_FAILURE', this.now());
       throw error;
     }
   }
