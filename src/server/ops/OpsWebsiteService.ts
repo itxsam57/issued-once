@@ -45,6 +45,15 @@ function productSlugs(payload: OpsCatalogPayload) {
   return Object.fromEntries(Object.entries(payload.products).map(([key, product]) => [key, product.slug]));
 }
 
+function validChoiceList(value: unknown): boolean {
+  return Array.isArray(value) && value.length >= 2 && value.every((choice) => {
+    if (!choice || typeof choice !== 'object') return false;
+    const candidate = choice as { value?: unknown; label?: unknown };
+    return typeof candidate.value === 'string' && candidate.value.trim().length > 0
+      && typeof candidate.label === 'string' && candidate.label.trim().length > 0;
+  });
+}
+
 export class OpsWebsiteService {
   constructor(
     private readonly store: OpsWebsiteStore,
@@ -93,6 +102,8 @@ export class OpsWebsiteService {
   async createQuestionVersion(input: { questionId: string; family: string; prompt: string; kind: 'text' | 'choice'; optional: boolean; choices?: unknown }) {
     const prompt = input.prompt.trim();
     if (!prompt || prompt.length > 1000) throw new Error('Question prompt is invalid');
+    if (input.kind === 'choice' && !validChoiceList(input.choices)) throw new Error('Choice questions require at least two valid choices');
+    if (input.kind === 'text' && input.choices != null) throw new Error('Text questions cannot define choices');
     const version = await this.store.createQuestionVersion({ ...input, prompt });
     await this.audit.record({
       actor: 'OWNER', action: 'QUESTION_VERSION_CREATED', issueId: null,
