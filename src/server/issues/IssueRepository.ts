@@ -66,4 +66,9 @@ export interface IssueRepository {
   loadPaidTruth(paymentAttemptId: string): Promise<PaidIssueTruth | null>;
   findByPaymentAttemptId(paymentAttemptId: string): Promise<IssueRecord | null>;
   reserve(input: ReserveIssueInput): Promise<ReserveIssueResult>;
+  flagPaymentException(input: {
+    paymentAttemptId: string;
+    reason: 'PAYMENT_REFUNDED' | 'PAYMENT_EXCEPTION';
+    updatedAt: Date;
+  }): Promise<{ issueId: string } | null>;
 }
