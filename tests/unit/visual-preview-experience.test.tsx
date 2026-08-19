@@ -18,9 +18,11 @@ describe('VisualPreviewExperience', () => {
     expect(screen.queryByText(/tee|hoodie|hat|cap|tote|shop now/i)).not.toBeInTheDocument();
   });
 
-  test('owner preview completes safely without opening production checkout', async () => {
+  test('owner preview covers contact and destination then completes without opening production payment', async () => {
     const user = userEvent.setup();
     render(<VisualPreviewExperience mode="owner" />);
+
+    expect(screen.getByText('PREVIEW OTP / 123456')).toBeInTheDocument();
 
     await continueText(user, 'The Master and Margarita');
     await continueText(user, 'a quiet cabin above a valley');
@@ -38,6 +40,20 @@ describe('VisualPreviewExperience', () => {
     await user.click(screen.getByRole('button', { name: 'CONFIRM SIZE' }));
     await user.click(screen.getByRole('radio', { name: 'Bone' }));
     await user.click(screen.getByRole('button', { name: 'LOCK BASE' }));
+
+    expect(screen.getByRole('heading', { name: 'Where do we find you?' })).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Email'), 'preview@example.com');
+    await user.click(screen.getByRole('button', { name: 'SEND CODE' }));
+    await user.type(screen.getByLabelText('Verification code'), '123456');
+    await user.click(screen.getByRole('button', { name: 'VERIFY' }));
+
+    expect(screen.getByRole('heading', { name: 'Where does it go?' })).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Name'), 'Preview Customer');
+    await user.type(screen.getByLabelText('Address'), '1 Preview Street');
+    await user.type(screen.getByLabelText('City'), 'Peshawar');
+    await user.type(screen.getByLabelText('Postal code'), '25000');
+    await user.selectOptions(screen.getByLabelText('Country'), 'PK');
+    await user.click(screen.getByRole('button', { name: 'USE THIS ADDRESS' }));
 
     expect(await screen.findByText('$54.00')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'ISSUE MINE' }));
