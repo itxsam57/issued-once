@@ -6,6 +6,9 @@ export type OpsIssueFilters = {
   objectType?: string | null;
   supportOpen?: boolean | null;
   paymentException?: boolean | null;
+  countryCode?: string | null;
+  updatedFrom?: Date | null;
+  updatedTo?: Date | null;
 };
 
 export type OpsIssueListItem = {
