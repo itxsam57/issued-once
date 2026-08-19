@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import styles from './owner-os.module.css';
 
+type RevealCategory = 'contact' | 'shipping' | 'answers' | 'design_brief' | 'support_message';
+
 type Detail = {
   issueId: string;
   issueCode: string;
@@ -35,10 +37,19 @@ type Detail = {
 export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
   const [detail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [revealCategory, setRevealCategory] = useState<RevealCategory | null>(null);
+  const [revealReason, setRevealReason] = useState('');
+  const [revealed, setRevealed] = useState<unknown>(null);
+  const [revealError, setRevealError] = useState<string | null>(null);
+  const [revealing, setRevealing] = useState(false);
 
   useEffect(() => {
     setDetail(null);
     setError(null);
+    setRevealCategory(null);
+    setRevealReason('');
+    setRevealed(null);
+    setRevealError(null);
     if (!issueId) return;
     let alive = true;
     fetch(`/ops/api/issues/${encodeURIComponent(issueId)}`, { credentials: 'same-origin', cache: 'no-store' })
@@ -52,11 +63,49 @@ export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
     return () => { alive = false; };
   }, [issueId]);
 
+  async function reveal() {
+    if (!issueId || !revealCategory) return;
+    setRevealing(true);
+    setRevealError(null);
+    setRevealed(null);
+    try {
+      const response = await fetch(`/ops/api/issues/${encodeURIComponent(issueId)}/reveal`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ category: revealCategory, reason: revealReason }),
+      });
+      const payload = await response.json() as { value?: unknown; error?: string };
+      if (!response.ok) throw new Error(payload.error || 'Private reveal failed');
+      setRevealed(payload.value ?? null);
+    } catch (cause) {
+      setRevealError(cause instanceof Error ? cause.message : 'Private reveal failed');
+    } finally {
+      setRevealing(false);
+    }
+  }
+
+  function closeReveal() {
+    setRevealCategory(null);
+    setRevealReason('');
+    setRevealed(null);
+    setRevealError(null);
+  }
+
   if (!issueId) return <aside className={styles.detail}><p>SELECT AN ISSUE</p></aside>;
   if (error) return <aside className={styles.detail}><p role="alert">{error}</p></aside>;
   if (!detail) return <aside className={styles.detail}><p>READING ISSUE</p></aside>;
 
   const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: detail.currency }).format(detail.amountMinor / 100);
+  const revealOptions: Array<{ category: RevealCategory; label: string; available: boolean }> = [
+    { category: 'contact', label: 'CONTACT', available: detail.privacy.verifiedEmail },
+    { category: 'shipping', label: 'SHIPPING', available: detail.privacy.shipping },
+    { category: 'answers', label: '7 ANSWERS', available: detail.privacy.answers },
+    { category: 'design_brief', label: 'PRIVATE BRIEF', available: detail.privacy.privateBrief },
+    { category: 'support_message', label: 'SUPPORT TEXT', available: detail.privacy.supportMessage },
+  ];
+
   return (
     <aside className={styles.detail}>
       <p>ISSUE / {detail.issueCode}</p>
@@ -76,7 +125,24 @@ export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
           {detail.privacy.verifiedEmail ? 'EMAIL STORED' : 'NO EMAIL'} · {detail.privacy.shipping ? 'SHIPPING STORED' : 'NO SHIPPING'} · {detail.privacy.answers ? 'ANSWERS STORED' : 'NO ANSWERS'} · {detail.privacy.privateBrief ? 'BRIEF STORED' : 'NO BRIEF'}
         </p>
         <p>Plaintext stays hidden until an audited reveal is requested.</p>
+        <div className={styles.revealButtons}>
+          {revealOptions.filter((option) => option.available).map((option) => (
+            <button key={option.category} type="button" onClick={() => { setRevealCategory(option.category); setRevealed(null); setRevealError(null); }}>{option.label}</button>
+          ))}
+        </div>
       </section>
+      {revealCategory ? (
+        <section className={styles.revealBox}>
+          <div className={styles.panelHead}><strong>REVEAL / {revealCategory.replaceAll('_', ' ').toUpperCase()}</strong><button type="button" onClick={closeReveal}>CLOSE</button></div>
+          <label>
+            Reason for access
+            <input value={revealReason} onChange={(event) => setRevealReason(event.target.value)} placeholder="Why do you need this?" />
+          </label>
+          <button type="button" disabled={revealing || !revealReason.trim()} onClick={() => void reveal()}>{revealing ? 'REVEALING' : 'REVEAL PRIVATE DATA'}</button>
+          {revealError ? <p role="alert">{revealError}</p> : null}
+          {revealed !== null ? <pre>{JSON.stringify(revealed, null, 2)}</pre> : null}
+        </section>
+      ) : null}
       <section>
         <h3>Timeline</h3>
         <div className={styles.timeline}>
