@@ -4,14 +4,17 @@ import { useEffect, useState } from 'react';
 import styles from './owner-os.module.css';
 
 type Snapshot = {
-  days: number; grossMinor: number; refundedMinor: number; netAfterRefundMinor: number; paidOrders: number; averageOrderMinor: number;
+  days: number; currency: string | null; grossMinor: number; refundedMinor: number; netAfterRefundMinor: number; paidOrders: number; averageOrderMinor: number;
   failedPayments: number; exceptionPayments: number;
   byProduct: Array<{ key: string; orders: number }>;
   byCountry: Array<{ key: string; orders: number }>;
   funnel: { started: number; answered: number; physical: number; verified: number; shipping: number; checkout: number; paid: number };
 };
 
-const money = (minor: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(minor / 100);
+function money(minor: number, currency: string | null) {
+  if (!currency) return minor === 0 ? '—' : `${(minor / 100).toFixed(2)} / CURRENCY UNKNOWN`;
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(minor / 100);
+}
 
 export function SalesPanel() {
   const [days, setDays] = useState(30);
@@ -43,12 +46,12 @@ export function SalesPanel() {
     {!data ? <p>READING SALES</p> : <>
       <div className={styles.metricGrid}>
         <article><span>PAID ORDERS</span><strong>{data.paidOrders}</strong></article>
-        <article><span>GROSS</span><strong>{money(data.grossMinor)}</strong></article>
-        <article><span>REFUNDED</span><strong>{money(data.refundedMinor)}</strong></article>
-        <article><span>NET AFTER REFUNDS</span><strong>{money(data.netAfterRefundMinor)}</strong></article>
+        <article><span>GROSS</span><strong>{money(data.grossMinor, data.currency)}</strong></article>
+        <article><span>REFUNDED</span><strong>{money(data.refundedMinor, data.currency)}</strong></article>
+        <article><span>NET AFTER REFUNDS</span><strong>{money(data.netAfterRefundMinor, data.currency)}</strong></article>
       </div>
       <div className={styles.metricGrid}>
-        <article><span>AVERAGE ORDER</span><strong>{money(data.averageOrderMinor)}</strong></article>
+        <article><span>AVERAGE ORDER</span><strong>{money(data.averageOrderMinor, data.currency)}</strong></article>
         <article><span>FAILED PAYMENTS</span><strong>{data.failedPayments}</strong></article>
         <article><span>PAYMENT EXCEPTIONS</span><strong>{data.exceptionPayments}</strong></article>
         <article><span>PAID CONVERSION</span><strong>{data.funnel.started ? `${Math.round((data.funnel.paid / data.funnel.started) * 100)}%` : '—'}</strong></article>
