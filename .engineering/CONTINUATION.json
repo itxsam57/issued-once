@@ -5,14 +5,13 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "implementationHeadAtCheckpoint": "e993695451b845df6e1c2ca9e677c76439a82966",
-    "releaseCandidateHeadAtExternalVerification": "dcde0ff9eda89e21080378f019f60c06e16693ab",
-    "lastFullCiVerifiedHead": "c0260b64f10dea9c2cb6c937a42c2d37cbc18c4f",
-    "latestImplementationHeadVerification": "EXTERNAL_RUNNERS_DID_NOT_EXECUTE"
+    "releaseCandidateHeadAtVerification": "d4e701be9e36f3182dbbaa2ee7bab98921f87ff4",
+    "governorCheckpointParentHead": "d4e701be9e36f3182dbbaa2ee7bab98921f87ff4",
+    "latestVerification": "CODE_CI_GREEN_BROWSER_GREEN_VERCEL_BUILD_GREEN_LIVE_PREVIEW_PROTECTED"
   },
   "continuationGovernor": {
     "state": "WAIT_EXTERNAL",
-    "decision": "SOURCE_AND_BRANCH_INTEGRATION_READY_WAIT_FOR_EXECUTABLE_CI_AND_DEPLOYMENT",
+    "decision": "CODE_AND_LOCAL_BROWSER_VERIFIED_WAIT_FOR_AUTHENTICATED_DEPLOYED_PREVIEW_AND_LIVE_PROVIDER_GATES",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -20,144 +19,105 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "Source hardening, migration proofs, launch-runbook reconciliation, CI lint-gate alignment, PR metadata and main-branch workflow reconciliation are complete for the current intended launch scope. Release-candidate merge head dcde0ff9 triggered CI job 96087862738 and Browser QA job 96087867074; both completed with steps=null, proving the hosted execution layer still fails before checkout/step 1. Vercel still reports build-rate-limit and its connected integration does not expose the historical issued-once project. Production Neon remains empty/not migrated and provider launch gates remain deliberately fail-closed."
+    "stopReason": "The prior GitHub zero-step runner outage is resolved. Release candidate d4e701be9e36f3182dbbaa2ee7bab98921f87ff4 has executable green CI and 16/16 Playwright browser scenarios across desktop and mobile. GitHub now reports the exact-head Vercel status SUCCESS, so the earlier build-rate-limit is no longer the active Vercel build result. The remaining deployed-preview check cannot authenticate through Vercel Deployment Protection: the branch alias returns the Vercel Login page to the GitHub runner, while the Vercel MCP cannot mint a share URL and still returns an empty project list for team samx4. Production Neon is intentionally empty/not migrated and Safepay, Resend, OpenAI, Blob and Printful live evidence gates remain fail-closed."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
     "rules": [
       "Treat mapped GitHub repo/branch as canonical source of truth",
-      "Use Superpowers brainstorming -> written spec -> implementation plan -> TDD/debugging/verification for architectural work",
       "Maintain .engineering/CONTINUATION.json after every meaningful work cycle",
+      "Use evidence-backed debugging and verification before completion claims",
       "Keep payment, design and manufacturing boundaries fail-closed",
       "Never infer paid truth from a browser redirect",
       "Never expose bulk decrypted customer data through Owner OS",
-      "Never allow Owner OS to bypass domain state machines or irreversible factory gates",
       "Never allow model output to enter manufacturing without explicit approval",
       "Never allow Printful production confirmation without owner auth, kill switch, typed Issue confirmation and last-moment state reload",
       "Never add unlike currencies together",
-      "Never call a verification gate green when it did not execute"
+      "Never call a release gate green when it did not execute"
     ]
-  },
-  "branchIntegration": {
-    "mainHeadIntegrated": "fc0a9c90efe125f3cca4ed7b613a48a4162feb59",
-    "reconciliationMergeCommit": "dcde0ff9eda89e21080378f019f60c06e16693ab",
-    "mainDivergenceRootCause": "Eight main commits changed only .github/workflows/ci.yml and .github/workflows/browser-qa.yml; ci.yml had an add/add history conflict while the feature branch lacked browser-qa.yml",
-    "resolution": "Two-parent merge keeps feature CI plus required lint and carries Browser QA from main unchanged",
-    "postReconciliation": "main is an ancestor, feature branch is behind_by=0, PR #3 mergeable=true and remains draft solely for verification/launch gates"
   },
   "currentArchitecture": {
     "commercialSpine": "ISSUED ONCE -> Safepay -> canonical Issue -> OpenAI design worker -> owner approval -> Printful draft -> owner confirmation -> fulfillment/tracking",
     "ownerControlPlane": "Private /ops Owner OS over Home, Issues, Designer, Manufacturing, Sales, Customers, Support, Website, System and Audit",
-    "ownerOsSpec": "docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md",
-    "ownerOsPlan": "docs/superpowers/plans/2026-08-19-issued-once-owner-os.md",
-    "ownerOsSpecReview": "APPROVED_AND_IMPLEMENTED_TO_CURRENT_SOURCE_SCOPE",
     "canonicalIdentity": "Issue ID / Issue Code",
-    "historicalAnalytics": "daily commercial_metric_buckets for 90-day/lifetime reads; bounded canonical OLTP for recent operating windows"
-  },
-  "ownerOsBuildState": {
-    "home": "Attention Required + bounded live pulse + bucket-backed lifetime sales/delivery + recent activity",
-    "issues": "cursor ledger, indexed case-insensitive prefix search, full operational filters, canonical detail/timeline, explicit audited private reveal",
-    "designer": "queue, review, approve, failed retry, regenerate, reinterpret, candidate history and candidate selection with pre-factory safety guards",
-    "manufacturing": "draft creation/recovery by Issue Code external-ID lookup, quarantine, tracking visibility and unchanged deliberate confirmation locks",
-    "sales": "currency-safe live 7/30-day metrics plus bucket-backed 90-day/lifetime revenue, refund, funnel, form/size/color/country mix and lifecycle timing",
-    "customers": "verified-contact hash grouping with currency-safe lifetime value and no plaintext list identity",
-    "support": "open/closed desk, encrypted message reveal, internal notes, verified reply, failed-notification retry with queue-distinct attempt keys",
-    "website": "versioned catalog controls, Printful mapping validation, live weighted Question Vault controls and safe question version creation",
-    "system": "provider/readiness view and factory confirmation safety state",
-    "audit": "append-only owner actions, safe metadata, cursor pagination, action/Issue/target/date filters, owner login/logout auditing",
-    "browserAcceptanceSource": "tests/e2e/owner-os.spec.ts uses real owner-session gate and mocked downstream /ops APIs so it cannot charge, send mail, call OpenAI or confirm Printful"
+    "historicalAnalytics": "daily commercial_metric_buckets for 90-day/lifetime reads; bounded canonical OLTP for recent operating windows",
+    "previewIsolation": "ENABLE_VISUAL_PREVIEW=1 uses in-memory preview experience and persistent-per-preview Question Vault assignment; production still requires Neon and fails closed without DATABASE_URL"
   },
   "privacySecurity": {
     "opsRobots": "noindex,nofollow,nocache with Google noimageindex",
-    "opsCookie": "HttpOnly SameSite=strict scoped to /ops; logout endpoint is inside /ops so the prior session cookie is visible for auditing",
+    "opsCookie": "HttpOnly SameSite=strict scoped to /ops",
     "productionLoginAuditFailure": "FAIL_CLOSED",
-    "logoutAuditFailure": "COOKIE_STILL_CLEARED",
     "listViewsDecryptCustomerData": false,
     "bulkPrivateExport": false,
     "privateRevealRequiresReason": true,
     "privateRevealAudited": true,
-    "fullDesignInterpretationProtected": true,
-    "supportPlaintextProtected": true,
     "paymentProviderEventTruth": "signed/idempotent provider events",
     "manufacturingProviderEventTruth": "unique provider event reservation prevents duplicate canonical event projection"
   },
-  "scale": {
-    "cursorPagination": true,
-    "noLoadAllIssuesEndpoint": true,
-    "providerCallsPerListRow": false,
-    "historicalOrdersImmutableAcrossCatalogQuestionChanges": true,
-    "recentSalesWindow": "bounded to <=30 days on indexed canonical tables",
-    "historicalSalesWindow": "90-day/lifetime from daily commercial metric buckets",
-    "lifetimeDashboard": "orders/revenue/refunds/delivered from metric buckets",
-    "issueLedgerIndexes": "newest-first paging, country join indexes, status/exception queue indexes",
-    "issuePrefixSearch": "pg_trgm GIN indexes matching ILIKE prefix search for Issue Code, Safepay provider reference, Printful order ID and tracking"
-  },
   "database": {
+    "projectId": "autumn-butterfly-25489215",
+    "databaseName": "neondb",
     "currentMigrationHead": "0027_issue_prefix_search_indexes.sql",
-    "productionApplied": false,
-    "productionState": "CONNECTED_DEFAULT_DATABASE_INSPECTED_EMPTY_NOT_MIGRATED",
     "migrationManifest": "db/migrations/README.md",
-    "isolatedProofs": [
-      "0020-0022: br-shy-fire-axkuvyf8; Owner OS tables/indexes/status rework guard verified; branch deleted",
-      "0023-0025: br-still-boat-axp76bq8; metric projections, lifecycle timing, refund/failure, delivered and 9 scale indexes verified; branch deleted",
-      "0026 final: br-tiny-morning-axmzz103; 3/3 Issue ledger/country join indexes verified; branch deleted",
-      "0027: br-weathered-pine-ax2ywpyh; pg_trgm + 4/4 search indexes verified and EXPLAIN showed Bitmap Index Scan for existing ILIKE Issue prefix; branch deleted"
-    ],
-    "migrationSafety": "Before production apply, use Neon prepare_database_migration -> test temporary branch -> obtain exact migration ID -> explicit owner approval -> complete_database_migration. Never bypass the migration-ID approval gate."
-  },
-  "operationalDocumentation": {
-    "migrationOrder": "ALIGNED_WITH_0027_AND_DEFERS_TO_DB_MANIFEST_CURRENT",
-    "productionLaunchGate": "ALIGNED_WITH_0027_AND_COMPLETE_OWNER_OS_DATABASE_PROOFS",
-    "firstLiveCycle": "NO_SHORTENED_MIGRATION_CHAIN; DEFERS_TO_DB_MANIFEST_CURRENT",
-    "finalAudit": "REFRESHED_FOR_OWNER_OS_0027_AND_CURRENT_EXTERNAL_GATES",
-    "antiDriftRule": "db/migrations/README.md plus db/migrations/CURRENT are authoritative if a duplicated runbook value disagrees"
+    "productionApplied": false,
+    "productionState": "CONNECTED_DEFAULT_DATABASE_INSPECTED_ZERO_TABLES_NOT_MIGRATED",
+    "isolatedMigrationProofs": "0020-0027 proof branches were verified and deleted; details remain in db/migrations/README.md",
+    "migrationSafety": "Before production apply, use Neon prepare_database_migration, test the returned temporary branch, show the exact migration ID and request explicit owner approval, then use complete_database_migration."
   },
   "verification": {
-    "exactImplementationHead": "e993695451b845df6e1c2ca9e677c76439a82966",
-    "releaseCandidateHead": "dcde0ff9eda89e21080378f019f60c06e16693ab",
-    "ciDefinition": "pnpm test -> pnpm typecheck -> pnpm lint -> pnpm build",
-    "latestImplementationUnitTests": "NOT_EXECUTED_TO_GREEN_ON_EXACT_HEAD",
-    "latestImplementationTypecheck": "NOT_EXECUTED_TO_GREEN_ON_EXACT_HEAD",
-    "latestImplementationLint": "NOT_EXECUTED_TO_GREEN_ON_EXACT_HEAD",
-    "latestImplementationProductionBuild": "NOT_EXECUTED_TO_GREEN_ON_EXACT_HEAD",
-    "latestImplementationBrowserQA": "ACCEPTANCE_SPEC_WRITTEN_BUT_HOSTED_RUNNER_DID_NOT_EXECUTE",
-    "lastExecutableCiBaseline": {
-      "head": "c0260b64f10dea9c2cb6c937a42c2d37cbc18c4f",
-      "run": 32162529744,
-      "job": 95794497291,
-      "unitTests": "96/96 PASSED",
+    "releaseCandidateHead": "d4e701be9e36f3182dbbaa2ee7bab98921f87ff4",
+    "ci": {
+      "run": 32267689578,
+      "job": 96116111790,
+      "conclusion": "SUCCESS",
+      "testFiles": "108/108 PASSED",
+      "unitAndIntegrationTests": "250/250 PASSED",
       "typecheck": "PASSED",
-      "productionBuild": "PASSED",
-      "interpretation": "known-good historical baseline only; substantial commercial and Owner OS changes were added afterward"
+      "lint": "PASSED_WITH_0_ERRORS_44_WARNINGS",
+      "productionBuild": "PASSED"
     },
-    "githubActions": {
-      "ciRun": 32259127505,
-      "ciJob": 96087862738,
-      "ciSteps": null,
-      "browserRun": 32259128419,
-      "browserJob": 96087867074,
-      "browserSteps": null,
-      "interpretation": "release-candidate head after branch-history reconciliation still cannot provision workflow step 1; this is not evidence of a product-test failure or success"
+    "browser": {
+      "run": 32267689736,
+      "job": 96116113228,
+      "browserTestStep": "SUCCESS",
+      "playwright": "16/16 PASSED",
+      "coverage": "desktop Chromium + mobile Chromium; mystery journey, public BEGIN/interview, failed-answer recovery, physical/size/base, OTP/shipping with required region and phone, Safepay handoff, Owner OS navigation/private controls",
+      "workflowConclusion": "FAILURE_ONLY_AFTER_BROWSER_TESTS",
+      "workflowFailure": "Live Vercel owner preview received Vercel Login page under Deployment Protection"
     },
-    "vercel": "Current GitHub status points to upgradeToPro=build-rate-limit; Vercel bot reports free daily deployment limit and connected Vercel integration currently returns no projects for team samx4; no current compiler/deployment result obtained",
-    "neonMigrationSlices": "GREEN_ON_ISOLATED_TEMP_BRANCH_PROOFS",
-    "neonProduction": "EMPTY_NOT_MIGRATED",
-    "safepaySandboxCycle": "NOT_PROVEN_END_TO_END",
-    "openaiDeployedDesign": "NOT_PROVEN",
-    "resendRealDelivery": "NOT_PROVEN",
-    "printfulDraft": "NOT_PROVEN_WITH_REAL_PRODUCTION_TOKEN_AND_SAMPLE_MAPPING",
+    "vercel": {
+      "teamId": "team_iG5Amx3WwHQ3Te5KGbmIOiqs",
+      "teamSlug": "samx4",
+      "githubExactHeadStatus": "SUCCESS",
+      "githubStatusTarget": "https://vercel.com/samx4/issued-once/HfTkdLpdc78B9kL573zHT1Uz5AHE",
+      "branchAlias": "https://issued-once-git-feat-mystery-foundation-samx4.vercel.app",
+      "branchAliasObservedByGitHubRunner": "HTTP 200 Vercel Login page",
+      "connectorProjectVisibility": "list_projects returns empty and get_project issued-once returns 404",
+      "connectorProtectedAccess": "get_access_to_vercel_url and web_fetch_vercel_url could not create authenticated share access",
+      "interpretation": "exact-head Vercel build/deployment status is green, but authenticated deployed UI evidence is still unavailable"
+    },
+    "neonProduction": "ZERO_TABLES_NOT_MIGRATED",
+    "safepaySandboxCycle": "NOT_LIVE_PROVEN",
+    "openaiDeployedDesign": "NOT_LIVE_PROVEN",
+    "resendRealDelivery": "NOT_LIVE_PROVEN",
+    "privateBlobSignedRead": "NOT_LIVE_PROVEN",
+    "printfulDraft": "NOT_LIVE_PROVEN_WITH_REAL_TOKEN_AND_SAMPLED_MAPPING",
     "printfulProduction": "NOT_RUN",
     "printfulSignedFulfillment": "NOT_LIVE_PROVEN"
   },
-  "resolvedDuringContinuationAudit": [
-    "Confirmed the branch had not moved from the supplied 53fcc094 checkpoint before this cycle",
-    "Confirmed reused redirected payment repairs COMMITMENT_READY to CHECKOUT_STARTED before returning the Safepay URL and fails closed if that repair fails",
-    "Confirmed the private Blob readiness probe uses @vercel/blob issueSignedToken and checks delegationToken plus clientSigningToken, matching Vercel's documented return shape",
-    "Confirmed production/default Neon contains no tables and therefore was not partially migrated",
-    "Reconciled stale operational runbooks that still stopped at migrations 0013 or 0019 with the authoritative 0027 manifest",
-    "Added the missing lint command to CI so the workflow matches the declared release verification gate",
-    "Updated PR #3 title/body to describe the actual commercial + Owner OS scope and truthful WAIT_EXTERNAL state",
-    "Integrated current main verification workflows with a two-parent merge, resolved the prior add/add workflow conflict and restored PR mergeability"
+  "resolvedDuringRetry": [
+    "Recovered GitHub Actions from the earlier steps=null hosted-runner outage",
+    "Fixed OpsDesignerService source syntax failure exposed by the first executable test run",
+    "Aligned shipping tests and browser flows with required province/region and phone fields",
+    "Repaired stale test selectors and mocks without weakening production behavior",
+    "Brought hardened design/payment/manufacturing test doubles up to strict TypeScript interfaces",
+    "Refactored Owner OS effects to satisfy React 19 lint rules without disabling them",
+    "Added deterministic preview-only Question Vault persistence while production remains Neon-only and fail-closed",
+    "Fixed mobile Owner OS navigation overflow/click interception",
+    "Fixed public physical-flow catalog locator from Medium to real size code M",
+    "Removed the flaky Playwright apt install-deps mirror bottleneck while preserving Chromium installation and the full browser suite",
+    "Re-proved exact-head CI and full desktop/mobile browser acceptance",
+    "Observed Vercel exact-head status recover from build-rate-limit to SUCCESS"
   ],
   "remainingNonLaunchP1": [
     "Owner-edited full structured design brief workflow is not exposed; current safe controls are retry/regenerate/reinterpret/select/approve",
@@ -167,14 +127,13 @@
     "Keyed phone lookup in Owner OS search is deferred; email lookup hash and canonical Issue/provider/tracking searches are implemented"
   ],
   "nextActions": [
-    "Restore an executable GitHub Actions runner/account state or another exact-head executable verification path, then run unit tests, typecheck, lint, production build and Playwright against the current release head",
-    "Fix only evidence-backed failures from those executable gates; do not change application code to address zero-step runner failures",
-    "After exact-head verification is green, prepare the complete 0001-0027 production Neon migration through the guarded migration workflow and request approval using the returned migration ID",
-    "Run Safepay sandbox paid/refund/exception cycle with real signed webhook evidence",
-    "Run deployed OpenAI design generation and owner review evidence",
-    "Run Resend real delivery evidence",
-    "Create a real Printful draft with sampled mapping; keep production confirmation disabled until final deliberate launch approval",
-    "Only after all release gates are green consider closing non-launch P1 control-plane refinements and marking the PR ready for review"
+    "Obtain authenticated access to the exact-head Vercel preview or configure an automation bypass for Deployment Protection, then rerun tests/e2e/live-owner-preview.mjs against the deployed branch alias",
+    "Only after deployed exact-head UI evidence is green, prepare the complete 0001-0027 production Neon migration through the guarded migration workflow and request explicit owner approval using the returned migration ID",
+    "Run a real Safepay sandbox paid/refund/exception cycle with signed webhook evidence",
+    "Run real Resend OTP and milestone delivery evidence",
+    "Run deployed OpenAI design generation and private Vercel Blob signed-read evidence",
+    "Create and visually inspect a real Printful draft using sampled variant/placement mapping while PRINTFUL_ALLOW_CONFIRM remains disabled",
+    "Run Printful signed fulfillment webhook evidence before any production launch claim"
   ],
-  "nextOwnerAction": "Restore/allow executable verification. The reconciled release candidate still provisions zero steps in both GitHub Actions lanes and Vercel remains rate-limited/invisible through the connected project listing. No production database or provider activation is requested yet because exact-head code verification must execute first."
+  "nextOwnerAction": "Vercel Deployment Protection must provide an authenticated preview path or automation-bypass credential for the exact deployed branch before the live-preview gate can be observed. No production Neon migration, Safepay production activation, or Printful confirmation is authorized by this checkpoint."
 }
