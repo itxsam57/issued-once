@@ -149,3 +149,35 @@ test('late design worker cannot resurrect an Issue that becomes an exception dur
   expect(repository.input.issueStatus).toBe('EXCEPTION');
   expect(repository.job?.state).toBe('FAILED');
 });
+
+test('regenerates artwork from the existing encrypted brief without reinterpreting answers', async () => {
+  const repository = new MemoryDesignRepository();
+  repository.input = await paidInput();
+  repository.input.issueStatus = 'BEING_INTERPRETED';
+  const brief = {
+    concept: 'quiet orbit', motifs: ['orbit'], paletteRelation: 'light on dark',
+    composition: 'asymmetric', density: 'sparse', typography: 'none', avoid: [], rationale: ['signal'],
+    imagePrompt: 'abstract orbit, no text, transparent background',
+  };
+  repository.job = {
+    id: 'job-regen', issueId: 'issue-1', state: 'QUEUED', encryptedBrief: await encryptPrivatePayload(brief),
+    artworkUrl: 'https://blob.example/old.png', artworkMimeType: 'image/png', artworkBytes: 900_000,
+    width: 1024, height: 1536, provider: 'OPENAI', model: 'gpt-image-2', createdAt: new Date(), updatedAt: new Date(),
+  };
+  const gateway: DesignGateway = {
+    interpret: vi.fn(),
+    generateArtwork: vi.fn(async (received) => {
+      expect(received.concept).toBe('quiet orbit');
+      return { bytes: Buffer.from('new-png'), mimeType: 'image/png', width: 1024, height: 1536, provider: 'OPENAI', model: 'gpt-image-2' };
+    }),
+  };
+  const storage: ArtworkStorageGateway = {
+    put: vi.fn(async () => ({ url: 'https://blob.example/new.png', bytes: 910_000 })),
+  };
+
+  const result = await new DesignService(repository, gateway, storage).regenerateArtwork('issue-1');
+  expect(result.state).toBe('REVIEW');
+  expect(result.artworkUrl).toBe('https://blob.example/new.png');
+  expect(gateway.interpret).not.toHaveBeenCalled();
+  expect(gateway.generateArtwork).toHaveBeenCalledTimes(1);
+});
