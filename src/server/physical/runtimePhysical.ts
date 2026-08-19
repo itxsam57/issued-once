@@ -6,8 +6,8 @@ import { PreviewCheckoutQuoteRepository } from '@/server/preview/PreviewCheckout
 import { PreviewExperienceRepository } from '@/server/preview/PreviewExperienceRepository';
 import { PreviewPhysicalSelectionRepository } from '@/server/preview/PreviewPhysicalSelectionRepository';
 import { BaseSelectionService } from './BaseSelectionService';
-import { IssuedOnceCatalogGateway } from './IssuedOnceCatalogGateway';
 import { ObjectSelectionService } from './ObjectSelectionService';
+import { PostgresIssuedOnceCatalogGateway } from './PostgresIssuedOnceCatalogGateway';
 import { PostgresPhysicalSelectionRepository } from './PostgresPhysicalSelectionRepository';
 import { SizeSelectionService } from './SizeSelectionService';
 
@@ -23,16 +23,14 @@ function createProductionDependencies() {
   const catalogJson = process.env.ISSUED_ONCE_CATALOG_JSON?.trim();
   if (!databaseUrl || !catalogJson) throw new PhysicalRuntimeUnavailableError();
 
-  let catalog: IssuedOnceCatalogGateway;
+  const sql = createNeonSqlExecutor(databaseUrl);
+  let catalog: PostgresIssuedOnceCatalogGateway;
   try {
-    catalog = new IssuedOnceCatalogGateway(catalogJson);
+    catalog = new PostgresIssuedOnceCatalogGateway(catalogJson, sql);
   } catch (error) {
-    throw new PhysicalRuntimeUnavailableError(
-      error instanceof Error ? error.message : 'ISSUED ONCE catalog is invalid',
-    );
+    throw new PhysicalRuntimeUnavailableError(error instanceof Error ? error.message : 'ISSUED ONCE catalog is invalid');
   }
 
-  const sql = createNeonSqlExecutor(databaseUrl);
   return {
     experienceRepository: new PostgresExperienceRepository(sql),
     physicalRepository: new PostgresPhysicalSelectionRepository(sql),
@@ -42,17 +40,13 @@ function createProductionDependencies() {
   };
 }
 
-function configuredProductSlugs(catalog: IssuedOnceCatalogGateway) {
+function configuredProductSlugs(catalog: { productSlug(objectType: string): string }) {
   const slugs = {
     tee: catalog.productSlug('tee'),
     hat: catalog.productSlug('hat'),
     tote: catalog.productSlug('tote'),
   } as { tee: string; hat: string; tote: string; hoodie?: string };
-  try {
-    slugs.hoodie = catalog.productSlug('hoodie');
-  } catch {
-    // Hoodie is intentionally seasonal and optional in the current issue.
-  }
+  try { slugs.hoodie = catalog.productSlug('hoodie'); } catch { /* seasonal */ }
   return slugs;
 }
 
@@ -62,16 +56,10 @@ export function createObjectSelectionService(): ObjectSelectionService {
       experienceRepository: new PreviewExperienceRepository(),
       physicalRepository: new PreviewPhysicalSelectionRepository(),
       catalog: new PreviewCatalogGateway(),
-      productSlugs: {
-        tee: 'preview-tee',
-        hoodie: 'preview-hoodie',
-        hat: 'preview-hat',
-        tote: 'preview-tote',
-      },
+      productSlugs: { tee: 'preview-tee', hoodie: 'preview-hoodie', hat: 'preview-hat', tote: 'preview-tote' },
       currency: 'USD',
     });
   }
-
   const dependencies = createProductionDependencies();
   return new ObjectSelectionService({
     experienceRepository: dependencies.experienceRepository,
@@ -84,33 +72,15 @@ export function createObjectSelectionService(): ObjectSelectionService {
 
 export function createSizeSelectionService(): SizeSelectionService {
   if (process.env.ENABLE_VISUAL_PREVIEW === '1') {
-    return new SizeSelectionService({
-      experienceRepository: new PreviewExperienceRepository(),
-      physicalRepository: new PreviewPhysicalSelectionRepository(),
-      catalog: new PreviewCatalogGateway(),
-      currency: 'USD',
-    });
+    return new SizeSelectionService({ experienceRepository: new PreviewExperienceRepository(), physicalRepository: new PreviewPhysicalSelectionRepository(), catalog: new PreviewCatalogGateway(), currency: 'USD' });
   }
-
   const dependencies = createProductionDependencies();
-  return new SizeSelectionService({
-    experienceRepository: dependencies.experienceRepository,
-    physicalRepository: dependencies.physicalRepository,
-    catalog: dependencies.catalog,
-    currency: dependencies.currency,
-  });
+  return new SizeSelectionService({ experienceRepository: dependencies.experienceRepository, physicalRepository: dependencies.physicalRepository, catalog: dependencies.catalog, currency: dependencies.currency });
 }
 
 export function createBaseSelectionService(): BaseSelectionService {
   if (process.env.ENABLE_VISUAL_PREVIEW === '1') {
-    return new BaseSelectionService({
-      experienceRepository: new PreviewExperienceRepository(),
-      physicalRepository: new PreviewPhysicalSelectionRepository(),
-      quoteRepository: new PreviewCheckoutQuoteRepository(),
-      catalog: new PreviewCatalogGateway(),
-      currency: 'USD',
-    });
+    return new BaseSelectionService({ experienceRepository: new PreviewExperienceRepository(), physicalRepository: new PreviewPhysicalSelectionRepository(), quoteRepository: new PreviewCheckoutQuoteRepository(), catalog: new PreviewCatalogGateway(), currency: 'USD' });
   }
-
   return new BaseSelectionService(createProductionDependencies());
 }
