@@ -119,23 +119,31 @@ Rules:
 ## Vercel Blob
 
 ### `BLOB_READ_WRITE_TOKEN`
-Server-only Blob token used to persist final generated PNG assets.
+Server-only token for a **private** Vercel Blob store containing canonical generated PNG assets.
 
-The resulting artwork URL must be HTTPS and reachable by Printful. Never store questionnaire answers in Blob object names or metadata.
+Rules:
+- canonical artwork is uploaded with `access: private`
+- database stores the private canonical Blob URL
+- the owner browser receives only a short-lived signed read URL
+- Printful receives only a bounded signed read URL generated at draft time
+- never put questionnaire answers in Blob object names or metadata
+- do not switch the Blob store to public merely to make Printful fetch an image
 
 ## Internal owner operations
 
 ### `INTERNAL_OPERATIONS_TOKEN`
-High-entropy server-only bearer token protecting owner-only design/manufacturing endpoints.
+High-entropy server-only secret used to establish the private `/ops` session.
 
 Minimum application requirement: 24 characters. Use a substantially longer random secret in production.
 
-Owner-only endpoints include:
+The owner room intentionally excludes raw questionnaire answers, email, and shipping details. Its production identity is the Issue.
+
+Owner operations include:
 - design approval
 - Printful draft creation
 - Printful production confirmation
 
-Do not expose this token to browser JavaScript or public environment variables.
+Do not expose this token to public environment variables or browser JavaScript.
 
 ## Printful
 
@@ -146,7 +154,7 @@ Server-only Printful API token.
 Optional API-store identifier when the token has access to multiple stores.
 
 ### `PRINTFUL_VARIANT_MAP_JSON`
-Explicit mapping from ISSUED ONCE physical truth to a sampled/approved Printful catalog variant.
+Explicit mapping from ISSUED ONCE physical truth to a **sampled and measured** Printful catalog variant and print placement.
 
 Example structure only:
 
@@ -154,16 +162,31 @@ Example structure only:
 {
   "tee:M:Black": {
     "variantId": 4012,
-    "fileType": "front"
+    "fileType": "front",
+    "printArea": {
+      "width": 1800,
+      "height": 2400,
+      "dpi": 150
+    },
+    "position": {
+      "width": 900,
+      "height": 1350,
+      "top": 300,
+      "left": 450
+    }
   }
 }
 ```
 
-The example ID above is illustrative only. Never copy an example variant into production. Obtain and verify each real Printful numeric variant ID against the current Printful catalog and a physical sample.
+Every number above is illustrative only. Never copy this mapping into production. Obtain the current Printful numeric variant and printfile/placement profile for the exact sampled blank and verify the physical result.
 
 Rules:
 - no exact mapping = no manufacturing
+- the target placement must fit entirely inside the configured Printful print area
+- source artwork pixel width/height must be at least the target placement width/height; ISSUED ONCE refuses any mapping that would enlarge the source artwork
+- Printful receives `limit_to_print_area=true`
 - retail logical SKU and Printful numeric variant are intentionally separate
+- the public Issue Code is Printful `external_id` and is used to recover ambiguous draft retries
 - customer questionnaire answers never enter Printful
 
 ### `PRINTFUL_WEBHOOK_PUBLIC_KEY`
@@ -185,12 +208,12 @@ Safe/default state:
 
 Only set to `true` when an owner deliberately wants the application to allow `/orders/{id}/confirm`.
 
-Even when this flag is `true`, confirmation still requires:
-1. valid `INTERNAL_OPERATIONS_TOKEN`
+Even when this flag is `true`, `/ops` confirmation still requires:
+1. a valid private ops session
 2. an existing Printful draft attached to the same Issue
-3. exact confirmation phrase `CONFIRM <issue UUID>`
+3. exact confirmation phrase `CONFIRM <public Issue Code>`
 
-For the first commercial cycles, return this flag to disabled after a deliberate confirmation if continuous automated confirmation is not yet wanted.
+For the first commercial cycles, return this flag to disabled after a deliberate confirmation if continuous confirmations are not yet wanted.
 
 ## Vercel Queue
 
@@ -204,7 +227,7 @@ Before production payment is enabled, verify on the actual Vercel account that:
 - both function triggers are registered after deploy
 - the design function has enough execution duration for the selected image model
 - failed messages visibly retry
-- queue delivery can reach the protected production deployment environment
+- queue delivery can reach the production deployment environment
 
 ## Variables that must NOT be present in the final active commerce configuration
 
@@ -224,12 +247,13 @@ If any of the following cannot be demonstrated, keep paid production disabled:
 - encryption/HMAC keys backed up
 - Safepay signed webhook verified
 - exact retail catalog loaded
-- exactly mapped sampled Printful variants
+- exactly mapped sampled Printful variants and print placements
 - OpenAI design call proven
-- Blob artwork reachable
+- canonical artwork private and temporary owner/factory access proven
 - Queue retries proven
 - owner design approval works
 - Printful draft creation works with `confirm=0`
+- ambiguous Printful draft retry resolves by public Issue Code without a second order
 - `PRINTFUL_ALLOW_CONFIRM` defaults off
 - Printful signed shipment webhook verified
 - Resend domain/sender verified
