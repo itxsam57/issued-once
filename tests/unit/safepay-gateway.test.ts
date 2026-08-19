@@ -12,10 +12,10 @@ function signedWebhook(secret: string, data: object) {
   };
 }
 
-test('creates a hosted Safepay checkout from exact minor-unit amount and opaque attempt id', async () => {
+test('converts exact internal minor units to Safepay major currency units when creating the tracker', async () => {
   const fetchImpl = vi.fn(async (_url: string, init?: RequestInit) => {
     expect(JSON.parse(String(init?.body))).toEqual({
-      amount: 5400,
+      amount: 54.01,
       client: 'sec_test_123',
       currency: 'USD',
       environment: 'sandbox',
@@ -34,7 +34,7 @@ test('creates a hosted Safepay checkout from exact minor-unit amount and opaque 
 
   const result = await gateway.createCheckout({
     paymentAttemptId: 'attempt-opaque-1',
-    amountMinor: 5400,
+    amountMinor: 5401,
     currency: 'USD',
     returnUrl: 'https://issuedonce.shop/payment/return',
     cancelUrl: 'https://issuedonce.shop/begin?payment=cancelled',
@@ -52,7 +52,7 @@ test('creates a hosted Safepay checkout from exact minor-unit amount and opaque 
   expect(checkout.searchParams.get('webhooks')).toBe('true');
 });
 
-test('verifies merchant webhook HMAC and converts decimal Safepay money to integer minor units', () => {
+test('verifies merchant webhook HMAC and converts decimal Safepay major-unit money to integer minor units', () => {
   const gateway = new SafepayPaymentGateway({
     environment: 'production', apiKey: 'sec_live', webhookSecret: 'foo',
     fetchImpl: vi.fn() as unknown as typeof fetch,
@@ -64,7 +64,7 @@ test('verifies merchant webhook HMAC and converts decimal Safepay money to integ
     token: 'evt-token-1',
     type: 'payment:created',
     notification: {
-      amount: '54.00', currency: 'USD', state: 'PAID', tracker: 'track_paid_1', reference: 'SAFE-001',
+      amount: '54.01', currency: 'USD', state: 'PAID', tracker: 'track_paid_1', reference: 'SAFE-001',
       metadata: { source: 'custom' },
     },
   };
@@ -73,7 +73,7 @@ test('verifies merchant webhook HMAC and converts decimal Safepay money to integ
     providerEventId: 'evt-token-1',
     providerReference: 'track_paid_1',
     state: 'PAID',
-    amountMinor: 5400,
+    amountMinor: 5401,
     currency: 'USD',
     reference: 'SAFE-001',
     occurredAt: new Date('2026-08-19T01:02:04Z'),
