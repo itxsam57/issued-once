@@ -18,7 +18,7 @@ describe('InterviewFlow', () => {
     render(<InterviewFlow onAnswer={onAnswer} onComplete={onComplete} />);
 
     expect(screen.getByText('01 / 07')).toBeInTheDocument();
-    expect(screen.queryByText(/tee|hoodie|hat|product|garment/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\b(?:tee|hoodie|hat|product|garment)\b/i)).not.toBeInTheDocument();
 
     await answerText(user, 'old maps, weather systems, forgotten machines');
     expect(screen.getByText('02 / 07')).toBeInTheDocument();
@@ -35,7 +35,7 @@ describe('InterviewFlow', () => {
 
     expect(screen.getByText('07 / 07')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'CONTINUE' })).toBeEnabled();
-    expect(screen.queryByText(/tee|hoodie|hat|product|garment/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\b(?:tee|hoodie|hat|product|garment)\b/i)).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'CONTINUE' }));
 
     expect(onAnswer).toHaveBeenCalledTimes(7);

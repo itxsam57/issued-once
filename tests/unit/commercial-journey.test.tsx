@@ -55,16 +55,20 @@ test('requires verified contact and shipping before commitment, then opens the p
   await user.type(screen.getByLabelText('Name'), 'Sam Example');
   await user.type(screen.getByLabelText('Address'), '1 Quiet Street');
   await user.type(screen.getByLabelText('City'), 'Peshawar');
+  await user.type(screen.getByLabelText('Province / state / region'), 'Khyber Pakhtunkhwa');
   await user.type(screen.getByLabelText('Postal code'), '25000');
   await user.selectOptions(screen.getByLabelText('Country'), 'PK');
+  await user.type(screen.getByLabelText('Phone'), '+923001234567');
   await user.click(screen.getByRole('button', { name: 'USE THIS ADDRESS' }));
 
   expect(onShippingSubmitted).toHaveBeenCalledWith(expect.objectContaining({
     recipientName: 'Sam Example',
     line1: '1 Quiet Street',
     city: 'Peshawar',
+    region: 'Khyber Pakhtunkhwa',
     postalCode: '25000',
     countryCode: 'PK',
+    phone: '+923001234567',
   }));
 
   expect(screen.getByRole('heading', { name: 'From here, it becomes ours to interpret.' })).toBeInTheDocument();

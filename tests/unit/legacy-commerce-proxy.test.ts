@@ -9,5 +9,5 @@ test.each([
   const response = proxy(new NextRequest(`https://issuedonce.shop${path}`));
   expect(response.status).toBe(410);
   expect(response.headers.get('cache-control')).toBe('no-store');
-  await expect(response.json()).resolves.toEqual({ error: 'Legacy commerce endpoint is disabled' });
+  await expect(response.json()).resolves.toEqual({ error: 'Legacy endpoint is disabled' });
 });

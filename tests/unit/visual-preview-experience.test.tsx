@@ -15,7 +15,7 @@ describe('VisualPreviewExperience', () => {
     expect(screen.getByText('VISUAL QA / NOT PRODUCTION')).toBeInTheDocument();
     expect(screen.getByText('01 / 07')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: "So tell me. What's your favourite book?" })).toBeInTheDocument();
-    expect(screen.queryByText(/tee|hoodie|hat|cap|tote|shop now/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\b(?:tee|hoodie|hat|cap|tote|shop now)\b/i)).not.toBeInTheDocument();
   });
 
   test('owner preview covers contact and destination then completes without opening production payment', async () => {
@@ -51,8 +51,10 @@ describe('VisualPreviewExperience', () => {
     await user.type(screen.getByLabelText('Name'), 'Preview Customer');
     await user.type(screen.getByLabelText('Address'), '1 Preview Street');
     await user.type(screen.getByLabelText('City'), 'Peshawar');
+    await user.type(screen.getByLabelText('Province / state / region'), 'Khyber Pakhtunkhwa');
     await user.type(screen.getByLabelText('Postal code'), '25000');
     await user.selectOptions(screen.getByLabelText('Country'), 'PK');
+    await user.type(screen.getByLabelText('Phone'), '+923001234567');
     await user.click(screen.getByRole('button', { name: 'USE THIS ADDRESS' }));
 
     expect(await screen.findByText('$54.00')).toBeInTheDocument();

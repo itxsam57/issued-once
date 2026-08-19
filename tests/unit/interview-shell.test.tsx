@@ -20,7 +20,7 @@ describe('InterviewQuestion', () => {
 
     expect(screen.getByText('01 / 07')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: QUESTIONS[0].prompt })).toBeInTheDocument();
-    expect(screen.queryByText(/tee|hoodie|hat|product|design/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\b(?:tee|hoodie|hat|product|design)\b/i)).not.toBeInTheDocument();
 
     const field = screen.getByLabelText('Your answer');
     await user.type(field, 'old maps, storms, and forgotten machines');

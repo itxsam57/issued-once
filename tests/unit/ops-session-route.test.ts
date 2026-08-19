@@ -30,6 +30,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   delete process.env.INTERNAL_OPERATIONS_TOKEN;
   delete process.env.DATABASE_URL;
 });
@@ -48,15 +49,13 @@ test('successful owner login is audited before the private session cookie is iss
 });
 
 test('production login fails closed when session auditing cannot be recorded', async () => {
-  const previousNodeEnv = process.env.NODE_ENV;
-  Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', configurable: true });
+  vi.stubEnv('NODE_ENV', 'production');
   mocks.record.mockRejectedValueOnce(new Error('database unavailable'));
   const response = await POST(new Request('https://issuedonce.shop/api/ops/session', {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: OWNER_TOKEN }),
   }));
   expect(response.status).toBe(503);
   expect(mocks.setCookie).not.toHaveBeenCalled();
-  Object.defineProperty(process.env, 'NODE_ENV', { value: previousNodeEnv, configurable: true });
 });
 
 test('logout clears the cookie even when audit recording fails and audits only a valid prior session', async () => {
