@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { decryptPrivatePayload, type EncryptedPayload } from '@/server/crypto/privatePayload';
+import type { NotificationEventKey } from '@/server/notifications/NotificationRepository';
 import type { OpsAuditService } from './OpsAuditService';
 
 export type OpsSupportQueueItem = {
@@ -11,6 +12,7 @@ export type OpsSupportQueueItem = {
   createdAt: Date;
   updatedAt: Date;
   noteCount: number;
+  failedNotifications: NotificationEventKey[];
 };
 
 export interface OpsSupportStore {
@@ -18,6 +20,7 @@ export interface OpsSupportStore {
   setStatus(requestId: string, status: 'OPEN' | 'CLOSED'): Promise<{ issueId: string }>;
   addNote(issueId: string, body: string): Promise<void>;
   getReplyContext(requestId: string): Promise<{ issueId: string; issueCode: string; encryptedEmail: EncryptedPayload } | null>;
+  assertFailedNotification(issueId: string, eventKey: NotificationEventKey): Promise<void>;
 }
 
 export interface OpsSupportReplyGateway {
@@ -29,6 +32,7 @@ export class OpsSupportService {
     private readonly store: OpsSupportStore,
     private readonly reply: OpsSupportReplyGateway,
     private readonly audit: Pick<OpsAuditService, 'record'>,
+    private readonly notifications: { enqueue(issueId: string, eventKey: NotificationEventKey): Promise<unknown> },
   ) {}
 
   list(status: 'OPEN' | 'CLOSED' | null, limit = 100) { return this.store.list(status, Math.min(Math.max(Math.trunc(limit), 1), 100)); }
@@ -48,6 +52,16 @@ export class OpsSupportService {
     await this.audit.record({
       actor: 'OWNER', action: 'SUPPORT_NOTE_ADDED', issueId: input.issueId,
       targetType: 'issue_note', targetId: input.issueId, reason: null, safeMetadata: { length: body.length },
+    });
+  }
+
+  async retryNotification(input: { issueId: string; eventKey: NotificationEventKey }) {
+    await this.store.assertFailedNotification(input.issueId, input.eventKey);
+    await this.notifications.enqueue(input.issueId, input.eventKey);
+    await this.audit.record({
+      actor: 'OWNER', action: 'NOTIFICATION_RETRY', issueId: input.issueId,
+      targetType: 'notification_delivery', targetId: `${input.issueId}:${input.eventKey}`, reason: null,
+      safeMetadata: { eventKey: input.eventKey, priorState: 'FAILED' },
     });
   }
 
