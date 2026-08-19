@@ -9,7 +9,14 @@ export type OpsSalesSnapshot = {
   failedPayments: number;
   exceptionPayments: number;
   byProduct: Array<{ key: string; orders: number }>;
+  bySize: Array<{ key: string; orders: number }>;
+  byColor: Array<{ key: string; orders: number }>;
   byCountry: Array<{ key: string; orders: number }>;
+  timing: {
+    averageHoursStartToPaid: number | null;
+    averageHoursPaidToProduction: number | null;
+    averageHoursProductionToDelivered: number | null;
+  };
   funnel: {
     started: number;
     answered: number;
