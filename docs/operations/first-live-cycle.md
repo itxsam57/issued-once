@@ -15,38 +15,34 @@ Source of truth:
 
 Before taking money:
 
-1. restore a functioning CI/Browser QA runner
-2. install dependencies from the branch
+1. restore a functioning CI/Browser QA runner or another executable exact-head verification path
+2. install dependencies from the exact branch head
 3. run unit tests
 4. run TypeScript typecheck
-5. run production build
-6. run desktop and mobile browser journeys
-7. inspect the exact deployed commit
+5. run lint as part of the release verification command set
+6. run production build
+7. run desktop and mobile browser journeys
+8. inspect the exact deployed commit
 
-Do not call this gate green if a GitHub Actions job exists but has no executable steps.
+Do not call this gate green if a GitHub Actions job exists but has no executable steps. A zero-step runner failure is infrastructure evidence, not application verification.
 
 ## Gate 1 — database
 
-For a fresh database, apply and verify the complete migration chain in order:
+For a fresh database, apply and verify the **complete migration chain** in lexicographic order using:
 
-- `0001_experience.sql`
-- `0002_checkout_quotes.sql`
-- `0003_physical_selection.sql`
-- `0004_commitment_ready.sql`
-- `0005_webhook_issue_registry.sql`
-- `0006_add_tote_form.sql`
-- `0007_question_vault.sql`
-- `0008_contact_shipping.sql`
-- `0009_payments.sql`
-- `0009a_issue_uuid_prerequisite.sql`
-- `0010_issue_identity_spine.sql`
-- `0011_design_jobs.sql`
-- `0012_manufacturing.sql`
-- `0013_notifications_support.sql`
+- `db/migrations/README.md` as the authoritative ordered manifest
+- `db/migrations/CURRENT` as the repository migration head
+- `docs/operations/migration-order.md` as the operator-readable mirror
 
-Do not skip `0009a`: it guarantees the internal Issue UUID required by the final design/manufacturing identity spine.
+Current repository head at this checkpoint:
 
-Verify schema invariants directly:
+`db/migrations/CURRENT -> 0027_issue_prefix_search_indexes.sql`
+
+Do not maintain or follow a shortened migration list inside this runbook. If `CURRENT` advances, this gate advances with it.
+
+Do not skip `0009a_issue_uuid_prerequisite.sql`: it guarantees the internal Issue UUID required by the final design/manufacturing identity spine.
+
+Verify schema invariants directly after the complete chain:
 
 - seven-question assignment unique by experience/slot
 - one verified contact per experience
@@ -57,8 +53,17 @@ Verify schema invariants directly:
 - one manufacturing job per Issue
 - provider events idempotent
 - notification delivery unique by Issue/event
+- refund/payment-exception enforcement and Issue lifecycle state machine are active
+- Owner OS audit/private-note storage exists and append-only audit behavior is preserved
+- design-candidate history and guarded pre-manufacturing rework support exist
+- versioned website/catalog configuration exists
+- incremental commercial metric buckets and delivered projection exist
+- bounded queue/ledger/filter indexes exist
+- `pg_trgm` and the four case-insensitive provider/Issue/tracking prefix-search indexes exist
 
 Back up the production encryption/HMAC secrets before inserting live private data.
+
+The isolated Neon proof branches for later migrations are engineering evidence only; they do not mark production migrated.
 
 ## Gate 2 — question and privacy proof
 
@@ -123,9 +128,10 @@ Evidence:
 4. interpretation call is made with response storage disabled
 5. structured brief is persisted encrypted
 6. image-generation input contains the structured brief, not the raw answers
-7. produced file is PNG on HTTPS Blob URL
-8. design stops at `DESIGN_REVIEW`
-9. no Printful draft exists yet
+7. produced file is PNG in private Blob storage
+8. owner access uses only a bounded signed read URL
+9. design stops at `DESIGN_REVIEW`
+10. no Printful draft exists yet
 
 Manually review:
 
@@ -164,7 +170,7 @@ Evidence in our database:
 
 - same Issue UUID
 - same design job
-- same artwork URL
+- same canonical artwork identity
 - exact numeric Printful variant mapping
 - manufacturing state `DRAFT`
 - Issue state `MANUFACTURING_DRAFT`
@@ -176,6 +182,7 @@ Evidence in Printful dashboard/API:
 - recipient is correct
 - exact size/color/product is correct
 - quantity = 1
+- only the bounded signed artwork read URL is sent to Printful
 - exact final artwork file is attached in the intended print placement
 - no questionnaire answers are present
 - owner has not been charged for fulfillment
@@ -190,8 +197,9 @@ Requirements simultaneously:
 
 1. owner operations session is valid
 2. `PRINTFUL_ALLOW_CONFIRM=true`
-3. exact confirmation requested for the displayed Issue
-4. owner has visually inspected the Printful draft
+3. exact confirmation phrase `CONFIRM <public Issue Code>` is submitted
+4. Issue is still in the expected manufacturing-draft state after a last-moment reload
+5. owner has visually inspected the Printful draft
 
 After success:
 
