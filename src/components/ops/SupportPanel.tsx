@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import styles from './owner-os.module.css';
 
-type Case = { requestId: string; issueId: string; issueCode: string; issueStatus: string; status: 'OPEN'|'CLOSED'; createdAt: string; updatedAt: string; noteCount: number };
+type NotificationEventKey = 'PAYMENT_RECEIVED'|'IN_PRODUCTION'|'SHIPPED'|'DELIVERED';
+type Case = { requestId: string; issueId: string; issueCode: string; issueStatus: string; status: 'OPEN'|'CLOSED'; createdAt: string; updatedAt: string; noteCount: number; failedNotifications: NotificationEventKey[] };
 async function post(path: string, body: unknown) {
   const response = await fetch(path, { method: 'POST', credentials: 'same-origin', cache: 'no-store', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   const payload = await response.json().catch(() => ({})) as { error?: string; value?: unknown };
@@ -47,7 +48,7 @@ export function SupportPanel() {
     {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
     <div className={styles.ledgerLayout}>
       <div className={styles.ledgerList}>{items.map((item) => <button key={item.requestId} type="button" onClick={() => setSelected(item)} aria-pressed={selected?.requestId === item.requestId}>
-        <strong>{item.issueCode}</strong><span>{item.status}</span><span>{item.issueStatus.replaceAll('_',' ')}</span><small>NOTES / {item.noteCount}</small>
+        <strong>{item.issueCode}</strong><span>{item.status}</span><span>{item.issueStatus.replaceAll('_',' ')}</span><small>NOTES / {item.noteCount}{item.failedNotifications.length ? ` · FAILED MAIL / ${item.failedNotifications.length}` : ''}</small>
       </button>)}</div>
       <section className={styles.detail}>{!selected ? <p>SELECT A CASE</p> : <>
         <p>ISSUE / {selected.issueCode}</p><h2>{selected.status}</h2>
@@ -57,6 +58,7 @@ export function SupportPanel() {
           const payload = await post(`/ops/api/issues/${selected.issueId}/reveal`, { category: 'support_message', reason }); setMessage(payload.value ?? null);
         })}>REVEAL MESSAGE</button>
         {message !== null ? <pre className={styles.privatePre}>{JSON.stringify(message, null, 2)}</pre> : null}
+        {selected.failedNotifications.length ? <section><h3>Failed notifications</h3><div className={styles.actionRow}>{selected.failedNotifications.map((eventKey) => <button key={eventKey} disabled={working} type="button" onClick={() => void run(() => post('/ops/api/support/notification-retry', { issueId: selected.issueId, eventKey }))}>RETRY {eventKey.replaceAll('_',' ')}</button>)}</div></section> : null}
         <label>Internal note<textarea value={note} onChange={(event) => setNote(event.target.value)} /></label>
         <button disabled={working || !note.trim()} type="button" onClick={() => void run(async () => { await post('/ops/api/support/note', { issueId: selected.issueId, body: note }); setNote(''); })}>ADD NOTE</button>
         <label>Reply to verified customer<textarea value={reply} onChange={(event) => setReply(event.target.value)} /></label>
