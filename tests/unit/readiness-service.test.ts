@@ -28,7 +28,7 @@ const completeEnv: NodeJS.ProcessEnv = {
   SUPPORT_INBOX_EMAIL: 'support@issuedonce.shop',
   OPENAI_API_KEY: 'hidden-openai',
   OPENAI_DESIGN_MODEL: 'gpt-5.6-terra',
-  OPENAI_IMAGE_MODEL: 'gpt-image-2',
+  OPENAI_IMAGE_MODEL: 'gpt-image-1.5',
   BLOB_READ_WRITE_TOKEN: 'hidden-blob',
   PRINTFUL_API_TOKEN: 'hidden-printful',
   PRINTFUL_STORE_ID: '123',
@@ -41,9 +41,9 @@ const completeEnv: NodeJS.ProcessEnv = {
   }),
 };
 
-test('reports live/read-only boundaries separately from configured-only and safety gates', async () => {
-  const service = new ReadinessService({
-    env: completeEnv,
+function healthyDependencies(env: NodeJS.ProcessEnv) {
+  return {
+    env,
     databasePing: vi.fn(async () => true),
     blobPing: vi.fn(async () => true),
     fetchImpl: vi.fn(async (url: string) => {
@@ -55,7 +55,11 @@ test('reports live/read-only boundaries separately from configured-only and safe
       }
       return new Response(null, { status: 404 });
     }) as typeof fetch,
-  });
+  };
+}
+
+test('reports live/read-only boundaries separately from configured-only and safety gates', async () => {
+  const service = new ReadinessService(healthyDependencies(completeEnv));
 
   const result = await service.check();
   expect(result.checks).toEqual(expect.arrayContaining([
@@ -71,6 +75,37 @@ test('reports live/read-only boundaries separately from configured-only and safe
   expect(JSON.stringify(result)).not.toContain('hidden-');
   expect(result.readyForSandbox).toBe(true);
   expect(result.readyForProduction).toBe(false);
+});
+
+test('uses the same transparency-compatible default image model as the design runtime', async () => {
+  const env = { ...completeEnv };
+  delete env.OPENAI_IMAGE_MODEL;
+  const dependencies = healthyDependencies(env);
+  const service = new ReadinessService(dependencies);
+
+  const result = await service.check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'openai', state: 'ready' }));
+  expect(dependencies.fetchImpl).toHaveBeenCalledWith(
+    'https://api.openai.com/v1/models/gpt-image-1.5',
+    expect.any(Object),
+  );
+});
+
+test('blocks GPT Image 2 readiness while transparent production artwork is required', async () => {
+  const service = new ReadinessService(healthyDependencies({
+    ...completeEnv,
+    OPENAI_IMAGE_MODEL: 'gpt-image-2',
+  }));
+
+  const result = await service.check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'openai',
+    state: 'blocked',
+    detail: expect.stringMatching(/transparent/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
 });
 
 test('malformed privacy key material is blocked instead of treated as configured', async () => {
