@@ -1,5 +1,6 @@
-import { IssuedOnceCatalogGateway } from '@/server/physical/IssuedOnceCatalogGateway';
 import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
+import { IssuedOnceCatalogGateway } from '@/server/physical/IssuedOnceCatalogGateway';
+import { ISSUED_ONCE_BOOT_CATALOG_JSON } from '@/server/physical/bootCatalog';
 
 export type ReadinessState = 'ready' | 'configured' | 'missing' | 'blocked' | 'safe' | 'armed';
 
@@ -80,29 +81,34 @@ export class ReadinessService {
         : { key: 'privacy', label: 'Privacy keys', state: 'blocked', detail: 'Privacy keys are present but do not decode to exactly 32 bytes.' });
 
     let availableFactoryKeys: string[] = [];
-    const catalogJson = this.env.ISSUED_ONCE_CATALOG_JSON?.trim();
-    if (!catalogJson) {
-      checks.push({ key: 'catalog', label: 'Retail catalog', state: 'missing', detail: 'ISSUED_ONCE_CATALOG_JSON is not configured.' });
-    } else {
-      try {
-        const catalog = new IssuedOnceCatalogGateway(catalogJson);
-        const currency = catalog.currency();
-        if (!['USD', 'PKR'].includes(currency)) {
-          throw new Error('Retail catalog currency is unsupported by Safepay');
-        }
-        for (const objectType of ['tee', 'hat', 'tote']) catalog.productSlug(objectType);
-        const parsed = JSON.parse(catalogJson) as {
-          products?: Record<string, { variants?: Array<{ size?: string; colorName?: string; available?: boolean }> }>;
-        };
-        availableFactoryKeys = Object.entries(parsed.products ?? {}).flatMap(([objectType, product]) =>
-          (product.variants ?? [])
-            .filter((variant) => variant.available !== false && variant.size && variant.colorName)
-            .map((variant) => `${objectType}:${variant.size}:${variant.colorName}`),
-        );
-        checks.push({ key: 'catalog', label: 'Retail catalog', state: 'ready', detail: `${availableFactoryKeys.length} sellable logical variant(s) validated in ${currency}.` });
-      } catch {
-        checks.push({ key: 'catalog', label: 'Retail catalog', state: 'blocked', detail: 'Retail catalog is invalid, uses an unsupported Safepay currency, or is missing a current Issue form.' });
+    const configuredCatalogJson = this.env.ISSUED_ONCE_CATALOG_JSON?.trim();
+    const usesBootCatalog = !configuredCatalogJson;
+    const catalogJson = configuredCatalogJson || ISSUED_ONCE_BOOT_CATALOG_JSON;
+    try {
+      const catalog = new IssuedOnceCatalogGateway(catalogJson);
+      const currency = catalog.currency();
+      if (!['USD', 'PKR'].includes(currency)) {
+        throw new Error('Retail catalog currency is unsupported by Safepay');
       }
+      for (const objectType of ['tee', 'hat', 'tote']) catalog.productSlug(objectType);
+      const parsed = JSON.parse(catalogJson) as {
+        products?: Record<string, { variants?: Array<{ size?: string; colorName?: string; available?: boolean }> }>;
+      };
+      availableFactoryKeys = Object.entries(parsed.products ?? {}).flatMap(([objectType, product]) =>
+        (product.variants ?? [])
+          .filter((variant) => variant.available !== false && variant.size && variant.colorName)
+          .map((variant) => `${objectType}:${variant.size}:${variant.colorName}`),
+      );
+      checks.push({
+        key: 'catalog',
+        label: 'Retail catalog',
+        state: 'ready',
+        detail: usesBootCatalog
+          ? `Audited boot catalog: ${availableFactoryKeys.length} sellable logical variant(s) validated in ${currency}.`
+          : `${availableFactoryKeys.length} sellable logical variant(s) validated in ${currency}.`,
+      });
+    } catch {
+      checks.push({ key: 'catalog', label: 'Retail catalog', state: 'blocked', detail: 'Retail catalog is invalid, uses an unsupported Safepay currency, or is missing a current Issue form.' });
     }
 
     const safepayEnvironment = this.env.SAFEPAY_ENVIRONMENT?.trim().toLowerCase();
@@ -127,9 +133,16 @@ export class ReadinessService {
 
     const openAIKey = this.env.OPENAI_API_KEY?.trim();
     const designModel = this.env.OPENAI_DESIGN_MODEL?.trim() || 'gpt-5.6-terra';
-    const imageModel = this.env.OPENAI_IMAGE_MODEL?.trim() || 'gpt-image-2';
+    const imageModel = this.env.OPENAI_IMAGE_MODEL?.trim() || 'gpt-image-1.5';
     if (!openAIKey) {
       checks.push({ key: 'openai', label: 'OpenAI design models', state: 'missing', detail: 'OPENAI_API_KEY is not configured.' });
+    } else if (/^gpt-image-2(?:$|-)/i.test(imageModel)) {
+      checks.push({
+        key: 'openai',
+        label: 'OpenAI design models',
+        state: 'blocked',
+        detail: 'GPT Image 2 cannot satisfy the transparent production artwork contract.',
+      });
     } else {
       try {
         const modelResponses = await Promise.all([designModel, imageModel].map((model) =>
