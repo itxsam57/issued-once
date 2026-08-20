@@ -5,15 +5,15 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "checkpointParentHead": "c0755d318aae943187e7e0906ee167399bc043ae",
-    "verifiedApplicationCandidate": "d4e701be9e36f3182dbbaa2ee7bab98921f87ff4",
+    "checkpointParentHead": "422fbba4d2374af1d90e7465b38936ee03a5c1d4",
+    "verifiedApplicationCandidate": "422fbba4d2374af1d90e7465b38936ee03a5c1d4",
     "currentMigrationHead": "0027_issue_prefix_search_indexes.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "CODE_DATABASE_AND_DEPLOYMENT_BUILD_GREEN_EXTERNAL_ACCOUNT_CONFIGURATION_AND_LIVE_PROVIDER_PROOFS_REQUIRED_BEFORE_COMMERCIAL_LAUNCH",
+    "decision": "CODE_DATABASE_DEPLOYMENT_AND_BROWSER_GREEN_AUTOMATION_BYPASS_AND_PROVIDER_ACCOUNT_PROOFS_REQUIRED_BEFORE_COMMERCIAL_LAUNCH",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The application code is verified, the current branch-head CI is green, desktop/mobile browser acceptance is green, GitHub reports the current Vercel deployment status SUCCESS, and the complete 0001-0027 production Neon migration is now applied and independently verified. Commercial launch is still intentionally fail-closed because Vercel Deployment Protection prevents exact deployed-UI observation through the connected integration, Vercel project enumeration remains broken for the connected team, and real Safepay sandbox, Resend/domain, OpenAI/private Blob, Vercel Queue and Printful provider evidence has not been observed. PRINTFUL_ALLOW_CONFIRM remains disabled and no production money/factory action is authorized by this checkpoint."
+    "stopReason": "The current application/harness head 422fbba4d2374af1d90e7465b38936ee03a5c1d4 has green CI, 110/110 test files and 256/256 tests, TypeScript, lint and production build; the complete 16/16 desktop/mobile Browser QA suite is green; GitHub reports the Vercel deployment SUCCESS; and the complete 0001-0027 production Neon migration is applied and independently verified. The live Vercel probe is now correctly wired for Vercel Automation Bypass and aligned with the current M/region/phone/$32 public flow, but its workflow evidence proves the repository secret VERCEL_AUTOMATION_BYPASS_SECRET is currently empty, so the runner receives the Vercel Login page. The custom domain issuedonce.shop is also currently unregistered and available through Vercel at USD 2.99/year. Real Safepay sandbox, Resend/domain, OpenAI/private Blob, Vercel Queue and Printful provider evidence remains unobserved. PRINTFUL_ALLOW_CONFIRM remains disabled and no production factory action is authorized."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -23,8 +23,8 @@
       "Use evidence-backed debugging and verification before completion claims",
       "Keep payment, design and manufacturing boundaries fail-closed",
       "Never infer paid truth from a browser redirect",
-      "Never expose real secret values in repository state",
-      "Never allow model output to enter manufacturing without explicit owner approval",
+      "Never expose real secret values in repository state or chat",
+      "Never allow model output to enter manufacturing without explicit approval",
       "Never allow Printful production confirmation without owner auth, kill switch, typed Issue confirmation and last-moment state reload",
       "Never call a release gate green when it did not execute"
     ]
@@ -60,32 +60,44 @@
     }
   },
   "verification": {
-    "currentBranchHeadBeforeCheckpoint": "c0755d318aae943187e7e0906ee167399bc043ae",
+    "releaseCandidateHead": "422fbba4d2374af1d90e7465b38936ee03a5c1d4",
     "ci": {
-      "run": 32339747669,
-      "job": 96336276591,
+      "run": 32343148658,
+      "job": 96346144911,
       "conclusion": "SUCCESS",
-      "unitTests": "PASSED",
+      "testFiles": "110/110 PASSED",
+      "unitAndIntegrationTests": "256/256 PASSED",
       "typecheck": "PASSED",
-      "lint": "PASSED",
+      "lint": "PASSED_WITH_0_ERRORS_44_WARNINGS",
       "productionBuild": "PASSED"
     },
     "browser": {
-      "run": 32339747714,
-      "job": 96336275913,
+      "run": 32343148654,
+      "job": 96346145159,
       "browserTestStep": "SUCCESS",
-      "coverage": "complete desktop and mobile Playwright acceptance",
-      "workflowConclusion": "FAILURE_ONLY_AT_PROTECTED_LIVE_VERCEL_PREVIEW_STEP"
+      "playwright": "16/16 PASSED",
+      "coverage": "desktop Chromium + mobile Chromium; mystery journey, public interview, failure recovery, physical selection, OTP and required delivery fields, Safepay boundary, Owner OS",
+      "livePreviewHarness": "UPDATED_AND_REGRESSION_TESTED",
+      "livePreviewWorkflowResult": "FAILURE_ONLY_BECAUSE_VERCEL_AUTOMATION_BYPASS_SECRET_IS_EMPTY",
+      "livePreviewObservedResponse": "HTTP 200 Vercel Login page on four attempts",
+      "artifactId": 9397068353
     },
     "vercel": {
       "teamId": "team_iG5Amx3WwHQ3Te5KGbmIOiqs",
       "teamSlug": "samx4",
-      "githubCurrentHeadStatus": "SUCCESS",
-      "githubStatusTarget": "https://vercel.com/samx4/issued-once/2H7eigV8mY17L8KdLVbYrD4knBv3",
+      "githubReleaseCandidateStatus": "SUCCESS",
+      "githubStatusTarget": "https://vercel.com/samx4/issued-once/89FxpwC5eCWD2Buj7eeS5cfUpoWw",
       "branchAlias": "https://issued-once-git-feat-mystery-foundation-samx4.vercel.app",
-      "liveUiObservation": "BLOCKED_BY_DEPLOYMENT_PROTECTION",
+      "automationBypassWorkflowSupport": true,
+      "automationBypassRepositorySecret": "MISSING_OR_EMPTY",
       "connectorProjectVisibility": "list_projects empty; get_project issued-once returns 404",
       "shareAccess": "connector cannot mint authenticated share URL"
+    },
+    "domain": {
+      "name": "issuedonce.shop",
+      "registered": false,
+      "vercelAvailability": "AVAILABLE",
+      "vercelQuotedAnnualPriceUsd": 2.99
     },
     "providers": {
       "safepaySandboxCycle": "NOT_LIVE_PROVEN",
@@ -100,24 +112,28 @@
     }
   },
   "resolvedDuringCurrentCycle": [
-    "Prepared the complete parser-safe 0001-0027 Neon migration through the guarded migration workflow",
-    "Verified the migration on temporary Neon branch br-weathered-glade-axoim5a2",
-    "Received explicit owner approval for migration f990357c-ed37-409c-a02f-5f3166f7135c",
-    "Applied the exact verified migration to production/default Neon and deleted the temporary branch",
-    "Independently verified production has 25 required application tables with no missing required tables, functions, triggers or final indexes",
-    "Re-proved current branch-head CI success and browser-test-step success",
-    "Observed current branch-head Vercel GitHub deployment status SUCCESS",
-    "Confirmed Vercel connector project visibility and protected-preview access are still externally blocked",
-    "Checked the connected mailbox for recent Safepay, Resend and Printful setup evidence and found none; no provider gate was inferred green from absence"
+    "Applied owner-approved migration f990357c-ed37-409c-a02f-5f3166f7135c to production Neon and independently verified the complete schema",
+    "Identified stale live-preview harness expectations hidden behind Vercel Deployment Protection",
+    "Added regression coverage and observed the correct RED state with every prior test still passing",
+    "Wired Vercel Protection Bypass for Automation into Browser QA without exposing the secret",
+    "Aligned the live probe with exact current size M, exact Address label, required Province/state/region, required Phone and current $32.00 quote",
+    "Verified release candidate 422fbba4d2374af1d90e7465b38936ee03a5c1d4 with 110/110 test files, 256/256 tests, TypeScript, lint and production build",
+    "Re-proved all 16/16 desktop/mobile Playwright browser scenarios",
+    "Proved the live Vercel step now fails only because VERCEL_AUTOMATION_BYPASS_SECRET is empty",
+    "Observed Vercel deployment SUCCESS for the release candidate",
+    "Confirmed issuedonce.shop is currently unregistered and available through Vercel for USD 2.99/year",
+    "Found no installable Safepay, Resend or Printful connector and no connected-mail evidence sufficient to mark their live provider gates green"
   ],
   "nextActions": [
-    "Restore owner/integration visibility to the Vercel issued-once project or provide an authenticated/bypass path for the protected deployment, then observe the exact deployed UI and verify both Vercel Queue consumers",
-    "Configure/verify production DATABASE_URL points at the now-migrated Neon database and confirm encryption/HMAC secrets are backed up without exposing values",
+    "In the Vercel issued-once project generate Protection Bypass for Automation, then store it as the GitHub Actions repository secret VERCEL_AUTOMATION_BYPASS_SECRET; never paste its value into chat",
+    "Rerun Browser QA and require the protected exact deployed UI owner-preview journey to pass on desktop and mobile",
+    "Purchase issuedonce.shop and attach it to the Vercel project, then use it for Resend sender-domain verification",
+    "Verify Vercel production DATABASE_URL points at the now-migrated Neon database and that encryption/HMAC secrets are securely backed up",
     "Configure Safepay sandbox credentials and webhook endpoint, then prove hosted checkout plus signed PAID/replay/refund-or-exception behavior before any production Safepay switch",
-    "Verify issuedonce.shop sender/domain in Resend and prove real OTP/milestone/support delivery",
-    "Configure and prove deployed OpenAI design generation plus private Vercel Blob signed-read behavior",
+    "Verify Resend domain and prove real OTP/milestone/support delivery",
+    "Configure and prove deployed OpenAI design generation plus private Vercel Blob signed-read behavior and both Vercel Queue consumers",
     "Populate only real sampled Printful variant/placement mappings, configure webhook verification, create and inspect one real draft while PRINTFUL_ALLOW_CONFIRM remains disabled",
-    "Only after every launch gate has observed evidence, promote/merge the release and keep irreversible Printful production confirmation behind deliberate owner action"
+    "Only after every commercial launch gate has observed evidence, promote/merge the release and keep irreversible Printful production confirmation behind deliberate owner action"
   ],
-  "nextOwnerAction": "Open the Vercel issued-once project and restore integration access or disable/bypass Deployment Protection for the launch verification path, then complete the real Safepay/Resend/OpenAI-Blob/Printful account configuration. Do not paste secret values into chat; configure them in the provider/Vercel secret stores."
+  "nextOwnerAction": "Generate Vercel Protection Bypass for Automation and save it in GitHub Actions as VERCEL_AUTOMATION_BYPASS_SECRET, then purchase issuedonce.shop. Configure provider secrets only in Vercel/provider secret stores and do not paste secret values into chat."
 }
