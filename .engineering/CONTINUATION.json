@@ -5,15 +5,15 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "3b7b3273806dbf07757d92adacc0cc08791f9f2d",
-    "latestApplicationHead": "bd6de6c899ea948be75732358725c8ff6bb7c332",
+    "verifiedApplicationCandidate": "72bef30ad1ab78a9f5fa674e32126aaf062a6e90",
+    "latestApplicationHead": "72bef30ad1ab78a9f5fa674e32126aaf062a6e90",
     "currentMigrationHead": "0027_issue_prefix_search_indexes.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "SEVEN_ANSWER_PRODUCTION_PERSISTENCE_GREEN_PHYSICAL_BOOT_CATALOG_DESIGN_APPROVAL_REQUIRED",
+    "decision": "PRODUCTION_CUSTOMER_JOURNEY_GREEN_THROUGH_REAL_OTP_DELIVERY_OWNER_BROWSER_SESSION_REQUIRED_FOR_OTP_VERIFICATION",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Real issuedonce.shop automation now saves all seven randomized questionnaire answers with HTTP 200 and advances to the physical form. Independent Neon evidence confirms new sessions persist encrypted answers and advance stages. The next real production boundary is /api/experience/object returning HTTP 503 Physical form is unavailable because the production runtime requires a boot catalog and no ACTIVE CATALOG version exists in Neon. Existing architecture already supports boot catalog -> ACTIVE versioned Owner OS catalog -> Printful mapping. A bounded design has been presented to make the non-secret boot catalog versioned in-repo with optional env override while retaining ACTIVE Neon catalog authority; implementation awaits owner approval per the engineering design gate."
+    "stopReason": "The approved audited boot catalog is implemented and production verified. Real issuedonce.shop automation now saves all seven randomized answers, selects form/size/base, creates the live quote state, and requests a Resend OTP with every observed backend POST returning HTTP 200. Gmail independently confirms the OTP is delivered from access@otp.issuedonce.shop to the test inbox. OTP verification is bound to the opaque browser session token that requested the code; that token is intentionally not logged or persisted outside the browser. The next proof therefore requires one owner browser interaction to request and enter its own OTP before the same session can continue through shipping and payment boundaries."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -24,7 +24,7 @@
       "Run the live production customer journey against issuedonce.shop before giving the owner another final-test link",
       "Keep payment, design and manufacturing boundaries fail-closed",
       "Never infer paid truth from a browser redirect",
-      "Never expose real secret values in repository state or chat",
+      "Never expose real secret values, session tokens or OTPs in repository state or chat",
       "Never allow questionnaire answers, email or shipping data to be stored unencrypted",
       "Never allow model output to enter manufacturing without explicit owner approval",
       "Never allow Printful production confirmation without owner auth, kill switch, typed Issue confirmation and last-moment state reload",
@@ -42,20 +42,33 @@
       "questionDefinitions": 70,
       "answerPersistence": "LIVE_PROVEN",
       "latestObservedCompletedQuestionCount": 7,
-      "postKeyRecentSessionsWithTwoSavedAnswers": 3,
-      "preKeyFailedSessionsRemainAtQuestion1WithZeroAnswers": true,
-      "activeCatalogVersionCount": 0
+      "physicalSelectionPersistence": "LIVE_PROVEN_THROUGH_OBJECT_SIZE_BASE_HTTP_200",
+      "activeCatalogVersionCount": 0,
+      "catalogRuntimeSource": "AUDITED_BOOT_FALLBACK"
     }
   },
   "verification": {
-    "answerDiagnosticFixHead": "4e620834d4d068fa2e31cd50a5d8417245309d3f",
-    "randomQuestionSmokeFixHead": "bd6de6c899ea948be75732358725c8ff6bb7c332",
+    "catalogFallbackTestRedCommit": "b3146926e01534137c62d2ab367e381ca60778d6",
+    "catalogFallbackImplementationHead": "72bef30ad1ab78a9f5fa674e32126aaf062a6e90",
+    "ci": {
+      "run": 32385794795,
+      "job": 96479839063,
+      "conclusion": "SUCCESS",
+      "unitTests": "ALL_PASSED",
+      "typecheck": "PASSED",
+      "lint": "PASSED",
+      "productionBuild": "PASSED"
+    },
     "browser": {
-      "run": 32383634271,
-      "job": 96472644368,
+      "run": 32385794851,
+      "job": 96479839910,
+      "conclusion": "SUCCESS",
       "localPlaywright": "16/16 PASSED_DESKTOP_AND_MOBILE",
       "liveProductionAnswers": "7_OF_7_HTTP_200",
-      "liveProductionPhysicalObject": "HTTP_503_PHYSICAL_FORM_UNAVAILABLE",
+      "liveProductionPhysicalObject": "HTTP_200",
+      "liveProductionSize": "HTTP_200",
+      "liveProductionBase": "HTTP_200",
+      "liveProductionOtpRequest": "HTTP_200",
       "permanentSmokeScript": "tests/e2e/live-production-smoke.mjs",
       "productionSmokeUrl": "https://issuedonce.shop"
     },
@@ -64,13 +77,15 @@
       "ownerObservedProductionHomepage": true,
       "liveAutomationReachedBegin": true,
       "liveAutomationCompletedQuestionnaire": true,
-      "status": "LIVE_APPLICATION_REACHABLE_NOT_RELEASE_READY"
+      "liveAutomationReachedOtp": true,
+      "status": "LIVE_APPLICATION_REACHABLE_CUSTOMER_JOURNEY_GREEN_TO_OTP"
     },
     "providers": {
       "resendSendingDomain": "otp.issuedonce.shop",
       "resendFromAddress": "ISSUED ONCE <access@otp.issuedonce.shop>",
       "resendOwnerReportsVercelEnvConfigured": true,
-      "resendRealDelivery": "NOT_LIVE_PROVEN_BLOCKED_BEFORE_OTP",
+      "resendRealDelivery": "LIVE_PROVEN_GMAIL_RECEIPT_2026-08-20T15:24:16Z",
+      "resendOtpVerification": "OWNER_BROWSER_SESSION_PROOF_REQUIRED",
       "safepaySandboxCycle": "NOT_LIVE_PROVEN",
       "openaiDeployedDesign": "NOT_LIVE_PROVEN",
       "privateBlobSignedRead": "NOT_LIVE_PROVEN",
@@ -80,44 +95,47 @@
     }
   },
   "physicalCatalog": {
-    "productionRuntimeRequires": "ISSUED_ONCE_CATALOG_JSON",
-    "activeNeonCatalogVersions": 0,
-    "existingAuthorityChain": ["BOOT_CATALOG", "ACTIVE_NEON_OWNER_OS_CATALOG", "PRINTFUL_MAPPING"],
-    "testedPublicTeeContract": {
-      "currency": "USD",
+    "bootCatalogSource": "src/server/physical/bootCatalog.ts",
+    "runtimePrecedence": ["ISSUED_ONCE_CATALOG_JSON_EXPLICIT_OVERRIDE", "ACTIVE_NEON_OWNER_OS_CATALOG_VARIANTS", "AUDITED_BOOT_CATALOG_FALLBACK"],
+    "currency": "USD",
+    "tee": {
       "amountMinor": 3200,
       "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
       "colors": ["Bone", "Black", "Ash", "Navy", "Forest"]
     },
-    "testedAdditionalIssueForms": ["hat", "tote"],
+    "hat": { "amountMinor": 3400, "sizes": ["OS"], "colors": ["Bone", "Black"] },
+    "tote": { "amountMinor": 3600, "sizes": ["OS"], "colors": ["Bone", "Black"] },
     "seasonalOptionalForm": "hoodie",
-    "proposedBoundedDesign": "Version the non-secret boot catalog in repository code; allow ISSUED_ONCE_CATALOG_JSON as an explicit deployment override; preserve ACTIVE Neon catalog as runtime variant authority and Owner OS publishing path."
+    "productionStatus": "LIVE_PROVEN"
   },
   "productionRuntimeContract": {
     "ownerConfigured": ["DATABASE_URL", "RESEND_API_KEY", "RESEND_FROM_EMAIL", "QUIZ_ENCRYPTION_KEY_V1", "IDENTITY_HMAC_KEY"],
     "privacyKeys": "LIVE_PROVEN_BY_ENCRYPTED_ANSWER_PERSISTENCE",
-    "nextKnownBoundary": "PHYSICAL_BOOT_CATALOG",
+    "catalog": "NO_ENV_REQUIRED_BOOT_FALLBACK_LIVE_PROVEN",
+    "nextKnownBoundary": "OTP_VERIFICATION_THEN_SHIPPING",
     "laterCommercialGates": ["SUPPORT_INBOX_EMAIL", "SAFEPAY_ENVIRONMENT", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET", "OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN", "PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
     "factoryConfirmation": "MUST_REMAIN_DISABLED"
   },
   "resolvedDuringCurrentCycle": [
-    "Reproduced owner-reported answer-save failure through real issuedonce.shop",
-    "Added permanent live production customer-journey smoke gate with server-response assertions",
-    "Fixed misleading answer-route classification so missing encryption config reports 503 rather than fake 409 state conflict",
-    "Owner configured independent 32-byte questionnaire encryption and identity-HMAC keys without exposing values",
-    "Proved live questionnaire answer persistence after redeploy",
-    "Made live smoke question-bank agnostic because production prompts are randomized",
-    "Proved all seven live production answers return HTTP 200",
-    "Independently confirmed persisted answer rows in Neon",
-    "Isolated next production blocker to missing physical boot catalog: /api/experience/object HTTP 503"
+    "Proved all seven live production questionnaire answers persist with HTTP 200",
+    "Made the production smoke question-bank agnostic",
+    "Isolated the physical 503 to missing boot catalog configuration",
+    "Added a failing runtime test before implementation and observed the expected PhysicalRuntimeUnavailableError",
+    "Added audited non-secret launch catalog for tee, hat and tote",
+    "Changed production physical runtime to use the audited boot catalog when no explicit catalog env is present",
+    "Preserved explicit deployment override and ACTIVE Neon Owner OS catalog authority",
+    "Verified CI, typecheck, lint, build and 16/16 browser scenarios green",
+    "Proved live object, size and base endpoints return HTTP 200",
+    "Proved real Resend OTP request returns HTTP 200",
+    "Independently proved OTP email delivery in Gmail from the verified otp.issuedonce.shop sender"
   ],
   "nextActions": [
-    "After owner approval of the bounded catalog design, add the canonical non-secret boot catalog and keep env/ACTIVE-Neon overrides fail-closed and auditable",
-    "Run unit/CI/browser verification and rerun real issuedonce.shop smoke through object, size and base",
-    "Make physical smoke selections catalog-driven rather than hardcoded if live catalog differs",
-    "Advance to real Resend OTP request and receipt verification",
-    "Extend same live session through OTP verification, shipping persistence with required phone and province/region, and Safepay sandbox checkout boundary",
-    "Continue through signed provider proof gates before giving owner the final test link"
+    "Owner completes one real issuedonce.shop browser session through OTP verification and reports success/failure",
+    "Immediately inspect resulting production state and continue same release cycle through required shipping phone/province persistence",
+    "Advance to Safepay sandbox hosted checkout and require signed webhook payment truth, replay/idempotency and exception evidence",
+    "Then prove OpenAI design, private Blob access and both queue consumers",
+    "Then prove Printful draft/webhook flow while production confirmation remains disabled",
+    "Only after all commercial gates are green promote/merge PR 3 and call the project launch-ready"
   ],
-  "nextOwnerAction": "Approve the bounded physical-catalog design already presented in chat so implementation can proceed."
+  "nextOwnerAction": "Open https://issuedonce.shop, complete the customer journey to the verification-code field, enter the code emailed to you, and continue only until the shipping form appears. Then tell ChatGPT either 'shipping form' or the exact error shown. Do not paste the OTP into chat."
 }
