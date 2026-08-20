@@ -6,6 +6,7 @@ import { PreviewCheckoutQuoteRepository } from '@/server/preview/PreviewCheckout
 import { PreviewExperienceRepository } from '@/server/preview/PreviewExperienceRepository';
 import { PreviewPhysicalSelectionRepository } from '@/server/preview/PreviewPhysicalSelectionRepository';
 import { BaseSelectionService } from './BaseSelectionService';
+import { ISSUED_ONCE_BOOT_CATALOG_JSON } from './bootCatalog';
 import { ObjectSelectionService } from './ObjectSelectionService';
 import { PostgresIssuedOnceCatalogGateway } from './PostgresIssuedOnceCatalogGateway';
 import { PostgresPhysicalSelectionRepository } from './PostgresPhysicalSelectionRepository';
@@ -20,8 +21,8 @@ export class PhysicalRuntimeUnavailableError extends Error {
 
 function createProductionDependencies() {
   const databaseUrl = process.env.DATABASE_URL?.trim();
-  const catalogJson = process.env.ISSUED_ONCE_CATALOG_JSON?.trim();
-  if (!databaseUrl || !catalogJson) throw new PhysicalRuntimeUnavailableError();
+  const catalogJson = process.env.ISSUED_ONCE_CATALOG_JSON?.trim() || ISSUED_ONCE_BOOT_CATALOG_JSON;
+  if (!databaseUrl) throw new PhysicalRuntimeUnavailableError();
 
   const sql = createNeonSqlExecutor(databaseUrl);
   let catalog: PostgresIssuedOnceCatalogGateway;
