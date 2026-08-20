@@ -83,7 +83,7 @@ async function runJourney(browser, profile) {
   await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
   await page.getByRole('radio', { name: 'TEE' }).check();
   await page.getByRole('button', { name: 'LOCK FORM' }).click();
-  await page.getByRole('radio', { name: 'M', exact: true }).check();
+  await page.getByRole('radio', { name: /^Medium/ }).check();
   await page.getByRole('button', { name: 'CONFIRM SIZE' }).click();
   await page.getByRole('radio', { name: 'Bone' }).check();
   await page.getByRole('button', { name: 'LOCK BASE' }).click();
@@ -104,7 +104,7 @@ async function runJourney(browser, profile) {
   await page.getByLabel('Phone').fill('+923001234567');
   await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
 
-  await page.getByText('$32.00').waitFor();
+  await page.getByText('$54.00').waitFor();
   await page.getByRole('button', { name: 'ISSUE MINE' }).click();
   await page.getByRole('heading', { name: 'PREVIEW COMPLETE.' }).waitFor();
   await page.getByText('No payment was attempted.').waitFor();
