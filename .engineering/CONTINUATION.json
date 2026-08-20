@@ -11,9 +11,9 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "CODE_DATABASE_DEPLOYMENT_AND_PROTECTED_LIVE_UI_GREEN_DOMAIN_DNS_AND_PROVIDER_PROOFS_REQUIRED_BEFORE_COMMERCIAL_LAUNCH",
+    "decision": "CODE_DATABASE_DEPLOYMENT_AND_PROTECTED_LIVE_UI_GREEN_DOMAIN_DNS_PROPAGATION_AND_PROVIDER_PROOFS_REQUIRED_BEFORE_COMMERCIAL_LAUNCH",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Application code, production Neon schema, Vercel deployment, complete desktop/mobile Browser QA and the protected live Vercel owner-preview journey are verified green on release candidate 3b7b3273806dbf07757d92adacc0cc08791f9f2d. VERCEL_AUTOMATION_BYPASS_SECRET is proven. The owner has purchased issuedonce.shop through Hostinger and Vercel now reports it unavailable for purchase, confirming registration is externally visible. Commercial launch remains fail-closed because the domain has not yet been observed attached/DNS-verified in Vercel and real Safepay sandbox, Resend/domain, OpenAI/private Blob, Vercel Queue and Printful provider evidence has not yet been observed. PRINTFUL_ALLOW_CONFIRM remains disabled and no production factory action is authorized."
+    "stopReason": "Application code, production Neon schema, Vercel deployment, complete desktop/mobile Browser QA and the protected live Vercel owner-preview journey are verified green on release candidate 3b7b3273806dbf07757d92adacc0cc08791f9f2d. The owner purchased issuedonce.shop through Hostinger, added it to Vercel and reports the requested Hostinger DNS records are configured. Registration is externally confirmed because Vercel now reports the domain unavailable for purchase. Public DNS/HTTPS propagation has not yet been independently observed from the available external checks, so the domain gate remains verification-pending rather than green. Real Safepay sandbox, Resend/domain, OpenAI/private Blob, Vercel Queue and Printful provider evidence has not yet been observed. PRINTFUL_ALLOW_CONFIRM remains disabled and no production factory action is authorized."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -81,9 +81,11 @@
       "registrar": "Hostinger",
       "registered": true,
       "registrationEvidence": "VERCEL_NOW_REPORTS_DOMAIN_UNAVAILABLE_FOR_PURCHASE",
-      "attachedToVercel": false,
-      "dnsVerifiedByVercel": false,
-      "vercelAvailability": "UNAVAILABLE_AFTER_OWNER_PURCHASE"
+      "ownerReportsAttachedToVercel": true,
+      "ownerReportsHostingerDnsConfigured": true,
+      "publicDnsObserved": false,
+      "httpsObserved": false,
+      "status": "DNS_PROPAGATION_OR_EXTERNAL_VERIFICATION_PENDING"
     },
     "providers": {
       "requiredSafepayEnv": ["SAFEPAY_ENVIRONMENT", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET"],
@@ -102,23 +104,22 @@
     }
   },
   "resolvedDuringCurrentCycle": [
-    "Received owner confirmation that the Vercel/GitHub automation bypass secret was configured",
-    "Verified release candidate 3b7b3273806dbf07757d92adacc0cc08791f9f2d with 110/110 test files, 256/256 tests, TypeScript, lint and production build",
-    "Verified 16/16 desktop/mobile Playwright scenarios",
-    "Verified the protected live Vercel owner-preview journey completes on desktop and mobile",
-    "Extracted the exact fail-closed production environment contracts for Safepay, Resend, OpenAI/Blob and Printful",
+    "Verified release candidate 3b7b3273806dbf07757d92adacc0cc08791f9f2d remains the current green application candidate",
     "Owner purchased issuedonce.shop through Hostinger",
-    "Rechecked issuedonce.shop through Vercel and observed it is no longer available for purchase, confirming registration is externally visible"
+    "Confirmed registration externally because Vercel now reports issuedonce.shop unavailable for purchase",
+    "Owner reports issuedonce.shop was added to the Vercel project and the requested DNS records were entered in Hostinger",
+    "Attempted external DNS/HTTPS verification but did not receive reliable public resolution yet",
+    "Checked connected Gmail for recent Resend setup evidence and found none",
+    "Checked plugin availability for Resend and found no installable connector in this environment"
   ],
   "nextActions": [
-    "Add issuedonce.shop to the Vercel issued-once project and copy Vercel's exact apex and www DNS requirements into Hostinger DNS, removing only conflicting web-host records",
-    "Wait for Vercel domain verification and SSL provisioning, then make issuedonce.shop the canonical production domain",
-    "Use the verified domain for Resend sender-domain verification and prove real OTP/milestone/support delivery",
+    "Recheck issuedonce.shop public DNS and HTTPS until Vercel-served production UI is independently observed",
+    "Create/configure Resend, add issuedonce.shop, copy Resend's exact Hostinger-specific DNS records, verify the sending domain and prove real OTP/milestone/support delivery",
     "Verify Vercel production DATABASE_URL targets the migrated Neon database and required encryption/HMAC secrets are securely backed up",
     "Configure Safepay sandbox credentials and webhook endpoint and prove hosted checkout plus signed PAID/replay/refund-or-exception behavior before any production Safepay switch",
     "Configure and prove deployed OpenAI design generation plus private Vercel Blob signed-read behavior and both Vercel Queue consumers",
     "Populate only real sampled Printful variant/placement mappings, configure webhook verification and create one real draft while PRINTFUL_ALLOW_CONFIRM remains disabled",
     "Only after every commercial launch gate has observed evidence, promote/merge the release; keep irreversible Printful production confirmation behind deliberate owner action"
   ],
-  "nextOwnerAction": "In Vercel project issued-once open Settings > Domains and add issuedonce.shop. Then in Hostinger hPanel open Domains > DNS for issuedonce.shop and enter the exact DNS records Vercel shows. Do not change MX/TXT email records unless Vercel explicitly asks for a verification TXT record."
+  "nextOwnerAction": "Open Resend, create or sign in to the account, add issuedonce.shop under Domains, then copy every DNS record Resend shows into Hostinger DNS exactly. Do not delete the Vercel web records. Do not paste API keys or DNS secrets into chat."
 }
