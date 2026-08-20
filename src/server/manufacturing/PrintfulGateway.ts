@@ -45,7 +45,7 @@ export class PrintfulGateway implements ManufacturerGateway {
     if ((typeof id !== 'number' && typeof id !== 'string') || !status) {
       throw new Error(`${context} response is invalid`);
     }
-    if (!['draft', 'failed', 'onhold'].includes(status.toLowerCase())) {
+    if (status.toLowerCase() !== 'draft') {
       throw new Error(`Existing Printful order state is not draft-safe: ${status}`);
     }
     return { providerOrderId: String(id), status };
