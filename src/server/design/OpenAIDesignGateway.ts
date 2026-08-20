@@ -69,7 +69,10 @@ export class OpenAIDesignGateway implements DesignGateway {
     if (!options.apiKey.trim()) throw new Error('OpenAI API key is required');
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.interpretationModel = options.interpretationModel?.trim() || 'gpt-5.6-terra';
-    this.imageModel = options.imageModel?.trim() || 'gpt-image-2';
+    this.imageModel = options.imageModel?.trim() || 'gpt-image-1.5';
+    if (/^gpt-image-2(?:$|-)/i.test(this.imageModel)) {
+      throw new Error('GPT Image 2 cannot be used for ISSUED ONCE production artwork while transparent backgrounds are required');
+    }
   }
 
   private headers() {
