@@ -1,5 +1,6 @@
 name: Browser QA
 
+# Permanent release gate: exercise the real custom-domain customer journey.
 on:
   pull_request:
     paths:
