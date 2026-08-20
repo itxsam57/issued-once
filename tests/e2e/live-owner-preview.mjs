@@ -4,6 +4,14 @@ import { mkdir } from 'node:fs/promises';
 const baseUrl = process.env.PREVIEW_URL;
 if (!baseUrl) throw new Error('PREVIEW_URL is required');
 
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+const protectionHeaders = bypassSecret
+  ? {
+      'x-vercel-protection-bypass': bypassSecret,
+      'x-vercel-set-bypass-cookie': 'true',
+    }
+  : {};
+
 const profiles = [
   { name: 'desktop', context: { viewport: { width: 1440, height: 1000 } } },
   { name: 'mobile', context: { ...devices['Pixel 7'] } },
@@ -46,7 +54,13 @@ async function continueText(page, answer) {
 }
 
 async function runJourney(browser, profile) {
-  const context = await browser.newContext(profile.context);
+  const context = await browser.newContext({
+    ...profile.context,
+    extraHTTPHeaders: {
+      ...(profile.context.extraHTTPHeaders ?? {}),
+      ...protectionHeaders,
+    },
+  });
   const page = await context.newPage();
 
   await waitForCurrentDeployment(page);
@@ -69,7 +83,7 @@ async function runJourney(browser, profile) {
   await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
   await page.getByRole('radio', { name: 'TEE' }).check();
   await page.getByRole('button', { name: 'LOCK FORM' }).click();
-  await page.getByRole('radio', { name: /^Medium/ }).check();
+  await page.getByRole('radio', { name: 'M', exact: true }).check();
   await page.getByRole('button', { name: 'CONFIRM SIZE' }).click();
   await page.getByRole('radio', { name: 'Bone' }).check();
   await page.getByRole('button', { name: 'LOCK BASE' }).click();
@@ -82,13 +96,15 @@ async function runJourney(browser, profile) {
 
   await page.getByRole('heading', { name: 'Where does it go?' }).waitFor();
   await page.getByLabel('Name').fill('Preview Customer');
-  await page.getByLabel('Address').fill('1 Preview Street');
+  await page.getByLabel('Address', { exact: true }).fill('1 Preview Street');
   await page.getByLabel('City').fill('Peshawar');
+  await page.getByLabel('Province / state / region').fill('Khyber Pakhtunkhwa');
   await page.getByLabel('Postal code').fill('25000');
   await page.getByLabel('Country').selectOption('PK');
+  await page.getByLabel('Phone').fill('+923001234567');
   await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
 
-  await page.getByText('$54.00').waitFor();
+  await page.getByText('$32.00').waitFor();
   await page.getByRole('button', { name: 'ISSUE MINE' }).click();
   await page.getByRole('heading', { name: 'PREVIEW COMPLETE.' }).waitFor();
   await page.getByText('No payment was attempted.').waitFor();
