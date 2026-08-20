@@ -5,21 +5,15 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "releaseCandidateHeadAtVerification": "d4e701be9e36f3182dbbaa2ee7bab98921f87ff4",
-    "governorCheckpointParentHead": "d4e701be9e36f3182dbbaa2ee7bab98921f87ff4",
-    "latestVerification": "CODE_CI_GREEN_BROWSER_GREEN_VERCEL_BUILD_GREEN_LIVE_PREVIEW_PROTECTED"
+    "verifiedApplicationCandidate": "d4e701be9e36f3182dbbaa2ee7bab98921f87ff4",
+    "parserSafeBootstrapHead": "88ed3738101705811daffbaa55041dac1d7fdbbb",
+    "currentMigrationHead": "0027_issue_prefix_search_indexes.sql"
   },
   "continuationGovernor": {
     "state": "WAIT_EXTERNAL",
-    "decision": "CODE_AND_LOCAL_BROWSER_VERIFIED_WAIT_FOR_AUTHENTICATED_DEPLOYED_PREVIEW_AND_LIVE_PROVIDER_GATES",
-    "allowedStopStates": [
-      "OWNER_REQUIRED",
-      "BLOCKED",
-      "WAIT_EXTERNAL",
-      "LOOP_DETECTED",
-      "COMPLETE"
-    ],
-    "stopReason": "The prior GitHub zero-step runner outage is resolved. Release candidate d4e701be9e36f3182dbbaa2ee7bab98921f87ff4 has executable green CI and 16/16 Playwright browser scenarios across desktop and mobile. GitHub now reports the exact-head Vercel status SUCCESS, so the earlier build-rate-limit is no longer the active Vercel build result. The remaining deployed-preview check cannot authenticate through Vercel Deployment Protection: the branch alias returns the Vercel Login page to the GitHub runner, while the Vercel MCP cannot mint a share URL and still returns an empty project list for team samx4. Production Neon is intentionally empty/not migrated and Safepay, Resend, OpenAI, Blob and Printful live evidence gates remain fail-closed."
+    "decision": "APPLICATION_GREEN_MIGRATION_TRANSPORT_READY_ADVANCE_GUARDED_DATABASE_AND_LAUNCH_GATES",
+    "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
+    "stopReason": "Application CI and browser acceptance are green on the verified application candidate. The hosted Neon MCP migration splitter has an upstream dollar-quoted procedural-SQL bug; ISSUED ONCE now generates a parser-safe transport artifact mechanically from the canonical 0001-0027 migration chain without changing canonical schema logic. Production Neon remains intentionally unmigrated. Vercel deployed-UI observation remains blocked by Deployment Protection, and real Safepay, Resend, OpenAI/Blob and Printful provider evidence remains outstanding."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -29,111 +23,92 @@
       "Use evidence-backed debugging and verification before completion claims",
       "Keep payment, design and manufacturing boundaries fail-closed",
       "Never infer paid truth from a browser redirect",
-      "Never expose bulk decrypted customer data through Owner OS",
-      "Never allow model output to enter manufacturing without explicit approval",
+      "Never allow model output to enter manufacturing without explicit owner approval",
       "Never allow Printful production confirmation without owner auth, kill switch, typed Issue confirmation and last-moment state reload",
-      "Never add unlike currencies together",
       "Never call a release gate green when it did not execute"
     ]
-  },
-  "currentArchitecture": {
-    "commercialSpine": "ISSUED ONCE -> Safepay -> canonical Issue -> OpenAI design worker -> owner approval -> Printful draft -> owner confirmation -> fulfillment/tracking",
-    "ownerControlPlane": "Private /ops Owner OS over Home, Issues, Designer, Manufacturing, Sales, Customers, Support, Website, System and Audit",
-    "canonicalIdentity": "Issue ID / Issue Code",
-    "historicalAnalytics": "daily commercial_metric_buckets for 90-day/lifetime reads; bounded canonical OLTP for recent operating windows",
-    "previewIsolation": "ENABLE_VISUAL_PREVIEW=1 uses in-memory preview experience and persistent-per-preview Question Vault assignment; production still requires Neon and fails closed without DATABASE_URL"
-  },
-  "privacySecurity": {
-    "opsRobots": "noindex,nofollow,nocache with Google noimageindex",
-    "opsCookie": "HttpOnly SameSite=strict scoped to /ops",
-    "productionLoginAuditFailure": "FAIL_CLOSED",
-    "listViewsDecryptCustomerData": false,
-    "bulkPrivateExport": false,
-    "privateRevealRequiresReason": true,
-    "privateRevealAudited": true,
-    "paymentProviderEventTruth": "signed/idempotent provider events",
-    "manufacturingProviderEventTruth": "unique provider event reservation prevents duplicate canonical event projection"
   },
   "database": {
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
-    "currentMigrationHead": "0027_issue_prefix_search_indexes.sql",
     "migrationManifest": "db/migrations/README.md",
+    "canonicalMigrationCount": 28,
     "productionApplied": false,
     "productionState": "CONNECTED_DEFAULT_DATABASE_INSPECTED_ZERO_TABLES_NOT_MIGRATED",
-    "isolatedMigrationProofs": "0020-0027 proof branches were verified and deleted; details remain in db/migrations/README.md",
-    "migrationSafety": "Before production apply, use Neon prepare_database_migration, test the returned temporary branch, show the exact migration ID and request explicit owner approval, then use complete_database_migration."
+    "parserBug": {
+      "upstreamIssue": "neondatabase/mcp-server-neon#201",
+      "cause": "Hosted prepare/complete migration path naively splits SQL on every semicolon, including PL/pgSQL bodies",
+      "upstreamFix": "neondatabase/mcp-server-neon#313 remains unmerged/deployed at last verification"
+    },
+    "transport": {
+      "generator": "scripts/neon-migration-transport.mjs",
+      "generatedArtifact": "db/production-bootstrap.sql",
+      "generatedArtifactBlob": "9cc40ca6fe5c740a9f6aaf13be0f95d934d4bb0b",
+      "generatedArtifactHead": "88ed3738101705811daffbaa55041dac1d7fdbbb",
+      "method": "Mechanically preserve canonical migration order, remove outer transaction wrappers/comments, encode procedural-body internal semicolons inside PostgreSQL escape strings, and fail closed on unsafe quoted semicolons",
+      "coverage": "Full 0001-0027 chain including delivered metrics, Owner OS scale/filter indexes, pg_trgm and four final prefix-search indexes",
+      "microProof": "Encoded PL/pgSQL function compiled and executed successfully on isolated Neon proof branch; proof branch deleted"
+    },
+    "migrationSafety": "Use prepare_database_migration with the exact generated transport artifact; verify the returned temporary branch; show the exact migration ID and request explicit owner approval; only then call complete_database_migration with the exact prepare response values. Never bypass this gate with direct production SQL."
   },
   "verification": {
-    "releaseCandidateHead": "d4e701be9e36f3182dbbaa2ee7bab98921f87ff4",
-    "ci": {
-      "run": 32267689578,
-      "job": 96116111790,
-      "conclusion": "SUCCESS",
-      "testFiles": "108/108 PASSED",
-      "unitAndIntegrationTests": "250/250 PASSED",
+    "applicationCandidate": {
+      "head": "d4e701be9e36f3182dbbaa2ee7bab98921f87ff4",
+      "ciRun": 32267689578,
+      "ciJob": 96116111790,
+      "tests": "250/250 PASSED",
       "typecheck": "PASSED",
-      "lint": "PASSED_WITH_0_ERRORS_44_WARNINGS",
-      "productionBuild": "PASSED"
+      "lint": "PASSED_WITH_0_ERRORS",
+      "productionBuild": "PASSED",
+      "browserRun": 32267689736,
+      "browserJob": 96116113228,
+      "playwright": "16/16 PASSED_DESKTOP_AND_MOBILE"
     },
-    "browser": {
-      "run": 32267689736,
-      "job": 96116113228,
-      "browserTestStep": "SUCCESS",
-      "playwright": "16/16 PASSED",
-      "coverage": "desktop Chromium + mobile Chromium; mystery journey, public BEGIN/interview, failed-answer recovery, physical/size/base, OTP/shipping with required region and phone, Safepay handoff, Owner OS navigation/private controls",
-      "workflowConclusion": "FAILURE_ONLY_AFTER_BROWSER_TESTS",
-      "workflowFailure": "Live Vercel owner preview received Vercel Login page under Deployment Protection"
+    "migrationTransport": {
+      "redRun": 32338647503,
+      "redJob": 96333068419,
+      "redEvidence": "108 existing suites and 250 existing tests passed; only new transport suite failed because implementation module did not yet exist",
+      "ownerAuthoredGeneratorCommit": "2e9b546add21f433f6aa22a9eda11edaed71d9fd",
+      "ownerAuthoredGeneratorCiRun": 32339196031,
+      "ownerAuthoredGeneratorCi": "SUCCESS",
+      "generatedBootstrapCommit": "88ed3738101705811daffbaa55041dac1d7fdbbb",
+      "generatedBootstrapLines": 1192,
+      "generatedBootstrapTailVerifiedThrough": "0027_issue_prefix_search_indexes.sql",
+      "botCommitPrRuns": "ACTION_REQUIRED_WITH_ZERO_JOBS; not interpreted as a test failure"
     },
     "vercel": {
-      "teamId": "team_iG5Amx3WwHQ3Te5KGbmIOiqs",
-      "teamSlug": "samx4",
-      "githubExactHeadStatus": "SUCCESS",
-      "githubStatusTarget": "https://vercel.com/samx4/issued-once/HfTkdLpdc78B9kL573zHT1Uz5AHE",
-      "branchAlias": "https://issued-once-git-feat-mystery-foundation-samx4.vercel.app",
-      "branchAliasObservedByGitHubRunner": "HTTP 200 Vercel Login page",
-      "connectorProjectVisibility": "list_projects returns empty and get_project issued-once returns 404",
-      "connectorProtectedAccess": "get_access_to_vercel_url and web_fetch_vercel_url could not create authenticated share access",
-      "interpretation": "exact-head Vercel build/deployment status is green, but authenticated deployed UI evidence is still unavailable"
+      "verifiedApplicationDeployment": "SUCCESS_FOR_d4e701be",
+      "liveUiObservation": "BLOCKED_BY_DEPLOYMENT_PROTECTION",
+      "connectorVisibility": "PROJECT_ENUMERATION_MISMATCH"
     },
-    "neonProduction": "ZERO_TABLES_NOT_MIGRATED",
-    "safepaySandboxCycle": "NOT_LIVE_PROVEN",
-    "openaiDeployedDesign": "NOT_LIVE_PROVEN",
-    "resendRealDelivery": "NOT_LIVE_PROVEN",
-    "privateBlobSignedRead": "NOT_LIVE_PROVEN",
-    "printfulDraft": "NOT_LIVE_PROVEN_WITH_REAL_TOKEN_AND_SAMPLED_MAPPING",
-    "printfulProduction": "NOT_RUN",
-    "printfulSignedFulfillment": "NOT_LIVE_PROVEN"
+    "providers": {
+      "safepaySandboxCycle": "NOT_LIVE_PROVEN",
+      "resendRealDelivery": "NOT_LIVE_PROVEN",
+      "openaiDeployedDesign": "NOT_LIVE_PROVEN",
+      "privateBlobSignedRead": "NOT_LIVE_PROVEN",
+      "printfulDraft": "NOT_LIVE_PROVEN_WITH_REAL_TOKEN_AND_SAMPLED_MAPPING",
+      "printfulProduction": "DISABLED_NOT_RUN",
+      "printfulSignedFulfillment": "NOT_LIVE_PROVEN"
+    }
   },
-  "resolvedDuringRetry": [
-    "Recovered GitHub Actions from the earlier steps=null hosted-runner outage",
-    "Fixed OpsDesignerService source syntax failure exposed by the first executable test run",
-    "Aligned shipping tests and browser flows with required province/region and phone fields",
-    "Repaired stale test selectors and mocks without weakening production behavior",
-    "Brought hardened design/payment/manufacturing test doubles up to strict TypeScript interfaces",
-    "Refactored Owner OS effects to satisfy React 19 lint rules without disabling them",
-    "Added deterministic preview-only Question Vault persistence while production remains Neon-only and fail-closed",
-    "Fixed mobile Owner OS navigation overflow/click interception",
-    "Fixed public physical-flow catalog locator from Medium to real size code M",
-    "Removed the flaky Playwright apt install-deps mirror bottleneck while preserving Chromium installation and the full browser suite",
-    "Re-proved exact-head CI and full desktop/mobile browser acceptance",
-    "Observed Vercel exact-head status recover from build-rate-limit to SUCCESS"
-  ],
-  "remainingNonLaunchP1": [
-    "Owner-edited full structured design brief workflow is not exposed; current safe controls are retry/regenerate/reinterpret/select/approve",
-    "Provider-specific cancel/reconcile UI is not exposed because the current Printful gateway safely implements lookup/create draft and confirm only; quarantine remains the safe owner stop action",
-    "Home activity is bounded to latest 30 rather than cursor-paginated historical browsing",
-    "Extended ratios such as design rejection/regeneration rate, design-approved-to-draft, shipped-to-delivered and support-per-order are not all surfaced yet",
-    "Keyed phone lookup in Owner OS search is deferred; email lookup hash and canonical Issue/provider/tracking searches are implemented"
+  "resolvedDuringCurrentCycle": [
+    "Identified the migration failure as upstream Neon MCP semicolon splitting rather than an ISSUED ONCE schema defect",
+    "Reproduced and proved a PostgreSQL escape-string workaround on an isolated Neon branch",
+    "Added TDD regression coverage for hosted-Neon migration transport behavior",
+    "Added a fail-closed parser-safe migration generator derived from canonical migration files",
+    "Generated db/production-bootstrap.sql from all 28 canonical migrations",
+    "Verified the generated tail includes 0024 scale indexes, 0025 delivered projection, 0026 ledger filters and 0027 pg_trgm prefix-search indexes"
   ],
   "nextActions": [
-    "Obtain authenticated access to the exact-head Vercel preview or configure an automation bypass for Deployment Protection, then rerun tests/e2e/live-owner-preview.mjs against the deployed branch alias",
-    "Only after deployed exact-head UI evidence is green, prepare the complete 0001-0027 production Neon migration through the guarded migration workflow and request explicit owner approval using the returned migration ID",
-    "Run a real Safepay sandbox paid/refund/exception cycle with signed webhook evidence",
-    "Run real Resend OTP and milestone delivery evidence",
-    "Run deployed OpenAI design generation and private Vercel Blob signed-read evidence",
-    "Create and visually inspect a real Printful draft using sampled variant/placement mapping while PRINTFUL_ALLOW_CONFIRM remains disabled",
-    "Run Printful signed fulfillment webhook evidence before any production launch claim"
+    "Run normal branch CI for the transport-ready head and retain evidence",
+    "Prepare the exact parser-safe production bootstrap through Neon prepare_database_migration",
+    "Verify the returned Neon temporary branch and request explicit owner approval using the exact migration ID",
+    "After exact migration-ID approval, apply and verify production Neon",
+    "Remove or bypass Vercel Deployment Protection for launch verification and observe the deployed consumer UI",
+    "Run Safepay sandbox signed paid/refund/exception proof",
+    "Run real Resend delivery plus deployed OpenAI/private Blob proof",
+    "Create and inspect a real Printful draft while PRINTFUL_ALLOW_CONFIRM remains disabled",
+    "Only after all launch gates are green, merge/release and keep irreversible Printful production confirmation disabled until deliberate owner action"
   ],
-  "nextOwnerAction": "Vercel Deployment Protection must provide an authenticated preview path or automation-bypass credential for the exact deployed branch before the live-preview gate can be observed. No production Neon migration, Safepay production activation, or Printful confirmation is authorized by this checkpoint."
+  "nextOwnerAction": "No owner action is required until Neon prepare_database_migration returns an exact migration ID. At that point explicit approval must name/accept that exact migration ID before production apply."
 }
