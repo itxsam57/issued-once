@@ -159,3 +159,18 @@ test('refuses to charge if the provider order is no longer a draft at confirmati
   await expect(gateway.confirmDraft('987654')).rejects.toThrow(/draft/i);
   expect(fetchImpl).toHaveBeenCalledTimes(1);
 });
+
+test('does not accept a 200 confirmation response unless Printful reports pending', async () => {
+  for (const status of ['draft', 'failed', 'onhold']) {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === 'https://api.printful.com/orders/987654') {
+        return new Response(JSON.stringify(readyDraft), { status: 200 });
+      }
+      return new Response(JSON.stringify({ code: 200, result: { id: 987654, status } }), { status: 200 });
+    });
+    const gateway = new PrintfulGateway({ token: 'pf-token', fetchImpl: fetchImpl as typeof fetch });
+
+    await expect(gateway.confirmDraft('987654')).rejects.toThrow(/confirmation.*pending|confirmation.*state/i);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  }
+});
