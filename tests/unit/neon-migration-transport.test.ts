@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-// @ts-expect-error The transport is a Node ESM utility intentionally exercised from Vitest.
 import {
   buildParserSafeMigration,
   buildParserSafeMigrationBundle,
