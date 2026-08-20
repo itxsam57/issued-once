@@ -5,15 +5,15 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "checkpointParentHead": "3b7b3273806dbf07757d92adacc0cc08791f9f2d",
     "verifiedApplicationCandidate": "3b7b3273806dbf07757d92adacc0cc08791f9f2d",
+    "latestApplicationHead": "4e620834d4d068fa2e31cd50a5d8417245309d3f",
     "currentMigrationHead": "0027_issue_prefix_search_indexes.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "PRODUCTION_BEGIN_BOOTSTRAP_PROVEN_ON_DEPLOYED_BRANCH_CUSTOM_DOMAIN_CONFIRMATION_AND_REAL_OTP_PROOF_NEXT",
+    "decision": "LIVE_PRODUCTION_SMOKE_BLOCKED_AT_REQUIRED_PRIVACY_KEY_BEFORE_FIRST_ANSWER_SAVE",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The owner added the pooled production Neon DATABASE_URL to Vercel. Fresh CI on checkpoint ee1178f4cc14a0c06c2198be1eefbeddcef0495d passed unit tests, typecheck, lint and production build. Browser QA's 16 local desktop/mobile scenarios also passed. Its final live-owner-preview step failed for a now-understood harness assumption: feat/mystery-foundation is being served as production, so the branch alias renders the real PublicInterviewExperience instead of the preview-only VisualPreviewExperience. Critically, that live probe received HTTP 200 and rendered 01 / 07 with the first real question, proving the deployed production-mode interview bootstrap can reach persistent storage after DATABASE_URL configuration. The owner should now confirm the same behavior through issuedonce.shop. Resend is configured by owner report but real OTP delivery is still unproven. Safepay sandbox, OpenAI/private Blob, Vercel Queue and Printful provider evidence remain pending. Printful production confirmation remains disabled and unauthorized."
+    "stopReason": "The real custom-domain production journey is now exercised by a permanent Playwright smoke gate rather than owner manual testing. issuedonce.shop loads, BEGIN reaches the real database-backed interview, Neon has seeded 70 question definitions, and production sessions are created. The live smoke reproduces the owner-reported failure on the first answer. Database inspection shows recent experiences remain QUESTION_1 with zero persisted answers. A TDD diagnostic fix proved that the previous HTTP 409 masked missing answer-encryption configuration: after the fix, the live custom-domain first-answer POST returns HTTP 503 Answer persistence is unavailable, confirming QUIZ_ENCRYPTION_KEY_V1 is missing or invalid in Vercel Production. CI for the diagnostic fix is green and the local desktop/mobile browser suite is 16/16 green. Progress is OWNER_REQUIRED because the connected Vercel tool exposes no environment-variable mutation action. No plaintext-answer fallback will be introduced."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -21,9 +21,11 @@
       "Treat mapped GitHub repo/branch as canonical source of truth",
       "Maintain .engineering/CONTINUATION.json after every meaningful work cycle",
       "Use evidence-backed debugging and verification before completion claims",
+      "Run the live production customer journey against issuedonce.shop before giving the owner another final-test link",
       "Keep payment, design and manufacturing boundaries fail-closed",
       "Never infer paid truth from a browser redirect",
       "Never expose real secret values in repository state or chat",
+      "Never allow questionnaire answers, email or shipping data to be stored unencrypted",
       "Never allow model output to enter manufacturing without explicit owner approval",
       "Never allow Printful production confirmation without owner auth, kill switch, typed Issue confirmation and last-moment state reload",
       "Never call a release gate green when it did not execute"
@@ -33,103 +35,81 @@
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
     "parentBranchId": "br-dawn-cloud-axm880q9",
-    "migrationManifest": "db/migrations/README.md",
-    "canonicalMigrationCount": 28,
-    "productionApplied": true,
     "productionState": "MIGRATED_AND_VERIFIED_THROUGH_0027",
     "migrationId": "f990357c-ed37-409c-a02f-5f3166f7135c",
     "ownerReportsVercelDatabaseUrlConfigured": true,
-    "databaseSecretObserved": false,
-    "deployedProductionBootstrapEvidence": "HTTP_200_REAL_QUESTION_01_OF_07_ON_BRANCH_ALIAS",
-    "verification": {
-      "publicApplicationTables": 25,
-      "missingRequiredTables": [],
-      "pgTrgmInstalled": true,
-      "missingRequiredFunctions": [],
-      "missingRequiredTriggers": [],
-      "missingRequiredFinalIndexes": [],
-      "questionDefinitionsCountBeforeFirstLiveAssignment": 0,
-      "questionSeedingBehavior": "SEEDED_FROM_CANONICAL_VAULT_ON_FIRST_LIVE_ASSIGNMENT"
+    "liveEvidence": {
+      "questionDefinitions": 70,
+      "recentExperiencesCreated": true,
+      "recentPersistedAnswers": 0,
+      "failedSessionsRemainAt": "QUESTION_1"
     }
   },
   "verification": {
-    "releaseCandidateHead": "3b7b3273806dbf07757d92adacc0cc08791f9f2d",
-    "latestCheckpointHead": "ee1178f4cc14a0c06c2198be1eefbeddcef0495d",
+    "diagnosticFixHead": "4e620834d4d068fa2e31cd50a5d8417245309d3f",
     "ci": {
-      "run": 32380183834,
-      "job": 96461194320,
+      "run": 32382082047,
       "conclusion": "SUCCESS",
-      "unitTests": "PASSED",
+      "unitTests": "PASSED_INCLUDING_NEW_ANSWER_ROUTE_CLASSIFICATION_TEST",
       "typecheck": "PASSED",
       "lint": "PASSED",
       "productionBuild": "PASSED"
     },
     "browser": {
-      "run": 32380183878,
-      "job": 96461194422,
-      "workflowConclusion": "FAILURE_DUE_TO_STALE_OWNER_PREVIEW_ASSUMPTION",
-      "playwright": "16/16 PASSED",
-      "liveBranchProbeHttpStatus": 200,
-      "liveBranchProbeBodyEvidence": "01 / 07; first real question rendered",
-      "failureClassification": "HARNESS_EXPECTED_OWNER_PREVIEW_BUT_BRANCH_NOW_RUNS_PRODUCTION_MODE",
-      "automationBypassSecret": "PRESENT_AND_MASKED"
-    },
-    "vercel": {
-      "teamId": "team_iG5Amx3WwHQ3Te5KGbmIOiqs",
-      "teamSlug": "samx4",
-      "branchAlias": "https://issued-once-git-feat-mystery-foundation-samx4.vercel.app",
-      "branchAliasMode": "PRODUCTION_BEHAVIOR_OBSERVED",
-      "connectorProjectVisibility": "project/deployment lookup remains unavailable through connector",
-      "queueConfigTopics": ["issued-once-design", "issued-once-notifications"]
+      "run": 32382082152,
+      "localPlaywright": "16/16 PASSED_DESKTOP_AND_MOBILE",
+      "liveProductionCustomerJourney": "BLOCKED_AT_FIRST_ANSWER_BY_EXPECTED_FAIL_CLOSED_CONFIG",
+      "firstAnswerHttpStatus": 503,
+      "firstAnswerBody": "Answer persistence is unavailable",
+      "previousMaskedStatus": 409,
+      "permanentSmokeScript": "tests/e2e/live-production-smoke.mjs",
+      "productionSmokeUrl": "https://issuedonce.shop"
     },
     "domain": {
       "name": "issuedonce.shop",
-      "registrar": "Hostinger",
-      "registered": true,
-      "ownerReportsAttachedToVercel": true,
-      "ownerReportsHostingerDnsConfigured": true,
       "ownerObservedProductionHomepage": true,
-      "customDomainBeginAfterDatabaseRedeploy": "OWNER_CONFIRMATION_PENDING",
-      "status": "CUSTOM_DOMAIN_BEGIN_RETEST_PENDING"
+      "liveAutomationReachedBegin": true,
+      "liveAutomationReachedQuestion01": true,
+      "status": "LIVE_APPLICATION_REACHABLE_NOT_RELEASE_READY"
     },
     "providers": {
-      "requiredSafepayEnv": ["SAFEPAY_ENVIRONMENT", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET"],
-      "requiredResendEnv": ["RESEND_API_KEY", "RESEND_FROM_EMAIL"],
       "resendSendingDomain": "otp.issuedonce.shop",
       "resendFromAddress": "ISSUED ONCE <access@otp.issuedonce.shop>",
-      "resendOwnerReportsDomainConfigured": true,
       "resendOwnerReportsVercelEnvConfigured": true,
-      "resendSecretValuesObserved": false,
-      "resendRealDelivery": "NOT_LIVE_PROVEN",
-      "requiredDesignEnv": ["OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN"],
-      "requiredPrintfulEnv": ["PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
+      "resendRealDelivery": "NOT_LIVE_PROVEN_BLOCKED_BEFORE_OTP",
       "safepaySandboxCycle": "NOT_LIVE_PROVEN",
       "openaiDeployedDesign": "NOT_LIVE_PROVEN",
       "privateBlobSignedRead": "NOT_LIVE_PROVEN",
-      "vercelQueueConsumers": "CONFIGURED_IN_VERCEL_JSON_NOT_LIVE_PROVEN_CONSUMING",
-      "printfulVariantMapping": "NOT_LIVE_PROVEN_WITH_SAMPLED_CURRENT_MAPPING",
+      "vercelQueueConsumers": "CONFIGURED_NOT_LIVE_PROVEN",
       "printfulDraft": "NOT_LIVE_PROVEN",
-      "printfulProduction": "DISABLED_NOT_RUN",
-      "printfulSignedFulfillment": "NOT_LIVE_PROVEN"
+      "printfulProduction": "DISABLED_NOT_RUN"
     }
   },
+  "productionRuntimeContract": {
+    "ownerConfigured": ["DATABASE_URL", "RESEND_API_KEY", "RESEND_FROM_EMAIL"],
+    "nextRequiredPrivacy": ["QUIZ_ENCRYPTION_KEY_V1", "IDENTITY_HMAC_KEY"],
+    "nextKnownNonSecretRuntime": ["ISSUED_ONCE_CATALOG_JSON"],
+    "laterCommercialGates": ["SUPPORT_INBOX_EMAIL", "SAFEPAY_ENVIRONMENT", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET", "OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN", "PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
+    "factoryConfirmation": "MUST_REMAIN_DISABLED"
+  },
   "resolvedDuringCurrentCycle": [
-    "Traced the BEGIN failure to the production /api/experience/start persistent-storage boundary",
-    "Owner added pooled production Neon DATABASE_URL to Vercel without exposing it",
-    "Triggered a fresh deployment through the canonical Git branch",
-    "Fresh CI passed unit tests, TypeScript, lint and production build",
-    "Fresh local Browser QA passed all 16 desktop/mobile scenarios",
-    "Live branch probe received HTTP 200 and rendered question 01/07, proving production-mode BEGIN bootstrap now reaches persistent storage",
-    "Classified the Browser QA workflow failure as a stale owner-preview harness assumption caused by changing feat/mystery-foundation to production behavior, not an application runtime failure"
+    "Reproduced owner-reported answer-save failure through real issuedonce.shop rather than preview mocks",
+    "Added permanent live production customer-journey smoke gate that waits for every backend POST response",
+    "Verified real BEGIN and question assignment work against production Neon",
+    "Verified production seeded 70 question definitions",
+    "Verified recent sessions have zero persisted answers and remain at QUESTION_1",
+    "Added failing unit test proving missing encryption configuration was incorrectly classified as state conflict",
+    "Applied minimal route fix and verified CI green",
+    "Reran real production smoke and observed HTTP 503 Answer persistence is unavailable on first answer, confirming missing or invalid QUIZ_ENCRYPTION_KEY_V1",
+    "Audited later customer path and identified independent IDENTITY_HMAC_KEY and ISSUED_ONCE_CATALOG_JSON boundaries before OTP/payment"
   ],
   "nextActions": [
-    "Owner confirms issuedonce.shop BEGIN now renders question 01/07",
-    "Run real OTP request through the production customer journey and prove receipt from access@otp.issuedonce.shop",
-    "Repair or retire the stale live-owner-preview harness assumption before treating the Browser QA workflow itself as green again",
-    "Configure Safepay sandbox credentials and webhook endpoint and prove hosted checkout plus signed PAID/replay/refund-or-exception behavior before any production switch",
-    "Configure and prove deployed OpenAI design generation plus private Vercel Blob signed-read behavior and both Vercel Queue consumers",
-    "Populate real sampled Printful variant/placement mappings, verify webhook signatures and create one real draft while production confirmation stays disabled",
-    "Only after all commercial launch gates have observed evidence, promote/merge the release"
+    "Owner securely configures independent 32-byte base64 QUIZ_ENCRYPTION_KEY_V1 and IDENTITY_HMAC_KEY in Vercel Production and Preview without sharing values in chat",
+    "Trigger deployment and rerun live production smoke; require all seven answers to persist",
+    "Advance smoke through object, size and base; if ISSUED_ONCE_CATALOG_JSON is absent or invalid, configure the reviewed production catalog and rerun",
+    "Advance to real Resend OTP request, verify receipt in connected webrefreshlab@gmail.com, then extend live evidence through OTP verification and shipping persistence",
+    "Advance to Safepay sandbox hosted checkout and signed webhook truth without enabling production payment or Printful production confirmation",
+    "Only after the complete safe customer flow is green should the owner receive another final-test link"
   ],
-  "nextOwnerAction": "Open https://issuedonce.shop and press BEGIN. Confirm whether the first real question shows 01 / 07. If it does, continue to the email step and request a real OTP so delivery from access@otp.issuedonce.shop can be verified."
+  "nextOwnerAction": "Create two independent cryptographically random 32-byte values encoded as base64, save them in Vercel as QUIZ_ENCRYPTION_KEY_V1 and IDENTITY_HMAC_KEY for Production and Preview, then redeploy. Do not paste either value into chat or GitHub."
 }
