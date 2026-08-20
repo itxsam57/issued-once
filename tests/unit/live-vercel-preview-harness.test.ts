@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 const workflow = readFileSync('.github/workflows/browser-qa.yml', 'utf8');
 const liveProbe = readFileSync('tests/e2e/live-owner-preview.mjs', 'utf8');
+const liveProductionProbe = readFileSync('tests/e2e/live-production-smoke.mjs', 'utf8');
 const previewExperience = readFileSync(
   'src/components/preview/VisualPreviewExperience.tsx',
   'utf8',
@@ -25,5 +26,17 @@ describe('live Vercel preview harness', () => {
     expect(liveProbe).toContain("getByLabel('Province / state / region')");
     expect(liveProbe).toContain("getByLabel('Phone')");
     expect(liveProbe).toContain("getByText('$54.00')");
+  });
+
+  it('runs a real production smoke probe against the custom domain and checks persistence boundaries', () => {
+    expect(workflow).toContain('LIVE_PRODUCTION_URL: https://issuedonce.shop');
+    expect(workflow).toContain('node tests/e2e/live-production-smoke.mjs');
+    expect(liveProductionProbe).toContain("'/api/experience/answer'");
+    expect(liveProductionProbe).toContain("'/api/experience/object'");
+    expect(liveProductionProbe).toContain("'/api/experience/size'");
+    expect(liveProductionProbe).toContain("'/api/experience/base'");
+    expect(liveProductionProbe).toContain("'/api/contact/request-otp'");
+    expect(liveProductionProbe).toContain('webrefreshlab@gmail.com');
+    expect(liveProductionProbe).toContain('response.ok()');
   });
 });
