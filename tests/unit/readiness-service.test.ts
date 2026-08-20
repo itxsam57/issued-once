@@ -77,6 +77,20 @@ test('reports live/read-only boundaries separately from configured-only and safe
   expect(result.readyForProduction).toBe(false);
 });
 
+test('uses the audited boot catalog when the deployment override is absent', async () => {
+  const env = { ...completeEnv };
+  delete env.ISSUED_ONCE_CATALOG_JSON;
+  const service = new ReadinessService(healthyDependencies(env));
+
+  const result = await service.check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'catalog',
+    state: 'ready',
+    detail: expect.stringMatching(/boot/i),
+  }));
+});
+
 test('uses the same transparency-compatible default image model as the design runtime', async () => {
   const env = { ...completeEnv };
   delete env.OPENAI_IMAGE_MODEL;
