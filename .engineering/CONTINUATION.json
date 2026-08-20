@@ -11,9 +11,9 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "REAL_OTP_VERIFICATION_GREEN_SHIPPING_SUBMISSION_REQUIRED_FOR_LIVE_PERSISTENCE_PROOF",
+    "decision": "LIVE_SHIPPING_ENCRYPTION_GREEN_SAFEPAY_SANDBOX_CREDENTIALS_AND_ENDPOINT_SETUP_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The owner completed the live issuedonce.shop OTP verification in the same private browser session and reached the shipping form. Independent Neon evidence confirms the newest production experience has a verified_contacts row with verified_at set and no shipping_snapshots row yet. Shipping uses the already live-proven QUIZ_ENCRYPTION_KEY_V1 through AES-256-GCM and requires no new runtime secret. The next proof requires the owner to submit one valid shipping form in that same private browser session so encrypted shipping persistence can be independently verified before Safepay testing."
+    "stopReason": "The owner submitted the real issuedonce.shop shipping form. Independent Neon evidence matches the same verified browser experience and shows one shipping_snapshots row created at 2026-08-20T15:47:54.081Z. The private address payload is AES-256-GCM ciphertext using key version v1; only non-sensitive country metadata is stored separately and region/postal metadata remain null. Payment application logic and idempotency are verified in source/tests, and Safepay hosted Checkout webhook verification was reconciled against Safepay's current official hosted-checkout SDK/plugin contract. The next live boundary requires Safepay sandbox account credentials and webhook endpoint configuration, which cannot be written through the available Vercel/Safepay tooling and therefore requires owner action."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -44,8 +44,11 @@
       "latestObservedCompletedQuestionCount": 7,
       "physicalSelectionPersistence": "LIVE_PROVEN_THROUGH_OBJECT_SIZE_BASE_HTTP_200",
       "contactVerification": "LIVE_PROVEN_OWNER_BROWSER_AND_NEON_VERIFIED_CONTACT_ROW",
-      "latestOwnerExperienceStage": "COMMITMENT_READY",
-      "latestOwnerShippingSnapshotPresent": false,
+      "shippingPersistence": "LIVE_PROVEN_OWNER_BROWSER_AND_NEON_ENCRYPTED_SNAPSHOT",
+      "shippingPayloadVersion": 1,
+      "shippingKeyVersion": "v1",
+      "shippingCiphertextPresent": true,
+      "shippingPlaintextPrivateFieldsStoredSeparately": false,
       "activeCatalogVersionCount": 0,
       "catalogRuntimeSource": "AUDITED_BOOT_FALLBACK"
     }
@@ -73,6 +76,7 @@
       "liveProductionBase": "HTTP_200",
       "liveProductionOtpRequest": "HTTP_200",
       "ownerLiveOtpVerification": "PASSED_REACHED_SHIPPING_FORM",
+      "ownerLiveShippingSubmission": "PASSED_FORM_COMPLETE_AND_NEON_ENCRYPTED_SNAPSHOT",
       "permanentSmokeScript": "tests/e2e/live-production-smoke.mjs",
       "productionSmokeUrl": "https://issuedonce.shop"
     },
@@ -83,7 +87,8 @@
       "liveAutomationCompletedQuestionnaire": true,
       "liveAutomationReachedOtp": true,
       "ownerBrowserReachedShipping": true,
-      "status": "LIVE_APPLICATION_REACHABLE_CUSTOMER_JOURNEY_GREEN_TO_SHIPPING_FORM"
+      "ownerBrowserReachedFormComplete": true,
+      "status": "LIVE_APPLICATION_REACHABLE_CUSTOMER_JOURNEY_GREEN_TO_PAYMENT_BOUNDARY"
     },
     "providers": {
       "resendSendingDomain": "otp.issuedonce.shop",
@@ -91,7 +96,9 @@
       "resendOwnerReportsVercelEnvConfigured": true,
       "resendRealDelivery": "LIVE_PROVEN_GMAIL_RECEIPT_2026-08-20T15:24:16Z",
       "resendOtpVerification": "LIVE_PROVEN_OWNER_BROWSER_AND_NEON_VERIFIED_CONTACT_ROW",
-      "safepaySandboxCycle": "NOT_LIVE_PROVEN",
+      "safepayProtocol": "HOSTED_CHECKOUT_LEGACY_STANDARD",
+      "safepayWebhookVerificationContract": "HMAC_SHA512_OVER_DATA_OBJECT_MATCHES_CURRENT_OFFICIAL_HOSTED_CHECKOUT_SDK_PLUGIN",
+      "safepaySandboxCycle": "BLOCKED_PENDING_OWNER_SANDBOX_CREDENTIALS_AND_ENDPOINT_SETUP",
       "openaiDeployedDesign": "NOT_LIVE_PROVEN",
       "privateBlobSignedRead": "NOT_LIVE_PROVEN",
       "vercelQueueConsumers": "CONFIGURED_NOT_LIVE_PROVEN",
@@ -115,31 +122,34 @@
   },
   "productionRuntimeContract": {
     "ownerConfigured": ["DATABASE_URL", "RESEND_API_KEY", "RESEND_FROM_EMAIL", "QUIZ_ENCRYPTION_KEY_V1", "IDENTITY_HMAC_KEY"],
-    "privacyKeys": "LIVE_PROVEN_BY_ENCRYPTED_ANSWER_PERSISTENCE_AND_CONTACT_VERIFICATION",
+    "privacyKeys": "LIVE_PROVEN_BY_ENCRYPTED_ANSWER_CONTACT_AND_SHIPPING_PERSISTENCE",
     "catalog": "NO_ENV_REQUIRED_BOOT_FALLBACK_LIVE_PROVEN",
-    "shippingEncryption": "USES_LIVE_PROVEN_QUIZ_ENCRYPTION_KEY_V1_NO_NEW_SECRET_REQUIRED",
-    "nextKnownBoundary": "SHIPPING_PERSISTENCE_THEN_SAFEPAY_SANDBOX",
-    "laterCommercialGates": ["SUPPORT_INBOX_EMAIL", "SAFEPAY_ENVIRONMENT", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET", "OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN", "PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
+    "shippingEncryption": "LIVE_PROVEN_AES_256_GCM",
+    "nextKnownBoundary": "SAFEPAY_SANDBOX_CONFIGURATION_AND_HOSTED_CHECKOUT",
+    "requiredForSafepaySandbox": ["SAFEPAY_ENVIRONMENT=sandbox", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET"],
+    "safepayWebhookUrl": "https://issuedonce.shop/api/webhooks/safepay",
+    "laterCommercialGates": ["SUPPORT_INBOX_EMAIL", "OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN", "PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
     "factoryConfirmation": "MUST_REMAIN_DISABLED"
   },
   "resolvedDuringCurrentCycle": [
     "Proved all seven live production questionnaire answers persist with HTTP 200",
-    "Made the production smoke question-bank agnostic",
     "Added and live-proved the audited physical boot catalog fallback",
-    "Verified CI, typecheck, lint, build and 16/16 browser scenarios green",
-    "Proved live object, size and base endpoints return HTTP 200",
-    "Proved real Resend OTP request returns HTTP 200 and actual Gmail delivery",
-    "Owner completed OTP verification in the same live browser session and reached the shipping form",
-    "Independently confirmed the newest production experience has a verified contact row and no shipping snapshot yet",
-    "Verified shipping encryption reuses the already live-proven AES-256-GCM private payload key and needs no new configuration"
+    "Proved real Resend OTP request, Gmail receipt and owner-browser OTP verification",
+    "Owner submitted the real shipping form and reached FORM COMPLETE",
+    "Independently matched the verified owner experience to a new shipping_snapshots row",
+    "Verified shipping private payload is ciphertext with key version v1 and no separate plaintext private address/phone fields",
+    "Audited payment start logic: verified contact and shipping are mandatory, checkout attempts are reusable/idempotent, and return redirect is not payment truth",
+    "Reconciled Safepay webhook verification against current hosted-checkout SDK/plugin behavior and separated it from the newer Raastwire signature protocol",
+    "Confirmed paid webhook path reserves the canonical Issue and enqueues design/notification work only after verified provider truth"
   ],
   "nextActions": [
-    "Owner submits one valid shipping form in the same issuedonce.shop browser session without sharing private address data in chat",
-    "Immediately verify an encrypted shipping_snapshots row exists for the newest verified production experience and that no plaintext address fields are stored",
-    "Advance to Safepay sandbox hosted checkout and require signed webhook payment truth, replay/idempotency and exception evidence",
+    "Owner configures Safepay sandbox API/client key and shared webhook secret in Vercel Production/Preview and registers https://issuedonce.shop/api/webhooks/safepay in Safepay sandbox Developer/Endpoints",
+    "Redeploy so payment runtime loads sandbox credentials",
+    "Use the existing owner browser session at FORM COMPLETE to click ISSUE MINE and verify redirect reaches Safepay TEST MODE hosted checkout",
+    "Complete one sandbox payment and independently verify signed webhook truth, payment attempt state, Issue reservation, duplicate replay handling and exception behavior",
     "Then prove OpenAI design, private Blob access and both queue consumers",
     "Then prove Printful draft/webhook flow while production confirmation remains disabled",
     "Only after all commercial gates are green promote/merge PR 3 and call the project launch-ready"
   ],
-  "nextOwnerAction": "In the shipping form already open on issuedonce.shop, enter valid delivery details including required province/state/region and phone, click USE THIS ADDRESS, and stop when FORM COMPLETE appears. Do not paste the address or phone into chat; reply only 'form complete' or send the exact error shown."
+  "nextOwnerAction": "Configure Safepay sandbox credentials and webhook endpoint without sharing secrets in chat, then reply 'Safepay added'."
 }
