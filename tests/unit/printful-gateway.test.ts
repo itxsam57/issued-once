@@ -14,6 +14,21 @@ const draftInput = {
   recipient,
 };
 
+const readyDraft = {
+  code: 200,
+  result: {
+    id: 987654,
+    status: 'draft',
+    items: [{
+      id: 1,
+      files: [
+        { type: 'front', id: 10, status: 'ok' },
+        { type: 'preview', id: 11, status: 'waiting' },
+      ],
+    }],
+  },
+};
+
 test('checks Issue external ID before creating an unconfirmed Printful order with exact variant, art, and placement', async () => {
   const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
     if (url === 'https://api.printful.com/orders/%40IO-ABCD-EFGH') {
@@ -86,8 +101,12 @@ test('fails closed when the Issue external ID already points at a non-draft Prin
   expect(fetchImpl).toHaveBeenCalledTimes(1);
 });
 
-test('confirmation is a separate API call and contains no customer/artwork body', async () => {
+test('rechecks the Printful draft and confirms only after every printable file is processed', async () => {
   const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+    if (url === 'https://api.printful.com/orders/987654') {
+      expect(init?.method).toBe('GET');
+      return new Response(JSON.stringify(readyDraft), { status: 200 });
+    }
     expect(url).toBe('https://api.printful.com/orders/987654/confirm');
     expect(init?.method).toBe('POST');
     expect(init?.body).toBeUndefined();
@@ -95,4 +114,48 @@ test('confirmation is a separate API call and contains no customer/artwork body'
   });
   const gateway = new PrintfulGateway({ token: 'pf-token', fetchImpl: fetchImpl as typeof fetch });
   await expect(gateway.confirmDraft('987654')).resolves.toBeUndefined();
+  expect(fetchImpl).toHaveBeenCalledTimes(2);
+});
+
+test('refuses to charge while a printable file is still waiting', async () => {
+  const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
+    code: 200,
+    result: {
+      id: 987654,
+      status: 'draft',
+      items: [{ id: 1, files: [{ type: 'front', id: 10, status: 'waiting' }] }],
+    },
+  }), { status: 200 }));
+  const gateway = new PrintfulGateway({ token: 'pf-token', fetchImpl: fetchImpl as typeof fetch });
+
+  await expect(gateway.confirmDraft('987654')).rejects.toThrow(/file.*not ready|processing/i);
+  expect(fetchImpl).toHaveBeenCalledTimes(1);
+});
+
+test('refuses to charge when a printable file failed processing or cannot be proven ready', async () => {
+  for (const files of [
+    [{ type: 'front', id: 10, status: 'failed' }],
+    [{ type: 'front', id: 10 }],
+    [],
+  ]) {
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
+      code: 200,
+      result: { id: 987654, status: 'draft', items: [{ id: 1, files }] },
+    }), { status: 200 }));
+    const gateway = new PrintfulGateway({ token: 'pf-token', fetchImpl: fetchImpl as typeof fetch });
+
+    await expect(gateway.confirmDraft('987654')).rejects.toThrow(/file.*not ready|processing/i);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  }
+});
+
+test('refuses to charge if the provider order is no longer a draft at confirmation time', async () => {
+  const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
+    ...readyDraft,
+    result: { ...readyDraft.result, status: 'pending' },
+  }), { status: 200 }));
+  const gateway = new PrintfulGateway({ token: 'pf-token', fetchImpl: fetchImpl as typeof fetch });
+
+  await expect(gateway.confirmDraft('987654')).rejects.toThrow(/draft/i);
+  expect(fetchImpl).toHaveBeenCalledTimes(1);
 });
