@@ -5,15 +5,15 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "e6b5637568f9937a9e2b763a0146bcc1c0475f04",
-    "latestApplicationHead": "e6b5637568f9937a9e2b763a0146bcc1c0475f04",
+    "verifiedApplicationCandidate": "64f450f202189f1f69d2c68ff2c9e980cb113e90",
+    "latestApplicationHead": "64f450f202189f1f69d2c68ff2c9e980cb113e90",
     "currentMigrationHead": "0027_issue_prefix_search_indexes.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "RUNTIME_AND_OWNER_OS_PREPAYMENT_GATES_ALIGNED_SAFEPAY_SANDBOX_EXTERNAL_CONFIG_REQUIRED",
+    "decision": "PREPAYMENT_RUNTIME_AND_QUEUE_REPLAY_GATES_GREEN_SAFEPAY_SANDBOX_EXTERNAL_CONFIG_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The real issuedonce.shop customer journey remains live-proven through encrypted shipping persistence. A prepayment control-plane audit found Owner OS readiness had drifted from production runtime in three ways: it required ISSUED_ONCE_CATALOG_JSON even though production uses the audited boot catalog fallback, it still defaulted OPENAI_IMAGE_MODEL to gpt-image-2 while the production design gateway now defaults to gpt-image-1.5 for transparent PNG artwork, and it could report explicit gpt-image-2 as ready even though production rejects it while alpha transparency is required. TDD RED was observed with 112 unrelated test files passing and exactly the 3 new readiness assertions failing. Commit e6b5637568f9937a9e2b763a0146bcc1c0475f04 aligns readiness with runtime. CI run 32401649135 and Browser QA run 32401649132 are both successful, including the real production customer journey. Safepay sandbox credentials and endpoint registration remain the first genuine external owner gate and cannot be written through available connected tooling."
+    "stopReason": "The real issuedonce.shop journey remains live-proven through encrypted shipping. A queue replay audit found that a valid Safepay duplicate webhook could recover an existing Issue and then encounter Vercel DuplicateMessageError when republishing deterministic design or notification messages, incorrectly turning a legitimate idempotency collision into HTTP 500. TDD RED commit ce00b15ae85063c2ea6befe2cb0642b6eb7c8cd1 produced 113 passing existing test files and exactly two intended duplicate-collision failures while the real queue-outage assertion already passed. Commits a7ef50d618574fecea5a457c809d9279620f2191 and 64f450f202189f1f69d2c68ff2c9e980cb113e90 now treat only Vercel DuplicateMessageError as already delivered and continue surfacing all real queue failures. CI run 32403728011 and Browser QA run 32403727990 both succeeded, including the real production customer journey. Vercel queue configuration matches current queue/v2beta, send, idempotency, retention and callback contracts, but connected Vercel project enumeration remains empty so deployed queue registration is still not independently live-proven. Safepay sandbox credentials and endpoint registration remain the first genuine external owner gate."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -70,9 +70,12 @@
     "readinessAlignmentTestRedCommit": "3677571d7b7c7408956bf5b2a650a1cf40ac19ae",
     "readinessAlignmentRedEvidence": "112_UNRELATED_TEST_FILES_PASSED_EXACTLY_3_NEW_READINESS_ASSERTIONS_FAILED_AS_EXPECTED",
     "readinessAlignmentFixHead": "e6b5637568f9937a9e2b763a0146bcc1c0475f04",
+    "queueReplayTestRedCommit": "ce00b15ae85063c2ea6befe2cb0642b6eb7c8cd1",
+    "queueReplayRedEvidence": "113_EXISTING_TEST_FILES_PASSED_ONLY_2_DUPLICATE_COLLISION_ASSERTIONS_FAILED_REAL_QUEUE_FAILURE_ASSERTION_ALREADY_PASSED",
+    "queueReplayFixHead": "64f450f202189f1f69d2c68ff2c9e980cb113e90",
     "ci": {
-      "run": 32401649135,
-      "job": 96531006032,
+      "run": 32403728011,
+      "job": 96537751958,
       "conclusion": "SUCCESS",
       "unitTests": "ALL_PASSED",
       "typecheck": "PASSED",
@@ -80,8 +83,8 @@
       "productionBuild": "PASSED"
     },
     "browser": {
-      "run": 32401649132,
-      "job": 96531006064,
+      "run": 32403727990,
+      "job": 96537751653,
       "conclusion": "SUCCESS",
       "localPlaywright": "PASSED_DESKTOP_AND_MOBILE",
       "liveProductionJourney": "SUCCESS",
@@ -119,7 +122,9 @@
       "openaiArtworkTransparencyCompatibility": "CODE_TEST_AND_READINESS_PROVEN_NOT_LIVE_PROVIDER_PROVEN",
       "openaiDeployedDesign": "NOT_LIVE_PROVEN",
       "privateBlobSignedRead": "CODE_AND_TEST_PROVEN_NOT_LIVE_PROVIDER_PROVEN",
-      "vercelQueueConsumers": "CONFIGURED_NOT_LIVE_PROVEN",
+      "vercelQueueContract": "CURRENT_QUEUE_V2BETA_SEND_IDEMPOTENCY_RETENTION_AND_HANDLECALLBACK_CONTRACTS_MATCH_SOURCE",
+      "vercelQueueReplaySafety": "CODE_AND_TEST_PROVEN_DUPLICATE_MESSAGE_COLLISIONS_ARE_IDEMPOTENT_REAL_FAILURES_RETHROW",
+      "vercelQueueConsumers": "CONFIGURED_NOT_LIVE_PROVEN_PROJECT_CONNECTOR_ENUMERATION_EMPTY",
       "printfulWebhookContract": "CURRENT_V2_HEADERS_AND_HMAC_SHA256_RAW_BODY_MATCH_SOURCE",
       "printfulDraft": "NOT_LIVE_PROVEN",
       "printfulProduction": "DISABLED_NOT_RUN"
@@ -170,9 +175,15 @@
     "Found Owner OS readiness drift for boot catalog and OpenAI image model capability",
     "Added failing-first readiness tests and observed exactly three intended RED assertions",
     "Aligned Owner OS readiness to production boot catalog fallback and transparency-compatible image model behavior",
-    "Verified readiness alignment with full CI, build, Browser QA and real issuedonce.shop smoke"
+    "Verified readiness alignment with full CI, build, Browser QA and real issuedonce.shop smoke",
+    "Audited current Vercel Queues trigger/send/callback contracts and found deployment configuration compatible",
+    "Found Safepay replay hazard where Vercel DuplicateMessageError could turn a legitimate deterministic queue replay into HTTP 500",
+    "Added failing-first queue collision tests and observed exactly two intended RED assertions while real queue outages remained fail-loud",
+    "Made design and notification publishers absorb only Vercel DuplicateMessageError and verified all other failures still propagate",
+    "Verified queue replay hardening with full CI, build, Browser QA and real issuedonce.shop smoke"
   ],
   "nextActions": [
+    "Audit and harden Printful file-processing readiness before any production charge/confirmation",
     "Owner configures Safepay sandbox API/client key and shared webhook secret in Vercel Production/Preview and registers https://issuedonce.shop/api/webhooks/safepay in Safepay sandbox Developer/Endpoints",
     "Redeploy so payment runtime loads sandbox credentials",
     "Use the owner browser flow to click ISSUE MINE and verify redirect reaches Safepay sandbox hosted checkout",
