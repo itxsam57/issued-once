@@ -10,10 +10,10 @@
     "currentMigrationHead": "0027_issue_prefix_search_indexes.sql"
   },
   "continuationGovernor": {
-    "state": "WAIT_EXTERNAL",
-    "decision": "PRODUCTION_DATABASE_URL_ADDED_REDEPLOY_AND_BEGIN_FLOW_VERIFICATION_PENDING",
+    "state": "OWNER_REQUIRED",
+    "decision": "PRODUCTION_BEGIN_BOOTSTRAP_PROVEN_ON_DEPLOYED_BRANCH_CUSTOM_DOMAIN_CONFIRMATION_AND_REAL_OTP_PROOF_NEXT",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The custom domain now reaches the ISSUED ONCE production application, but the real /begin flow failed at the first persistent-backend boundary. Source tracing showed /begin immediately calls POST /api/experience/start, whose production runtime requires DATABASE_URL and intentionally fails closed when it is absent. The production Neon database itself was independently checked: the required application tables exist and question_definitions is empty by design because the live question service seeds from the canonical vault on the first assignment. The owner has now added the pooled production Neon DATABASE_URL to Vercel without exposing the secret in chat. A fresh production deployment and real issuedonce.shop BEGIN verification are required before this gate can be called green. Resend configuration is present by owner report but real OTP delivery is still unproven. Safepay, OpenAI/private Blob, Vercel Queue and Printful provider evidence remain pending. Printful production confirmation remains disabled and unauthorized."
+    "stopReason": "The owner added the pooled production Neon DATABASE_URL to Vercel. Fresh CI on checkpoint ee1178f4cc14a0c06c2198be1eefbeddcef0495d passed unit tests, typecheck, lint and production build. Browser QA's 16 local desktop/mobile scenarios also passed. Its final live-owner-preview step failed for a now-understood harness assumption: feat/mystery-foundation is being served as production, so the branch alias renders the real PublicInterviewExperience instead of the preview-only VisualPreviewExperience. Critically, that live probe received HTTP 200 and rendered 01 / 07 with the first real question, proving the deployed production-mode interview bootstrap can reach persistent storage after DATABASE_URL configuration. The owner should now confirm the same behavior through issuedonce.shop. Resend is configured by owner report but real OTP delivery is still unproven. Safepay sandbox, OpenAI/private Blob, Vercel Queue and Printful provider evidence remain pending. Printful production confirmation remains disabled and unauthorized."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -40,6 +40,7 @@
     "migrationId": "f990357c-ed37-409c-a02f-5f3166f7135c",
     "ownerReportsVercelDatabaseUrlConfigured": true,
     "databaseSecretObserved": false,
+    "deployedProductionBootstrapEvidence": "HTTP_200_REAL_QUESTION_01_OF_07_ON_BRANCH_ALIAS",
     "verification": {
       "publicApplicationTables": 25,
       "missingRequiredTables": [],
@@ -53,31 +54,32 @@
   },
   "verification": {
     "releaseCandidateHead": "3b7b3273806dbf07757d92adacc0cc08791f9f2d",
+    "latestCheckpointHead": "ee1178f4cc14a0c06c2198be1eefbeddcef0495d",
     "ci": {
-      "run": 32346018160,
-      "job": 96354830842,
+      "run": 32380183834,
+      "job": 96461194320,
       "conclusion": "SUCCESS",
-      "testFiles": "110/110 PASSED",
-      "unitAndIntegrationTests": "256/256 PASSED",
+      "unitTests": "PASSED",
       "typecheck": "PASSED",
-      "lint": "PASSED_WITH_0_ERRORS",
+      "lint": "PASSED",
       "productionBuild": "PASSED"
     },
     "browser": {
-      "run": 32346018170,
-      "job": 96354831309,
-      "workflowConclusion": "SUCCESS",
+      "run": 32380183878,
+      "job": 96461194422,
+      "workflowConclusion": "FAILURE_DUE_TO_STALE_OWNER_PREVIEW_ASSUMPTION",
       "playwright": "16/16 PASSED",
-      "protectedLiveOwnerPreview": "PASSED_DESKTOP_AND_MOBILE",
-      "automationBypassSecret": "PRESENT_AND_PROVEN_WITH_VALUE_MASKED"
+      "liveBranchProbeHttpStatus": 200,
+      "liveBranchProbeBodyEvidence": "01 / 07; first real question rendered",
+      "failureClassification": "HARNESS_EXPECTED_OWNER_PREVIEW_BUT_BRANCH_NOW_RUNS_PRODUCTION_MODE",
+      "automationBypassSecret": "PRESENT_AND_MASKED"
     },
     "vercel": {
       "teamId": "team_iG5Amx3WwHQ3Te5KGbmIOiqs",
       "teamSlug": "samx4",
       "branchAlias": "https://issued-once-git-feat-mystery-foundation-samx4.vercel.app",
-      "protectedLiveUiObservation": "GREEN_VIA_GITHUB_ACTIONS_AUTOMATION_BYPASS",
+      "branchAliasMode": "PRODUCTION_BEHAVIOR_OBSERVED",
       "connectorProjectVisibility": "project/deployment lookup remains unavailable through connector",
-      "directDeployConnector": "SCHEMA_MISMATCH_OBSERVED_NOT_APP_FAILURE",
       "queueConfigTopics": ["issued-once-design", "issued-once-notifications"]
     },
     "domain": {
@@ -87,8 +89,8 @@
       "ownerReportsAttachedToVercel": true,
       "ownerReportsHostingerDnsConfigured": true,
       "ownerObservedProductionHomepage": true,
-      "ownerObservedBeginFailureBeforeDatabaseUrlRedeploy": true,
-      "status": "PRODUCTION_APP_REACHABLE_BEGIN_RETEST_PENDING"
+      "customDomainBeginAfterDatabaseRedeploy": "OWNER_CONFIRMATION_PENDING",
+      "status": "CUSTOM_DOMAIN_BEGIN_RETEST_PENDING"
     },
     "providers": {
       "requiredSafepayEnv": ["SAFEPAY_ENVIRONMENT", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET"],
@@ -112,22 +114,22 @@
     }
   },
   "resolvedDuringCurrentCycle": [
-    "Reproduced and traced the owner-reported BEGIN failure to the production interview bootstrap boundary",
-    "Confirmed /begin renders PublicInterviewExperience in production and immediately POSTs /api/experience/start",
-    "Confirmed production experience and question-selection runtimes both require DATABASE_URL and fail closed when it is absent",
-    "Verified the production Neon database and required application tables are present",
-    "Verified question_definitions is empty before first live assignment and confirmed code seeds the canonical question vault on first assignment",
-    "Owner added the pooled production Neon DATABASE_URL to Vercel without exposing its value",
-    "Advanced the Governor checkpoint to trigger the normal Git-to-Vercel deployment path"
+    "Traced the BEGIN failure to the production /api/experience/start persistent-storage boundary",
+    "Owner added pooled production Neon DATABASE_URL to Vercel without exposing it",
+    "Triggered a fresh deployment through the canonical Git branch",
+    "Fresh CI passed unit tests, TypeScript, lint and production build",
+    "Fresh local Browser QA passed all 16 desktop/mobile scenarios",
+    "Live branch probe received HTTP 200 and rendered question 01/07, proving production-mode BEGIN bootstrap now reaches persistent storage",
+    "Classified the Browser QA workflow failure as a stale owner-preview harness assumption caused by changing feat/mystery-foundation to production behavior, not an application runtime failure"
   ],
   "nextActions": [
-    "Observe CI and Browser QA for this checkpoint and verify the Vercel deployment consumes the newly configured DATABASE_URL",
-    "Verify issuedonce.shop BEGIN reaches question 01/07 instead of ENTRY / INTERRUPTED",
-    "Run the real customer journey through OTP request and prove receipt from access@otp.issuedonce.shop",
+    "Owner confirms issuedonce.shop BEGIN now renders question 01/07",
+    "Run real OTP request through the production customer journey and prove receipt from access@otp.issuedonce.shop",
+    "Repair or retire the stale live-owner-preview harness assumption before treating the Browser QA workflow itself as green again",
     "Configure Safepay sandbox credentials and webhook endpoint and prove hosted checkout plus signed PAID/replay/refund-or-exception behavior before any production switch",
     "Configure and prove deployed OpenAI design generation plus private Vercel Blob signed-read behavior and both Vercel Queue consumers",
     "Populate real sampled Printful variant/placement mappings, verify webhook signatures and create one real draft while production confirmation stays disabled",
     "Only after all commercial launch gates have observed evidence, promote/merge the release"
   ],
-  "nextOwnerAction": "No action required while the fresh deployment is verified. If the automated production probe cannot access issuedonce.shop directly, manually press BEGIN once after the deployment and report whether question 01/07 appears."
+  "nextOwnerAction": "Open https://issuedonce.shop and press BEGIN. Confirm whether the first real question shows 01 / 07. If it does, continue to the email step and request a real OTP so delivery from access@otp.issuedonce.shop can be verified."
 }
