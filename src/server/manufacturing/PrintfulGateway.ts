@@ -161,6 +161,11 @@ export class PrintfulGateway implements ManufacturerGateway {
     });
     if (!response.ok) throw new Error('Printful order confirmation failed');
     const payload = (await response.json()) as PrintfulOrderResponse;
-    if (!payload.result?.id) throw new Error('Printful confirmation response is invalid');
+    if (
+      String(payload.result?.id ?? '') !== orderId ||
+      payload.result?.status?.trim().toLowerCase() !== 'pending'
+    ) {
+      throw new Error('Printful confirmation did not reach pending state');
+    }
   }
 }
