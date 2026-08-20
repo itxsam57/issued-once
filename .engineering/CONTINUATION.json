@@ -10,10 +10,10 @@
     "currentMigrationHead": "0027_issue_prefix_search_indexes.sql"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "decision": "CODE_DATABASE_DEPLOYMENT_AND_PROTECTED_LIVE_UI_GREEN_DOMAIN_DNS_PROPAGATION_AND_PROVIDER_PROOFS_REQUIRED_BEFORE_COMMERCIAL_LAUNCH",
+    "state": "WAIT_EXTERNAL",
+    "decision": "RESEND_CONFIGURED_BY_OWNER_REDEPLOY_AND_LIVE_DELIVERY_PROOF_PENDING",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Application code, production Neon schema, Vercel deployment, complete desktop/mobile Browser QA and the protected live Vercel owner-preview journey are verified green on release candidate 3b7b3273806dbf07757d92adacc0cc08791f9f2d. The owner purchased issuedonce.shop through Hostinger, added it to Vercel and reports the requested Hostinger DNS records are configured. Registration is externally confirmed because Vercel now reports the domain unavailable for purchase. Public DNS/HTTPS propagation has not yet been independently observed from the available external checks, so the domain gate remains verification-pending rather than green. Real Safepay sandbox, Resend/domain, OpenAI/private Blob, Vercel Queue and Printful provider evidence has not yet been observed. PRINTFUL_ALLOW_CONFIRM remains disabled and no production factory action is authorized."
+    "stopReason": "Application code, production Neon schema, complete desktop/mobile Browser QA and the protected live Vercel owner-preview journey remain verified green on release candidate 3b7b3273806dbf07757d92adacc0cc08791f9f2d. The owner purchased issuedonce.shop through Hostinger, reports Vercel DNS was configured, chose otp.issuedonce.shop for transactional email reputation isolation, and reports RESEND_API_KEY plus RESEND_FROM_EMAIL were added to Vercel for Production and Preview. Secret values were not exposed. A new deployment and real OTP receipt are still required before the Resend gate can be called green. Safepay sandbox, OpenAI/private Blob, Vercel Queue and Printful provider evidence also remain pending. Printful production confirmation remains disabled and unauthorized."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -64,7 +64,6 @@
       "job": 96354831309,
       "workflowConclusion": "SUCCESS",
       "playwright": "16/16 PASSED",
-      "coverage": "desktop Chromium + mobile Chromium; mystery journey, public interview, failure recovery, physical selection, OTP and required delivery fields, Safepay boundary, Owner OS",
       "protectedLiveOwnerPreview": "PASSED_DESKTOP_AND_MOBILE",
       "automationBypassSecret": "PRESENT_AND_PROVEN_WITH_VALUE_MASKED"
     },
@@ -73,27 +72,32 @@
       "teamSlug": "samx4",
       "branchAlias": "https://issued-once-git-feat-mystery-foundation-samx4.vercel.app",
       "protectedLiveUiObservation": "GREEN_VIA_GITHUB_ACTIONS_AUTOMATION_BYPASS",
-      "connectorProjectVisibility": "get_project issued-once still returns 404; connector share URL unavailable",
+      "connectorProjectVisibility": "project/deployment lookup remains unavailable through connector",
+      "directDeployConnector": "SCHEMA_MISMATCH_OBSERVED_NOT_APP_FAILURE",
       "queueConfigTopics": ["issued-once-design", "issued-once-notifications"]
     },
     "domain": {
       "name": "issuedonce.shop",
       "registrar": "Hostinger",
       "registered": true,
-      "registrationEvidence": "VERCEL_NOW_REPORTS_DOMAIN_UNAVAILABLE_FOR_PURCHASE",
       "ownerReportsAttachedToVercel": true,
       "ownerReportsHostingerDnsConfigured": true,
       "publicDnsObserved": false,
       "httpsObserved": false,
-      "status": "DNS_PROPAGATION_OR_EXTERNAL_VERIFICATION_PENDING"
+      "status": "EXTERNAL_VERIFICATION_PENDING"
     },
     "providers": {
       "requiredSafepayEnv": ["SAFEPAY_ENVIRONMENT", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET"],
       "requiredResendEnv": ["RESEND_API_KEY", "RESEND_FROM_EMAIL"],
+      "resendSendingDomain": "otp.issuedonce.shop",
+      "resendFromAddress": "ISSUED ONCE <access@otp.issuedonce.shop>",
+      "resendOwnerReportsDomainConfigured": true,
+      "resendOwnerReportsVercelEnvConfigured": true,
+      "resendSecretValuesObserved": false,
+      "resendRealDelivery": "NOT_LIVE_PROVEN",
       "requiredDesignEnv": ["OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN"],
       "requiredPrintfulEnv": ["PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
       "safepaySandboxCycle": "NOT_LIVE_PROVEN",
-      "resendDomainAndRealDelivery": "NOT_LIVE_PROVEN",
       "openaiDeployedDesign": "NOT_LIVE_PROVEN",
       "privateBlobSignedRead": "NOT_LIVE_PROVEN",
       "vercelQueueConsumers": "CONFIGURED_IN_VERCEL_JSON_NOT_LIVE_PROVEN_CONSUMING",
@@ -104,22 +108,22 @@
     }
   },
   "resolvedDuringCurrentCycle": [
-    "Verified release candidate 3b7b3273806dbf07757d92adacc0cc08791f9f2d remains the current green application candidate",
-    "Owner purchased issuedonce.shop through Hostinger",
-    "Confirmed registration externally because Vercel now reports issuedonce.shop unavailable for purchase",
-    "Owner reports issuedonce.shop was added to the Vercel project and the requested DNS records were entered in Hostinger",
-    "Attempted external DNS/HTTPS verification but did not receive reliable public resolution yet",
-    "Checked connected Gmail for recent Resend setup evidence and found none",
-    "Checked plugin availability for Resend and found no installable connector in this environment"
+    "Owner purchased issuedonce.shop and reports Vercel/Hostinger DNS configuration complete",
+    "Owner chose otp.issuedonce.shop as the isolated Resend transactional sending subdomain",
+    "Owner reports RESEND_API_KEY and RESEND_FROM_EMAIL were saved in Vercel without exposing secret values",
+    "Confirmed application runtime requires DATABASE_URL plus both Resend variables and fails closed when absent",
+    "Confirmed the real OTP route requires an active experience session, so delivery verification must use the customer journey rather than a synthetic unauthenticated request",
+    "Observed a Vercel deploy connector schema mismatch; treated it as a connector issue rather than application evidence",
+    "Advanced the Governor checkpoint to trigger the normal Git-to-Vercel preview deployment path"
   ],
   "nextActions": [
-    "Recheck issuedonce.shop public DNS and HTTPS until Vercel-served production UI is independently observed",
-    "Create/configure Resend, add issuedonce.shop, copy Resend's exact Hostinger-specific DNS records, verify the sending domain and prove real OTP/milestone/support delivery",
-    "Verify Vercel production DATABASE_URL targets the migrated Neon database and required encryption/HMAC secrets are securely backed up",
-    "Configure Safepay sandbox credentials and webhook endpoint and prove hosted checkout plus signed PAID/replay/refund-or-exception behavior before any production Safepay switch",
+    "Observe the deployment triggered by this checkpoint and verify it completes successfully",
+    "Run the real customer journey through OTP request and prove receipt from access@otp.issuedonce.shop",
+    "Recheck issuedonce.shop public DNS and HTTPS until the Vercel-served site is independently observed",
+    "Configure Safepay sandbox credentials and webhook endpoint and prove hosted checkout plus signed PAID/replay/refund-or-exception behavior before any production switch",
     "Configure and prove deployed OpenAI design generation plus private Vercel Blob signed-read behavior and both Vercel Queue consumers",
-    "Populate only real sampled Printful variant/placement mappings, configure webhook verification and create one real draft while PRINTFUL_ALLOW_CONFIRM remains disabled",
-    "Only after every commercial launch gate has observed evidence, promote/merge the release; keep irreversible Printful production confirmation behind deliberate owner action"
+    "Populate real sampled Printful variant/placement mappings, verify webhook signatures and create one real draft while production confirmation stays disabled",
+    "Only after all commercial launch gates have observed evidence, promote/merge the release"
   ],
-  "nextOwnerAction": "Open Resend, create or sign in to the account, add issuedonce.shop under Domains, then copy every DNS record Resend shows into Hostinger DNS exactly. Do not delete the Vercel web records. Do not paste API keys or DNS secrets into chat."
+  "nextOwnerAction": "No secret sharing is required. After the redeployment finishes, use the normal ISSUED ONCE customer journey with an inbox you control and confirm whether the OTP email arrives from access@otp.issuedonce.shop."
 }
