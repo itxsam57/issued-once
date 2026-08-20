@@ -10,10 +10,10 @@
     "currentMigrationHead": "0027_issue_prefix_search_indexes.sql"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "decision": "LIVE_PRODUCTION_SMOKE_BLOCKED_AT_REQUIRED_PRIVACY_KEY_BEFORE_FIRST_ANSWER_SAVE",
+    "state": "WAIT_EXTERNAL",
+    "decision": "OWNER_REPORTS_PRIVACY_KEYS_CONFIGURED_REDEPLOY_AND_LIVE_PRODUCTION_REPROOF_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The real custom-domain production journey is now exercised by a permanent Playwright smoke gate rather than owner manual testing. issuedonce.shop loads, BEGIN reaches the real database-backed interview, Neon has seeded 70 question definitions, and production sessions are created. The live smoke reproduces the owner-reported failure on the first answer. Database inspection shows recent experiences remain QUESTION_1 with zero persisted answers. A TDD diagnostic fix proved that the previous HTTP 409 masked missing answer-encryption configuration: after the fix, the live custom-domain first-answer POST returns HTTP 503 Answer persistence is unavailable, confirming QUIZ_ENCRYPTION_KEY_V1 is missing or invalid in Vercel Production. CI for the diagnostic fix is green and the local desktop/mobile browser suite is 16/16 green. Progress is OWNER_REQUIRED because the connected Vercel tool exposes no environment-variable mutation action. No plaintext-answer fallback will be introduced."
+    "stopReason": "The owner reports QUIZ_ENCRYPTION_KEY_V1 and IDENTITY_HMAC_KEY are now configured in Vercel Production and Preview. Secret values are intentionally unobserved. A new branch commit is being used to force a fresh deployment so the runtime loads the new configuration. Release remains blocked until the permanent issuedonce.shop production smoke proves answer persistence and advances through the later customer boundaries."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -58,10 +58,9 @@
     "browser": {
       "run": 32382082152,
       "localPlaywright": "16/16 PASSED_DESKTOP_AND_MOBILE",
-      "liveProductionCustomerJourney": "BLOCKED_AT_FIRST_ANSWER_BY_EXPECTED_FAIL_CLOSED_CONFIG",
-      "firstAnswerHttpStatus": 503,
-      "firstAnswerBody": "Answer persistence is unavailable",
-      "previousMaskedStatus": 409,
+      "liveProductionCustomerJourney": "AWAITING_REDEPLOY_WITH_OWNER_CONFIGURED_PRIVACY_KEYS",
+      "previousFirstAnswerHttpStatus": 503,
+      "previousFirstAnswerBody": "Answer persistence is unavailable",
       "permanentSmokeScript": "tests/e2e/live-production-smoke.mjs",
       "productionSmokeUrl": "https://issuedonce.shop"
     },
@@ -86,8 +85,8 @@
     }
   },
   "productionRuntimeContract": {
-    "ownerConfigured": ["DATABASE_URL", "RESEND_API_KEY", "RESEND_FROM_EMAIL"],
-    "nextRequiredPrivacy": ["QUIZ_ENCRYPTION_KEY_V1", "IDENTITY_HMAC_KEY"],
+    "ownerConfigured": ["DATABASE_URL", "RESEND_API_KEY", "RESEND_FROM_EMAIL", "QUIZ_ENCRYPTION_KEY_V1", "IDENTITY_HMAC_KEY"],
+    "ownerConfiguredSecretEvidence": "OWNER_REPORT_ONLY_VALUES_NOT_OBSERVED",
     "nextKnownNonSecretRuntime": ["ISSUED_ONCE_CATALOG_JSON"],
     "laterCommercialGates": ["SUPPORT_INBOX_EMAIL", "SAFEPAY_ENVIRONMENT", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET", "OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN", "PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
     "factoryConfirmation": "MUST_REMAIN_DISABLED"
@@ -100,16 +99,16 @@
     "Verified recent sessions have zero persisted answers and remain at QUESTION_1",
     "Added failing unit test proving missing encryption configuration was incorrectly classified as state conflict",
     "Applied minimal route fix and verified CI green",
-    "Reran real production smoke and observed HTTP 503 Answer persistence is unavailable on first answer, confirming missing or invalid QUIZ_ENCRYPTION_KEY_V1",
-    "Audited later customer path and identified independent IDENTITY_HMAC_KEY and ISSUED_ONCE_CATALOG_JSON boundaries before OTP/payment"
+    "Reran real production smoke and observed HTTP 503 Answer persistence is unavailable on first answer",
+    "Owner now reports independent QUIZ_ENCRYPTION_KEY_V1 and IDENTITY_HMAC_KEY configured in Vercel Production and Preview"
   ],
   "nextActions": [
-    "Owner securely configures independent 32-byte base64 QUIZ_ENCRYPTION_KEY_V1 and IDENTITY_HMAC_KEY in Vercel Production and Preview without sharing values in chat",
-    "Trigger deployment and rerun live production smoke; require all seven answers to persist",
+    "Allow fresh deployment from this checkpoint commit so Vercel loads the owner-configured privacy keys",
+    "Rerun live production smoke and require all seven answers to persist",
     "Advance smoke through object, size and base; if ISSUED_ONCE_CATALOG_JSON is absent or invalid, configure the reviewed production catalog and rerun",
     "Advance to real Resend OTP request, verify receipt in connected webrefreshlab@gmail.com, then extend live evidence through OTP verification and shipping persistence",
     "Advance to Safepay sandbox hosted checkout and signed webhook truth without enabling production payment or Printful production confirmation",
     "Only after the complete safe customer flow is green should the owner receive another final-test link"
   ],
-  "nextOwnerAction": "Create two independent cryptographically random 32-byte values encoded as base64, save them in Vercel as QUIZ_ENCRYPTION_KEY_V1 and IDENTITY_HMAC_KEY for Production and Preview, then redeploy. Do not paste either value into chat or GitHub."
+  "nextOwnerAction": "None while the fresh deployment and automated production smoke run."
 }
