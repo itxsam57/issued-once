@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 // @ts-expect-error The transport is a Node ESM utility intentionally exercised from Vitest.
 import {
   buildParserSafeMigration,
+  buildParserSafeMigrationBundle,
   splitLikeHostedNeon,
 } from '../../scripts/neon-migration-transport.mjs';
 
@@ -49,5 +50,17 @@ CREATE TABLE beta(id integer);
     expect(() =>
       buildParserSafeMigration("INSERT INTO notes(body) VALUES ('alpha;beta');"),
     ).toThrow(/ordinary quoted string/i);
+  });
+
+  it('removes per-file transaction wrappers because Neon supplies the outer transaction', () => {
+    const output = buildParserSafeMigrationBundle([
+      'BEGIN; CREATE TABLE alpha(id integer); COMMIT;',
+      'BEGIN; CREATE TABLE beta(id integer); COMMIT;',
+    ]);
+
+    expect(splitLikeHostedNeon(output)).toEqual([
+      'CREATE TABLE alpha(id integer)',
+      'CREATE TABLE beta(id integer)',
+    ]);
   });
 });
