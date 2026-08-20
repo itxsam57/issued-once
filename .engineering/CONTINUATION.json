@@ -5,15 +5,15 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "72bef30ad1ab78a9f5fa674e32126aaf062a6e90",
-    "latestApplicationHead": "72bef30ad1ab78a9f5fa674e32126aaf062a6e90",
+    "verifiedApplicationCandidate": "83f67a1c8e01da92d2b906f9e67cba58d2cb6bfa",
+    "latestApplicationHead": "83f67a1c8e01da92d2b906f9e67cba58d2cb6bfa",
     "currentMigrationHead": "0027_issue_prefix_search_indexes.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "LIVE_SHIPPING_ENCRYPTION_GREEN_SAFEPAY_SANDBOX_CREDENTIALS_AND_ENDPOINT_SETUP_REQUIRED",
+    "decision": "CUSTOMER_JOURNEY_AND_DESIGN_PREPAYMENT_GATES_GREEN_SAFEPAY_SANDBOX_EXTERNAL_CONFIG_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The owner submitted the real issuedonce.shop shipping form. Independent Neon evidence matches the same verified browser experience and shows one shipping_snapshots row created at 2026-08-20T15:47:54.081Z. The private address payload is AES-256-GCM ciphertext using key version v1; only non-sensitive country metadata is stored separately and region/postal metadata remain null. Payment application logic and idempotency are verified in source/tests, and Safepay hosted Checkout webhook verification was reconciled against Safepay's current official hosted-checkout SDK/plugin contract. The next live boundary requires Safepay sandbox account credentials and webhook endpoint configuration, which cannot be written through the available Vercel/Safepay tooling and therefore requires owner action."
+    "stopReason": "The real issuedonce.shop customer journey is live-proven through encrypted shipping persistence. A downstream prepayment audit found and fixed an OpenAI image-model capability mismatch before any charge occurred: GPT Image 2 does not support the transparent background required by the production artwork contract, so the gateway now defaults to gpt-image-1.5 for transparent PNG generation and rejects gpt-image-2* overrides while alpha transparency remains required. TDD RED was observed with 112 existing test files passing and only the two new compatibility assertions failing; the fix is now fully green in CI and Browser QA. Production still contains zero payment attempts, provider events, Issues, design jobs and manufacturing jobs, so no commercial side effects occurred. The next live boundary remains Safepay sandbox credentials and webhook endpoint configuration, which cannot be written through the available connected tooling."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -50,15 +50,26 @@
       "shippingCiphertextPresent": true,
       "shippingPlaintextPrivateFieldsStoredSeparately": false,
       "activeCatalogVersionCount": 0,
-      "catalogRuntimeSource": "AUDITED_BOOT_FALLBACK"
+      "catalogRuntimeSource": "AUDITED_BOOT_FALLBACK",
+      "commercialSideEffectCountsBeforeSafepay": {
+        "paymentAttempts": 0,
+        "providerEvents": 0,
+        "issues": 0,
+        "designJobs": 0,
+        "manufacturingJobs": 0
+      }
     }
   },
   "verification": {
     "catalogFallbackTestRedCommit": "b3146926e01534137c62d2ab367e381ca60778d6",
     "catalogFallbackImplementationHead": "72bef30ad1ab78a9f5fa674e32126aaf062a6e90",
+    "commercialReleasePlanCommit": "ac32678a3e4515b520347c24e2cfbb4a30099d43",
+    "openaiTransparencyTestRedCommit": "b6aadb83f60fff5e0244b53806045c7a4ee9880c",
+    "openaiTransparencyFixHead": "83f67a1c8e01da92d2b906f9e67cba58d2cb6bfa",
+    "openaiTransparencyRedEvidence": "112_EXISTING_TEST_FILES_PASSED_ONLY_2_NEW_ASSERTIONS_FAILED_AS_EXPECTED",
     "ci": {
-      "run": 32385794795,
-      "job": 96479839063,
+      "run": 32400637605,
+      "job": 96527774393,
       "conclusion": "SUCCESS",
       "unitTests": "ALL_PASSED",
       "typecheck": "PASSED",
@@ -66,10 +77,11 @@
       "productionBuild": "PASSED"
     },
     "browser": {
-      "run": 32385794851,
-      "job": 96479839910,
+      "run": 32400637771,
+      "job": 96527774827,
       "conclusion": "SUCCESS",
-      "localPlaywright": "16/16 PASSED_DESKTOP_AND_MOBILE",
+      "localPlaywright": "PASSED_DESKTOP_AND_MOBILE",
+      "liveProductionJourney": "SUCCESS",
       "liveProductionAnswers": "7_OF_7_HTTP_200",
       "liveProductionPhysicalObject": "HTTP_200",
       "liveProductionSize": "HTTP_200",
@@ -96,11 +108,14 @@
       "resendOwnerReportsVercelEnvConfigured": true,
       "resendRealDelivery": "LIVE_PROVEN_GMAIL_RECEIPT_2026-08-20T15:24:16Z",
       "resendOtpVerification": "LIVE_PROVEN_OWNER_BROWSER_AND_NEON_VERIFIED_CONTACT_ROW",
-      "safepayProtocol": "HOSTED_CHECKOUT_LEGACY_STANDARD",
-      "safepayWebhookVerificationContract": "HMAC_SHA512_OVER_DATA_OBJECT_MATCHES_CURRENT_OFFICIAL_HOSTED_CHECKOUT_SDK_PLUGIN",
+      "safepayProtocol": "HOSTED_CHECKOUT_STANDARD",
+      "safepayWebhookVerificationContract": "HMAC_SHA512_OVER_DATA_OBJECT",
       "safepaySandboxCycle": "BLOCKED_PENDING_OWNER_SANDBOX_CREDENTIALS_AND_ENDPOINT_SETUP",
+      "openaiInterpretationModel": "gpt-5.6-terra",
+      "openaiArtworkModelDefault": "gpt-image-1.5",
+      "openaiArtworkTransparencyCompatibility": "CODE_AND_TEST_PROVEN_NOT_LIVE_PROVIDER_PROVEN",
       "openaiDeployedDesign": "NOT_LIVE_PROVEN",
-      "privateBlobSignedRead": "NOT_LIVE_PROVEN",
+      "privateBlobSignedRead": "CODE_AND_TEST_PROVEN_NOT_LIVE_PROVIDER_PROVEN",
       "vercelQueueConsumers": "CONFIGURED_NOT_LIVE_PROVEN",
       "printfulDraft": "NOT_LIVE_PROVEN",
       "printfulProduction": "DISABLED_NOT_RUN"
@@ -128,27 +143,32 @@
     "nextKnownBoundary": "SAFEPAY_SANDBOX_CONFIGURATION_AND_HOSTED_CHECKOUT",
     "requiredForSafepaySandbox": ["SAFEPAY_ENVIRONMENT=sandbox", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET"],
     "safepayWebhookUrl": "https://issuedonce.shop/api/webhooks/safepay",
-    "laterCommercialGates": ["SUPPORT_INBOX_EMAIL", "OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN", "PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
-    "factoryConfirmation": "MUST_REMAIN_DISABLED"
+    "requiredForLiveDesignProof": ["OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN"],
+    "requiredForPrintfulDraftProof": ["PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
+    "factoryConfirmation": "PRINTFUL_ALLOW_CONFIRM_MUST_REMAIN_UNSET_OR_FALSE_DURING_RELEASE_PROOF"
   },
   "resolvedDuringCurrentCycle": [
     "Proved all seven live production questionnaire answers persist with HTTP 200",
     "Added and live-proved the audited physical boot catalog fallback",
     "Proved real Resend OTP request, Gmail receipt and owner-browser OTP verification",
-    "Owner submitted the real shipping form and reached FORM COMPLETE",
-    "Independently matched the verified owner experience to a new shipping_snapshots row",
-    "Verified shipping private payload is ciphertext with key version v1 and no separate plaintext private address/phone fields",
-    "Audited payment start logic: verified contact and shipping are mandatory, checkout attempts are reusable/idempotent, and return redirect is not payment truth",
-    "Reconciled Safepay webhook verification against current hosted-checkout SDK/plugin behavior and separated it from the newer Raastwire signature protocol",
-    "Confirmed paid webhook path reserves the canonical Issue and enqueues design/notification work only after verified provider truth"
+    "Owner submitted the real shipping form and independently proved encrypted shipping persistence",
+    "Audited payment start logic and confirmed browser redirects never establish payment truth",
+    "Confirmed production has zero payment, Issue, design or manufacturing side effects before Safepay configuration",
+    "Committed an executable commercial release-gate plan",
+    "Found current GPT Image 2 transparency incompatibility before any paid design job could execute",
+    "Added failing-first gateway tests and observed the intended RED state",
+    "Changed transparent production artwork default to gpt-image-1.5 and fail-closed rejected gpt-image-2* overrides",
+    "Verified the OpenAI compatibility fix with full CI, production build, browser QA and real production customer smoke",
+    "Audited private Blob storage and time-limited signed factory read path",
+    "Reconfirmed Printful draft creation is owner-authenticated/design-gated and production confirmation requires kill switch plus exact typed Issue Code and last-moment eligibility reload"
   ],
   "nextActions": [
     "Owner configures Safepay sandbox API/client key and shared webhook secret in Vercel Production/Preview and registers https://issuedonce.shop/api/webhooks/safepay in Safepay sandbox Developer/Endpoints",
     "Redeploy so payment runtime loads sandbox credentials",
-    "Use the existing owner browser session at FORM COMPLETE to click ISSUE MINE and verify redirect reaches Safepay TEST MODE hosted checkout",
+    "Use the existing owner browser session at FORM COMPLETE to click ISSUE MINE and verify redirect reaches Safepay sandbox hosted checkout",
     "Complete one sandbox payment and independently verify signed webhook truth, payment attempt state, Issue reservation, duplicate replay handling and exception behavior",
-    "Then prove OpenAI design, private Blob access and both queue consumers",
-    "Then prove Printful draft/webhook flow while production confirmation remains disabled",
+    "Then configure/prove OPENAI_API_KEY and BLOB_READ_WRITE_TOKEN with one real queued design reaching REVIEW",
+    "Then configure/prove Printful draft/webhook flow while PRINTFUL_ALLOW_CONFIRM remains disabled",
     "Only after all commercial gates are green promote/merge PR 3 and call the project launch-ready"
   ],
   "nextOwnerAction": "Configure Safepay sandbox credentials and webhook endpoint without sharing secrets in chat, then reply 'Safepay added'."
