@@ -11,9 +11,9 @@
   },
   "continuationGovernor": {
     "state": "WAIT_EXTERNAL",
-    "decision": "RESEND_CONFIGURED_BY_OWNER_REDEPLOY_AND_LIVE_DELIVERY_PROOF_PENDING",
+    "decision": "PRODUCTION_DATABASE_URL_ADDED_REDEPLOY_AND_BEGIN_FLOW_VERIFICATION_PENDING",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Application code, production Neon schema, complete desktop/mobile Browser QA and the protected live Vercel owner-preview journey remain verified green on release candidate 3b7b3273806dbf07757d92adacc0cc08791f9f2d. The owner purchased issuedonce.shop through Hostinger, reports Vercel DNS was configured, chose otp.issuedonce.shop for transactional email reputation isolation, and reports RESEND_API_KEY plus RESEND_FROM_EMAIL were added to Vercel for Production and Preview. Secret values were not exposed. A new deployment and real OTP receipt are still required before the Resend gate can be called green. Safepay sandbox, OpenAI/private Blob, Vercel Queue and Printful provider evidence also remain pending. Printful production confirmation remains disabled and unauthorized."
+    "stopReason": "The custom domain now reaches the ISSUED ONCE production application, but the real /begin flow failed at the first persistent-backend boundary. Source tracing showed /begin immediately calls POST /api/experience/start, whose production runtime requires DATABASE_URL and intentionally fails closed when it is absent. The production Neon database itself was independently checked: the required application tables exist and question_definitions is empty by design because the live question service seeds from the canonical vault on the first assignment. The owner has now added the pooled production Neon DATABASE_URL to Vercel without exposing the secret in chat. A fresh production deployment and real issuedonce.shop BEGIN verification are required before this gate can be called green. Resend configuration is present by owner report but real OTP delivery is still unproven. Safepay, OpenAI/private Blob, Vercel Queue and Printful provider evidence remain pending. Printful production confirmation remains disabled and unauthorized."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -38,13 +38,17 @@
     "productionApplied": true,
     "productionState": "MIGRATED_AND_VERIFIED_THROUGH_0027",
     "migrationId": "f990357c-ed37-409c-a02f-5f3166f7135c",
+    "ownerReportsVercelDatabaseUrlConfigured": true,
+    "databaseSecretObserved": false,
     "verification": {
       "publicApplicationTables": 25,
       "missingRequiredTables": [],
       "pgTrgmInstalled": true,
       "missingRequiredFunctions": [],
       "missingRequiredTriggers": [],
-      "missingRequiredFinalIndexes": []
+      "missingRequiredFinalIndexes": [],
+      "questionDefinitionsCountBeforeFirstLiveAssignment": 0,
+      "questionSeedingBehavior": "SEEDED_FROM_CANONICAL_VAULT_ON_FIRST_LIVE_ASSIGNMENT"
     }
   },
   "verification": {
@@ -82,9 +86,9 @@
       "registered": true,
       "ownerReportsAttachedToVercel": true,
       "ownerReportsHostingerDnsConfigured": true,
-      "publicDnsObserved": false,
-      "httpsObserved": false,
-      "status": "EXTERNAL_VERIFICATION_PENDING"
+      "ownerObservedProductionHomepage": true,
+      "ownerObservedBeginFailureBeforeDatabaseUrlRedeploy": true,
+      "status": "PRODUCTION_APP_REACHABLE_BEGIN_RETEST_PENDING"
     },
     "providers": {
       "requiredSafepayEnv": ["SAFEPAY_ENVIRONMENT", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET"],
@@ -108,22 +112,22 @@
     }
   },
   "resolvedDuringCurrentCycle": [
-    "Owner purchased issuedonce.shop and reports Vercel/Hostinger DNS configuration complete",
-    "Owner chose otp.issuedonce.shop as the isolated Resend transactional sending subdomain",
-    "Owner reports RESEND_API_KEY and RESEND_FROM_EMAIL were saved in Vercel without exposing secret values",
-    "Confirmed application runtime requires DATABASE_URL plus both Resend variables and fails closed when absent",
-    "Confirmed the real OTP route requires an active experience session, so delivery verification must use the customer journey rather than a synthetic unauthenticated request",
-    "Observed a Vercel deploy connector schema mismatch; treated it as a connector issue rather than application evidence",
-    "Advanced the Governor checkpoint to trigger the normal Git-to-Vercel preview deployment path"
+    "Reproduced and traced the owner-reported BEGIN failure to the production interview bootstrap boundary",
+    "Confirmed /begin renders PublicInterviewExperience in production and immediately POSTs /api/experience/start",
+    "Confirmed production experience and question-selection runtimes both require DATABASE_URL and fail closed when it is absent",
+    "Verified the production Neon database and required application tables are present",
+    "Verified question_definitions is empty before first live assignment and confirmed code seeds the canonical question vault on first assignment",
+    "Owner added the pooled production Neon DATABASE_URL to Vercel without exposing its value",
+    "Advanced the Governor checkpoint to trigger the normal Git-to-Vercel deployment path"
   ],
   "nextActions": [
-    "Observe the deployment triggered by this checkpoint and verify it completes successfully",
+    "Observe CI and Browser QA for this checkpoint and verify the Vercel deployment consumes the newly configured DATABASE_URL",
+    "Verify issuedonce.shop BEGIN reaches question 01/07 instead of ENTRY / INTERRUPTED",
     "Run the real customer journey through OTP request and prove receipt from access@otp.issuedonce.shop",
-    "Recheck issuedonce.shop public DNS and HTTPS until the Vercel-served site is independently observed",
     "Configure Safepay sandbox credentials and webhook endpoint and prove hosted checkout plus signed PAID/replay/refund-or-exception behavior before any production switch",
     "Configure and prove deployed OpenAI design generation plus private Vercel Blob signed-read behavior and both Vercel Queue consumers",
     "Populate real sampled Printful variant/placement mappings, verify webhook signatures and create one real draft while production confirmation stays disabled",
     "Only after all commercial launch gates have observed evidence, promote/merge the release"
   ],
-  "nextOwnerAction": "No secret sharing is required. After the redeployment finishes, use the normal ISSUED ONCE customer journey with an inbox you control and confirm whether the OTP email arrives from access@otp.issuedonce.shop."
+  "nextOwnerAction": "No action required while the fresh deployment is verified. If the automated production probe cannot access issuedonce.shop directly, manually press BEGIN once after the deployment and report whether question 01/07 appears."
 }
