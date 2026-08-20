@@ -6,14 +6,14 @@
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
     "verifiedApplicationCandidate": "3b7b3273806dbf07757d92adacc0cc08791f9f2d",
-    "latestApplicationHead": "4e620834d4d068fa2e31cd50a5d8417245309d3f",
+    "latestApplicationHead": "bd6de6c899ea948be75732358725c8ff6bb7c332",
     "currentMigrationHead": "0027_issue_prefix_search_indexes.sql"
   },
   "continuationGovernor": {
-    "state": "WAIT_EXTERNAL",
-    "decision": "OWNER_REPORTS_PRIVACY_KEYS_CONFIGURED_REDEPLOY_AND_LIVE_PRODUCTION_REPROOF_REQUIRED",
+    "state": "OWNER_REQUIRED",
+    "decision": "SEVEN_ANSWER_PRODUCTION_PERSISTENCE_GREEN_PHYSICAL_BOOT_CATALOG_DESIGN_APPROVAL_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The owner reports QUIZ_ENCRYPTION_KEY_V1 and IDENTITY_HMAC_KEY are now configured in Vercel Production and Preview. Secret values are intentionally unobserved. A new branch commit is being used to force a fresh deployment so the runtime loads the new configuration. Release remains blocked until the permanent issuedonce.shop production smoke proves answer persistence and advances through the later customer boundaries."
+    "stopReason": "Real issuedonce.shop automation now saves all seven randomized questionnaire answers with HTTP 200 and advances to the physical form. Independent Neon evidence confirms new sessions persist encrypted answers and advance stages. The next real production boundary is /api/experience/object returning HTTP 503 Physical form is unavailable because the production runtime requires a boot catalog and no ACTIVE CATALOG version exists in Neon. Existing architecture already supports boot catalog -> ACTIVE versioned Owner OS catalog -> Printful mapping. A bounded design has been presented to make the non-secret boot catalog versioned in-repo with optional env override while retaining ACTIVE Neon catalog authority; implementation awaits owner approval per the engineering design gate."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -40,27 +40,22 @@
     "ownerReportsVercelDatabaseUrlConfigured": true,
     "liveEvidence": {
       "questionDefinitions": 70,
-      "recentExperiencesCreated": true,
-      "recentPersistedAnswers": 0,
-      "failedSessionsRemainAt": "QUESTION_1"
+      "answerPersistence": "LIVE_PROVEN",
+      "latestObservedCompletedQuestionCount": 7,
+      "postKeyRecentSessionsWithTwoSavedAnswers": 3,
+      "preKeyFailedSessionsRemainAtQuestion1WithZeroAnswers": true,
+      "activeCatalogVersionCount": 0
     }
   },
   "verification": {
-    "diagnosticFixHead": "4e620834d4d068fa2e31cd50a5d8417245309d3f",
-    "ci": {
-      "run": 32382082047,
-      "conclusion": "SUCCESS",
-      "unitTests": "PASSED_INCLUDING_NEW_ANSWER_ROUTE_CLASSIFICATION_TEST",
-      "typecheck": "PASSED",
-      "lint": "PASSED",
-      "productionBuild": "PASSED"
-    },
+    "answerDiagnosticFixHead": "4e620834d4d068fa2e31cd50a5d8417245309d3f",
+    "randomQuestionSmokeFixHead": "bd6de6c899ea948be75732358725c8ff6bb7c332",
     "browser": {
-      "run": 32382082152,
+      "run": 32383634271,
+      "job": 96472644368,
       "localPlaywright": "16/16 PASSED_DESKTOP_AND_MOBILE",
-      "liveProductionCustomerJourney": "AWAITING_REDEPLOY_WITH_OWNER_CONFIGURED_PRIVACY_KEYS",
-      "previousFirstAnswerHttpStatus": 503,
-      "previousFirstAnswerBody": "Answer persistence is unavailable",
+      "liveProductionAnswers": "7_OF_7_HTTP_200",
+      "liveProductionPhysicalObject": "HTTP_503_PHYSICAL_FORM_UNAVAILABLE",
       "permanentSmokeScript": "tests/e2e/live-production-smoke.mjs",
       "productionSmokeUrl": "https://issuedonce.shop"
     },
@@ -68,7 +63,7 @@
       "name": "issuedonce.shop",
       "ownerObservedProductionHomepage": true,
       "liveAutomationReachedBegin": true,
-      "liveAutomationReachedQuestion01": true,
+      "liveAutomationCompletedQuestionnaire": true,
       "status": "LIVE_APPLICATION_REACHABLE_NOT_RELEASE_READY"
     },
     "providers": {
@@ -84,31 +79,45 @@
       "printfulProduction": "DISABLED_NOT_RUN"
     }
   },
+  "physicalCatalog": {
+    "productionRuntimeRequires": "ISSUED_ONCE_CATALOG_JSON",
+    "activeNeonCatalogVersions": 0,
+    "existingAuthorityChain": ["BOOT_CATALOG", "ACTIVE_NEON_OWNER_OS_CATALOG", "PRINTFUL_MAPPING"],
+    "testedPublicTeeContract": {
+      "currency": "USD",
+      "amountMinor": 3200,
+      "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
+      "colors": ["Bone", "Black", "Ash", "Navy", "Forest"]
+    },
+    "testedAdditionalIssueForms": ["hat", "tote"],
+    "seasonalOptionalForm": "hoodie",
+    "proposedBoundedDesign": "Version the non-secret boot catalog in repository code; allow ISSUED_ONCE_CATALOG_JSON as an explicit deployment override; preserve ACTIVE Neon catalog as runtime variant authority and Owner OS publishing path."
+  },
   "productionRuntimeContract": {
     "ownerConfigured": ["DATABASE_URL", "RESEND_API_KEY", "RESEND_FROM_EMAIL", "QUIZ_ENCRYPTION_KEY_V1", "IDENTITY_HMAC_KEY"],
-    "ownerConfiguredSecretEvidence": "OWNER_REPORT_ONLY_VALUES_NOT_OBSERVED",
-    "nextKnownNonSecretRuntime": ["ISSUED_ONCE_CATALOG_JSON"],
+    "privacyKeys": "LIVE_PROVEN_BY_ENCRYPTED_ANSWER_PERSISTENCE",
+    "nextKnownBoundary": "PHYSICAL_BOOT_CATALOG",
     "laterCommercialGates": ["SUPPORT_INBOX_EMAIL", "SAFEPAY_ENVIRONMENT", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET", "OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN", "PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
     "factoryConfirmation": "MUST_REMAIN_DISABLED"
   },
   "resolvedDuringCurrentCycle": [
-    "Reproduced owner-reported answer-save failure through real issuedonce.shop rather than preview mocks",
-    "Added permanent live production customer-journey smoke gate that waits for every backend POST response",
-    "Verified real BEGIN and question assignment work against production Neon",
-    "Verified production seeded 70 question definitions",
-    "Verified recent sessions have zero persisted answers and remain at QUESTION_1",
-    "Added failing unit test proving missing encryption configuration was incorrectly classified as state conflict",
-    "Applied minimal route fix and verified CI green",
-    "Reran real production smoke and observed HTTP 503 Answer persistence is unavailable on first answer",
-    "Owner now reports independent QUIZ_ENCRYPTION_KEY_V1 and IDENTITY_HMAC_KEY configured in Vercel Production and Preview"
+    "Reproduced owner-reported answer-save failure through real issuedonce.shop",
+    "Added permanent live production customer-journey smoke gate with server-response assertions",
+    "Fixed misleading answer-route classification so missing encryption config reports 503 rather than fake 409 state conflict",
+    "Owner configured independent 32-byte questionnaire encryption and identity-HMAC keys without exposing values",
+    "Proved live questionnaire answer persistence after redeploy",
+    "Made live smoke question-bank agnostic because production prompts are randomized",
+    "Proved all seven live production answers return HTTP 200",
+    "Independently confirmed persisted answer rows in Neon",
+    "Isolated next production blocker to missing physical boot catalog: /api/experience/object HTTP 503"
   ],
   "nextActions": [
-    "Allow fresh deployment from this checkpoint commit so Vercel loads the owner-configured privacy keys",
-    "Rerun live production smoke and require all seven answers to persist",
-    "Advance smoke through object, size and base; if ISSUED_ONCE_CATALOG_JSON is absent or invalid, configure the reviewed production catalog and rerun",
-    "Advance to real Resend OTP request, verify receipt in connected webrefreshlab@gmail.com, then extend live evidence through OTP verification and shipping persistence",
-    "Advance to Safepay sandbox hosted checkout and signed webhook truth without enabling production payment or Printful production confirmation",
-    "Only after the complete safe customer flow is green should the owner receive another final-test link"
+    "After owner approval of the bounded catalog design, add the canonical non-secret boot catalog and keep env/ACTIVE-Neon overrides fail-closed and auditable",
+    "Run unit/CI/browser verification and rerun real issuedonce.shop smoke through object, size and base",
+    "Make physical smoke selections catalog-driven rather than hardcoded if live catalog differs",
+    "Advance to real Resend OTP request and receipt verification",
+    "Extend same live session through OTP verification, shipping persistence with required phone and province/region, and Safepay sandbox checkout boundary",
+    "Continue through signed provider proof gates before giving owner the final test link"
   ],
-  "nextOwnerAction": "None while the fresh deployment and automated production smoke run."
+  "nextOwnerAction": "Approve the bounded physical-catalog design already presented in chat so implementation can proceed."
 }
