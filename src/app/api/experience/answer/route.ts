@@ -41,6 +41,10 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Interview storage is unavailable' }, { status: 503 });
     }
 
+    if (error instanceof Error && /QUIZ_ENCRYPTION_KEY_V1/i.test(error.message)) {
+      return Response.json({ error: 'Answer persistence is unavailable' }, { status: 503 });
+    }
+
     if (error instanceof Error && /stage|question|answer|required|not found/i.test(error.message)) {
       return Response.json({ error: 'Interview state conflict' }, { status: 409 });
     }
