@@ -92,13 +92,16 @@ test('recovers an existing Printful draft by Issue external ID without creating 
 });
 
 test('fails closed when the Issue external ID already points at a non-draft Printful state', async () => {
-  const fetchImpl = vi.fn(async () => new Response(
-    JSON.stringify({ code: 200, result: { id: 987654, status: 'pending' } }),
-    { status: 200, headers: { 'content-type': 'application/json' } },
-  ));
-  const gateway = new PrintfulGateway({ token: 'pf-token', fetchImpl: fetchImpl as typeof fetch });
-  await expect(gateway.createDraft(draftInput)).rejects.toThrow(/existing Printful order state/i);
-  expect(fetchImpl).toHaveBeenCalledTimes(1);
+  for (const status of ['pending', 'failed', 'onhold']) {
+    const fetchImpl = vi.fn(async () => new Response(
+      JSON.stringify({ code: 200, result: { id: 987654, status } }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    ));
+    const gateway = new PrintfulGateway({ token: 'pf-token', fetchImpl: fetchImpl as typeof fetch });
+
+    await expect(gateway.createDraft(draftInput)).rejects.toThrow(/existing Printful order state/i);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  }
 });
 
 test('rechecks the Printful draft and confirms only after every printable file is processed', async () => {
