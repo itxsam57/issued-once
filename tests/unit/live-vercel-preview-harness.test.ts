@@ -39,4 +39,11 @@ describe('live Vercel preview harness', () => {
     expect(liveProductionProbe).toContain('webrefreshlab@gmail.com');
     expect(liveProductionProbe).toContain('response.ok()');
   });
+
+  it('answers the randomized production question bank by rendered input type rather than prompt text', () => {
+    expect(liveProductionProbe).toContain('async function answerCurrentQuestion');
+    expect(liveProductionProbe).toContain("locator('input[type=\"radio\"]')");
+    expect(liveProductionProbe).toContain("getByLabel('Your answer')");
+    expect(liveProductionProbe).not.toContain("getByLabel('4 a.m.')");
+  });
 });
