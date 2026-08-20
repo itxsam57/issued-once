@@ -29,12 +29,29 @@ async function requirePost(page, path, action) {
   return response;
 }
 
-async function continueText(page, answer, nextProgress) {
-  await page.getByLabel('Your answer').fill(answer);
+function progress(position) {
+  return `${String(position).padStart(2, '0')} / 07`;
+}
+
+async function answerCurrentQuestion(page, position) {
+  await page.getByText(progress(position)).waitFor({ timeout: 10_000 });
+
+  const radios = page.locator('input[type="radio"]');
+  if ((await radios.count()) > 0) {
+    await radios.first().check();
+  } else {
+    await page.getByLabel('Your answer').fill(`production smoke answer ${position}`);
+  }
+
   await requirePost(page, '/api/experience/answer', () =>
     page.getByRole('button', { name: 'CONTINUE' }).click(),
   );
-  await page.getByText(nextProgress).waitFor({ timeout: 10_000 });
+
+  if (position < 7) {
+    await page.getByText(progress(position + 1)).waitFor({ timeout: 10_000 });
+  } else {
+    await page.getByRole('heading', { name: 'WE HAVE ENOUGH.' }).waitFor({ timeout: 10_000 });
+  }
 }
 
 async function runJourney() {
@@ -50,23 +67,9 @@ async function runJourney() {
     await page.waitForURL('**/begin');
     await page.getByText('01 / 07').waitFor({ timeout: 15_000 });
 
-    await continueText(page, 'The Master and Margarita', '02 / 07');
-    await continueText(page, 'a quiet cabin above a valley', '03 / 07');
-
-    await page.getByLabel('4 a.m.').check();
-    await requirePost(page, '/api/experience/answer', () =>
-      page.getByRole('button', { name: 'CONTINUE' }).click(),
-    );
-    await page.getByText('04 / 07').waitFor({ timeout: 10_000 });
-
-    await continueText(page, 'quiet does not mean uncertain', '05 / 07');
-    await continueText(page, 'a song that feels older than it is', '06 / 07');
-    await continueText(page, 'literal portraits', '07 / 07');
-
-    await requirePost(page, '/api/experience/answer', () =>
-      page.getByRole('button', { name: 'CONTINUE' }).click(),
-    );
-    await page.getByRole('heading', { name: 'WE HAVE ENOUGH.' }).waitFor({ timeout: 10_000 });
+    for (let position = 1; position <= 7; position += 1) {
+      await answerCurrentQuestion(page, position);
+    }
 
     await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
     await page.getByRole('radio', { name: 'TEE' }).check();
