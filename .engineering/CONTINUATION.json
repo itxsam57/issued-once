@@ -11,9 +11,9 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "PRODUCTION_CUSTOMER_JOURNEY_GREEN_THROUGH_REAL_OTP_DELIVERY_OWNER_BROWSER_SESSION_REQUIRED_FOR_OTP_VERIFICATION",
+    "decision": "REAL_OTP_VERIFICATION_GREEN_SHIPPING_SUBMISSION_REQUIRED_FOR_LIVE_PERSISTENCE_PROOF",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The approved audited boot catalog is implemented and production verified. Real issuedonce.shop automation now saves all seven randomized answers, selects form/size/base, creates the live quote state, and requests a Resend OTP with every observed backend POST returning HTTP 200. Gmail independently confirms the OTP is delivered from access@otp.issuedonce.shop to the test inbox. OTP verification is bound to the opaque browser session token that requested the code; that token is intentionally not logged or persisted outside the browser. The next proof therefore requires one owner browser interaction to request and enter its own OTP before the same session can continue through shipping and payment boundaries."
+    "stopReason": "The owner completed the live issuedonce.shop OTP verification in the same private browser session and reached the shipping form. Independent Neon evidence confirms the newest production experience has a verified_contacts row with verified_at set and no shipping_snapshots row yet. Shipping uses the already live-proven QUIZ_ENCRYPTION_KEY_V1 through AES-256-GCM and requires no new runtime secret. The next proof requires the owner to submit one valid shipping form in that same private browser session so encrypted shipping persistence can be independently verified before Safepay testing."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -24,7 +24,7 @@
       "Run the live production customer journey against issuedonce.shop before giving the owner another final-test link",
       "Keep payment, design and manufacturing boundaries fail-closed",
       "Never infer paid truth from a browser redirect",
-      "Never expose real secret values, session tokens or OTPs in repository state or chat",
+      "Never expose real secret values, session tokens, OTPs or private address data in repository state or chat",
       "Never allow questionnaire answers, email or shipping data to be stored unencrypted",
       "Never allow model output to enter manufacturing without explicit owner approval",
       "Never allow Printful production confirmation without owner auth, kill switch, typed Issue confirmation and last-moment state reload",
@@ -43,6 +43,9 @@
       "answerPersistence": "LIVE_PROVEN",
       "latestObservedCompletedQuestionCount": 7,
       "physicalSelectionPersistence": "LIVE_PROVEN_THROUGH_OBJECT_SIZE_BASE_HTTP_200",
+      "contactVerification": "LIVE_PROVEN_OWNER_BROWSER_AND_NEON_VERIFIED_CONTACT_ROW",
+      "latestOwnerExperienceStage": "COMMITMENT_READY",
+      "latestOwnerShippingSnapshotPresent": false,
       "activeCatalogVersionCount": 0,
       "catalogRuntimeSource": "AUDITED_BOOT_FALLBACK"
     }
@@ -69,6 +72,7 @@
       "liveProductionSize": "HTTP_200",
       "liveProductionBase": "HTTP_200",
       "liveProductionOtpRequest": "HTTP_200",
+      "ownerLiveOtpVerification": "PASSED_REACHED_SHIPPING_FORM",
       "permanentSmokeScript": "tests/e2e/live-production-smoke.mjs",
       "productionSmokeUrl": "https://issuedonce.shop"
     },
@@ -78,14 +82,15 @@
       "liveAutomationReachedBegin": true,
       "liveAutomationCompletedQuestionnaire": true,
       "liveAutomationReachedOtp": true,
-      "status": "LIVE_APPLICATION_REACHABLE_CUSTOMER_JOURNEY_GREEN_TO_OTP"
+      "ownerBrowserReachedShipping": true,
+      "status": "LIVE_APPLICATION_REACHABLE_CUSTOMER_JOURNEY_GREEN_TO_SHIPPING_FORM"
     },
     "providers": {
       "resendSendingDomain": "otp.issuedonce.shop",
       "resendFromAddress": "ISSUED ONCE <access@otp.issuedonce.shop>",
       "resendOwnerReportsVercelEnvConfigured": true,
       "resendRealDelivery": "LIVE_PROVEN_GMAIL_RECEIPT_2026-08-20T15:24:16Z",
-      "resendOtpVerification": "OWNER_BROWSER_SESSION_PROOF_REQUIRED",
+      "resendOtpVerification": "LIVE_PROVEN_OWNER_BROWSER_AND_NEON_VERIFIED_CONTACT_ROW",
       "safepaySandboxCycle": "NOT_LIVE_PROVEN",
       "openaiDeployedDesign": "NOT_LIVE_PROVEN",
       "privateBlobSignedRead": "NOT_LIVE_PROVEN",
@@ -110,32 +115,31 @@
   },
   "productionRuntimeContract": {
     "ownerConfigured": ["DATABASE_URL", "RESEND_API_KEY", "RESEND_FROM_EMAIL", "QUIZ_ENCRYPTION_KEY_V1", "IDENTITY_HMAC_KEY"],
-    "privacyKeys": "LIVE_PROVEN_BY_ENCRYPTED_ANSWER_PERSISTENCE",
+    "privacyKeys": "LIVE_PROVEN_BY_ENCRYPTED_ANSWER_PERSISTENCE_AND_CONTACT_VERIFICATION",
     "catalog": "NO_ENV_REQUIRED_BOOT_FALLBACK_LIVE_PROVEN",
-    "nextKnownBoundary": "OTP_VERIFICATION_THEN_SHIPPING",
+    "shippingEncryption": "USES_LIVE_PROVEN_QUIZ_ENCRYPTION_KEY_V1_NO_NEW_SECRET_REQUIRED",
+    "nextKnownBoundary": "SHIPPING_PERSISTENCE_THEN_SAFEPAY_SANDBOX",
     "laterCommercialGates": ["SUPPORT_INBOX_EMAIL", "SAFEPAY_ENVIRONMENT", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET", "OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN", "PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
     "factoryConfirmation": "MUST_REMAIN_DISABLED"
   },
   "resolvedDuringCurrentCycle": [
     "Proved all seven live production questionnaire answers persist with HTTP 200",
     "Made the production smoke question-bank agnostic",
-    "Isolated the physical 503 to missing boot catalog configuration",
-    "Added a failing runtime test before implementation and observed the expected PhysicalRuntimeUnavailableError",
-    "Added audited non-secret launch catalog for tee, hat and tote",
-    "Changed production physical runtime to use the audited boot catalog when no explicit catalog env is present",
-    "Preserved explicit deployment override and ACTIVE Neon Owner OS catalog authority",
+    "Added and live-proved the audited physical boot catalog fallback",
     "Verified CI, typecheck, lint, build and 16/16 browser scenarios green",
     "Proved live object, size and base endpoints return HTTP 200",
-    "Proved real Resend OTP request returns HTTP 200",
-    "Independently proved OTP email delivery in Gmail from the verified otp.issuedonce.shop sender"
+    "Proved real Resend OTP request returns HTTP 200 and actual Gmail delivery",
+    "Owner completed OTP verification in the same live browser session and reached the shipping form",
+    "Independently confirmed the newest production experience has a verified contact row and no shipping snapshot yet",
+    "Verified shipping encryption reuses the already live-proven AES-256-GCM private payload key and needs no new configuration"
   ],
   "nextActions": [
-    "Owner completes one real issuedonce.shop browser session through OTP verification and reports success/failure",
-    "Immediately inspect resulting production state and continue same release cycle through required shipping phone/province persistence",
+    "Owner submits one valid shipping form in the same issuedonce.shop browser session without sharing private address data in chat",
+    "Immediately verify an encrypted shipping_snapshots row exists for the newest verified production experience and that no plaintext address fields are stored",
     "Advance to Safepay sandbox hosted checkout and require signed webhook payment truth, replay/idempotency and exception evidence",
     "Then prove OpenAI design, private Blob access and both queue consumers",
     "Then prove Printful draft/webhook flow while production confirmation remains disabled",
     "Only after all commercial gates are green promote/merge PR 3 and call the project launch-ready"
   ],
-  "nextOwnerAction": "Open https://issuedonce.shop, complete the customer journey to the verification-code field, enter the code emailed to you, and continue only until the shipping form appears. Then tell ChatGPT either 'shipping form' or the exact error shown. Do not paste the OTP into chat."
+  "nextOwnerAction": "In the shipping form already open on issuedonce.shop, enter valid delivery details including required province/state/region and phone, click USE THIS ADDRESS, and stop when FORM COMPLETE appears. Do not paste the address or phone into chat; reply only 'form complete' or send the exact error shown."
 }
