@@ -18,5 +18,6 @@ describe('live Vercel preview harness', () => {
     expect(liveProbe).toContain("getByLabel('Address', { exact: true })");
     expect(liveProbe).toContain("getByLabel('Province / state / region')");
     expect(liveProbe).toContain("getByLabel('Phone')");
+    expect(liveProbe).toContain("getByText('$32.00')");
   });
 });
