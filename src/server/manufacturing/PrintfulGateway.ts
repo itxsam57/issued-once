@@ -11,6 +11,13 @@ type PrintfulOrderResponse = {
   result?: {
     id?: number | string;
     status?: string;
+    items?: Array<{
+      files?: Array<{
+        type?: string;
+        id?: number | string;
+        status?: string;
+      }>;
+    }>;
   };
 };
 
@@ -42,6 +49,33 @@ export class PrintfulGateway implements ManufacturerGateway {
       throw new Error(`Existing Printful order state is not draft-safe: ${status}`);
     }
     return { providerOrderId: String(id), status };
+  }
+
+  private async assertReadyToConfirm(orderId: string): Promise<void> {
+    const response = await this.fetchImpl(`https://api.printful.com/orders/${encodeURIComponent(orderId)}`, {
+      method: 'GET',
+      headers: this.headers(),
+      cache: 'no-store',
+    });
+    if (!response.ok) throw new Error('Printful draft readiness check failed');
+
+    const payload = (await response.json()) as PrintfulOrderResponse;
+    const result = payload.result;
+    if (!result || String(result.id ?? '') !== orderId || result.status?.trim().toLowerCase() !== 'draft') {
+      throw new Error('Printful order is no longer a draft');
+    }
+
+    const printableFiles = (result.items ?? []).flatMap((item) => item.files ?? [])
+      .filter((file) => file.type?.trim().toLowerCase() !== 'preview');
+    if (!printableFiles.length) throw new Error('Printful file processing is not ready');
+
+    const everyPrintableFileReady = printableFiles.every((file) => {
+      const id = file.id;
+      const hasId = (typeof id === 'number' && Number.isSafeInteger(id) && id > 0) ||
+        (typeof id === 'string' && /^\d+$/.test(id.trim()) && Number(id) > 0);
+      return hasId && file.status?.trim().toLowerCase() === 'ok';
+    });
+    if (!everyPrintableFileReady) throw new Error('Printful file processing is not ready');
   }
 
   async createDraft(input: Parameters<ManufacturerGateway['createDraft']>[0]) {
@@ -119,6 +153,7 @@ export class PrintfulGateway implements ManufacturerGateway {
   async confirmDraft(providerOrderId: string): Promise<void> {
     const orderId = providerOrderId.trim();
     if (!/^\d+$/.test(orderId)) throw new Error('Printful order ID is invalid');
+    await this.assertReadyToConfirm(orderId);
     const response = await this.fetchImpl(`https://api.printful.com/orders/${encodeURIComponent(orderId)}/confirm`, {
       method: 'POST',
       headers: this.headers(),
