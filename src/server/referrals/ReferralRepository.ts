@@ -47,10 +47,52 @@ export type CreateReferralAttributionInput = {
   expiresAt: Date;
 };
 
+export type PaidReferralTruth = {
+  paymentAttemptId: string;
+  creatorId: string;
+  ruleVersionId: string;
+  grossAmountMinor: number;
+  discountAmountMinor: number;
+  paidAmountMinor: number;
+  currency: string;
+  ruleSnapshot: unknown;
+};
+
+export type CreateReferralConversionInput = {
+  id: string;
+  creatorId: string;
+  ruleVersionId: string;
+  paymentAttemptId: string;
+  issueId: string;
+  grossAmountMinor: number;
+  discountAmountMinor: number;
+  paidAmountMinor: number;
+  rewardAmountMinor: number;
+  currency: string;
+  ruleSnapshot: unknown;
+  state: 'PENDING';
+  convertedAt: Date;
+  updatedAt: Date;
+};
+
+export type ReferralConversionIdentity = {
+  id: string;
+  creatorId: string;
+  rewardAmountMinor: number;
+  currency: string;
+};
+
+export type CreateReferralConversionResult = {
+  kind: 'created' | 'duplicate';
+  conversion: ReferralConversionIdentity;
+};
+
 export interface ReferralRepository {
   createCreator(input: CreateReferralCreatorInput): Promise<void>;
   createPayoutRequest(input: CreateReferralPayoutRequestInput): Promise<void>;
   findActiveRuleByCode(code: string): Promise<ActiveReferralRuleRecord | null>;
   createAttribution(input: CreateReferralAttributionInput): Promise<void>;
   findAttribution(id: string): Promise<ReferralAttributionRecord | null>;
+  loadPaidReferralTruth(paymentAttemptId: string): Promise<PaidReferralTruth | null>;
+  createConversion(input: CreateReferralConversionInput): Promise<CreateReferralConversionResult>;
 }
