@@ -1294,6 +1294,27 @@ ALTER TABLE checkout_quotes
   ADD COLUMN IF NOT EXISTS referral_rule_version_id uuid REFERENCES referral_rule_versions(id) ON DELETE RESTRICT,
   ADD COLUMN IF NOT EXISTS referral_rule_snapshot jsonb;
 
+CREATE OR REPLACE FUNCTION fill_checkout_quote_referral_amounts()
+RETURNS trigger
+LANGUAGE plpgsql
+AS E'
+BEGIN
+  IF NEW.gross_amount_minor IS NULL THEN
+    NEW.gross_amount_minor := NEW.amount_minor\073
+  END IF\073
+  IF NEW.discount_amount_minor IS NULL THEN
+    NEW.discount_amount_minor := 0\073
+  END IF\073
+  RETURN NEW\073
+END\073
+';
+
+DROP TRIGGER IF EXISTS checkout_quotes_fill_referral_amounts ON checkout_quotes;
+
+CREATE TRIGGER checkout_quotes_fill_referral_amounts
+BEFORE INSERT ON checkout_quotes
+FOR EACH ROW EXECUTE FUNCTION fill_checkout_quote_referral_amounts();
+
 UPDATE checkout_quotes
 SET gross_amount_minor = amount_minor,
     discount_amount_minor = 0
