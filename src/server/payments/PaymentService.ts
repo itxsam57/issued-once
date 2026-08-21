@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { CheckoutQuoteRepository } from '@/server/checkout/CheckoutService';
+import type { CheckoutQuoteRecord, CheckoutQuoteRepository } from '@/server/checkout/CheckoutService';
 import type { CheckoutStateRepository } from '@/server/checkout/CheckoutStartService';
 import type { ContactRepository } from '@/server/contact/ContactRepository';
 import type { ExperienceRepository } from '@/server/experience/ExperienceRepository';
@@ -8,9 +8,13 @@ import type { ShippingRepository } from '@/server/shipping/ShippingRepository';
 import type { PaymentGateway } from './PaymentGateway';
 import type { PaymentAttemptRecord, PaymentRepository } from './PaymentRepository';
 
+type PaymentQuoteRepository = CheckoutQuoteRepository & {
+  findLatestByExperienceId(experienceId: string): Promise<CheckoutQuoteRecord | null>;
+};
+
 type Dependencies = {
   experiences: Pick<ExperienceRepository, 'findBySessionHash'>;
-  quotes: CheckoutQuoteRepository;
+  quotes: PaymentQuoteRepository;
   contacts: ContactRepository;
   shipping: ShippingRepository;
   payments: PaymentRepository;
@@ -53,6 +57,8 @@ export class PaymentService {
 
     const quote = await this.dependencies.quotes.findById(input.quoteId);
     if (!quote || quote.experienceId !== experience.id) throw new Error('Quote does not belong to this experience');
+    const latest = await this.dependencies.quotes.findLatestByExperienceId(experience.id);
+    if (!latest || latest.id !== quote.id) throw new Error('Payment requires the latest quote; this quote was superseded');
     if (quote.expiresAt.getTime() <= this.now().getTime()) throw new Error('Quote expired');
     if (!Number.isSafeInteger(quote.amountMinor) || quote.amountMinor <= 0) throw new Error('Quote amount is invalid');
     const currency = quote.currency.trim().toUpperCase();
