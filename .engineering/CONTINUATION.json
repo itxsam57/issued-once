@@ -5,172 +5,199 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "ebe97e85441fa99ca185a44661214a85e99e504a",
-    "latestApplicationHead": "ebe97e85441fa99ca185a44661214a85e99e504a",
+    "pullRequestState": "DRAFT",
+    "verifiedApplicationCandidate": "3baeb055f3f6bb51d4f361699c46eb63caf9be31",
+    "verifiedUiCandidate": "4b237be34be18f3e3723458955360b5715abce13",
     "repositoryMigrationHead": "0029_creator_referrals.sql",
     "productionMigrationHead": "0028_design_controls.sql"
   },
   "continuationGovernor": {
-    "state": "CONTINUE",
-    "decision": "MERCHANT_TASK2_COMPLETE_BEGIN_TASK3_QUICK_PRODUCT_PRICE_TDD",
-    "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": null
+    "state": "OWNER_REQUIRED",
+    "decision": "INTERNAL_RELEASE_COMPLETE_OWNER_PROVIDER_TESTS_REQUIRED",
+    "allowedStopStates": [
+      "OWNER_REQUIRED",
+      "BLOCKED",
+      "WAIT_EXTERNAL",
+      "LOOP_DETECTED",
+      "COMPLETE"
+    ],
+    "stopReason": "All internal code, UI, UX, lint, typecheck, build, browser, live OTP smoke, release-plan and PR-state work is complete. Remaining gates require owner/provider credentials or real provider actions, exact production migration approval, and the final promotion decision."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
+    "internalWorkStatus": "COMPLETE_TO_OWNER_GATE",
     "rules": [
-      "Treat feat/mystery-foundation as canonical source of truth until promotion",
-      "Maintain this continuation file after every meaningful work cycle",
-      "Use TDD RED before production behavior changes",
+      "Treat feat/mystery-foundation as canonical source of truth until owner promotion",
+      "Use TDD RED before behavior changes",
       "Use fresh CI/build/browser evidence before success claims",
-      "Run live issuedonce.shop customer smoke before release claims",
       "Browser redirect is never payment truth",
       "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
       "Never fabricate merchant domicile or provider evidence",
       "Never apply production database migrations without exact owner approval",
-      "Never allow manufacturing production without the independent kill switch, owner authorization, typed Issue confirmation, fresh eligibility reload, Printful file readiness and exact pending confirmation"
+      "Keep Printful production confirmation disabled until the independent owner release gate"
     ]
   },
   "database": {
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
-    "parentBranchId": "br-dawn-cloud-axm880q9",
-    "productionState": "MIGRATED_AND_VERIFIED_THROUGH_0028",
+    "productionBranchId": "br-dawn-cloud-axm880q9",
+    "productionState": "MIGRATED_AND_READ_ONLY_VERIFIED_THROUGH_0028",
     "productionReferralSchemaPresent": false,
-    "latestRepositoryMigrationProof": {
+    "productionWriteDuringInternalClosure": false,
+    "readOnlyReleaseAudit": {
+      "designPolicyOverrideTablePresent": true,
+      "designPolicyConfigConstraintPresent": true,
+      "referralCreatorsTablePresent": false,
+      "referralQuoteSnapshotColumnPresent": false
+    },
+    "referralMigrationProof": {
       "migrationFile": "0029_creator_referrals.sql",
       "isolatedBranchName": "proof-0029-referral-rollout-v2-20260821",
       "isolatedBranchId": "br-shiny-smoke-axd90njk",
       "isolatedProof": "GREEN",
       "productionApplied": false,
-      "productionVerifiedUntouched": true,
       "temporaryProofBranchDeleted": true,
-      "productionDerivedQuotesBeforeSyntheticInsert": 127,
-      "quotesCheckedAfterLegacyInsert": 128,
-      "missingAmountSnapshots": 0,
-      "legacySnapshotViolations": 0,
       "legacyWriterCompatibilityProof": "OLD_INSERT_GROSS_3200_DISCOUNT_0_FINAL_3200",
       "positiveQuoteProof": "GROSS_3200_DISCOUNT_320_FINAL_2880",
-      "negativeConstraintProofs": ["DUPLICATE_NORMALIZED_CODE_REJECTED", "DISCOUNT_WITHOUT_COMPLETE_ATTRIBUTION_SNAPSHOT_REJECTED"]
-    },
-    "liveEvidence": {
-      "questionDefinitions": 70,
-      "answers": "LIVE_PROVEN_ENCRYPTED",
-      "contactOtp": "LIVE_PROVEN",
-      "shipping": "LIVE_PROVEN_ENCRYPTED",
-      "catalogRuntime": "LIVE_PROVEN_AUDITED_BOOT_FALLBACK",
-      "designPolicySchema": "LIVE_PROVEN_PRODUCTION"
+      "negativeConstraintProofs": [
+        "DUPLICATE_NORMALIZED_CODE_REJECTED",
+        "DISCOUNT_WITHOUT_COMPLETE_ATTRIBUTION_SNAPSHOT_REJECTED"
+      ]
     }
   },
   "finalProductScope": {
+    "customerJourney": {
+      "status": "INTERNAL_COMPLETE_LIVE_TO_REAL_OTP",
+      "anonymousSevenQuestionFlow": true,
+      "encryptedAnswerVault": true,
+      "verifiedEmailOtp": true,
+      "phoneRequired": true,
+      "provinceRequired": true,
+      "encryptedShipping": true,
+      "immutableQuotes": true,
+      "latestQuotePaymentGuard": true
+    },
     "referrals": {
-      "status": "TASKS_1_TO_5_COMPLETE_CODE_UI_BROWSER_GREEN_PRODUCTION_MIGRATION_PENDING",
-      "specCommit": "46cd5e1514e8b653020864acfa2f7927a5de96b3",
-      "planCommit": "253e15c0bb571c27cdcbd9e24125cf7ac2051755",
+      "status": "TASKS_1_TO_5_INTERNAL_COMPLETE_PRODUCTION_MIGRATION_OWNER_GATE",
       "migration": "0029_creator_referrals.sql",
-      "task1": {"schemaRepositoryPolicy": true, "encryptedCreatorEmail": true, "encryptedPayoutDetails": true, "immutableRuleVersions": true, "quoteAndConversionConstraints": true, "isolatedNeonProof": true, "productionApplied": false},
-      "task2": {"signedOpaqueAttributionToken": true, "tamperAndExpiryRejection": true, "explicitCodeOverride": true, "selfReferralHashGuard": true, "immutableReplacementQuote": true, "latestQuoteSafepayGuard": true, "publicRoutesAndCommitmentUi": true, "desktopMobileBrowserProof": true, "productionApplied": false},
-      "task3": {"signedPaidConversion": true, "frozenQuoteRewardSnapshot": true, "percentageAndFixedRewardRules": true, "idempotentConversionReservation": true, "creatorSaleNotificationNoBuyerPii": true},
-      "task4": {"deliveredToAvailable": true, "signedRefundToReversed": true, "idempotentLifecycle": true},
-      "task5": {"ownerOsCreators": true, "createEditPauseResume": true, "immutableRuleVersionEditing": true, "safeBalancesLedger": true, "encryptedPayoutRequest": true, "reasonGatedPayoutReveal": true, "availableOnlySettlement": true, "desktopMobileOwnerOsProof": true}
+      "schemaRepositoryPolicy": true,
+      "opaqueSignedAttribution": true,
+      "explicitCodeOverride": true,
+      "selfReferralGuard": true,
+      "immutableReplacementQuotes": true,
+      "signedPaidConversion": true,
+      "idempotentRewardLifecycle": true,
+      "ownerOsCreatorControls": true,
+      "encryptedPayoutDetails": true,
+      "availableOnlySettlement": true,
+      "desktopMobileBrowserProof": true,
+      "productionApplied": false
     },
     "designControl": {
-      "status": "COMPLETE_CODE_UI_BROWSER_PROVIDER_BOUNDARIES_GREEN",
-      "finalHead": "9605ed3f4666ecf11cb57a2b814c38a7ea53a5da",
-      "recoveryDispatch": "POLICY_AWARE_MANUAL_AND_PROVIDER_FALLBACK_HONORED",
+      "status": "INTERNAL_COMPLETE_PROVIDER_LIVE_PROOF_OWNER_GATE",
+      "globalAndPerIssuePolicy": true,
+      "policyAwareRecovery": true,
+      "reviewAndRework": true,
+      "manualArtworkUpload": true,
+      "auditedPrivateReveal": true,
+      "unconfirmedManufacturingHandoff": true,
       "factoryConfirmationIndependentKillSwitchMandatory": true
     },
     "merchantLaunch": {
-      "status": "TASKS1_2_COMPLETE_TASK3_QUICK_PRICE_ACTIVE",
-      "specCommit": "a877acef212d707ec568f3f7fe881af57640f3e5",
-      "planCommit": "4e5abc08d5753a2558f7c941ca1ccaac4395a574",
-      "requiredPublicRoutes": ["/store-info", "/contact", "/terms", "/returns"],
-      "task1": {"truthfulDeploymentBackedIdentity": true, "noFabricatedDomicileFallback": true, "canonicalCatalogPublicPricing": true, "publicRoutes": true, "homeAndCommitmentLinks": true, "desktopMobileRouteQa": true, "horizontalOverflowQa": true},
-      "task2": {"merchantReadinessCheck": true, "sandboxFailsClosedWithoutIdentity": true, "readinessPayloadExcludesMerchantValues": true, "systemPanelBoundaryVisible": true},
-      "truthfulMerchantIdentityRequired": true,
-      "merchantReadinessFailClosedRequired": true,
-      "quickProductPriceControl": true
+      "status": "TASKS_1_TO_3_INTERNAL_COMPLETE_OWNER_PROVIDER_GATES_PENDING",
+      "truthfulMerchantIdentity": true,
+      "requiredPublicRoutes": [
+        "/store-info",
+        "/contact",
+        "/terms",
+        "/returns"
+      ],
+      "canonicalCatalogPublicPricing": true,
+      "merchantReadinessFailsClosed": true,
+      "quickProductPriceControl": true,
+      "historicalQuotesAndIssuesStayFrozen": true,
+      "ownerQuickPriceDesktopMobileInteraction": true,
+      "ownerQuickPriceScreenshotQa": true,
+      "ownerQuestionEditorDesktopMobileLayoutQa": true
     }
   },
   "verification": {
-    "merchantTask2Final": {
-      "head": "ebe97e85441fa99ca185a44661214a85e99e504a",
-      "redHead": "aab2e819863b529ca3cec27af6b1b684285fe28d",
-      "redCiRun": 32494987447,
-      "redResult": "ONLY_NEW_MERCHANT_READINESS_EXPECTATIONS_FAILED_142_OTHER_FILES_GREEN",
-      "ciRun": 32495424975,
-      "ciJob": 96812562055,
+    "finalInternalCandidate": {
+      "applicationHead": "3baeb055f3f6bb51d4f361699c46eb63caf9be31",
+      "uiHead": "4b237be34be18f3e3723458955360b5715abce13",
+      "ciRun": 32501313004,
+      "ciJob": 96831378228,
       "ciConclusion": "SUCCESS",
-      "unitTypeLintBuild": "PASSED",
-      "browserRun": 32495424977,
-      "browserJob": 96812561963,
-      "browserConclusion": "SUCCESS",
-      "liveProductionJourney": "PASSED_TO_REAL_OTP_WITHOUT_PAYMENT_OR_MANUFACTURING_SIDE_EFFECTS"
-    },
-    "merchantTask1Final": {
-      "head": "dc3e01653148d8cf0fd524195e0270dad956c866",
-      "ciRun": 32494604102,
-      "ciJob": 96809940414,
-      "ciConclusion": "SUCCESS",
-      "unitTypeLintBuild": "PASSED",
-      "browserRun": 32494603650,
-      "browserJob": 96809939125,
-      "browserConclusion": "SUCCESS",
-      "desktopMobileMerchantRoutes": "PASSED",
-      "liveProductionJourney": "PASSED_TO_REAL_OTP_WITHOUT_PAYMENT_OR_MANUFACTURING_SIDE_EFFECTS",
-      "productionDatabaseUntouched": true
-    },
-    "referralsFinal": {
-      "head": "00c1eb7db12a2105ca2b4162edd5e479b82ee7ac",
-      "ciRun": 32489775020,
-      "ciJob": 96794447030,
-      "ciConclusion": "SUCCESS",
-      "unitTestFiles": 142,
-      "unitTests": 366,
+      "unitTestFiles": 145,
+      "unitTests": 378,
       "typecheck": "PASSED",
-      "lint": "PASSED_WITH_44_WARNINGS_0_ERRORS",
+      "lint": "PASSED_0_WARNINGS_0_ERRORS",
       "productionBuild": "PASSED",
-      "browserRun": 32489775024,
-      "browserJob": 96794447032,
+      "buildConfigDrift": "CLOSED_NEXT_NO_LONGER_REWRITES_TSCONFIG",
+      "browserRun": 32501312974,
+      "browserJob": 96831377612,
       "browserConclusion": "SUCCESS",
-      "browserTests": 20,
-      "desktopOwnerOsReferrals": "PASSED",
-      "mobileOwnerOsReferrals": "PASSED",
-      "desktopReferralReplacement": "PASSED",
-      "mobileReferralReplacement": "PASSED",
+      "desktopMobileBrowserSuite": "PASSED",
       "liveProductionJourney": "PASSED_TO_REAL_OTP_WITHOUT_PAYMENT_OR_MANUFACTURING_SIDE_EFFECTS",
-      "visualEvidenceArtifactId": 9449306825,
-      "visualEvidenceDigest": "sha256:97c2e12b3a7852e15913f4196dba2d4cb6fd63a605d330d599d6183822467e9b",
+      "visualEvidenceArtifactId": 9453478815,
+      "visualEvidenceDigest": "sha256:9d814af123fac960abd90c5a079988862f4020d52d574f92b69d1b17f203669b",
       "productionDatabaseUntouched": true
     },
-    "technicalDebt": {"lintWarningsLastCounted": 44, "lintErrors": 0, "releaseBlocker": false}
+    "uiDefectTdd": {
+      "quickPriceGeometry": {
+        "redHead": "7c31c60422dac27e192d333dccb0fc253c354b6f",
+        "redBrowserRun": 32499268058,
+        "redEvidence": "DESKTOP_ACTION_WIDTH_90_EXPECTED_AT_LEAST_140",
+        "green": true
+      },
+      "newQuestionEditorLayout": {
+        "redHead": "cdd85e915ca148cbc5dd317fb4d560ae635bd6c7",
+        "redBrowserRun": 32500582963,
+        "redEvidence": "DESKTOP_BASELINE_STAGGER_AND_MOBILE_233PX_FIELD_WIDTH",
+        "green": true
+      }
+    },
+    "technicalDebt": {
+      "lintWarningsLastCounted": 0,
+      "lintErrors": 0,
+      "releaseBlocker": false
+    },
+    "releaseAudit": {
+      "unresolvedPrReviewThreads": 0,
+      "obviousTodoFixmeNotImplementedStubs": 0,
+      "publicUiScreenshotAudit": "GREEN",
+      "ownerOsScreenshotAudit": "GREEN",
+      "vercelConnectorProjectEnumeration": "LIMITED_EMPTY_RESULT_INDEPENDENT_LIVE_DOMAIN_QA_GREEN"
+    }
   },
   "providers": {
     "resendOtp": "LIVE_PROVEN",
     "safepay": "OWNER_SANDBOX_CONFIG_AND_REAL_PROTOCOL_PROOF_PENDING",
-    "openai": "CODE_AND_REQUEST_BOUNDARY_PROVEN_LIVE_PROVIDER_PROOF_PENDING",
-    "blob": "CODE_PROVEN_LIVE_PROVIDER_PROOF_PENDING",
-    "vercelQueues": "CODE_REPLAY_AND_FEEDBACK_TRANSPORT_PROVEN_LIVE_CONSUMER_PROOF_PENDING",
-    "printful": "CODE_HARDENED_LIVE_DRAFT_AND_WEBHOOK_PROOF_PENDING",
+    "openai": "OWNER_CREDENTIAL_LIVE_PROVIDER_PROOF_PENDING",
+    "blob": "OWNER_CREDENTIAL_LIVE_PROVIDER_PROOF_PENDING",
+    "vercelQueues": "OWNER_CREDENTIAL_LIVE_CONSUMER_PROOF_PENDING",
+    "printful": "OWNER_MAPPING_UNCONFIRMED_DRAFT_AND_SIGNED_WEBHOOK_PROOF_PENDING",
     "printfulProduction": "DISABLED"
   },
   "resolvedDuringCurrentCycle": [
-    "Referral Tasks 1 through 5 remain complete with final code UI browser evidence",
-    "Merchant Task 1 truthful public merchant surface is fully verified",
-    "Merchant readiness now reuses the public merchant truth source and fails sandbox readiness closed without required name support email and location",
-    "Readiness response exposes only merchant readiness state/detail and not public identity values",
-    "Owner OS System room explicitly names public merchant disclosure as a launch boundary",
-    "Merchant Task 2 final candidate ebe97e8 passed CI unit typecheck lint build Browser QA and live production OTP smoke",
-    "Production database remains through 0028 and referral migration 0029 remains unapplied"
+    "Merchant Task 3 canonical one-action product pricing completed and browser-proven",
+    "Quick-price desktop geometry defect discovered by screenshot QA, reproduced RED, fixed and verified desktop/mobile",
+    "New-question editor layout defect discovered by screenshot QA, reproduced RED on desktop/mobile, fixed and verified",
+    "Lint technical debt reduced from 44 warnings to 0 warnings and 0 errors",
+    "Full 145-file 378-test suite, typecheck, lint and production build are green",
+    "Desktop/mobile Browser QA and real issuedonce.shop OTP smoke are green",
+    "Next.js tsconfig rewrite drift eliminated",
+    "Production database re-audited read-only: design-control 0028 present and referral 0029 absent",
+    "PR 3 release body reconciled to current truth and retained as draft",
+    "Merchant Launch plan reconciled: internal tasks complete, provider/owner gates remain open",
+    "No production migration, paid provider cycle, Printful production confirmation or PR merge was performed"
   ],
   "nextActions": [
-    "TDD Merchant Task 3 one-action TEE HAT TOTE future-sale price publishing through the canonical catalog publication service",
-    "Clean non-blocking lint warnings before final release gate",
-    "Run Safepay sandbox checkout and signed webhook truth cycle after owner/provider configuration",
-    "Run OpenAI Blob Queue live design proof including manual fallback and owner QC",
-    "Run Printful unconfirmed draft and signed fulfillment proof with production confirmation disabled",
-    "Apply referral migration 0029 to production only after exact owner approval for that release action",
-    "Run final full code UI UX live production audit and only then promote PR 3"
+    "OWNER TEST: configure and run Safepay sandbox checkout plus signed PAID, replay and refund/exception evidence",
+    "OWNER TEST: configure and prove OpenAI plus private Blob plus Vercel Queue live design flow and manual fallback",
+    "OWNER TEST: configure Printful mappings/webhook and prove one real unconfirmed draft plus signed fulfillment events while production confirmation stays disabled",
+    "OWNER APPROVAL: when provider evidence is ready, approve production referral migration 0029 and configure REFERRAL_ATTRIBUTION_SIGNING_KEY",
+    "OWNER DECISION: after all provider evidence is green, perform final release audit and choose PR promotion/merge"
   ],
-  "nextOwnerAction": null
+  "nextOwnerAction": "BEGIN_OWNER_PROVIDER_TEST_MATRIX"
 }
