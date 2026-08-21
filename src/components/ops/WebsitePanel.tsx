@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './owner-os.module.css';
 
 type Variant = { id: string; size: string; colorName: string; colorSwatch?: string | null; amountMinor: number; available: boolean };
@@ -45,12 +45,12 @@ export function WebsitePanel() {
   const [working, setWorking] = useState(false);
   const [newQuestion, setNewQuestion] = useState({ questionId: '', family: 'culture', prompt: '', optional: false });
 
-  function applyState(payload: State) {
+  const applyState = useCallback((payload: State) => {
     const nextCatalog = structuredClone(payload.catalog.payload);
     setState(payload);
     setCatalog(nextCatalog);
     setQuickPrices(quickPriceValues(nextCatalog));
-  }
+  }, []);
 
   async function refresh() {
     const payload = await fetchWebsiteState();
@@ -65,7 +65,7 @@ export function WebsitePanel() {
       })
       .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Website controls unavailable'); });
     return () => { alive = false; };
-  }, []);
+  }, [applyState]);
 
   const groupedQuestions = useMemo(() => {
     const groups: Record<string, Question[]> = {};
