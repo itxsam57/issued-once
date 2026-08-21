@@ -17,13 +17,15 @@ type DesignPolicy = {
   mode: DesignMode;
   approvalRequired: boolean;
   rejectBehavior: 'AUTO_REGENERATE' | 'WAIT_FOR_OWNER';
-  manualUploadApproval: 'AUTO_APPROVE' | 'REQUIRE_OWNER_APPROVAL';
+  manualUploadApproval: 'AUTO_APPROVE' | 'REQUIRE_APPROVAL';
   answerRevealDefault: 'HIDDEN_UNTIL_REVEALED' | 'VISIBLE';
   manufacturingHandoff: 'WAIT_FOR_OWNER' | 'AUTO_CREATE_DRAFT_AFTER_APPROVAL';
-  factoryConfirmation: 'NEVER_AUTO_CONFIRM' | 'OWNER_ARMED_ONLY';
+  factoryConfirmation: 'WAIT_FOR_OWNER' | 'ALLOW_AUTOMATION_WHEN_ARMED';
 };
 type EffectivePolicy = { globalVersion: number; override: Partial<DesignPolicy> | null; policy: DesignPolicy };
 type RevealedAnswer = { slot: string; prompt: string; answer: unknown };
+type ReadinessCheck = { key: string; label: string; state: 'ready' | 'configured' | 'missing' | 'blocked' | 'safe' | 'armed'; detail: string };
+type Readiness = { checkedAt: string; checks: ReadinessCheck[]; readyForSandbox: boolean; readyForProduction: false };
 
 async function readJson<T>(response: Response, fallback: string): Promise<T> {
   const payload = await response.json().catch(() => ({})) as T & { error?: string };
@@ -52,8 +54,12 @@ async function fetchIssuePolicy(issueId: string): Promise<EffectivePolicy> {
   const response = await fetch(`/ops/api/designer/${encodeURIComponent(issueId)}/policy`, { credentials: 'same-origin', cache: 'no-store' });
   return readJson<EffectivePolicy>(response, 'Issue design policy unavailable');
 }
+async function fetchReadiness(): Promise<Readiness> {
+  const response = await fetch('/ops/api/readiness', { credentials: 'same-origin', cache: 'no-store' });
+  return readJson<Readiness>(response, 'Design runtime readiness unavailable');
+}
 
-const QUICK_REASONS = ['TOO BUSY', 'WRONG MOOD', 'TOO LITERAL', 'TOO GENERIC'] as const;
+const QUICK_REASONS = ['TOO BUSY', 'TOO LITERAL', 'WEAK CONCEPT', 'WRONG MOOD', 'TYPOGRAPHY', 'PLACEMENT', 'NOT WEARABLE', 'OTHER'] as const;
 
 export function DesignerPanel() {
   const [items, setItems] = useState<QueueItem[]>([]);
@@ -61,7 +67,7 @@ export function DesignerPanel() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [globalPolicy, setGlobalPolicy] = useState<DesignPolicy | null>(null);
   const [issuePolicy, setIssuePolicy] = useState<EffectivePolicy | null>(null);
-  const [issueMode, setIssueMode] = useState<'INHERIT' | DesignMode>('INHERIT');
+  const [readiness, setReadiness] = useState<Readiness | null>(null);
   const [reason, setReason] = useState('');
   const [instruction, setInstruction] = useState('');
   const [revealReason, setRevealReason] = useState('Design review');
@@ -72,26 +78,34 @@ export function DesignerPanel() {
   const [notice, setNotice] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
 
+  const readinessCheck = (key: string) => readiness?.checks.find((check) => check.key === key);
+  const openAI = readinessCheck('openai');
+  const blob = readinessCheck('blob');
+  const queues = readinessCheck('queues');
+  const factorySwitch = readinessCheck('factory-confirm');
+  const aiReady = openAI?.state === 'ready' && blob?.state === 'ready' && ['ready', 'configured'].includes(queues?.state ?? '');
+  const manualReady = blob?.state === 'ready';
+  const factorySafe = factorySwitch?.state === 'safe';
+
   async function refresh() {
-    const [next, policy] = await Promise.all([fetchDesignerQueue(), fetchGlobalPolicy()]);
+    const [next, policy, nextReadiness] = await Promise.all([fetchDesignerQueue(), fetchGlobalPolicy(), fetchReadiness()]);
     setItems(next);
     setGlobalPolicy(policy);
+    setReadiness(nextReadiness);
     if (selected) {
       const nextSelected = next.find((item) => item.issueId === selected.issueId) ?? null;
       setSelected(nextSelected);
-      if (nextSelected) {
-        const effective = await fetchIssuePolicy(nextSelected.issueId);
-        setIssuePolicy(effective);
-        setIssueMode(effective.override?.mode ?? 'INHERIT');
-      }
+      if (nextSelected) setIssuePolicy(await fetchIssuePolicy(nextSelected.issueId));
     }
   }
   async function loadCandidates(issueId: string) { setCandidates(await fetchCandidates(issueId)); }
 
   useEffect(() => {
     let alive = true;
-    void Promise.all([fetchDesignerQueue(), fetchGlobalPolicy()])
-      .then(([next, policy]) => { if (alive) { setItems(next); setGlobalPolicy(policy); } })
+    void Promise.all([fetchDesignerQueue(), fetchGlobalPolicy(), fetchReadiness()])
+      .then(([next, policy, nextReadiness]) => {
+        if (alive) { setItems(next); setGlobalPolicy(policy); setReadiness(nextReadiness); }
+      })
       .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Designer unavailable'); });
     return () => { alive = false; };
   }, []);
@@ -100,7 +114,6 @@ export function DesignerPanel() {
     setSelected(item);
     setCandidates([]);
     setIssuePolicy(null);
-    setIssueMode('INHERIT');
     setReason('');
     setInstruction('');
     setAnswers(null);
@@ -108,11 +121,7 @@ export function DesignerPanel() {
     setError(null);
     setNotice(null);
     void Promise.all([fetchCandidates(item.issueId), fetchIssuePolicy(item.issueId)])
-      .then(([nextCandidates, effective]) => {
-        setCandidates(nextCandidates);
-        setIssuePolicy(effective);
-        setIssueMode(effective.override?.mode ?? 'INHERIT');
-      })
+      .then(([nextCandidates, effective]) => { setCandidates(nextCandidates); setIssuePolicy(effective); })
       .catch((cause) => setError(cause instanceof Error ? cause.message : 'Designer detail unavailable'));
   }
 
@@ -136,15 +145,17 @@ export function DesignerPanel() {
     setGlobalPolicy(saved.policy);
   }
 
-  async function saveIssueMode(mode: 'INHERIT' | DesignMode) {
-    if (!selected) return;
+  async function saveIssueField<K extends keyof DesignPolicy>(key: K, value: DesignPolicy[K] | undefined) {
+    if (!selected || !issuePolicy) return;
     const path = `/ops/api/designer/${encodeURIComponent(selected.issueId)}/policy`;
-    const response = mode === 'INHERIT'
-      ? await fetch(path, { method: 'DELETE', credentials: 'same-origin' })
-      : await fetch(path, { method: 'PUT', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode }) });
-    const effective = await readJson<EffectivePolicy>(response, 'Issue design mode could not be saved');
-    setIssuePolicy(effective);
-    setIssueMode(mode);
+    const nextOverride: Partial<DesignPolicy> = { ...(issuePolicy.override ?? {}) };
+    if (value === undefined) delete nextOverride[key];
+    else nextOverride[key] = value;
+    const hasOverride = Object.keys(nextOverride).length > 0;
+    const response = hasOverride
+      ? await fetch(path, { method: 'PUT', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify(nextOverride) })
+      : await fetch(path, { method: 'DELETE', credentials: 'same-origin' });
+    setIssuePolicy(await readJson<EffectivePolicy>(response, 'Issue design policy could not be saved'));
   }
 
   async function revealAnswers() {
@@ -163,7 +174,7 @@ export function DesignerPanel() {
   }
 
   async function uploadArtwork() {
-    if (!selected || !artworkFile || !uploadReason.trim()) return;
+    if (!selected || !artworkFile || !uploadReason.trim() || !manualReady) return;
     const form = new FormData();
     form.set('file', artworkFile);
     form.set('reason', uploadReason.trim());
@@ -180,40 +191,61 @@ export function DesignerPanel() {
     return [reason.trim(), instruction.trim()].filter(Boolean).join(' — ');
   }
 
+  function updateGlobal<K extends keyof DesignPolicy>(key: K, value: DesignPolicy[K], message: string) {
+    if (!globalPolicy) return;
+    const next = { ...globalPolicy, [key]: value };
+    setGlobalPolicy(next);
+    void run(() => saveGlobalPolicy(next), message);
+  }
+
   return <div>
     <div className={styles.panelHead}><div><p>DESIGNER / STUDIO</p><h1>What each mind became.</h1></div><button type="button" disabled={working} onClick={() => void refresh()}>REFRESH</button></div>
 
     <section className={styles.detail} aria-label="Global design controls">
       <p>GLOBAL DESIGN MODE</p>
+      <div className={styles.detailGrid} aria-label="Design runtime readiness">
+        <div><span>AI RUNTIME</span><strong>{aiReady ? 'AI AUTOMATION READY' : 'AI AUTOMATION UNAVAILABLE'}</strong><small>{openAI?.detail ?? 'OpenAI status pending.'}</small></div>
+        <div><span>MANUAL RUNTIME</span><strong>{manualReady ? 'MANUAL ARTWORK READY' : 'MANUAL ARTWORK BLOCKED'}</strong><small>{blob?.detail ?? 'Private Blob status pending.'}</small></div>
+        <div><span>FACTORY SAFETY</span><strong>{factorySafe ? 'FACTORY CHARGE SWITCH SAFE' : factorySwitch?.state === 'armed' ? 'FACTORY CHARGE SWITCH ARMED' : 'FACTORY CHARGE SWITCH UNKNOWN'}</strong><small>{factorySwitch?.detail ?? 'Factory kill-switch status pending.'}</small></div>
+      </div>
       {!globalPolicy ? <small>LOADING POLICY…</small> : <div className={styles.actionRow}>
         <label>Global design mode
-          <select aria-label="Global design mode" value={globalPolicy.mode} disabled={working} onChange={(event) => {
-            const next = { ...globalPolicy, mode: event.target.value as DesignMode };
-            setGlobalPolicy(next);
-            void run(() => saveGlobalPolicy(next), `Global mode set to ${next.mode}.`);
-          }}>
+          <select aria-label="Global design mode" value={globalPolicy.mode} disabled={working} onChange={(event) => updateGlobal('mode', event.target.value as DesignMode, `Global mode set to ${event.target.value}.`)}>
             <option value="HYBRID">HYBRID — AI + OWNER</option><option value="AUTO">AUTO — AI FIRST</option><option value="MANUAL">MANUAL — OWNER ART</option>
           </select>
         </label>
         <label>Approval gate
-          <select value={globalPolicy.approvalRequired ? 'REQUIRED' : 'AUTOMATIC'} disabled={working} onChange={(event) => {
-            const next = { ...globalPolicy, approvalRequired: event.target.value === 'REQUIRED' };
-            setGlobalPolicy(next); void run(() => saveGlobalPolicy(next), 'Approval gate updated.');
-          }}><option value="REQUIRED">OWNER APPROVAL REQUIRED</option><option value="AUTOMATIC">AUTO APPROVE AFTER QUALITY GATE</option></select>
+          <select value={globalPolicy.approvalRequired ? 'REQUIRED' : 'AUTOMATIC'} disabled={working} onChange={(event) => updateGlobal('approvalRequired', event.target.value === 'REQUIRED', 'Approval gate updated.')}>
+            <option value="REQUIRED">OWNER APPROVAL REQUIRED</option><option value="AUTOMATIC">AUTO APPROVE AFTER QUALITY GATE</option>
+          </select>
         </label>
         <label>After rejection
-          <select value={globalPolicy.rejectBehavior} disabled={working} onChange={(event) => {
-            const next = { ...globalPolicy, rejectBehavior: event.target.value as DesignPolicy['rejectBehavior'] };
-            setGlobalPolicy(next); void run(() => saveGlobalPolicy(next), 'Reject behavior updated.');
-          }}><option value="WAIT_FOR_OWNER">WAIT FOR OWNER</option><option value="AUTO_REGENERATE">AUTO REGENERATE</option></select>
+          <select value={globalPolicy.rejectBehavior} disabled={working} onChange={(event) => updateGlobal('rejectBehavior', event.target.value as DesignPolicy['rejectBehavior'], 'Reject behavior updated.')}>
+            <option value="WAIT_FOR_OWNER">WAIT FOR OWNER</option><option value="AUTO_REGENERATE">AUTO REGENERATE</option>
+          </select>
+        </label>
+        <label>Manual upload approval
+          <select aria-label="Manual upload approval" value={globalPolicy.manualUploadApproval} disabled={working} onChange={(event) => updateGlobal('manualUploadApproval', event.target.value as DesignPolicy['manualUploadApproval'], 'Manual upload approval updated.')}>
+            <option value="REQUIRE_APPROVAL">REQUIRE OWNER APPROVAL</option><option value="AUTO_APPROVE">AUTO APPROVE AFTER QUALITY GATE</option>
+          </select>
+        </label>
+        <label>Answer reveal default
+          <select aria-label="Answer reveal default" value={globalPolicy.answerRevealDefault} disabled={working} onChange={(event) => updateGlobal('answerRevealDefault', event.target.value as DesignPolicy['answerRevealDefault'], 'Answer reveal default updated.')}>
+            <option value="HIDDEN_UNTIL_REVEALED">HIDDEN UNTIL AUDITED REVEAL</option><option value="VISIBLE">VISIBLE TO OWNER DESIGNER</option>
+          </select>
         </label>
         <label>After approval
-          <select value={globalPolicy.manufacturingHandoff} disabled={working} onChange={(event) => {
-            const next = { ...globalPolicy, manufacturingHandoff: event.target.value as DesignPolicy['manufacturingHandoff'] };
-            setGlobalPolicy(next); void run(() => saveGlobalPolicy(next), 'Manufacturing handoff updated.');
-          }}><option value="WAIT_FOR_OWNER">WAIT FOR OWNER</option><option value="AUTO_CREATE_DRAFT_AFTER_APPROVAL">AUTO CREATE PRINTFUL DRAFT</option></select>
+          <select value={globalPolicy.manufacturingHandoff} disabled={working} onChange={(event) => updateGlobal('manufacturingHandoff', event.target.value as DesignPolicy['manufacturingHandoff'], 'Manufacturing handoff updated.')}>
+            <option value="WAIT_FOR_OWNER">WAIT FOR OWNER</option><option value="AUTO_CREATE_DRAFT_AFTER_APPROVAL">AUTO CREATE UNCONFIRMED PRINTFUL DRAFT</option>
+          </select>
+        </label>
+        <label>Factory confirmation policy
+          <select aria-label="Factory confirmation policy" value={globalPolicy.factoryConfirmation} disabled={working} onChange={(event) => updateGlobal('factoryConfirmation', event.target.value as DesignPolicy['factoryConfirmation'], 'Factory confirmation policy updated.')}>
+            <option value="WAIT_FOR_OWNER">WAIT FOR OWNER</option><option value="ALLOW_AUTOMATION_WHEN_ARMED">ALLOW ONLY WHILE INDEPENDENT KILL SWITCH IS ARMED</option>
+          </select>
         </label>
       </div>}
+      <p className={styles.privacyFlags}>Policy never bypasses the independent factory charge switch. A design handoff creates only an unconfirmed draft unless the separate production gate is deliberately armed and confirmed.</p>
     </section>
 
     {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
@@ -224,14 +256,44 @@ export function DesignerPanel() {
       </button>)}</div>
       <section className={styles.detail}>{!selected ? <p>SELECT A DESIGN</p> : <>
         <p>ISSUE / {selected.issueCode}</p><h2>{selected.designState}</h2>
-        <label>This Issue Mode
-          <select aria-label="This Issue Mode" value={issueMode} disabled={working || !issuePolicy} onChange={(event) => {
-            const mode = event.target.value as 'INHERIT' | DesignMode;
-            setIssueMode(mode); void run(() => saveIssueMode(mode), mode === 'INHERIT' ? 'Issue now inherits global design policy.' : `Issue mode set to ${mode}.`);
-          }}>
-            <option value="INHERIT">INHERIT GLOBAL ({issuePolicy?.policy.mode ?? '…'})</option><option value="HYBRID">HYBRID</option><option value="AUTO">AUTO</option><option value="MANUAL">MANUAL</option>
-          </select>
-        </label>
+        <div className={styles.detailGrid} aria-label="This Issue policy overrides">
+          <label>This Issue Mode
+            <select aria-label="This Issue Mode" value={issuePolicy?.override?.mode ?? 'INHERIT'} disabled={working || !issuePolicy} onChange={(event) => {
+              const value = event.target.value as 'INHERIT' | DesignMode;
+              void run(() => saveIssueField('mode', value === 'INHERIT' ? undefined : value), 'Issue mode override updated.');
+            }}><option value="INHERIT">INHERIT GLOBAL ({issuePolicy?.policy.mode ?? '…'})</option><option value="HYBRID">HYBRID</option><option value="AUTO">AUTO</option><option value="MANUAL">MANUAL</option></select>
+          </label>
+          <label>This Issue Approval
+            <select aria-label="This Issue Approval" value={issuePolicy?.override?.approvalRequired === undefined ? 'INHERIT' : issuePolicy.override.approvalRequired ? 'REQUIRED' : 'AUTOMATIC'} disabled={working || !issuePolicy} onChange={(event) => {
+              const value = event.target.value; void run(() => saveIssueField('approvalRequired', value === 'INHERIT' ? undefined : value === 'REQUIRED'), 'Issue approval override updated.');
+            }}><option value="INHERIT">INHERIT GLOBAL ({issuePolicy?.policy.approvalRequired ? 'REQUIRED' : 'AUTOMATIC'})</option><option value="REQUIRED">REQUIRED</option><option value="AUTOMATIC">AUTOMATIC AFTER QUALITY GATE</option></select>
+          </label>
+          <label>This Issue Reject Behavior
+            <select aria-label="This Issue Reject Behavior" value={issuePolicy?.override?.rejectBehavior ?? 'INHERIT'} disabled={working || !issuePolicy} onChange={(event) => {
+              const value = event.target.value as 'INHERIT' | DesignPolicy['rejectBehavior']; void run(() => saveIssueField('rejectBehavior', value === 'INHERIT' ? undefined : value), 'Issue reject override updated.');
+            }}><option value="INHERIT">INHERIT GLOBAL ({issuePolicy?.policy.rejectBehavior ?? '…'})</option><option value="WAIT_FOR_OWNER">WAIT FOR OWNER</option><option value="AUTO_REGENERATE">AUTO REGENERATE</option></select>
+          </label>
+          <label>This Issue Manual Upload Approval
+            <select aria-label="This Issue Manual Upload Approval" value={issuePolicy?.override?.manualUploadApproval ?? 'INHERIT'} disabled={working || !issuePolicy} onChange={(event) => {
+              const value = event.target.value as 'INHERIT' | DesignPolicy['manualUploadApproval']; void run(() => saveIssueField('manualUploadApproval', value === 'INHERIT' ? undefined : value), 'Issue manual upload override updated.');
+            }}><option value="INHERIT">INHERIT GLOBAL ({issuePolicy?.policy.manualUploadApproval ?? '…'})</option><option value="REQUIRE_APPROVAL">REQUIRE APPROVAL</option><option value="AUTO_APPROVE">AUTO APPROVE</option></select>
+          </label>
+          <label>This Issue Answer Reveal
+            <select aria-label="This Issue Answer Reveal" value={issuePolicy?.override?.answerRevealDefault ?? 'INHERIT'} disabled={working || !issuePolicy} onChange={(event) => {
+              const value = event.target.value as 'INHERIT' | DesignPolicy['answerRevealDefault']; void run(() => saveIssueField('answerRevealDefault', value === 'INHERIT' ? undefined : value), 'Issue answer reveal override updated.');
+            }}><option value="INHERIT">INHERIT GLOBAL ({issuePolicy?.policy.answerRevealDefault ?? '…'})</option><option value="HIDDEN_UNTIL_REVEALED">HIDDEN UNTIL REVEAL</option><option value="VISIBLE">VISIBLE</option></select>
+          </label>
+          <label>This Issue Manufacturing Handoff
+            <select aria-label="This Issue Manufacturing Handoff" value={issuePolicy?.override?.manufacturingHandoff ?? 'INHERIT'} disabled={working || !issuePolicy} onChange={(event) => {
+              const value = event.target.value as 'INHERIT' | DesignPolicy['manufacturingHandoff']; void run(() => saveIssueField('manufacturingHandoff', value === 'INHERIT' ? undefined : value), 'Issue manufacturing override updated.');
+            }}><option value="INHERIT">INHERIT GLOBAL ({issuePolicy?.policy.manufacturingHandoff ?? '…'})</option><option value="WAIT_FOR_OWNER">WAIT FOR OWNER</option><option value="AUTO_CREATE_DRAFT_AFTER_APPROVAL">AUTO CREATE DRAFT</option></select>
+          </label>
+          <label>This Issue Factory Confirmation
+            <select aria-label="This Issue Factory Confirmation" value={issuePolicy?.override?.factoryConfirmation ?? 'INHERIT'} disabled={working || !issuePolicy} onChange={(event) => {
+              const value = event.target.value as 'INHERIT' | DesignPolicy['factoryConfirmation']; void run(() => saveIssueField('factoryConfirmation', value === 'INHERIT' ? undefined : value), 'Issue factory policy override updated.');
+            }}><option value="INHERIT">INHERIT GLOBAL ({issuePolicy?.policy.factoryConfirmation ?? '…'})</option><option value="WAIT_FOR_OWNER">WAIT FOR OWNER</option><option value="ALLOW_AUTOMATION_WHEN_ARMED">ALLOW ONLY WHEN ARMED</option></select>
+          </label>
+        </div>
         {selected.artworkUrl ? <img className={styles.largeArtwork} src={selected.artworkUrl} alt={`Artwork for ${selected.issueCode}`} /> : <div className={styles.emptyArtwork}>NO ARTWORK YET</div>}
         <p>{selected.width && selected.height ? `${selected.width} × ${selected.height}` : 'DIMENSIONS PENDING'} · {selected.model ?? 'MODEL PENDING'}</p>
 
@@ -241,11 +303,12 @@ export function DesignerPanel() {
         {answers ? <div>{answers.map((entry) => <article key={entry.slot}><small>{entry.slot.toUpperCase()}</small><p>{entry.prompt}</p><strong>{typeof entry.answer === 'string' ? entry.answer : JSON.stringify(entry.answer)}</strong></article>)}</div> : null}
 
         <h3>Manual artwork</h3>
-        <label>Manual artwork PNG<input aria-label="Manual artwork PNG" type="file" accept="image/png,.png" onChange={(event) => setArtworkFile(event.target.files?.[0] ?? null)} /></label>
+        <label>Manual artwork PNG<input aria-label="Manual artwork PNG" type="file" accept="image/png,.png" disabled={!manualReady || working} onChange={(event) => setArtworkFile(event.target.files?.[0] ?? null)} /></label>
         <label>Upload reason<input value={uploadReason} onChange={(event) => setUploadReason(event.target.value)} /></label>
-        <div className={styles.actionRow}><button disabled={working || !artworkFile || !uploadReason.trim()} type="button" onClick={() => void uploadArtwork()}>UPLOAD PNG</button></div>
+        <div className={styles.actionRow}><button disabled={working || !manualReady || !artworkFile || !uploadReason.trim()} type="button" onClick={() => void uploadArtwork()}>UPLOAD PNG</button></div>
+        {!manualReady ? <p className={styles.privacyFlags}>Manual upload is blocked until private artwork storage is ready.</p> : null}
 
-        {selected.designState === 'FAILED' ? <div className={styles.actionRow}><button disabled={working} type="button" onClick={() => void run(() => post(`/ops/api/designer/${selected.issueId}/retry`, {}), 'Failed design queued for retry.')}>RETRY FAILED DESIGN</button></div> : null}
+        {selected.designState === 'FAILED' ? <div className={styles.actionRow}><button disabled={working || !aiReady} type="button" onClick={() => void run(() => post(`/ops/api/designer/${selected.issueId}/retry`, {}), 'Failed design queued for retry.')}>RETRY FAILED DESIGN</button></div> : null}
         {selected.designState === 'REVIEW' ? <>
           <div className={styles.actionRow}><button disabled={working} type="button" onClick={() => void run(() => post(`/ops/api/designer/${selected.issueId}/review`, { decision: 'approve' }), 'Design approved.')}>APPROVE</button></div>
           <h3>Feedback</h3>
@@ -253,11 +316,19 @@ export function DesignerPanel() {
           <label>Revision reason<input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="What should change?" /></label>
           <label>Custom design instruction<input value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder="Specific direction for the next pass" /></label>
           <div className={styles.actionRow}>
-            <button disabled={working || !feedbackReason()} type="button" onClick={() => void run(() => post(`/ops/api/designer/${selected.issueId}/rework`, { mode: 'regenerate', reason: feedbackReason() }), 'Artwork regeneration queued.')}>REGENERATE ART</button>
-            <button disabled={working || !feedbackReason()} type="button" onClick={() => void run(() => post(`/ops/api/designer/${selected.issueId}/rework`, { mode: 'reinterpret', reason: feedbackReason() }), 'Reinterpretation queued.')}>REINTERPRET</button>
+            <button disabled={working || !aiReady || !feedbackReason()} type="button" onClick={() => void run(() => post(`/ops/api/designer/${selected.issueId}/rework`, { mode: 'regenerate', reason: feedbackReason() }), 'Artwork regeneration queued.')}>REGENERATE ART</button>
+            <button disabled={working || !aiReady || !feedbackReason()} type="button" onClick={() => void run(() => post(`/ops/api/designer/${selected.issueId}/rework`, { mode: 'reinterpret', reason: feedbackReason() }), 'Reinterpretation queued.')}>REINTERPRET</button>
             <button disabled={working || !feedbackReason()} type="button" onClick={() => void run(() => post(`/ops/api/designer/${selected.issueId}/review`, { decision: 'revise', next: 'regenerate', reason: feedbackReason() }), 'Design rejected with feedback.')}>REJECT / APPLY POLICY</button>
           </div>
         </> : null}
+        {selected.designState === 'APPROVED' ? <div className={styles.confirmBox}>
+          <strong>SEND TO MANUFACTURING</strong>
+          <p>This creates or reconciles an unconfirmed Printful draft only. It does not authorize a charge or production.</p>
+          <button disabled={working} type="button" onClick={() => void run(
+            () => post('/ops/api/manufacturing/create-draft', { issueId: selected.issueId }),
+            'Unconfirmed Printful draft created or reconciled. Production is still not confirmed.',
+          )}>SEND TO MANUFACTURING</button>
+        </div> : null}
         <h3>Candidate history</h3>
         <div className={styles.candidateGrid}>{candidates.map((candidate) => <article key={candidate.id} data-selected={candidate.selected || undefined}>
           <img src={candidate.artworkUrl} alt={`${selected.issueCode} candidate`} />
