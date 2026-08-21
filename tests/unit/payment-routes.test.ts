@@ -4,13 +4,13 @@ const {
   cookiesMock,
   createPaymentServiceMock,
   createIssueServiceMock,
-  enqueueDesignIssueMock,
+  dispatchPaidIssueDesignMock,
   enqueueIssueNotificationMock,
 } = vi.hoisted(() => ({
   cookiesMock: vi.fn(),
   createPaymentServiceMock: vi.fn(),
   createIssueServiceMock: vi.fn(),
-  enqueueDesignIssueMock: vi.fn(),
+  dispatchPaidIssueDesignMock: vi.fn(),
   enqueueIssueNotificationMock: vi.fn(),
 }));
 
@@ -23,8 +23,8 @@ vi.mock('@/server/issues/runtimeIssues', () => ({
   createIssueService: createIssueServiceMock,
   IssueRuntimeUnavailableError: class IssueRuntimeUnavailableError extends Error {},
 }));
-vi.mock('@/server/design/designQueue', () => ({
-  enqueueDesignIssue: enqueueDesignIssueMock,
+vi.mock('@/server/design/designDispatch', () => ({
+  dispatchPaidIssueDesign: dispatchPaidIssueDesignMock,
 }));
 vi.mock('@/server/notifications/notificationQueue', () => ({
   enqueueIssueNotification: enqueueIssueNotificationMock,
@@ -43,7 +43,7 @@ beforeEach(() => {
     }),
     flagPaymentException: vi.fn().mockResolvedValue({ issueId: '11111111-1111-4111-8111-111111111111' }),
   });
-  enqueueDesignIssueMock.mockResolvedValue({ messageId: 'design-message' });
+  dispatchPaidIssueDesignMock.mockResolvedValue({ mode: 'HYBRID', queued: true, policyVersion: 1 });
   enqueueIssueNotificationMock.mockResolvedValue({ messageId: 'notification-message' });
 });
 
@@ -68,7 +68,7 @@ test('payment creation derives experience and return origin server-side', async 
   });
 });
 
-test('safepay paid webhook preserves raw authentication evidence, mints one Issue, and queues design plus payment email', async () => {
+test('safepay paid webhook preserves raw authentication evidence, mints one Issue, and dispatches policy-aware design plus payment email', async () => {
   const handleWebhook = vi.fn().mockResolvedValue({ kind: 'paid', paymentAttemptId: 'attempt-1' });
   createPaymentServiceMock.mockReturnValue({ handleWebhook });
   const raw = '{"data":{"token":"evt-1"}}';
@@ -82,14 +82,14 @@ test('safepay paid webhook preserves raw authentication evidence, mints one Issu
   expect(response.status).toBe(200);
   expect(handleWebhook).toHaveBeenCalledWith({ rawBody: raw, headers: request.headers });
   expect(createIssueServiceMock().reserveForPaidAttempt).toHaveBeenCalledWith('attempt-1');
-  expect(enqueueDesignIssueMock).toHaveBeenCalledWith('11111111-1111-4111-8111-111111111111');
+  expect(dispatchPaidIssueDesignMock).toHaveBeenCalledWith('11111111-1111-4111-8111-111111111111');
   expect(enqueueIssueNotificationMock).toHaveBeenCalledWith(
     '11111111-1111-4111-8111-111111111111',
     'PAYMENT_RECEIVED',
   );
 });
 
-test('duplicate paid evidence can resume downstream queues without minting another Issue', async () => {
+test('duplicate paid evidence can resume downstream policy dispatch without minting another Issue', async () => {
   createPaymentServiceMock.mockReturnValue({
     handleWebhook: vi.fn().mockResolvedValue({ kind: 'duplicate', paymentAttemptId: 'attempt-1' }),
   });
@@ -98,11 +98,11 @@ test('duplicate paid evidence can resume downstream queues without minting anoth
   }));
 
   expect(response.status).toBe(200);
-  expect(enqueueDesignIssueMock).toHaveBeenCalledTimes(1);
+  expect(dispatchPaidIssueDesignMock).toHaveBeenCalledTimes(1);
   expect(enqueueIssueNotificationMock).toHaveBeenCalledTimes(1);
 });
 
-test('signed refund flags the canonical Issue and never queues new design work', async () => {
+test('signed refund flags the canonical Issue and never dispatches new design work', async () => {
   createPaymentServiceMock.mockReturnValue({
     handleWebhook: vi.fn().mockResolvedValue({ kind: 'refunded', paymentAttemptId: 'attempt-1' }),
   });
@@ -113,7 +113,7 @@ test('signed refund flags the canonical Issue and never queues new design work',
 
   expect(response.status).toBe(200);
   expect(issueService.flagPaymentException).toHaveBeenCalledWith('attempt-1', 'PAYMENT_REFUNDED');
-  expect(enqueueDesignIssueMock).not.toHaveBeenCalled();
+  expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
   expect(enqueueIssueNotificationMock).not.toHaveBeenCalledWith(expect.anything(), 'PAYMENT_RECEIVED');
 });
 
@@ -128,7 +128,7 @@ test('provider money exception flags an existing Issue instead of starting downs
 
   expect(response.status).toBe(200);
   expect(issueService.flagPaymentException).toHaveBeenCalledWith('attempt-1', 'PAYMENT_EXCEPTION');
-  expect(enqueueDesignIssueMock).not.toHaveBeenCalled();
+  expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
 });
 
 test('invalid authenticated webhook evidence is rejected and never triggers downstream work', async () => {
@@ -139,6 +139,6 @@ test('invalid authenticated webhook evidence is rejected and never triggers down
     method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'bad' },
   }));
   expect(response.status).toBe(401);
-  expect(enqueueDesignIssueMock).not.toHaveBeenCalled();
+  expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
   expect(enqueueIssueNotificationMock).not.toHaveBeenCalled();
 });
