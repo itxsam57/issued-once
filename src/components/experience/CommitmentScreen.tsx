@@ -84,11 +84,10 @@ export function CommitmentScreen({
     if (!onApplyReferral || automaticQuoteId.current === quote.quoteId) return;
     automaticQuoteId.current = quote.quoteId;
 
-    let active = true;
     setReferralPending(true);
     void onApplyReferral(quote.quoteId)
       .then((result) => {
-        if (!active || !result.applied) return;
+        if (!result.applied) return;
         setCurrentQuote((current) => mergeReferralQuote(current, result));
       })
       .catch(() => {
@@ -96,12 +95,8 @@ export function CommitmentScreen({
         // the original frozen quote when the referral service cannot apply it.
       })
       .finally(() => {
-        if (active) setReferralPending(false);
+        setReferralPending(false);
       });
-
-    return () => {
-      active = false;
-    };
   }, [onApplyReferral, quote.quoteId]);
 
   async function applyCode() {
