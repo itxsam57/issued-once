@@ -85,6 +85,7 @@ export function createOpsDesignerService() {
       enqueue: (issueId, mode, generationKey) => enqueueDesignIssue(issueId, { mode, generationKey, source: mode === 'regenerate' ? 'OWNER_REGENERATE' : 'OWNER_REINTERPRET' }),
     },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
+    new PostgresDesignPolicyRepository(executor),
   );
 }
 export function createManualArtworkUploadService() {
