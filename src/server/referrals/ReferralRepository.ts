@@ -87,6 +87,25 @@ export type CreateReferralConversionResult = {
   conversion: ReferralConversionIdentity;
 };
 
+export type ReferralNotificationKind = 'SALE' | 'REVERSAL';
+
+export type ReferralNotificationInput = {
+  conversionId: string;
+  creatorId: string;
+  encryptedEmail: EncryptedPayload;
+  rewardAmountMinor: number;
+  currency: string;
+  pendingBalanceMinor: number;
+  availableBalanceMinor: number;
+};
+
+export type ReserveReferralNotificationInput = {
+  id: string;
+  conversionId: string;
+  kind: ReferralNotificationKind;
+  now: Date;
+};
+
 export interface ReferralRepository {
   createCreator(input: CreateReferralCreatorInput): Promise<void>;
   createPayoutRequest(input: CreateReferralPayoutRequestInput): Promise<void>;
@@ -95,4 +114,18 @@ export interface ReferralRepository {
   findAttribution(id: string): Promise<ReferralAttributionRecord | null>;
   loadPaidReferralTruth(paymentAttemptId: string): Promise<PaidReferralTruth | null>;
   createConversion(input: CreateReferralConversionInput): Promise<CreateReferralConversionResult>;
+  loadNotificationInput(conversionId: string): Promise<ReferralNotificationInput | null>;
+  reserveNotification(input: ReserveReferralNotificationInput): Promise<boolean>;
+  markNotificationSent(
+    conversionId: string,
+    kind: ReferralNotificationKind,
+    providerMessageId: string,
+    at: Date,
+  ): Promise<void>;
+  markNotificationFailed(
+    conversionId: string,
+    kind: ReferralNotificationKind,
+    code: string,
+    at: Date,
+  ): Promise<void>;
 }
