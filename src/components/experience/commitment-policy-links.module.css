@@ -1,0 +1,32 @@
+.links {
+  width: min(760px, 100%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin: 22px 0 0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.links a {
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 4px;
+}
+
+.links a:hover,
+.links a:focus-visible {
+  color: var(--signal);
+  border-color: currentColor;
+  outline: none;
+}
+
+@media (max-width: 700px) {
+  .links {
+    gap: 12px 18px;
+    line-height: 1.5;
+  }
+}
