@@ -135,11 +135,21 @@ export function WebsitePanel() {
       </article>)}
       <article className={styles.configCard}>
         <h3>NEW QUESTION / NEW VERSION</h3>
-        <input placeholder="Question ID" value={newQuestion.questionId} onChange={(event) => setNewQuestion((current) => ({ ...current, questionId: event.target.value }))} />
-        <select value={newQuestion.family} onChange={(event) => setNewQuestion((current) => ({ ...current, family: event.target.value }))}>{['culture','place','rhythm','identity','music','boundary','wildcard'].map((family) => <option key={family}>{family}</option>)}</select>
-        <textarea placeholder="Prompt" value={newQuestion.prompt} onChange={(event) => setNewQuestion((current) => ({ ...current, prompt: event.target.value }))} />
-        <label><input type="checkbox" checked={newQuestion.optional} onChange={(event) => setNewQuestion((current) => ({ ...current, optional: event.target.checked }))} /> OPTIONAL</label>
-        <button disabled={working || !newQuestion.questionId.trim() || !newQuestion.prompt.trim()} type="button" onClick={() => void run(async () => { await post('/ops/api/website/questions/version', { ...newQuestion, kind: 'text' }); setNewQuestion({ questionId: '', family: 'culture', prompt: '', optional: false }); })}>CREATE VERSION</button>
+        <div className={styles.newQuestionForm}>
+          <label>Question ID
+            <input aria-label="New question ID" placeholder="Question ID" value={newQuestion.questionId} onChange={(event) => setNewQuestion((current) => ({ ...current, questionId: event.target.value }))} />
+          </label>
+          <label>Family
+            <select aria-label="New question family" value={newQuestion.family} onChange={(event) => setNewQuestion((current) => ({ ...current, family: event.target.value }))}>{['culture','place','rhythm','identity','music','boundary','wildcard'].map((family) => <option key={family}>{family}</option>)}</select>
+          </label>
+          <label className={styles.newQuestionPrompt}>Prompt
+            <textarea aria-label="New question prompt" placeholder="Prompt" value={newQuestion.prompt} onChange={(event) => setNewQuestion((current) => ({ ...current, prompt: event.target.value }))} />
+          </label>
+          <div className={styles.newQuestionActions}>
+            <label className={styles.inlineCheck}><input type="checkbox" checked={newQuestion.optional} onChange={(event) => setNewQuestion((current) => ({ ...current, optional: event.target.checked }))} /> OPTIONAL</label>
+            <button disabled={working || !newQuestion.questionId.trim() || !newQuestion.prompt.trim()} type="button" onClick={() => void run(async () => { await post('/ops/api/website/questions/version', { ...newQuestion, kind: 'text' }); setNewQuestion({ questionId: '', family: 'culture', prompt: '', optional: false }); })}>CREATE VERSION</button>
+          </div>
+        </div>
       </article>
     </section>
   </div>;
