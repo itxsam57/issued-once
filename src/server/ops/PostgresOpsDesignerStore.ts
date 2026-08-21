@@ -166,6 +166,142 @@ export class PostgresOpsDesignerStore implements OpsDesignerStore {
     if (!rows[0]) throw new Error('Design candidate cannot be selected in the current factory state');
   }
 
+  async prepareManualUpload(issueId: string) {
+    const designJobId = this.idGenerator();
+    const rows = await this.sql.query<{ design_job_id: string; object_type: string }>(
+      `WITH eligible AS (
+         SELECT issue.id, issue.object_type, issue.status
+         FROM issues AS issue
+         WHERE issue.id=$1::uuid
+           AND issue.status IN ('RECEIVED','BEING_INTERPRETED','DESIGN_REVIEW','DESIGN_APPROVED')
+           AND NOT EXISTS (
+             SELECT 1 FROM manufacturing_jobs AS manufacturing
+             WHERE manufacturing.issue_id=issue.id
+               AND manufacturing.state IN ('DRAFT','IN_PRODUCTION','SHIPPED','DELIVERED')
+           )
+         FOR UPDATE
+       ), existing AS (
+         SELECT design.id AS design_job_id, eligible.object_type
+         FROM eligible
+         JOIN design_jobs AS design ON design.issue_id=eligible.id
+         LIMIT 1
+       ), inserted AS (
+         INSERT INTO design_jobs (id,issue_id,state,created_at,updated_at)
+         SELECT $2::uuid,eligible.id,'QUEUED',NOW(),NOW()
+         FROM eligible
+         WHERE eligible.status IN ('RECEIVED','BEING_INTERPRETED')
+           AND NOT EXISTS (SELECT 1 FROM existing)
+         ON CONFLICT (issue_id) DO NOTHING
+         RETURNING id AS design_job_id,issue_id
+       ), resolved AS (
+         SELECT existing.design_job_id,existing.object_type FROM existing
+         UNION ALL
+         SELECT inserted.design_job_id,eligible.object_type
+         FROM inserted JOIN eligible ON eligible.id=inserted.issue_id
+       ), issue_update AS (
+         UPDATE issues SET status='BEING_INTERPRETED',updated_at=NOW()
+         WHERE id=$1::uuid AND status='RECEIVED'
+           AND EXISTS (SELECT 1 FROM resolved)
+         RETURNING id
+       ), event AS (
+         INSERT INTO issue_events(issue_id,event_type,source,safe_detail,created_at)
+         SELECT id,'BEING_INTERPRETED','OWNER',jsonb_build_object('mode','manual'),NOW()
+         FROM issue_update RETURNING issue_id
+       )
+       SELECT design_job_id,object_type FROM resolved LIMIT 1`,
+      [issueId, designJobId],
+    );
+    if (!rows[0]) throw new Error('Issue is not eligible for manual artwork upload');
+    return { designJobId: rows[0].design_job_id, objectType: rows[0].object_type };
+  }
+
+  async saveManualCandidate(input: {
+    issueId: string;
+    designJobId: string;
+    generationKey: string;
+    source: 'OWNER_UPLOAD';
+    artworkUrl: string;
+    artworkMimeType: 'image/png';
+    artworkBytes: number;
+    width: number;
+    height: number;
+    provider: 'OWNER';
+    model: 'MANUAL_UPLOAD';
+    safeSummary: string;
+  }) {
+    const rows = await this.sql.query<{ candidate_id: string }>(
+      `WITH eligible AS (
+         SELECT design.id AS design_job_id,design.issue_id
+         FROM design_jobs AS design
+         JOIN issues AS issue ON issue.id=design.issue_id
+         WHERE issue.id=$1::uuid
+           AND design.id=$2::uuid
+           AND issue.status IN ('BEING_INTERPRETED','DESIGN_REVIEW','DESIGN_APPROVED')
+           AND NOT EXISTS (
+             SELECT 1 FROM manufacturing_jobs AS manufacturing
+             WHERE manufacturing.issue_id=issue.id
+               AND manufacturing.state IN ('DRAFT','IN_PRODUCTION','SHIPPED','DELIVERED')
+           )
+         FOR UPDATE OF design,issue
+       ), archived AS (
+         INSERT INTO ops_design_candidates (
+           issue_id,design_job_id,generation_key,source,
+           brief_payload_version,brief_key_version,brief_iv,brief_auth_tag,brief_ciphertext,
+           artwork_url,artwork_mime_type,artwork_bytes,artwork_width,artwork_height,provider,model,selected,created_at
+         )
+         SELECT design.issue_id,design.id,concat('snapshot:',design.id,':',md5(design.artwork_url)),'AUTOMATIC',
+           design.brief_payload_version,design.brief_key_version,design.brief_iv,design.brief_auth_tag,design.brief_ciphertext,
+           design.artwork_url,design.artwork_mime_type,design.artwork_bytes,design.artwork_width,design.artwork_height,
+           design.provider,design.model,false,NOW()
+         FROM design_jobs AS design
+         JOIN eligible ON eligible.design_job_id=design.id
+         WHERE design.artwork_url IS NOT NULL AND design.artwork_mime_type IS NOT NULL AND design.artwork_bytes IS NOT NULL
+           AND design.artwork_width IS NOT NULL AND design.artwork_height IS NOT NULL AND design.provider IS NOT NULL AND design.model IS NOT NULL
+         ON CONFLICT (issue_id,generation_key) DO NOTHING
+         RETURNING id
+       ), cleared AS (
+         UPDATE ops_design_candidates SET selected=false
+         WHERE issue_id=$1::uuid AND EXISTS (SELECT 1 FROM eligible)
+         RETURNING id
+       ), inserted AS (
+         INSERT INTO ops_design_candidates (
+           issue_id,design_job_id,generation_key,source,
+           artwork_url,artwork_mime_type,artwork_bytes,artwork_width,artwork_height,
+           provider,model,safe_summary,selected,created_at
+         )
+         SELECT eligible.issue_id,eligible.design_job_id,$3,'OWNER_UPLOAD',$4,$5,$6,$7,$8,$9,$10,$11,true,NOW()
+         FROM eligible
+         WHERE (SELECT COUNT(*) FROM cleared) >= 0
+         RETURNING id,issue_id,design_job_id
+       ), design_update AS (
+         UPDATE design_jobs AS design
+         SET state='REVIEW',
+             brief_payload_version=NULL,brief_key_version=NULL,brief_iv=NULL,brief_auth_tag=NULL,brief_ciphertext=NULL,
+             artwork_url=$4,artwork_mime_type=$5,artwork_bytes=$6,artwork_width=$7,artwork_height=$8,
+             provider=$9,model=$10,failure_code=NULL,approved_at=NULL,updated_at=NOW()
+         FROM inserted
+         WHERE design.id=inserted.design_job_id AND design.issue_id=inserted.issue_id
+         RETURNING design.issue_id
+       ), issue_update AS (
+         UPDATE issues SET status='DESIGN_REVIEW',updated_at=NOW()
+         WHERE id=(SELECT issue_id FROM design_update LIMIT 1)
+           AND status IN ('BEING_INTERPRETED','DESIGN_REVIEW','DESIGN_APPROVED')
+         RETURNING id
+       ), event AS (
+         INSERT INTO issue_events(issue_id,event_type,source,safe_detail,created_at)
+         SELECT id,'DESIGN_REVIEW','OWNER',jsonb_build_object('source','OWNER_UPLOAD'),NOW()
+         FROM issue_update RETURNING issue_id
+       )
+       SELECT inserted.id AS candidate_id
+       FROM inserted
+       WHERE EXISTS (SELECT 1 FROM issue_update)`,
+      [input.issueId,input.designJobId,input.generationKey,input.artworkUrl,input.artworkMimeType,
+       input.artworkBytes,input.width,input.height,input.provider,input.model,input.safeSummary],
+    );
+    if (!rows[0]) throw new Error('Manual artwork cannot be saved in the current factory state');
+    return { candidateId: rows[0].candidate_id };
+  }
+
   async captureCurrentCandidate(issueId: string, generationKey: string, source: 'AUTOMATIC' | 'OWNER_REGENERATE' | 'OWNER_REINTERPRET') {
     const rows = await this.sql.query<CandidateRow>(
       `INSERT INTO ops_design_candidates (
