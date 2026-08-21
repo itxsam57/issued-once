@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, test } from 'vitest';
-import type { ExperienceStage, QuestionId } from '@/domain/experience/types';
+import type { QuestionId } from '@/domain/experience/types';
 import { decryptPrivatePayload } from '@/server/crypto/privatePayload';
 import { hashSessionToken } from '@/server/http/sessionToken';
 import { ExperienceService } from '@/server/experience/ExperienceService';
