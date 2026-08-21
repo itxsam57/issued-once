@@ -35,6 +35,7 @@ function setup() {
         ],
       },
     ]),
+    listPayouts: vi.fn().mockResolvedValue([]),
     createCreator: vi.fn().mockResolvedValue({ creatorId: 'creator-new', ruleVersionId: 'rule-new' }),
     updateCreator: vi.fn().mockResolvedValue({ creatorId: 'creator-1', ruleVersionId: 'rule-3', ruleVersion: 3 }),
     setCreatorActive: vi.fn().mockResolvedValue(true),
