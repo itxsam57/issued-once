@@ -1,3 +1,4 @@
+import type { EncryptedPayload } from '@/server/crypto/privatePayload';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type {
   ActiveReferralRuleRecord,
@@ -9,7 +10,10 @@ import type {
   PaidReferralTruth,
   ReferralAttributionRecord,
   ReferralConversionIdentity,
+  ReferralNotificationInput,
+  ReferralNotificationKind,
   ReferralRepository,
+  ReserveReferralNotificationInput,
 } from './ReferralRepository';
 import type { ReferralRules } from './ReferralPolicy';
 import {
@@ -67,6 +71,22 @@ type ConversionIdentityRow = {
   reward_amount_minor: number | string;
   currency: string;
 };
+
+type NotificationInputRow = {
+  conversion_id: string;
+  creator_id: string;
+  email_payload_version: 1;
+  email_key_version: 'v1';
+  email_iv: string;
+  email_auth_tag: string;
+  email_ciphertext: string;
+  reward_amount_minor: number | string;
+  currency: string;
+  pending_balance_minor: number | string;
+  available_balance_minor: number | string;
+};
+
+type BoolRow = { reserved: boolean };
 
 function referralValue(
   mode: 'PERCENT' | 'FIXED',
@@ -380,5 +400,117 @@ export class PostgresReferralRepository implements ReferralRepository {
     const raced = await this.findConversionByPaymentAttemptId(input.paymentAttemptId);
     if (!raced) throw new Error('Referral conversion conflict could not be resolved');
     return { kind: 'duplicate', conversion: raced };
+  }
+
+  async loadNotificationInput(conversionId: string): Promise<ReferralNotificationInput | null> {
+    const rows = await this.sql.query<NotificationInputRow>(
+      `
+        SELECT
+          conversion.id AS conversion_id,
+          creator.id AS creator_id,
+          creator.email_payload_version,
+          creator.email_key_version,
+          creator.email_iv,
+          creator.email_auth_tag,
+          creator.email_ciphertext,
+          conversion.reward_amount_minor,
+          conversion.currency,
+          COALESCE(SUM(ledger.reward_amount_minor) FILTER (WHERE ledger.state = 'PENDING'), 0) AS pending_balance_minor,
+          COALESCE(SUM(ledger.reward_amount_minor) FILTER (WHERE ledger.state = 'AVAILABLE'), 0) AS available_balance_minor
+        FROM referral_conversions conversion
+        JOIN referral_creators creator
+          ON creator.id = conversion.creator_id
+        LEFT JOIN referral_conversions ledger
+          ON ledger.creator_id = conversion.creator_id
+         AND ledger.currency = conversion.currency
+        WHERE conversion.id = $1::uuid
+        GROUP BY
+          conversion.id,
+          creator.id,
+          creator.email_payload_version,
+          creator.email_key_version,
+          creator.email_iv,
+          creator.email_auth_tag,
+          creator.email_ciphertext,
+          conversion.reward_amount_minor,
+          conversion.currency
+        LIMIT 1
+      `,
+      [conversionId],
+    );
+    const row = rows[0];
+    if (!row) return null;
+    const encryptedEmail: EncryptedPayload = {
+      version: row.email_payload_version,
+      keyVersion: row.email_key_version,
+      iv: row.email_iv,
+      tag: row.email_auth_tag,
+      ciphertext: row.email_ciphertext,
+    };
+    return {
+      conversionId: row.conversion_id,
+      creatorId: row.creator_id,
+      encryptedEmail,
+      rewardAmountMinor: Number(row.reward_amount_minor),
+      currency: row.currency,
+      pendingBalanceMinor: Number(row.pending_balance_minor),
+      availableBalanceMinor: Number(row.available_balance_minor),
+    };
+  }
+
+  async reserveNotification(input: ReserveReferralNotificationInput): Promise<boolean> {
+    const rows = await this.sql.query<BoolRow>(
+      `
+        WITH reserved AS (
+          INSERT INTO referral_notification_deliveries (
+            id, conversion_id, kind, state, attempts, created_at, updated_at
+          ) VALUES ($1::uuid, $2::uuid, $3, 'QUEUED', 1, $4, $4)
+          ON CONFLICT (conversion_id, kind) DO UPDATE
+          SET state = 'QUEUED',
+              attempts = referral_notification_deliveries.attempts + 1,
+              updated_at = EXCLUDED.updated_at
+          WHERE referral_notification_deliveries.state = 'FAILED'
+          RETURNING id
+        )
+        SELECT EXISTS(SELECT 1 FROM reserved) AS reserved
+      `,
+      [input.id, input.conversionId, input.kind, input.now],
+    );
+    return rows[0]?.reserved === true;
+  }
+
+  async markNotificationSent(
+    conversionId: string,
+    kind: ReferralNotificationKind,
+    providerMessageId: string,
+    at: Date,
+  ): Promise<void> {
+    if (!providerMessageId.trim()) throw new Error('Referral notification provider message id is required');
+    await this.sql.query(
+      `
+        UPDATE referral_notification_deliveries
+        SET state = 'SENT', sent_at = $3, updated_at = $3
+        WHERE conversion_id = $1::uuid AND kind = $2 AND state = 'QUEUED'
+      `,
+      [conversionId, kind, at],
+    );
+  }
+
+  async markNotificationFailed(
+    conversionId: string,
+    kind: ReferralNotificationKind,
+    code: string,
+    at: Date,
+  ): Promise<void> {
+    const safeCode = code.trim().slice(0, 120);
+    if (!safeCode) throw new Error('Referral notification failure code is required');
+    await this.sql.query(
+      `
+        UPDATE referral_notification_deliveries
+        SET state = 'FAILED', updated_at = $3
+        WHERE conversion_id = $1::uuid AND kind = $2 AND state = 'QUEUED'
+      `,
+      [conversionId, kind, at],
+    );
   }
 }
