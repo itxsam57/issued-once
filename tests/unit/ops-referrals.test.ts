@@ -52,6 +52,11 @@ function setup() {
   const encrypt = vi.fn().mockResolvedValue(encrypted);
   const decrypt = vi.fn().mockResolvedValue({ method: 'bank', accountName: 'Creator One', accountRef: 'PK00-PRIVATE' });
   const hashEmail = vi.fn().mockReturnValue('a'.repeat(64));
+  const createId = vi.fn((kind: 'creator' | 'rule' | 'payout') => ({
+    creator: 'creator-new',
+    rule: 'rule-new',
+    payout: 'payout-1',
+  })[kind]);
   const service = new OpsReferralService({
     repository,
     audit,
@@ -59,12 +64,9 @@ function setup() {
     decrypt,
     hashEmail,
     now: () => now,
-    createId: vi.fn()
-      .mockReturnValueOnce('creator-new')
-      .mockReturnValueOnce('rule-new')
-      .mockReturnValueOnce('payout-1'),
+    createId,
   });
-  return { service, repository, audit, encrypt, decrypt, hashEmail };
+  return { service, repository, audit, encrypt, decrypt, hashEmail, createId };
 }
 
 test('Owner OS lists safe creator rules, referral links, sales, balances and payout readiness without private creator data', async () => {
@@ -95,7 +97,7 @@ test('Owner OS lists safe creator rules, referral links, sales, balances and pay
 });
 
 test('creator creation encrypts email and stores only its hash plus first immutable rule version', async () => {
-  const { service, repository, encrypt, hashEmail } = setup();
+  const { service, repository, encrypt, hashEmail, createId } = setup();
 
   await service.createCreator({
     displayName: 'New Creator',
@@ -104,6 +106,8 @@ test('creator creation encrypts email and stores only its hash plus first immuta
     rules,
   });
 
+  expect(createId).toHaveBeenCalledWith('creator');
+  expect(createId).toHaveBeenCalledWith('rule');
   expect(encrypt).toHaveBeenCalledWith({ email: 'creator@example.com' });
   expect(hashEmail).toHaveBeenCalledWith('creator@example.com');
   expect(repository.createCreator).toHaveBeenCalledWith(expect.objectContaining({
@@ -120,7 +124,7 @@ test('creator creation encrypts email and stores only its hash plus first immuta
 });
 
 test('editing economics creates a new immutable rule version while pause is a separate creator-state change', async () => {
-  const { service, repository } = setup();
+  const { service, repository, createId } = setup();
   const nextRules: ReferralRules = {
     ...rules,
     creatorReward: { mode: 'FIXED', amountMinor: 700 },
@@ -133,8 +137,10 @@ test('editing economics creates a new immutable rule version while pause is a se
   });
   await service.setCreatorActive('creator-1', false);
 
+  expect(createId).toHaveBeenCalledWith('rule');
   expect(repository.updateCreator).toHaveBeenCalledWith(expect.objectContaining({
     creatorId: 'creator-1',
+    ruleVersionId: 'rule-new',
     displayName: 'Creator One',
     code: 'CREATOR-ONE',
     rules: nextRules,
@@ -144,7 +150,7 @@ test('editing economics creates a new immutable rule version while pause is a se
 });
 
 test('manual payout request encrypts details and repository allocates only currently AVAILABLE earnings atomically', async () => {
-  const { service, repository, encrypt, audit } = setup();
+  const { service, repository, encrypt, audit, createId } = setup();
   const result = await service.requestPayout({
     creatorId: 'creator-1',
     currency: 'USD',
@@ -152,6 +158,7 @@ test('manual payout request encrypts details and repository allocates only curre
     reason: 'Monthly creator settlement',
   });
 
+  expect(createId).toHaveBeenCalledWith('payout');
   expect(encrypt).toHaveBeenCalledWith({ method: 'bank', accountName: 'Creator One', accountRef: 'PK00-PRIVATE' });
   expect(repository.createPayoutFromAvailable).toHaveBeenCalledWith(expect.objectContaining({
     payoutId: 'payout-1', creatorId: 'creator-1', currency: 'USD', encryptedDetails: encrypted, requestedAt: now,
