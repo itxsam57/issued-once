@@ -204,24 +204,19 @@ export function ReferralsPanel() {
     () => snapshot?.payouts.filter((payout) => payout.creatorId === selectedId) ?? [],
     [snapshot, selectedId],
   );
-  const selectedPayout = creatorPayouts.find((payout) => payout.payoutId === payoutId) ?? creatorPayouts[0] ?? null;
+  const effectivePayoutCurrency = selected?.balances.some((balance) => balance.currency === payoutCurrency)
+    ? payoutCurrency
+    : selected?.balances[0]?.currency ?? '';
+  const effectivePayoutId = creatorPayouts.some((payout) => payout.payoutId === payoutId)
+    ? payoutId
+    : creatorPayouts[0]?.payoutId ?? '';
+  const selectedPayout = creatorPayouts.find((payout) => payout.payoutId === effectivePayoutId) ?? null;
 
-  useEffect(() => {
-    if (!selected) {
-      setPayoutCurrency('');
-      setPayoutId('');
-      return;
-    }
-    setPayoutCurrency((current) => selected.balances.some((balance) => balance.currency === current)
-      ? current
-      : selected.balances[0]?.currency ?? '');
-    setPayoutId((current) => creatorPayouts.some((payout) => payout.payoutId === current)
-      ? current
-      : creatorPayouts[0]?.payoutId ?? '');
+  function clearPrivatePayoutView() {
     setRevealed(null);
     setRevealReason('');
     setSettleReason('');
-  }, [selected, creatorPayouts]);
+  }
 
   async function refresh(preferredId?: string | null) {
     const next = await loadSnapshot();
@@ -238,6 +233,7 @@ export function ReferralsPanel() {
     setNotice(null);
     try {
       await action();
+      clearPrivatePayoutView();
       await refresh(preferredId);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Referral action failed');
@@ -248,6 +244,9 @@ export function ReferralsPanel() {
 
   function choose(creator: Creator) {
     setSelectedId(creator.creatorId);
+    setPayoutCurrency('');
+    setPayoutId('');
+    clearPrivatePayoutView();
     setEditor(null);
     setError(null);
     setNotice(null);
@@ -277,28 +276,34 @@ export function ReferralsPanel() {
       setError(cause instanceof Error ? cause.message : 'Referral rules are invalid');
       return;
     }
-    await mutation(async () => {
-      if (editor.kind === 'create') {
+    if (editor.kind === 'create') {
+      let createdId: string | null = null;
+      await mutation(async () => {
         const result = await send('/ops/api/referrals', 'POST', {
           displayName: form.displayName,
           email: form.email,
           code: form.code,
           rules,
         });
-        const createdId = typeof result.creatorId === 'string' ? result.creatorId : null;
+        createdId = typeof result.creatorId === 'string' ? result.creatorId : null;
         setEditor(null);
         setNotice('CREATOR CREATED');
-        if (createdId) setSelectedId(createdId);
-      } else {
-        await send(`/ops/api/referrals/${editor.creatorId}`, 'PUT', {
-          displayName: form.displayName,
-          code: form.code,
-          rules,
-        });
-        setEditor(null);
-        setNotice('NEW RULE VERSION SAVED');
+      });
+      if (createdId) {
+        await refresh(createdId);
+        setSelectedId(createdId);
       }
-    }, editor.kind === 'edit' ? editor.creatorId : selectedId);
+      return;
+    }
+    await mutation(async () => {
+      await send(`/ops/api/referrals/${editor.creatorId}`, 'PUT', {
+        displayName: form.displayName,
+        code: form.code,
+        rules,
+      });
+      setEditor(null);
+      setNotice('NEW RULE VERSION SAVED');
+    }, editor.creatorId);
   }
 
   async function toggleActive() {
@@ -321,7 +326,7 @@ export function ReferralsPanel() {
     }
   }
 
-  const payoutBalance = selected?.balances.find((balance) => balance.currency === payoutCurrency) ?? null;
+  const payoutBalance = selected?.balances.find((balance) => balance.currency === effectivePayoutCurrency) ?? null;
   const payoutReady = Boolean(
     payoutBalance?.payoutReady
     && payoutMethod
@@ -374,7 +379,6 @@ export function ReferralsPanel() {
         payoutId: selectedPayout.payoutId,
         reason: settleReason.trim(),
       });
-      setRevealed(null);
       setNotice('PAYOUT MARKED PAID');
     }, selectedId);
   }
@@ -457,7 +461,7 @@ export function ReferralsPanel() {
             <h3>Request payout</h3>
             <p className={styles.privacyFlags}>Only AVAILABLE earnings can be allocated. Destination details are encrypted before storage.</p>
             <div className={styles.twoColumn}>
-              <label>Payout currency<select aria-label="Payout currency" value={payoutCurrency} onChange={(event) => setPayoutCurrency(event.target.value)}>
+              <label>Payout currency<select aria-label="Payout currency" value={effectivePayoutCurrency} onChange={(event) => setPayoutCurrency(event.target.value)}>
                 {selected.balances.length === 0 ? <option value="">NO BALANCE</option> : selected.balances.map((balance) => <option key={balance.currency} value={balance.currency}>{balance.currency}</option>)}
               </select></label>
               <label>Destination type<select value={payoutMethod} onChange={(event) => setPayoutMethod(event.target.value)}>
@@ -475,7 +479,7 @@ export function ReferralsPanel() {
           <section>
             <h3>Payout ledger</h3>
             {creatorPayouts.length === 0 ? <p>NO PAYOUT REQUESTS YET</p> : <>
-              <label>Payout record<select aria-label="Payout record" value={selectedPayout?.payoutId ?? ''} onChange={(event) => { setPayoutId(event.target.value); setRevealed(null); setRevealReason(''); setSettleReason(''); }}>
+              <label>Payout record<select aria-label="Payout record" value={effectivePayoutId} onChange={(event) => { setPayoutId(event.target.value); clearPrivatePayoutView(); }}>
                 {creatorPayouts.map((payout) => <option key={payout.payoutId} value={payout.payoutId}>{payout.status} · {money(payout.requestedAmountMinor, payout.currency)} · {new Date(payout.requestedAt).toLocaleDateString()}</option>)}
               </select></label>
               {selectedPayout ? <div className={styles.revealBox}>
