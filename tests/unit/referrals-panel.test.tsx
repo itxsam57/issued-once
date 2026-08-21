@@ -49,8 +49,8 @@ test('shows safe creator economics and controls while payout plaintext stays hid
   render(<ReferralsPanel />);
 
   expect(await screen.findByRole('heading', { name: 'Who is bringing people in.' })).toBeInTheDocument();
-  expect(await screen.findByText('CREATOR-ONE', { exact: true })).toBeInTheDocument();
-  expect(screen.getByText(/available/i)).toBeInTheDocument();
+  expect((await screen.findAllByText('CREATOR-ONE', { exact: true })).length).toBeGreaterThan(0);
+  expect(screen.getByText('AVAILABLE', { exact: true })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'NEW CREATOR' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'EDIT RULES' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'PAUSE CREATOR' })).toBeInTheDocument();
