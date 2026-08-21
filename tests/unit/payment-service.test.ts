@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import type { CheckoutQuoteRepository } from '@/server/checkout/CheckoutService';
+import type { CheckoutQuoteRecord } from '@/server/checkout/CheckoutService';
 import type { CheckoutStateRepository } from '@/server/checkout/CheckoutStartService';
 import type { ContactRepository, OtpChallengeRecord, VerifiedContactRecord } from '@/server/contact/ContactRepository';
 import type { EncryptedPayload } from '@/server/crypto/privatePayload';
@@ -81,10 +81,14 @@ function fixture(options: { contact?: boolean; shipping?: boolean } = {}) {
     id: 'ship-1', experienceId: experience.id, contactId: 'contact-1', countryCode: 'GB', encryptedAddress: encrypted,
     createdAt: now, updatedAt: now,
   };
-  const quotes: CheckoutQuoteRepository = { findById: vi.fn(async (id) => id === 'quote-1' ? ({
-    id, experienceId: experience.id, productSlug: 'tee', variantId: 'tee-m-black', amountMinor: 5400,
+  const quote: CheckoutQuoteRecord = {
+    id: 'quote-1', experienceId: experience.id, productSlug: 'tee', variantId: 'tee-m-black', amountMinor: 5400,
     currency: 'USD', expiresAt: new Date(now.getTime() + 600_000),
-  }) : null) };
+  };
+  const quotes = {
+    findById: vi.fn(async (id: string) => id === quote.id ? quote : null),
+    findLatestByExperienceId: vi.fn(async (experienceId: string) => experienceId === experience.id ? quote : null),
+  };
   const gateway: PaymentGateway = {
     createCheckout: vi.fn(async (input) => ({
       providerReference: 'track-safe-1',
@@ -99,7 +103,7 @@ function fixture(options: { contact?: boolean; shipping?: boolean } = {}) {
     contacts: new MemoryContactRepository(contact), shipping: new MemoryShippingRepository(shipping),
     payments, gateway, checkoutStates: states, now: () => now,
   });
-  return { service, payments, gateway, states };
+  return { service, payments, gateway, states, quotes };
 }
 
 test('will not create a payment without both verified contact and shipping', async () => {
@@ -121,6 +125,19 @@ test('freezes exact amount/currency and moves checkout only after provider sessi
   });
   expect(gateway.createCheckout).toHaveBeenCalledWith(expect.objectContaining({ amountMinor: 5400, currency: 'USD' }));
   expect(states.advance).toHaveBeenCalledWith(expect.objectContaining({ expectedStage: 'COMMITMENT_READY', nextStage: 'CHECKOUT_STARTED' }));
+});
+
+test('refuses a superseded quote before creating a Safepay attempt', async () => {
+  const { service, payments, gateway, quotes } = fixture();
+  vi.mocked(quotes.findLatestByExperienceId).mockResolvedValue({
+    id: 'quote-2', experienceId: 'exp-pay', productSlug: 'tee', variantId: 'tee-m-black', amountMinor: 4860,
+    currency: 'USD', expiresAt: new Date(now.getTime() + 600_000),
+  });
+
+  await expect(service.start({ sessionToken: token, quoteId: 'quote-1', returnBaseUrl: 'https://issuedonce.shop' }))
+    .rejects.toThrow(/latest quote|superseded/i);
+  expect(payments.attempts.size).toBe(0);
+  expect(gateway.createCheckout).not.toHaveBeenCalled();
 });
 
 test('only a verified provider event with exact money truth can mark the attempt paid and duplicate events preserve payment identity for recovery', async () => {
