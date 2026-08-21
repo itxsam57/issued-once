@@ -84,7 +84,7 @@ test('four public merchant routes explain the real purchase and remedy contract 
   const store = render(await StoreInfoPage());
   expect(screen.getByRole('heading', { name: /What you are actually buying/i })).toBeInTheDocument();
   expect(screen.getByText(/seven answers/i)).toBeInTheDocument();
-  expect(screen.getByText(/final artwork/i)).toBeInTheDocument();
+  expect(screen.getAllByText(/final artwork/i).length).toBeGreaterThanOrEqual(1);
   expect(screen.getByText(/\$54\.00/)).toBeInTheDocument();
   store.unmount();
 
