@@ -6,15 +6,24 @@ export type DesignQueueSource = 'AUTOMATIC' | 'OWNER_REGENERATE' | 'OWNER_REINTE
 
 export async function enqueueDesignIssue(
   issueId: string,
-  options: { mode?: DesignQueueMode; generationKey?: string; source?: DesignQueueSource } = {},
+  options: {
+    mode?: DesignQueueMode;
+    generationKey?: string;
+    source?: DesignQueueSource;
+    feedback?: string;
+  } = {},
 ) {
   const mode = options.mode ?? 'reinterpret';
   const generationKey = options.generationKey ?? 'initial';
   const source = options.source ?? 'AUTOMATIC';
+  const feedback = options.feedback?.trim();
+  const message = feedback
+    ? { issueId, mode, generationKey, source, feedback }
+    : { issueId, mode, generationKey, source };
   try {
     return await send(
       DESIGN_QUEUE_TOPIC,
-      { issueId, mode, generationKey, source },
+      message,
       {
         idempotencyKey: `design:${issueId}:${generationKey}`,
         retentionSeconds: 7 * 24 * 60 * 60,
