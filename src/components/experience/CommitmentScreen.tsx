@@ -70,7 +70,7 @@ export function CommitmentScreen({
 }: CommitmentScreenProps) {
   const [currentQuote, setCurrentQuote] = useState<CommitmentQuote>(quote);
   const [referralCode, setReferralCode] = useState('');
-  const [referralPending, setReferralPending] = useState(false);
+  const [referralPending, setReferralPending] = useState(Boolean(onApplyReferral));
   const [referralState, setReferralState] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -96,7 +96,6 @@ export function CommitmentScreen({
     }
 
     let active = true;
-    setReferralPending(true);
     void request.promise
       .then((result) => {
         if (!active || !result.applied) return;
