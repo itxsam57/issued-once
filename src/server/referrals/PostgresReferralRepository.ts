@@ -2,9 +2,13 @@ import type { SqlExecutor } from '@/server/experience/PostgresExperienceReposito
 import type {
   ActiveReferralRuleRecord,
   CreateReferralAttributionInput,
+  CreateReferralConversionInput,
+  CreateReferralConversionResult,
   CreateReferralCreatorInput,
   CreateReferralPayoutRequestInput,
+  PaidReferralTruth,
   ReferralAttributionRecord,
+  ReferralConversionIdentity,
   ReferralRepository,
 } from './ReferralRepository';
 import type { ReferralRules } from './ReferralPolicy';
@@ -46,6 +50,24 @@ type AttributionRow = RuleRow & {
   expires_at: Date | string;
 };
 
+type PaidReferralTruthRow = {
+  payment_attempt_id: string;
+  creator_id: string;
+  rule_version_id: string;
+  gross_amount_minor: number | string;
+  discount_amount_minor: number | string;
+  paid_amount_minor: number | string;
+  currency: string;
+  rule_snapshot: unknown;
+};
+
+type ConversionIdentityRow = {
+  id: string;
+  creator_id: string;
+  reward_amount_minor: number | string;
+  currency: string;
+};
+
 function referralValue(
   mode: 'PERCENT' | 'FIXED',
   basisPoints: number | null,
@@ -70,6 +92,15 @@ function toRule(row: RuleRow): ActiveReferralRuleRecord {
       payoutThresholdMinor: row.payout_threshold_minor === null ? null : Number(row.payout_threshold_minor),
       attributionWindowDays: Number(row.attribution_window_days),
     }),
+  };
+}
+
+function conversionIdentity(row: ConversionIdentityRow): ReferralConversionIdentity {
+  return {
+    id: row.id,
+    creatorId: row.creator_id,
+    rewardAmountMinor: Number(row.reward_amount_minor),
+    currency: row.currency,
   };
 }
 
@@ -244,5 +275,110 @@ export class PostgresReferralRepository implements ReferralRepository {
       createdAt: row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
       expiresAt: row.expires_at instanceof Date ? row.expires_at : new Date(row.expires_at),
     };
+  }
+
+  async loadPaidReferralTruth(paymentAttemptId: string): Promise<PaidReferralTruth | null> {
+    const rows = await this.sql.query<PaidReferralTruthRow>(
+      `
+        SELECT
+          payment.id AS payment_attempt_id,
+          quote.referral_creator_id AS creator_id,
+          quote.referral_rule_version_id AS rule_version_id,
+          quote.gross_amount_minor,
+          quote.discount_amount_minor,
+          payment.amount_minor AS paid_amount_minor,
+          payment.currency,
+          quote.referral_rule_snapshot AS rule_snapshot
+        FROM payment_attempts payment
+        JOIN checkout_quotes quote
+          ON quote.id = payment.quote_id
+         AND quote.experience_id = payment.experience_id
+        JOIN referral_attributions attribution
+          ON attribution.id = quote.referral_attribution_id
+         AND attribution.creator_id = quote.referral_creator_id
+         AND attribution.rule_version_id = quote.referral_rule_version_id
+        JOIN referral_rule_versions rule_version
+          ON rule_version.id = quote.referral_rule_version_id
+         AND rule_version.creator_id = quote.referral_creator_id
+        WHERE payment.id = $1
+          AND payment.provider = 'SAFEPAY'
+          AND payment.status = 'PAID'
+          AND quote.referral_creator_id IS NOT NULL
+          AND quote.referral_rule_version_id IS NOT NULL
+          AND quote.referral_rule_snapshot IS NOT NULL
+          AND quote.discount_amount_minor > 0
+          AND payment.amount_minor = quote.amount_minor
+          AND payment.currency = quote.currency
+        LIMIT 1
+      `,
+      [paymentAttemptId],
+    );
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      paymentAttemptId: row.payment_attempt_id,
+      creatorId: row.creator_id,
+      ruleVersionId: row.rule_version_id,
+      grossAmountMinor: Number(row.gross_amount_minor),
+      discountAmountMinor: Number(row.discount_amount_minor),
+      paidAmountMinor: Number(row.paid_amount_minor),
+      currency: row.currency,
+      ruleSnapshot: row.rule_snapshot,
+    };
+  }
+
+  private async findConversionByPaymentAttemptId(
+    paymentAttemptId: string,
+  ): Promise<ReferralConversionIdentity | null> {
+    const rows = await this.sql.query<ConversionIdentityRow>(
+      `
+        SELECT id, creator_id, reward_amount_minor, currency
+        FROM referral_conversions
+        WHERE payment_attempt_id = $1
+        LIMIT 1
+      `,
+      [paymentAttemptId],
+    );
+    return rows[0] ? conversionIdentity(rows[0]) : null;
+  }
+
+  async createConversion(input: CreateReferralConversionInput): Promise<CreateReferralConversionResult> {
+    const existing = await this.findConversionByPaymentAttemptId(input.paymentAttemptId);
+    if (existing) return { kind: 'duplicate', conversion: existing };
+
+    const rows = await this.sql.query<ConversionIdentityRow>(
+      `
+        INSERT INTO referral_conversions (
+          id, creator_id, rule_version_id, payment_attempt_id, issue_id,
+          gross_amount_minor, discount_amount_minor, paid_amount_minor, reward_amount_minor,
+          currency, rule_snapshot, state, converted_at, updated_at
+        ) VALUES (
+          $1::uuid, $2::uuid, $3::uuid, $4, $5::uuid,
+          $6, $7, $8, $9,
+          $10, $11::jsonb, 'PENDING', $12, $12
+        )
+        ON CONFLICT (payment_attempt_id) DO NOTHING
+        RETURNING id, creator_id, reward_amount_minor, currency
+      `,
+      [
+        input.id,
+        input.creatorId,
+        input.ruleVersionId,
+        input.paymentAttemptId,
+        input.issueId,
+        input.grossAmountMinor,
+        input.discountAmountMinor,
+        input.paidAmountMinor,
+        input.rewardAmountMinor,
+        input.currency,
+        JSON.stringify(input.ruleSnapshot),
+        input.convertedAt,
+      ],
+    );
+    if (rows[0]) return { kind: 'created', conversion: conversionIdentity(rows[0]) };
+
+    const raced = await this.findConversionByPaymentAttemptId(input.paymentAttemptId);
+    if (!raced) throw new Error('Referral conversion conflict could not be resolved');
+    return { kind: 'duplicate', conversion: raced };
   }
 }
