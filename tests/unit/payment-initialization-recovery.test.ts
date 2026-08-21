@@ -9,6 +9,10 @@ const experience = {
   id: 'exp-1', publicSessionHash: hashSessionToken(sessionToken), stage: 'COMMITMENT_READY' as const, hookId: null,
   createdAt: new Date(), updatedAt: new Date(), expiresAt: new Date(Date.now() + 3_600_000),
 };
+const quote = {
+  id: 'quote-1', experienceId: 'exp-1', productSlug: 'tee', variantId: 't1', amountMinor: 5400,
+  currency: 'USD', expiresAt: new Date(Date.now() + 3_600_000),
+};
 
 class Repository implements PaymentRepository {
   attempt: PaymentAttemptRecord | null = null;
@@ -35,7 +39,10 @@ class Repository implements PaymentRepository {
 function build(repository: Repository, createCheckout: PaymentGateway['createCheckout']) {
   return new PaymentService({
     experiences: { findBySessionHash: vi.fn(async () => experience) },
-    quotes: { findById: vi.fn(async () => ({ id: 'quote-1', experienceId: 'exp-1', productSlug: 'tee', variantId: 't1', amountMinor: 5400, currency: 'USD', expiresAt: new Date(Date.now() + 3_600_000) })) },
+    quotes: {
+      findById: vi.fn(async () => quote),
+      findLatestByExperienceId: vi.fn(async () => quote),
+    },
     contacts: { findVerifiedByExperienceId: vi.fn(async () => ({ id: 'contact-1', experienceId: 'exp-1' })) } as never,
     shipping: { findByExperienceId: vi.fn(async () => ({ id: 'ship-1', experienceId: 'exp-1', contactId: 'contact-1' })) } as never,
     payments: repository,
