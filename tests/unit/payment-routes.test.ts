@@ -8,6 +8,7 @@ const {
   enqueueIssueNotificationMock,
   createReferralConversionServiceMock,
   recordPaidReferralMock,
+  reverseRefundedReferralMock,
   enqueueReferralNotificationMock,
 } = vi.hoisted(() => ({
   cookiesMock: vi.fn(),
@@ -17,6 +18,7 @@ const {
   enqueueIssueNotificationMock: vi.fn(),
   createReferralConversionServiceMock: vi.fn(),
   recordPaidReferralMock: vi.fn(),
+  reverseRefundedReferralMock: vi.fn(),
   enqueueReferralNotificationMock: vi.fn(),
 }));
 
@@ -62,7 +64,11 @@ beforeEach(() => {
   dispatchPaidIssueDesignMock.mockResolvedValue({ mode: 'HYBRID', queued: true, policyVersion: 1 });
   enqueueIssueNotificationMock.mockResolvedValue({ messageId: 'notification-message' });
   recordPaidReferralMock.mockResolvedValue({ kind: 'not-referred' });
-  createReferralConversionServiceMock.mockReturnValue({ recordPaidAttempt: recordPaidReferralMock });
+  reverseRefundedReferralMock.mockResolvedValue({ kind: 'not-referred' });
+  createReferralConversionServiceMock.mockReturnValue({
+    recordPaidAttempt: recordPaidReferralMock,
+    reverseRefundedAttempt: reverseRefundedReferralMock,
+  });
   enqueueReferralNotificationMock.mockResolvedValue({ messageId: 'referral-notification-message' });
 });
 
@@ -155,9 +161,17 @@ test('non-referred paid truth continues normal Issue flow without creator notifi
   expect(dispatchPaidIssueDesignMock).toHaveBeenCalledWith(issueId);
 });
 
-test('signed refund flags the canonical Issue and never dispatches new design work', async () => {
+test('signed refund flags the canonical Issue, reverses referral reward, and queues privacy-safe reversal notice', async () => {
   createPaymentServiceMock.mockReturnValue({
     handleWebhook: vi.fn().mockResolvedValue({ kind: 'refunded', paymentAttemptId: 'attempt-1' }),
+  });
+  reverseRefundedReferralMock.mockResolvedValue({
+    kind: 'updated',
+    conversionId,
+    creatorId: '33333333-3333-4333-8333-333333333333',
+    rewardAmountMinor: 972,
+    currency: 'USD',
+    state: 'REVERSED',
   });
   const issueService = createIssueServiceMock();
   const response = await safepayWebhook(new Request('https://issuedonce.shop/api/webhooks/safepay', {
@@ -166,9 +180,33 @@ test('signed refund flags the canonical Issue and never dispatches new design wo
 
   expect(response.status).toBe(200);
   expect(issueService.flagPaymentException).toHaveBeenCalledWith('attempt-1', 'PAYMENT_REFUNDED');
+  expect(reverseRefundedReferralMock).toHaveBeenCalledWith('attempt-1');
+  expect(enqueueReferralNotificationMock).toHaveBeenCalledWith(conversionId, 'REVERSAL');
   expect(recordPaidReferralMock).not.toHaveBeenCalled();
   expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
   expect(enqueueIssueNotificationMock).not.toHaveBeenCalledWith(expect.anything(), 'PAYMENT_RECEIVED');
+});
+
+test('replayed signed refund can recover reversal notification without a second ledger reversal', async () => {
+  createPaymentServiceMock.mockReturnValue({
+    handleWebhook: vi.fn().mockResolvedValue({ kind: 'refunded', paymentAttemptId: 'attempt-1' }),
+  });
+  reverseRefundedReferralMock.mockResolvedValue({
+    kind: 'duplicate',
+    conversionId,
+    creatorId: '33333333-3333-4333-8333-333333333333',
+    rewardAmountMinor: 972,
+    currency: 'USD',
+    state: 'REVERSED',
+  });
+
+  const response = await safepayWebhook(new Request('https://issuedonce.shop/api/webhooks/safepay', {
+    method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'abc' },
+  }));
+
+  expect(response.status).toBe(200);
+  expect(reverseRefundedReferralMock).toHaveBeenCalledWith('attempt-1');
+  expect(enqueueReferralNotificationMock).toHaveBeenCalledWith(conversionId, 'REVERSAL');
 });
 
 test('provider money exception flags an existing Issue instead of starting downstream work', async () => {
@@ -183,6 +221,7 @@ test('provider money exception flags an existing Issue instead of starting downs
   expect(response.status).toBe(200);
   expect(issueService.flagPaymentException).toHaveBeenCalledWith('attempt-1', 'PAYMENT_EXCEPTION');
   expect(recordPaidReferralMock).not.toHaveBeenCalled();
+  expect(reverseRefundedReferralMock).not.toHaveBeenCalled();
   expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
 });
 
@@ -195,6 +234,7 @@ test('invalid authenticated webhook evidence is rejected and never triggers down
   }));
   expect(response.status).toBe(401);
   expect(recordPaidReferralMock).not.toHaveBeenCalled();
+  expect(reverseRefundedReferralMock).not.toHaveBeenCalled();
   expect(enqueueReferralNotificationMock).not.toHaveBeenCalled();
   expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
   expect(enqueueIssueNotificationMock).not.toHaveBeenCalled();
