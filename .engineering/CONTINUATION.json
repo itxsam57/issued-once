@@ -5,15 +5,21 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "dcc5a2c266eeca69852b475a54cf53358ac85670",
-    "latestApplicationHead": "dcc5a2c266eeca69852b475a54cf53358ac85670",
+    "verifiedApplicationCandidate": "00c1eb7db12a2105ca2b4162edd5e479b82ee7ac",
+    "latestApplicationHead": "00c1eb7db12a2105ca2b4162edd5e479b82ee7ac",
     "repositoryMigrationHead": "0029_creator_referrals.sql",
     "productionMigrationHead": "0028_design_controls.sql"
   },
   "continuationGovernor": {
     "state": "CONTINUE",
-    "decision": "REFERRAL_TASK2_COMPLETE_BEGIN_TASK3_SIGNED_PAID_CONVERSION_REWARD_AND_CREATOR_NOTIFICATION_TDD",
-    "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
+    "decision": "REFERRAL_TASKS_1_TO_5_COMPLETE_BEGIN_MERCHANT_TASK1_PUBLIC_MERCHANT_SURFACE_TDD",
+    "allowedStopStates": [
+      "OWNER_REQUIRED",
+      "BLOCKED",
+      "WAIT_EXTERNAL",
+      "LOOP_DETECTED",
+      "COMPLETE"
+    ],
     "stopReason": null
   },
   "engineeringFactory": {
@@ -27,6 +33,7 @@
       "Browser redirect is never payment truth",
       "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
       "Never fabricate merchant domicile or provider evidence",
+      "Never apply production database migrations without exact owner approval",
       "Never allow manufacturing production without the independent kill switch, owner authorization, typed Issue confirmation, fresh eligibility reload, Printful file readiness and exact pending confirmation"
     ]
   },
@@ -66,41 +73,51 @@
   },
   "finalProductScope": {
     "referrals": {
-      "status": "TASK2_COMPLETE_TASK3_PAID_CONVERSION_ACTIVE",
+      "status": "TASKS_1_TO_5_COMPLETE_CODE_UI_BROWSER_GREEN_PRODUCTION_MIGRATION_PENDING",
       "specCommit": "46cd5e1514e8b653020864acfa2f7927a5de96b3",
       "planCommit": "253e15c0bb571c27cdcbd9e24125cf7ac2051755",
       "migration": "0029_creator_referrals.sql",
       "task1": {
-        "policyValidation": true,
-        "uniqueNormalizedCodes": true,
+        "schemaRepositoryPolicy": true,
         "encryptedCreatorEmail": true,
         "encryptedPayoutDetails": true,
         "immutableRuleVersions": true,
-        "quoteSnapshotColumns": true,
-        "oneConversionPerPaymentConstraint": true,
-        "rewardLifecycleConstraint": true,
-        "onePayoutAllocationPerConversionConstraint": true,
+        "quoteAndConversionConstraints": true,
         "isolatedNeonProof": true,
         "productionApplied": false
       },
       "task2": {
         "signedOpaqueAttributionToken": true,
         "tamperAndExpiryRejection": true,
-        "explicitCodeOverrideCore": true,
-        "selfReferralHashGuardCore": true,
-        "immutableReplacementQuoteCore": true,
+        "explicitCodeOverride": true,
+        "selfReferralHashGuard": true,
+        "immutableReplacementQuote": true,
         "latestQuoteSafepayGuard": true,
-        "migrationFirstCompatibilityTrigger": true,
-        "revisedIsolatedNeonProof": true,
-        "publicRoutes": true,
-        "secureOpaqueCookie": true,
-        "commitmentUi": true,
-        "grossDiscountFinalLedger": true,
-        "automaticLinkAttribution": true,
-        "manualCodeReplacement": true,
-        "strictModeUnavailableReferralRecovery": true,
-        "desktopMobileReplacementBrowserProof": true,
+        "publicRoutesAndCommitmentUi": true,
+        "desktopMobileBrowserProof": true,
         "productionApplied": false
+      },
+      "task3": {
+        "signedPaidConversion": true,
+        "frozenQuoteRewardSnapshot": true,
+        "percentageAndFixedRewardRules": true,
+        "idempotentConversionReservation": true,
+        "creatorSaleNotificationNoBuyerPii": true
+      },
+      "task4": {
+        "deliveredToAvailable": true,
+        "signedRefundToReversed": true,
+        "idempotentLifecycle": true
+      },
+      "task5": {
+        "ownerOsCreators": true,
+        "createEditPauseResume": true,
+        "immutableRuleVersionEditing": true,
+        "safeBalancesLedger": true,
+        "encryptedPayoutRequest": true,
+        "reasonGatedPayoutReveal": true,
+        "availableOnlySettlement": true,
+        "desktopMobileOwnerOsProof": true
       }
     },
     "designControl": {
@@ -110,49 +127,50 @@
       "factoryConfirmationIndependentKillSwitchMandatory": true
     },
     "merchantLaunch": {
-      "status": "OWNER_APPROVED_LOCKED_NOT_YET_IMPLEMENTED",
+      "status": "OWNER_APPROVED_TASK1_PUBLIC_MERCHANT_SURFACE_ACTIVE",
       "specCommit": "a877acef212d707ec568f3f7fe881af57640f3e5",
       "planCommit": "4e5abc08d5753a2558f7c941ca1ccaac4395a574",
-      "requiredPublicRoutes": ["/store-info", "/contact", "/terms", "/returns"],
+      "requiredPublicRoutes": [
+        "/store-info",
+        "/contact",
+        "/terms",
+        "/returns"
+      ],
       "truthfulMerchantIdentityRequired": true,
+      "merchantReadinessFailClosedRequired": true,
       "quickProductPriceControl": true
     }
   },
   "verification": {
+    "referralsFinal": {
+      "head": "00c1eb7db12a2105ca2b4162edd5e479b82ee7ac",
+      "ciRun": 32489775020,
+      "ciJob": 96794447030,
+      "ciConclusion": "SUCCESS",
+      "unitTestFiles": 142,
+      "unitTests": 366,
+      "typecheck": "PASSED",
+      "lint": "PASSED_WITH_44_WARNINGS_0_ERRORS",
+      "productionBuild": "PASSED",
+      "browserRun": 32489775024,
+      "browserJob": 96794447032,
+      "browserConclusion": "SUCCESS",
+      "browserTests": 20,
+      "desktopOwnerOsReferrals": "PASSED",
+      "mobileOwnerOsReferrals": "PASSED",
+      "desktopReferralReplacement": "PASSED",
+      "mobileReferralReplacement": "PASSED",
+      "liveProductionJourney": "PASSED_TO_REAL_OTP_WITHOUT_PAYMENT_OR_MANUFACTURING_SIDE_EFFECTS",
+      "visualEvidenceArtifactId": 9449306825,
+      "visualEvidenceDigest": "sha256:97c2e12b3a7852e15913f4196dba2d4cb6fd63a605d330d599d6183822467e9b",
+      "productionDatabaseUntouched": true
+    },
     "referralTask2Final": {
       "head": "dcc5a2c266eeca69852b475a54cf53358ac85670",
       "ciRun": 32479643621,
       "ciConclusion": "SUCCESS",
-      "unitTestFiles": 134,
-      "unitTests": 334,
-      "typecheck": "PASSED",
-      "lint": "PASSED",
-      "productionBuild": "PASSED",
       "browserRun": 32479643630,
       "browserConclusion": "SUCCESS",
-      "browserTests": 20,
-      "desktopReferralReplacement": "PASSED_PREVIOUS_FINAL_TASK2_BROWSER_PROOF",
-      "mobileReferralReplacement": "PASSED_PREVIOUS_FINAL_TASK2_BROWSER_PROOF",
-      "replacementQuotePaymentProof": "quote-link-e2e -> quote-code-e2e -> Safepay request uses quote-code-e2e",
-      "liveProductionJourney": "PASSED_TO_REAL_OTP_WITHOUT_PAYMENT_OR_MANUFACTURING_SIDE_EFFECTS",
-      "visualEvidenceArtifactId": 9445497911,
-      "strictModeRegressionClosed": true,
-      "strictModeLintHardening": "PASSED",
-      "revised0029NeonProof": "SUCCESS",
-      "productionDatabaseUntouched": true
-    },
-    "referralTask2Safety": {
-      "head": "438f260a26b83132085034ca5c458a900abb81fb",
-      "ciRun": 32476432853,
-      "ciConclusion": "SUCCESS",
-      "unitTestFiles": 132,
-      "unitTests": 326,
-      "typecheck": "PASSED",
-      "lint": "PASSED",
-      "productionBuild": "PASSED",
-      "browserRun": 32476432817,
-      "browserConclusion": "SUCCESS",
-      "liveProductionJourney": "PASSED",
       "revised0029NeonProof": "SUCCESS",
       "productionDatabaseUntouched": true
     },
@@ -186,33 +204,24 @@
     "printfulProduction": "DISABLED"
   },
   "resolvedDuringCurrentCycle": [
-    "Signed opaque referral attribution token and server-side referral quote resolution implemented",
-    "Public /r code capture and /api/referrals/apply routes are complete with secure opaque attribution cookie",
-    "Explicit referral code can replace prior link attribution without stacking discounts",
-    "Self-referral guard uses verified customer email hash against creator email hash",
-    "Referral discounts create new immutable quote snapshots instead of mutating previous quotes",
-    "Safepay payment start rejects superseded quote IDs before creating a payment attempt",
-    "Commitment UI applies captured attribution, permits manual replacement, and renders gross referral discount and final payable ledger",
-    "React Strict Mode automatic-referral pending lock reproduced with RED unit test and fixed at root without duplicate attribution requests",
-    "Strict Mode fix hardened to satisfy react-hooks set-state-in-effect without changing commercial behavior",
-    "Desktop and mobile Playwright prove captured referral replacement and Safepay receives only the replacement quote ID",
-    "0029 preserves old application quote inserts during migration-first rollout via compatibility trigger",
-    "Revised 0029 passed isolated Neon proof including legacy writer insert and positive referral snapshot",
-    "Production database independently confirmed untouched and still through 0028",
-    "Task2 final hardening CI Browser QA build and live customer smoke passed at dcc5a2c266eeca69852b475a54cf53358ac85670"
+    "Referral Tasks 3 and 4 completed: authenticated PAID conversion/reward/creator notification and delivered/refund reward lifecycle are idempotent",
+    "Referral Task 5 completed: Owner OS creator management, immutable rule versions, encrypted payout requests, audited payout reveal and AVAILABLE-only settlement",
+    "Referrals became a first-class Owner OS room with creator economics and safe balances while normal payloads exclude creator email and payout plaintext",
+    "Owner OS browser harness strict selector ambiguity was fixed without changing product behavior",
+    "Accidentally truncated browser harness was restored exactly and reverified before any release claim",
+    "Final referrals candidate 00c1eb7 passed 142 test files, 366 tests, typecheck, lint, production build and 20 desktop/mobile Playwright tests",
+    "Live issuedonce.shop smoke reached real OTP on the final referrals candidate without payment or manufacturing side effects",
+    "Production database remains through 0028 and referral migration 0029 remains unapplied"
   ],
   "nextActions": [
-    "TDD signed-PAID referral conversion using persisted PAID payment truth and frozen referral quote snapshot",
-    "Make creator percentage reward derive from final authenticated paid amount while fixed reward remains exact configured snapshot",
-    "Make conversion and SALE notification reservation idempotent across Safepay replay and crash recovery",
-    "Send creator sale notification with reward and balances only and no buyer PII",
-    "Implement delivered-to-AVAILABLE and signed-refund-to-REVERSED lifecycle exactly once",
-    "Implement encrypted payout requests and Owner OS Referrals management",
-    "Implement merchant public pages readiness and quick product pricing control",
+    "TDD Merchant Task 1 public merchant identity and /store-info /contact /terms /returns pages with homepage and commitment links",
+    "TDD Merchant Task 2 merchant disclosure readiness gate that fails sandbox readiness closed when required public identity is missing",
+    "TDD Merchant Task 3 one-action TEE HAT TOTE future-sale price publishing through the canonical catalog publication service",
     "Clean non-blocking lint warnings before final release gate",
-    "Run Safepay sandbox checkout and signed webhook truth cycle",
+    "Run Safepay sandbox checkout and signed webhook truth cycle after owner/provider configuration",
     "Run OpenAI Blob Queue live design proof including manual fallback and owner QC",
     "Run Printful unconfirmed draft and signed fulfillment proof with production confirmation disabled",
+    "Apply referral migration 0029 to production only after exact owner approval for that release action",
     "Run final full code UI UX live production audit and only then promote PR 3"
   ],
   "nextOwnerAction": null
