@@ -63,7 +63,7 @@ export default function Home() {
 
       <footer className={styles.finalFooter}>
         <span>ISSUED ONCE / 2026</span>
-        <nav aria-label="Footer">
+        <nav aria-label="Footer" style={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <a href="#privacy">PRIVACY</a>
           <Link href="/store-info">STORE INFO</Link>
           <Link href="/contact">CONTACT</Link>
