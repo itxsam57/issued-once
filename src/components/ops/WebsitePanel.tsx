@@ -109,7 +109,7 @@ export function WebsitePanel() {
       <div className={styles.panelHead}><div><h2>Retail catalog</h2><p>Changes affect future selections only. Existing quotes and Issues stay frozen.</p></div><button disabled={working} type="button" onClick={() => void run(() => post('/ops/api/website/catalog', catalog))}>PUBLISH CATALOG</button></div>
       {Object.entries(catalog.products).map(([productKey, product]) => <article className={styles.configCard} key={productKey}>
         <h3>{productKey.toUpperCase()} <small>{product.slug}</small></h3>
-        <div className={styles.questionRow}>
+        <div className={`${styles.questionRow} ${styles.quickPriceRow}`}>
           <div><strong>QUICK PRICE</strong><small>One price for every currently sellable {productKey.toUpperCase()} variant. Currency: {catalog.currency}.</small></div>
           <label>{catalog.currency} <input aria-label={`${productKey.toUpperCase()} quick price`} inputMode="decimal" value={quickPrices[productKey] ?? ''} placeholder="mixed" onChange={(event) => setQuickPrices((current) => ({ ...current, [productKey]: event.target.value }))} /></label>
           <button disabled={working} type="button" onClick={() => void publishQuickPrice(productKey)}>PUBLISH {productKey.toUpperCase()} PRICE</button>
