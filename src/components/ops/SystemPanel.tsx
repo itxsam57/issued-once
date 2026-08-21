@@ -30,7 +30,7 @@ export function SystemPanel() {
     {!data ? <p>CHECKING SYSTEM</p> : <>
       <p className={styles.systemSignal}>{data.readyForProduction ? 'PRODUCTION READY' : data.readyForSandbox ? 'SANDBOX READY' : 'NOT READY'} / {new Date(data.checkedAt).toLocaleString()}</p>
       <div className={styles.systemGrid}>{data.checks.map((check) => <article key={check.key} data-state={check.state}><div><strong>{check.label}</strong><b>{check.state.toUpperCase()}</b></div><p>{check.detail}</p></article>)}</div>
-      <p className={styles.privacyFlags}>Production never turns green from configuration alone. Signed payment, mail, queue, artwork, factory and delivery evidence still govern launch.</p>
+      <p className={styles.privacyFlags}>Production never turns green from configuration alone. Public merchant disclosure plus signed payment, mail, queue, artwork, factory and delivery evidence still govern launch.</p>
     </>}
   </div>;
 }
