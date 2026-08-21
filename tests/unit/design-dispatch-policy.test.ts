@@ -8,6 +8,7 @@ const issueId = '11111111-1111-4111-8111-111111111111';
 
 function service(mode: 'AUTO' | 'MANUAL' | 'HYBRID') {
   const enqueue = vi.fn().mockResolvedValue(undefined);
+  const reserveManual = vi.fn().mockResolvedValue(undefined);
   const policies = {
     getEffective: vi.fn().mockResolvedValue({
       globalVersion: 7,
@@ -15,11 +16,16 @@ function service(mode: 'AUTO' | 'MANUAL' | 'HYBRID') {
       policy: { ...DEFAULT_DESIGN_POLICY, mode },
     }),
   };
-  return { service: new DesignDispatchService(policies, { enqueue }), enqueue, policies };
+  return {
+    service: new DesignDispatchService(policies, { enqueue, reserveManual }),
+    enqueue,
+    reserveManual,
+    policies,
+  };
 }
 
-test('MANUAL paid-Issue policy leaves design actionable without enqueueing AI', async () => {
-  const { service: dispatch, enqueue, policies } = service('MANUAL');
+test('MANUAL paid-Issue policy reserves an actionable design without enqueueing AI', async () => {
+  const { service: dispatch, enqueue, reserveManual, policies } = service('MANUAL');
 
   await expect(dispatch.dispatchPaidIssueDesign(issueId)).resolves.toEqual({
     mode: 'MANUAL',
@@ -27,11 +33,13 @@ test('MANUAL paid-Issue policy leaves design actionable without enqueueing AI', 
     policyVersion: 7,
   });
   expect(policies.getEffective).toHaveBeenCalledWith(issueId);
+  expect(reserveManual).toHaveBeenCalledOnce();
+  expect(reserveManual).toHaveBeenCalledWith(issueId);
   expect(enqueue).not.toHaveBeenCalled();
 });
 
-test.each(['AUTO', 'HYBRID'] as const)('%s paid-Issue policy enqueues one design job', async (mode) => {
-  const { service: dispatch, enqueue } = service(mode);
+test.each(['AUTO', 'HYBRID'] as const)('%s paid-Issue policy enqueues one design job without a manual reservation', async (mode) => {
+  const { service: dispatch, enqueue, reserveManual } = service(mode);
 
   await expect(dispatch.dispatchPaidIssueDesign(issueId)).resolves.toEqual({
     mode,
@@ -40,4 +48,5 @@ test.each(['AUTO', 'HYBRID'] as const)('%s paid-Issue policy enqueues one design
   });
   expect(enqueue).toHaveBeenCalledTimes(1);
   expect(enqueue).toHaveBeenCalledWith(issueId);
+  expect(reserveManual).not.toHaveBeenCalled();
 });
