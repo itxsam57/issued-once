@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type {
   PaidReferralTruth,
+  ReferralLifecycleRepository,
+  ReferralLifecycleTransitionResult,
   ReferralRepository,
 } from './ReferralRepository';
 import type { ReferralRules } from './ReferralPolicy';
@@ -12,7 +14,7 @@ import {
 type ConversionRepository = Pick<
   ReferralRepository,
   'loadPaidReferralTruth' | 'createConversion'
->;
+> & Partial<ReferralLifecycleRepository>;
 
 type Dependencies = {
   repository: ConversionRepository;
@@ -33,6 +35,17 @@ export type ReferralPaidConversionOutcome =
       creatorId: string;
       rewardAmountMinor: number;
       currency: string;
+    };
+
+export type ReferralLifecycleOutcome =
+  | { kind: 'not-referred' }
+  | {
+      kind: 'updated' | 'duplicate';
+      conversionId: string;
+      creatorId: string;
+      rewardAmountMinor: number;
+      currency: string;
+      state: 'PENDING' | 'AVAILABLE' | 'REVERSED' | 'PAID_OUT';
     };
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -92,6 +105,18 @@ function validatePaidTruth(truth: PaidReferralTruth): FrozenRuleSnapshot {
   return snapshot;
 }
 
+function lifecycleOutcome(result: ReferralLifecycleTransitionResult): ReferralLifecycleOutcome {
+  if (result.kind === 'not-referred') return result;
+  return {
+    kind: result.kind,
+    conversionId: result.conversion.id,
+    creatorId: result.conversion.creatorId,
+    rewardAmountMinor: result.conversion.rewardAmountMinor,
+    currency: result.conversion.currency,
+    state: result.conversion.state,
+  };
+}
+
 export class ReferralConversionService {
   private readonly now: () => Date;
   private readonly createConversionId: () => string;
@@ -143,5 +168,21 @@ export class ReferralConversionService {
       rewardAmountMinor: result.conversion.rewardAmountMinor,
       currency: result.conversion.currency,
     };
+  }
+
+  async markDeliveredIssue(issueIdInput: string): Promise<ReferralLifecycleOutcome> {
+    const issueId = issueIdInput.trim();
+    if (!issueId) throw new Error('Issue is required for referral reward availability');
+    const transition = this.dependencies.repository.markAvailableByIssueId;
+    if (!transition) throw new Error('Referral lifecycle repository is not configured');
+    return lifecycleOutcome(await transition.call(this.dependencies.repository, issueId, this.now()));
+  }
+
+  async reverseRefundedAttempt(paymentAttemptIdInput: string): Promise<ReferralLifecycleOutcome> {
+    const paymentAttemptId = paymentAttemptIdInput.trim();
+    if (!paymentAttemptId) throw new Error('Payment attempt is required for referral reversal');
+    const transition = this.dependencies.repository.reverseByPaymentAttemptId;
+    if (!transition) throw new Error('Referral lifecycle repository is not configured');
+    return lifecycleOutcome(await transition.call(this.dependencies.repository, paymentAttemptId, this.now()));
   }
 }
