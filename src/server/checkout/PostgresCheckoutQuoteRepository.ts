@@ -6,6 +6,7 @@ import type {
 
 export interface WritableCheckoutQuoteRepository extends CheckoutQuoteRepository {
   create(record: CheckoutQuoteRecord): Promise<void>;
+  findLatestByExperienceId(experienceId: string): Promise<CheckoutQuoteRecord | null>;
 }
 
 type CheckoutQuoteRow = {
@@ -20,6 +21,18 @@ type CheckoutQuoteRow = {
 
 function toDate(value: Date | string): Date {
   return value instanceof Date ? value : new Date(value);
+}
+
+function mapRow(row: CheckoutQuoteRow): CheckoutQuoteRecord {
+  return {
+    id: row.id,
+    experienceId: row.experience_id,
+    productSlug: row.product_slug,
+    variantId: row.variant_id,
+    amountMinor: row.amount_minor,
+    currency: row.currency,
+    expiresAt: toDate(row.expires_at),
+  };
 }
 
 export class PostgresCheckoutQuoteRepository implements WritableCheckoutQuoteRepository {
@@ -69,17 +82,28 @@ export class PostgresCheckoutQuoteRepository implements WritableCheckoutQuoteRep
       [id],
     );
 
-    const row = rows[0];
-    if (!row) return null;
+    return rows[0] ? mapRow(rows[0]) : null;
+  }
 
-    return {
-      id: row.id,
-      experienceId: row.experience_id,
-      productSlug: row.product_slug,
-      variantId: row.variant_id,
-      amountMinor: row.amount_minor,
-      currency: row.currency,
-      expiresAt: toDate(row.expires_at),
-    };
+  async findLatestByExperienceId(experienceId: string): Promise<CheckoutQuoteRecord | null> {
+    const rows = await this.sql.query<CheckoutQuoteRow>(
+      `
+        SELECT
+          id,
+          experience_id,
+          product_slug,
+          variant_id,
+          amount_minor,
+          currency,
+          expires_at
+        FROM checkout_quotes
+        WHERE experience_id = $1
+        ORDER BY created_at DESC, id DESC
+        LIMIT 1
+      `,
+      [experienceId],
+    );
+
+    return rows[0] ? mapRow(rows[0]) : null;
   }
 }
