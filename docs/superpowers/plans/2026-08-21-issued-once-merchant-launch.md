@@ -34,10 +34,10 @@
 - Test: `tests/unit/merchant-pages.test.tsx`
 - Test: `tests/e2e/public-physical-flow.spec.ts`
 
-- [ ] Write failing tests for four public routes, truthful configured identity, canonical price rendering, footer/commitment links, and no fabricated location fallback.
-- [ ] Observe RED.
-- [ ] Implement merchant config reader + pages + restrained navigation.
-- [ ] Run focused unit/browser tests green and commit.
+- [x] Write failing tests for four public routes, truthful configured identity, canonical price rendering, footer/commitment links, and no fabricated location fallback.
+- [x] Observe RED.
+- [x] Implement merchant config reader + pages + restrained navigation.
+- [x] Run focused unit/browser tests green and commit.
 
 ### Task 2: Merchant readiness gate
 
@@ -46,10 +46,10 @@
 - Modify: `tests/unit/readiness-service.test.ts`
 - Modify: `src/components/ops/SystemPanel.tsx`
 
-- [ ] Write failing tests for missing/ready merchant disclosure and sandbox readiness exclusion when disclosure is missing.
-- [ ] Observe RED.
-- [ ] Add readiness check without exposing configured values.
-- [ ] Run focused tests green and commit.
+- [x] Write failing tests for missing/ready merchant disclosure and sandbox readiness exclusion when disclosure is missing.
+- [x] Observe RED.
+- [x] Add readiness check without exposing configured values.
+- [x] Run focused tests green and commit.
 
 ### Task 3: One-action product price publishing
 
@@ -60,10 +60,10 @@
 - Test: `tests/unit/ops-website-config.test.ts`
 - Test: `tests/e2e/owner-os.spec.ts`
 
-- [ ] Write failing tests proving a chosen product price updates all currently sellable variants, leaves other products unchanged, validates integer minor units/currency/mappings, and publishes a new catalog version.
-- [ ] Observe RED.
-- [ ] Implement service/route and `QUICK PRICE` Owner OS control in major units.
-- [ ] Run focused unit/browser tests green and commit.
+- [x] Write failing tests proving a chosen product price updates all currently sellable variants, leaves other products unchanged, validates integer minor units/currency/mappings, and publishes a new catalog version.
+- [x] Observe RED.
+- [x] Implement service/route and `QUICK PRICE` Owner OS control in major units.
+- [x] Run focused unit/browser tests green and commit.
 
 ### Task 4: Final provider readiness and owner gates
 
@@ -78,12 +78,12 @@
 - [ ] Configure/prove OpenAI + Blob + Vercel Queue design flow.
 - [ ] Configure/prove Printful mappings/webhook and one unconfirmed draft while production confirmation remains disabled.
 - [ ] Verify signed fulfillment events.
-- [ ] Update Governor with evidence classes; keep PR draft until every external gate is genuinely green.
+- [ ] Update Governor with provider evidence classes; keep PR draft until every external gate is genuinely green.
 
 ### Task 5: Full release verification
 
-- [ ] Run full unit/typecheck/lint/build suites.
-- [ ] Run full Playwright desktop/mobile suite.
-- [ ] Run live `issuedonce.shop` production smoke.
-- [ ] Verify zero unintended payment/manufacturing side effects before owner deliberately enters provider sandbox cycle.
-- [ ] Update `.engineering/CONTINUATION.json` and PR release state.
+- [x] Run full unit/typecheck/lint/build suites.
+- [x] Run full Playwright desktop/mobile suite.
+- [x] Run live `issuedonce.shop` production smoke.
+- [x] Verify zero unintended payment/manufacturing side effects before owner deliberately enters provider sandbox cycle.
+- [x] Update `.engineering/CONTINUATION.json` and PR release state for the internal-complete / owner-required boundary.
