@@ -5,13 +5,14 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "9605ed3f4666ecf11cb57a2b814c38a7ea53a5da",
-    "latestApplicationHead": "9605ed3f4666ecf11cb57a2b814c38a7ea53a5da",
-    "currentMigrationHead": "0028_design_controls.sql"
+    "verifiedApplicationCandidate": "1fd4eb5b04dbe69da985c68dd326aa47920b0496",
+    "latestApplicationHead": "1fd4eb5b04dbe69da985c68dd326aa47920b0496",
+    "repositoryMigrationHead": "0029_creator_referrals.sql",
+    "productionMigrationHead": "0028_design_controls.sql"
   },
   "continuationGovernor": {
     "state": "CONTINUE",
-    "decision": "DESIGN_CONTROLS_COMPLETE_BEGIN_CREATOR_REFERRAL_SCHEMA_TDD",
+    "decision": "REFERRAL_TASK1_SCHEMA_REPOSITORY_AND_ISOLATED_DB_PROOF_COMPLETE_BEGIN_SIGNED_ATTRIBUTION_TDD",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
     "stopReason": null
   },
@@ -34,12 +35,24 @@
     "databaseName": "neondb",
     "parentBranchId": "br-dawn-cloud-axm880q9",
     "productionState": "MIGRATED_AND_VERIFIED_THROUGH_0028",
-    "latestMigration": {
-      "migrationFile": "0028_design_controls.sql",
+    "productionReferralSchemaPresent": false,
+    "latestRepositoryMigrationProof": {
+      "migrationFile": "0029_creator_referrals.sql",
+      "isolatedBranchName": "proof-0029-creator-referrals-20260821",
+      "isolatedBranchId": "br-autumn-breeze-ax0afwq5",
       "isolatedProof": "GREEN",
-      "productionApplied": true,
-      "productionVerified": true,
-      "temporaryProofBranchDeleted": true
+      "productionApplied": false,
+      "productionVerifiedUntouched": true,
+      "temporaryProofBranchDeleted": true,
+      "referralTables": 7,
+      "inheritedQuotesChecked": 108,
+      "legacySnapshotViolations": 0,
+      "positiveQuoteProof": "GROSS_3200_DISCOUNT_320_FINAL_2880",
+      "negativeConstraintProofs": [
+        "DUPLICATE_NORMALIZED_CODE_REJECTED",
+        "ONE_HUNDRED_PERCENT_DISCOUNT_REJECTED",
+        "DISCOUNT_WITHOUT_COMPLETE_ATTRIBUTION_SNAPSHOT_REJECTED"
+      ]
     },
     "liveEvidence": {
       "questionDefinitions": 70,
@@ -47,34 +60,33 @@
       "contactOtp": "LIVE_PROVEN",
       "shipping": "LIVE_PROVEN_ENCRYPTED",
       "catalogRuntime": "LIVE_PROVEN_AUDITED_BOOT_FALLBACK",
-      "designPolicySchema": "LIVE_PROVEN_PRODUCTION",
-      "paymentAttemptsBeforeSafepay": 0,
-      "issuesBeforeSafepay": 0,
-      "designJobsBeforeSafepay": 0,
-      "manufacturingJobsBeforeSafepay": 0
+      "designPolicySchema": "LIVE_PROVEN_PRODUCTION"
     }
   },
   "finalProductScope": {
     "referrals": {
-      "status": "IMPLEMENTATION_IN_PROGRESS_TASK1_SCHEMA_REPOSITORY_TDD",
+      "status": "TASK1_COMPLETE_TASK2_SIGNED_ATTRIBUTION_AND_FROZEN_DISCOUNT_ACTIVE",
       "specCommit": "46cd5e1514e8b653020864acfa2f7927a5de96b3",
       "planCommit": "253e15c0bb571c27cdcbd9e24125cf7ac2051755",
-      "migrationPlanned": "0029_creator_referrals.sql"
+      "migration": "0029_creator_referrals.sql",
+      "task1": {
+        "policyValidation": true,
+        "uniqueNormalizedCodes": true,
+        "encryptedCreatorEmail": true,
+        "encryptedPayoutDetails": true,
+        "immutableRuleVersions": true,
+        "quoteSnapshotColumns": true,
+        "oneConversionPerPaymentConstraint": true,
+        "rewardLifecycleConstraint": true,
+        "onePayoutAllocationPerConversionConstraint": true,
+        "isolatedNeonProof": true,
+        "productionApplied": false
+      }
     },
     "designControl": {
       "status": "COMPLETE_CODE_UI_BROWSER_PROVIDER_BOUNDARIES_GREEN",
-      "specCommit": "2ff771ba30f130deecbe6eb07e2a14bf901d36d9",
-      "planCommit": "1f1fec3fbdf516ad642d7064ade2f54712294ad7",
-      "globalModes": ["AUTO", "MANUAL", "HYBRID"],
-      "perIssueOverride": true,
-      "answerRevealSafeDefault": "HIDDEN_UNTIL_REVEALED",
-      "manualUpload": true,
-      "manualWithoutOpenAI": true,
-      "rejectFeedback": "QUICK_REASONS_PLUS_CUSTOM_INSTRUCTION_PROPAGATES_TO_NEXT_PRIVATE_DESIGN_PASS",
-      "rejectBehaviorConfigurable": true,
-      "manualUploadApprovalConfigurable": true,
-      "runtimeReadinessVisible": true,
-      "manufacturingHandoff": "APPROVED_ONLY_UNCONFIRMED_DRAFT",
+      "finalHead": "9605ed3f4666ecf11cb57a2b814c38a7ea53a5da",
+      "recoveryDispatch": "POLICY_AWARE_MANUAL_AND_PROVIDER_FALLBACK_HONORED",
       "factoryConfirmationIndependentKillSwitchMandatory": true
     },
     "merchantLaunch": {
@@ -87,6 +99,20 @@
     }
   },
   "verification": {
+    "referralTask1": {
+      "codeHead": "c9694f78eff1b40ec659c71a7dcdf82aafe98446",
+      "ciRun": 32472638264,
+      "ciConclusion": "SUCCESS",
+      "isolatedNeonProof": "SUCCESS",
+      "productionDatabaseUntouched": true
+    },
+    "recoveryPolicySafety": {
+      "head": "1fd4eb5b04dbe69da985c68dd326aa47920b0496",
+      "ciRun": 32473218013,
+      "ciConclusion": "SUCCESS",
+      "browserRun": 32473217994,
+      "browserConclusion": "SUCCESS"
+    },
     "designControl": {
       "finalHead": "9605ed3f4666ecf11cb57a2b814c38a7ea53a5da",
       "feedbackProviderBoundaryGreen": true,
@@ -94,29 +120,8 @@
       "approvedOnlyManufacturingDraftUiGreen": true,
       "browserInteractionProofGreen": true
     },
-    "ci": {
-      "run": 32471866192,
-      "job": 96740139444,
-      "conclusion": "SUCCESS",
-      "unitTestFiles": 128,
-      "unitTests": 312,
-      "typecheck": "PASSED",
-      "lint": "PASSED_WITH_44_WARNINGS_0_ERRORS",
-      "productionBuild": "PASSED"
-    },
-    "browser": {
-      "run": 32471866185,
-      "job": 96740139351,
-      "conclusion": "SUCCESS",
-      "playwrightTests": 18,
-      "desktopAndMobile": "PASSED",
-      "designerControlPlaneInteraction": "PASSED",
-      "liveProductionJourney": "PASSED_TO_REAL_OTP_REQUEST",
-      "paymentSideEffects": "NONE",
-      "manufacturingSideEffects": "NONE"
-    },
     "technicalDebt": {
-      "lintWarnings": 44,
+      "lintWarningsLastCounted": 44,
       "lintErrors": 0,
       "releaseBlocker": false
     }
@@ -131,17 +136,18 @@
     "printfulProduction": "DISABLED"
   },
   "resolvedDuringCurrentCycle": [
-    "Paid design dispatch now obeys AUTO MANUAL HYBRID policy with manual fallback when automation runtime is unavailable",
-    "Owner rejection and custom feedback now propagates deterministically through queue worker service and OpenAI request boundaries",
-    "Designer exposes complete global and per-Issue design policy controls plus runtime readiness",
-    "Designer approved state exposes only safe unconfirmed Printful draft handoff",
-    "Designer control plane is exercised by Playwright on desktop and mobile",
-    "Full CI build browser QA and live issuedonce.shop smoke are green at 9605ed3f4666ecf11cb57a2b814c38a7ea53a5da"
+    "Creator referral schema and repository contract implemented under migration 0029",
+    "0029 proven on isolated Neon child branch and temporary branch deleted",
+    "Production database independently confirmed untouched and still through 0028",
+    "All 108 inherited quote snapshots remained valid after isolated 0029 backfill",
+    "Owner OS payment recovery now obeys the same AUTO MANUAL HYBRID policy and provider fallback dispatcher as signed PAID flow",
+    "Recovery safety change passed full CI Browser QA and live customer smoke"
   ],
   "nextActions": [
-    "TDD referral migration and repository contract for unique codes encrypted creator data immutable rule snapshots conversion/reward states and payout constraints",
-    "Prove 0029_creator_referrals.sql on an isolated Neon branch before any production migration decision",
-    "Implement signed referral attribution and server-side immutable discount quote snapshots",
+    "TDD signed first-party referral attribution cookie and explicit code override before checkout",
+    "Extend quote creation to freeze gross discount final attribution creator and immutable rule snapshot server-side",
+    "Block invalid paused expired and self-referral attribution using verified customer email hash",
+    "Expose gross discount and final price in commitment UI without creator private data",
     "Implement signed-PAID conversion reward notification and idempotent refund lifecycle",
     "Implement encrypted payout requests and Owner OS Referrals management",
     "Implement merchant public pages readiness and quick product pricing control",
