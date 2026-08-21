@@ -37,7 +37,7 @@ export class OpsDesignerService {
     private readonly store: OpsDesignerStore,
     private readonly actions: {
       approve(issueId: string): Promise<unknown>;
-      enqueue(issueId: string, mode: OpsDesignReworkMode, generationKey: string): Promise<unknown>;
+      enqueue(issueId: string, mode: OpsDesignReworkMode, generationKey: string, feedback?: string): Promise<unknown>;
     },
     private readonly audit: Pick<OpsAuditService, 'record'>,
     private readonly policies?: PolicyReader,
@@ -72,7 +72,7 @@ export class OpsDesignerService {
     const reason = input.reason.trim();
     if (!reason || reason.length > 500) throw new Error('A design rework reason is required');
     const prepared = await this.store.prepareRework(input.issueId, input.mode);
-    await this.actions.enqueue(prepared.issueId, prepared.mode, prepared.generationKey);
+    await this.actions.enqueue(prepared.issueId, prepared.mode, prepared.generationKey, reason);
     await this.audit.record({
       actor: 'OWNER',
       action: input.mode === 'regenerate' ? 'DESIGN_REGENERATE' : 'DESIGN_REINTERPRET',
@@ -103,7 +103,7 @@ export class OpsDesignerService {
     }
 
     const prepared = await this.store.prepareRework(input.issueId, next);
-    await this.actions.enqueue(prepared.issueId, prepared.mode, prepared.generationKey);
+    await this.actions.enqueue(prepared.issueId, prepared.mode, prepared.generationKey, reason);
     await this.audit.record({
       actor: 'OWNER', action: 'DESIGN_REJECTED', issueId: input.issueId,
       targetType: 'design_job', targetId: input.issueId, reason,
