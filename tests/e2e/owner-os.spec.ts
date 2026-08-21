@@ -132,7 +132,7 @@ test('Owner OS protects private data and exposes every control-plane room', asyn
   await expect(page.getByText('Audit metadata never stores raw answers, email, phone, address, secrets or decrypted support text.')).toBeVisible();
 });
 
-test('Owner OS quick pricing publishes the chosen future-sale price without touching production providers', async ({ page }) => {
+test('Owner OS quick pricing publishes the chosen future-sale price without touching production providers', async ({ page }, testInfo) => {
   await mockOwnerApis(page);
   await login(page);
   await page.getByRole('button', { name: 'Website', exact: true }).click();
@@ -153,4 +153,5 @@ test('Owner OS quick pricing publishes the chosen future-sale price without touc
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
+  await page.screenshot({ path: `artifacts/visual/16-owner-quick-price-${testInfo.project.name}.png`, fullPage: true });
 });
