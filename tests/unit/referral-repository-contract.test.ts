@@ -44,7 +44,7 @@ describe('ReferralPolicy', () => {
 
 describe('0029 creator referral migration', () => {
   test('locks privacy, immutable quote snapshots, conversion idempotency, reward lifecycle and payout allocation invariants', async () => {
-    const sql = await readFile(new URL('../../db/migrations/0029_creator_referrals.sql', import.meta.url), 'utf8');
+    const sql = await readFile('db/migrations/0029_creator_referrals.sql', 'utf8');
 
     expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS referral_creators/i);
     expect(sql).toMatch(/normalized_code[^\n]+UNIQUE/i);
