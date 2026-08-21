@@ -2,6 +2,7 @@ import { PostgresContactRepository } from '@/server/contact/PostgresContactRepos
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { PostgresExperienceRepository } from '@/server/experience/PostgresExperienceRepository';
 import { ResendCustomerEmailGateway } from '@/server/notifications/ResendCustomerEmailGateway';
+import { PostgresReferralLifecycleRepository } from './PostgresReferralLifecycleRepository';
 import { PostgresReferralQuoteRepository } from './PostgresReferralQuoteRepository';
 import { PostgresReferralRepository } from './PostgresReferralRepository';
 import { ReferralConversionService } from './ReferralConversionService';
@@ -34,8 +35,15 @@ export function createReferralService(): ReferralService {
 
 export function createReferralConversionService(): ReferralConversionService {
   const sql = createNeonSqlExecutor(env('DATABASE_URL'));
+  const referrals = new PostgresReferralRepository(sql);
+  const lifecycle = new PostgresReferralLifecycleRepository(sql);
   return new ReferralConversionService({
-    repository: new PostgresReferralRepository(sql),
+    repository: {
+      loadPaidReferralTruth: (paymentAttemptId) => referrals.loadPaidReferralTruth(paymentAttemptId),
+      createConversion: (input) => referrals.createConversion(input),
+      markAvailableByIssueId: (issueId, at) => lifecycle.markAvailableByIssueId(issueId, at),
+      reverseByPaymentAttemptId: (paymentAttemptId, at) => lifecycle.reverseByPaymentAttemptId(paymentAttemptId, at),
+    },
   });
 }
 
