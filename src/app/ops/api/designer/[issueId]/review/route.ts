@@ -12,7 +12,12 @@ export async function POST(request: Request, context: { params: Promise<{ issueI
     }
     if (body?.decision === 'revise') {
       const result = await createOpsDesignerService().reject({ issueId, reason: body.reason ?? '', next: body.next ?? 'regenerate' });
-      return Response.json({ ok: true, generationKey: result.generationKey });
+      return Response.json({
+        ok: true,
+        queued: result.queued,
+        policyVersion: result.policyVersion,
+        generationKey: 'generationKey' in result ? result.generationKey : null,
+      });
     }
     return Response.json({ error: 'Invalid review decision' }, { status: 400 });
   } catch (error) {
