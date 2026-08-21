@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { expect, test, vi } from 'vitest';
 
 const { hasOpsSessionMock, createManualArtworkUploadServiceMock } = vi.hoisted(() => ({
@@ -22,24 +24,6 @@ function request(file: File, reason = 'manual art direction') {
   return new Request(`https://issuedonce.shop/ops/api/designer/${issueId}/upload`, { method: 'POST', body: form });
 }
 
-test('diagnoses the multipart File boundary used by the route', async () => {
-  const file = new File([new Uint8Array(12000)], 'owner-art.png', { type: 'image/png' });
-  const parsedForm = await request(file).formData();
-  const parsed = parsedForm.get('file');
-  const parsedReason = parsedForm.get('reason');
-  console.error('MANUAL_UPLOAD_MULTIPART_DIAGNOSTIC', JSON.stringify({
-    constructorName: parsed && typeof parsed === 'object' ? parsed.constructor?.name : null,
-    tag: Object.prototype.toString.call(parsed),
-    name: parsed && typeof parsed === 'object' && 'name' in parsed ? parsed.name : null,
-    mimeType: parsed && typeof parsed === 'object' && 'type' in parsed ? parsed.type : null,
-    size: parsed && typeof parsed === 'object' && 'size' in parsed ? parsed.size : null,
-    arrayBuffer: parsed && typeof parsed === 'object' && 'arrayBuffer' in parsed ? typeof parsed.arrayBuffer : null,
-    reasonType: typeof parsedReason,
-    reason: parsedReason,
-  }));
-  expect(parsed).not.toBeNull();
-});
-
 test('requires owner auth before reading or storing manual artwork', async () => {
   hasOpsSessionMock.mockResolvedValue(false);
   const response = await POST(request(new File([new Uint8Array(12000)], 'art.png', { type: 'image/png' })), { params: Promise.resolve({ issueId }) });
@@ -54,7 +38,6 @@ test('passes a bounded PNG and reason to the audited manual-upload service', asy
   const file = new File([new Uint8Array(12000)], 'owner-art.png', { type: 'image/png' });
 
   const response = await POST(request(file), { params: Promise.resolve({ issueId }) });
-  if (response.status !== 200) console.error('MANUAL_UPLOAD_ROUTE_ERROR', response.status, await response.clone().text());
   expect(response.status).toBe(200);
   expect(response.headers.get('cache-control')).toMatch(/no-store/);
   const call = upload.mock.calls[0][0];
@@ -70,7 +53,6 @@ test('rejects oversized files before constructing the upload service', async () 
   hasOpsSessionMock.mockResolvedValue(true);
   const file = new File([new Uint8Array(20 * 1024 * 1024 + 1)], 'huge.png', { type: 'image/png' });
   const response = await POST(request(file), { params: Promise.resolve({ issueId }) });
-  if (response.status !== 413) console.error('MANUAL_UPLOAD_OVERSIZE_ERROR', response.status, await response.clone().text());
   expect(response.status).toBe(413);
   expect(createManualArtworkUploadServiceMock).not.toHaveBeenCalled();
 });
