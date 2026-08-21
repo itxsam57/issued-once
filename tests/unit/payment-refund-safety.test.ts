@@ -42,7 +42,7 @@ test('signed full refund returns the payment identity and changes paid truth to 
   };
   const service = new PaymentService({
     experiences: { findBySessionHash: vi.fn() },
-    quotes: { findById: vi.fn() },
+    quotes: { findById: vi.fn(), findLatestByExperienceId: vi.fn() },
     contacts: { findVerifiedByExperienceId: vi.fn() } as never,
     shipping: { findByExperienceId: vi.fn() } as never,
     payments: repository,
