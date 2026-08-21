@@ -82,7 +82,12 @@ export function createOpsDesignerService() {
     new PostgresOpsDesignerStore(executor),
     {
       approve: (issueId) => createDesignPolicyWorkflowService().afterOwnerApproval(issueId),
-      enqueue: (issueId, mode, generationKey) => enqueueDesignIssue(issueId, { mode, generationKey, source: mode === 'regenerate' ? 'OWNER_REGENERATE' : 'OWNER_REINTERPRET' }),
+      enqueue: (issueId, mode, generationKey, feedback) => enqueueDesignIssue(issueId, {
+        mode,
+        generationKey,
+        source: mode === 'regenerate' ? 'OWNER_REGENERATE' : 'OWNER_REINTERPRET',
+        ...(feedback ? { feedback } : {}),
+      }),
     },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
     new PostgresDesignPolicyRepository(executor),
