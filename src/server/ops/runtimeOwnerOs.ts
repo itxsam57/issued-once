@@ -16,6 +16,7 @@ import { OpsDesignerService } from './OpsDesignerService';
 import { OpsManufacturingService } from './OpsManufacturingService';
 import { OpsPrivateRevealService } from './OpsPrivateRevealService';
 import { OpsRecoveryService } from './OpsRecoveryService';
+import { OpsReferralService } from './OpsReferralService';
 import { OpsSupportService } from './OpsSupportService';
 import { OpsWebsiteService, opsCatalogSchema } from './OpsWebsiteService';
 import { PostgresOpsAttentionRepository } from './PostgresOpsAttentionRepository';
@@ -27,6 +28,7 @@ import { PostgresOpsDesignerStore } from './PostgresOpsDesignerStore';
 import { PostgresOpsIssueDetailRepository } from './PostgresOpsIssueDetailRepository';
 import { PostgresOpsManufacturingStore } from './PostgresOpsManufacturingStore';
 import { PostgresOpsPrivateSource } from './PostgresOpsPrivateSource';
+import { PostgresOpsReferralRepository } from './PostgresOpsReferralRepository';
 import { PostgresOpsSalesRepository } from './PostgresOpsSalesRepository';
 import { PostgresOpsSupportStore } from './PostgresOpsSupportStore';
 import { PostgresOpsWebsiteStore } from './PostgresOpsWebsiteStore';
@@ -115,6 +117,13 @@ export function createOpsManufacturingService() {
 }
 export function createOpsSalesRepository() { return new PostgresOpsSalesRepository(sql()); }
 export function createOpsCustomerRepository() { return new PostgresOpsCustomerRepository(sql()); }
+export function createOpsReferralService() {
+  const executor = sql();
+  return new OpsReferralService({
+    repository: new PostgresOpsReferralRepository(executor),
+    audit: new OpsAuditService(new PostgresOpsAuditRepository(executor)),
+  });
+}
 export function createOpsSupportService() {
   const executor = sql();
   return new OpsSupportService(
