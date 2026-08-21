@@ -52,6 +52,13 @@ async function mockOwnerApis(page: Page) {
       timing: { averageHoursStartToPaid: 0.25, averageHoursPaidToProduction: null, averageHoursProductionToDelivered: null },
       funnel: { started: 1, answered: 1, physical: 1, verified: 1, shipping: 1, checkout: 1, paid: 1 },
     });
+    if (path === '/ops/api/referrals') return json(route, { creators: [{
+      creatorId: '55555555-5555-4555-8555-555555555555', displayName: 'Creator One', code: 'CREATOR-ONE', referralPath: '/r/CREATOR-ONE', active: true,
+      ruleVersion: 2,
+      rules: { customerDiscount: { mode: 'PERCENT', basisPoints: 1000 }, creatorReward: { mode: 'PERCENT', basisPoints: 2000 }, payoutCadence: 'THRESHOLD', payoutThresholdMinor: 2500, attributionWindowDays: 30 },
+      salesCount: 4,
+      balances: [{ currency: 'USD', pendingMinor: 972, availableMinor: 2916, paidOutMinor: 1000, reversedMinor: 500, payoutReady: true }],
+    }] });
     if (path === '/ops/api/customers') return json(route, { items: [{ contactAlias: 'CONTACT A1B2C3D4', issueCount: 1, currency: 'USD', paidMinor: 5400, refundedIssues: 0, activeDeliveries: 0, supportCount: 1, lastSeenAt: '2026-08-19T10:00:00.000Z' }], nextCursor: null });
     if (path === '/ops/api/support') return json(route, { items: [{ requestId: '33333333-3333-3333-3333-333333333333', issueId: ISSUE_ID, issueCode: ISSUE_CODE, issueStatus: 'DESIGN_REVIEW', status: 'OPEN', createdAt: '2026-08-19T10:00:00.000Z', updatedAt: '2026-08-19T10:00:00.000Z', noteCount: 0, failedNotifications: ['PAYMENT_RECEIVED'] }] });
     if (path.startsWith('/ops/api/support/')) return json(route, { queued: true });
@@ -106,6 +113,7 @@ test('Owner OS protects private data and exposes every control-plane room', asyn
 
   const rooms: Array<[string, RegExp]> = [
     ['Sales', /What actually sold/],
+    ['Referrals', /Who is bringing people in/],
     ['Customers', /People, without turning them into profiles/],
     ['Support', /What needs a human/],
     ['Website', /What the next customer can receive/],
@@ -115,6 +123,11 @@ test('Owner OS protects private data and exposes every control-plane room', asyn
   for (const [room, heading] of rooms) {
     await page.getByRole('button', { name: room, exact: true }).click();
     await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+    if (room === 'Referrals') {
+      await expect(page.getByText('CREATOR-ONE', { exact: true })).toBeVisible();
+      await expect(page.getByText(/available/i).first()).toBeVisible();
+      await expect(page.getByText(/creator@example|PK00-PRIVATE/i)).toHaveCount(0);
+    }
   }
   await expect(page.getByText('Audit metadata never stores raw answers, email, phone, address, secrets or decrypted support text.')).toBeVisible();
 });
