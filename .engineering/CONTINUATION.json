@@ -11,9 +11,9 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "PREPAYMENT_RUNTIME_QUEUE_REPLAY_AND_PRINTFUL_CHARGE_SAFETY_GREEN_SAFEPAY_SANDBOX_EXTERNAL_CONFIG_REQUIRED",
+    "decision": "PRINTFUL_SAFETY_GREEN_PUBLIC_MERCHANT_COMPLIANCE_DESIGN_AND_SAFEPAY_SANDBOX_OWNER_ACTION_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The real issuedonce.shop customer journey remains live-proven through encrypted shipping and the application stays fail-closed before payment. Queue replay hardening is green, and the Printful manufacturing boundary has now been hardened with failing-first evidence so an owner confirmation cannot charge while printable artwork is unprocessed, cannot confirm a remote order that is no longer a true draft, cannot accept a 200 confirmation unless the exact provider order reaches pending, and cannot misclassify remote failed/onhold states as a local DRAFT. The final Printful state-policy fix is commit 3c20e8a46e9137abc4694e7cfd9741ef45ca1fe5. CI run 32405563664 and Browser QA run 32405563688 both succeeded, including the live production customer journey. Safepay sandbox credentials and endpoint registration remain the first genuine external owner gate and cannot be completed through the currently available connected tooling."
+    "stopReason": "Application and Printful charge-safety code is green on verified candidate 3c20e8a46e9137abc4694e7cfd9741ef45ca1fe5 with CI run 32405563664 and Browser QA run 32405563688, including the live issuedonce.shop customer journey. A fresh Safepay launch audit found two owner-facing release issues. First, Safepay's March 25 2026 v2 hosted-checkout guide documents /order/payments/v3/, Bearer authorization, integer base units, tracker= checkout URLs, source=hosted and SHA-512 over the raw webhook body, while Safepay's still-current classic SDK family implements the v1 order/v1/init, beacon= checkout and SHA-512 over the serialized data object used by ISSUED ONCE. The v2 guide does not document enough amount/currency/state webhook detail to safely replace the existing fail-closed verifier without real sandbox evidence, so no payment-truth weakening or speculative protocol migration was made. Second, Safepay's March 26 2026 website checklist requires public truthful contact/business-location information, clear goods/pricing description, working terms and a customized returns/refund policy. PR 3 currently has no public contact, terms or returns routes and the homepage footer only links to the in-page privacy note and BEGIN. Implementing the bounded compliance surface requires explicit owner design approval and truthful business address/phone values; no fake foreign domicile may be used. Safepay sandbox credentials and endpoint registration also remain an external owner gate."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -28,6 +28,7 @@
       "Never allow questionnaire answers, email or shipping data to be stored unencrypted",
       "Never allow model output to enter manufacturing without explicit owner approval",
       "Never allow Printful production confirmation without owner auth, kill switch, typed Issue confirmation and last-moment state reload",
+      "Never fabricate merchant domicile, address, phone, legal status or provider evidence",
       "Never call a release gate green when it did not execute"
     ]
   },
@@ -66,22 +67,17 @@
     "commercialReleasePlanCommit": "ac32678a3e4515b520347c24e2cfbb4a30099d43",
     "openaiTransparencyTestRedCommit": "b6aadb83f60fff5e0244b53806045c7a4ee9880c",
     "openaiTransparencyFixHead": "83f67a1c8e01da92d2b906f9e67cba58d2cb6bfa",
-    "openaiTransparencyRedEvidence": "112_EXISTING_TEST_FILES_PASSED_ONLY_2_NEW_ASSERTIONS_FAILED_AS_EXPECTED",
     "readinessAlignmentTestRedCommit": "3677571d7b7c7408956bf5b2a650a1cf40ac19ae",
-    "readinessAlignmentRedEvidence": "112_UNRELATED_TEST_FILES_PASSED_EXACTLY_3_NEW_READINESS_ASSERTIONS_FAILED_AS_EXPECTED",
     "readinessAlignmentFixHead": "e6b5637568f9937a9e2b763a0146bcc1c0475f04",
     "queueReplayTestRedCommit": "ce00b15ae85063c2ea6befe2cb0642b6eb7c8cd1",
-    "queueReplayRedEvidence": "113_EXISTING_TEST_FILES_PASSED_ONLY_2_DUPLICATE_COLLISION_ASSERTIONS_FAILED_REAL_QUEUE_FAILURE_ASSERTION_ALREADY_PASSED",
     "queueReplayFixHead": "64f450f202189f1f69d2c68ff2c9e980cb113e90",
     "printfulFileReadinessTestRedCommit": "f6b96e0ff37e9b3812b8e4abc9ca9e3f30693233",
-    "printfulFileReadinessRedEvidence": "113_UNRELATED_TEST_FILES_PASSED_EXACTLY_4_NEW_PRINTFUL_CHARGE_SAFETY_ASSERTIONS_FAILED",
     "printfulFileReadinessFixHead": "beeb51da12f3d12ca71132fa87ca8eac366b971e",
     "printfulPendingTruthTestRedCommit": "5127429e65ebfa1f1f24f92411c1aa5610008548",
-    "printfulPendingTruthRedEvidence": "113_UNRELATED_TEST_FILES_PASSED_EXACTLY_1_CONFIRMATION_PENDING_ASSERTION_FAILED",
     "printfulPendingTruthFixHead": "9812004b3b0e209b09a5f1fe5471e083f5772d43",
     "printfulRemoteStateTestRedCommit": "ec0d679cd60aaadcb6dd62cecbcd5d2b9669d1f4",
-    "printfulRemoteStateRedEvidence": "113_UNRELATED_TEST_FILES_PASSED_EXACTLY_1_NON_DRAFT_PROVIDER_STATE_ASSERTION_FAILED",
     "printfulRemoteStateFixHead": "3c20e8a46e9137abc4694e7cfd9741ef45ca1fe5",
+    "printfulLatestRedEvidence": "113_UNRELATED_TEST_FILES_PASSED_EXACTLY_1_NON_DRAFT_PROVIDER_STATE_ASSERTION_FAILED",
     "ci": {
       "run": 32405563664,
       "job": 96543714575,
@@ -123,15 +119,15 @@
       "resendOwnerReportsVercelEnvConfigured": true,
       "resendRealDelivery": "LIVE_PROVEN_GMAIL_RECEIPT_2026-08-20T15:24:16Z",
       "resendOtpVerification": "LIVE_PROVEN_OWNER_BROWSER_AND_NEON_VERIFIED_CONTACT_ROW",
-      "safepayProtocol": "HOSTED_CHECKOUT_STANDARD",
-      "safepayWebhookVerificationContract": "HMAC_SHA512_OVER_DATA_OBJECT",
+      "safepayProtocolImplemented": "CLASSIC_HOSTED_CHECKOUT_V1",
+      "safepayClassicSdkVerification": "OFFICIAL_NODE_SDK_STILL_MATCHES_SHA512_OVER_SERIALIZED_DATA_OBJECT_AND_X_SFPY_SIGNATURE",
+      "safepayCurrentV2DocsAudit": "MARCH_25_2026_V2_GUIDE_DIFFERS_ENDPOINT_AUTH_AMOUNT_CHECKOUT_QUERY_AND_RAW_BODY_SIGNATURE; DO_NOT_MIGRATE_PAYMENT_TRUTH_WITHOUT_SANDBOX_PAYLOAD_EVIDENCE",
       "safepaySandboxCycle": "BLOCKED_PENDING_OWNER_SANDBOX_CREDENTIALS_AND_ENDPOINT_SETUP",
       "openaiInterpretationModel": "gpt-5.6-terra",
       "openaiArtworkModelDefault": "gpt-image-1.5",
       "openaiArtworkTransparencyCompatibility": "CODE_TEST_AND_READINESS_PROVEN_NOT_LIVE_PROVIDER_PROVEN",
       "openaiDeployedDesign": "NOT_LIVE_PROVEN",
       "privateBlobSignedRead": "CODE_AND_TEST_PROVEN_NOT_LIVE_PROVIDER_PROVEN",
-      "vercelQueueContract": "CURRENT_QUEUE_V2BETA_SEND_IDEMPOTENCY_RETENTION_AND_HANDLECALLBACK_CONTRACTS_MATCH_SOURCE",
       "vercelQueueReplaySafety": "CODE_AND_TEST_PROVEN_DUPLICATE_MESSAGE_COLLISIONS_ARE_IDEMPOTENT_REAL_FAILURES_RETHROW",
       "vercelQueueConsumers": "CONFIGURED_NOT_LIVE_PROVEN_PROJECT_CONNECTOR_ENUMERATION_EMPTY",
       "printfulWebhookContract": "CURRENT_V2_HEADERS_AND_HMAC_SHA256_RAW_BODY_MATCH_SOURCE",
@@ -140,18 +136,23 @@
       "printfulConfirmTruth": "CODE_AND_TEST_PROVEN_REQUIRES_EXACT_PROVIDER_ORDER_ID_AND_PENDING_RESPONSE",
       "printfulRemoteDraftTruth": "CODE_AND_TEST_PROVEN_ONLY_REMOTE_DRAFT_IS_DRAFT_SAFE_FAILED_ONHOLD_AND_OTHER_STATES_FAIL_CLOSED",
       "printfulProduction": "DISABLED_NOT_RUN"
+    },
+    "publicMerchantCompliance": {
+      "safepayChecklistReviewed": "MARCH_26_2026",
+      "homepageFooter": "ONLY_PRIVACY_ANCHOR_AND_BEGIN",
+      "publicContactRoute": "MISSING",
+      "publicTermsRoute": "MISSING",
+      "publicReturnsRefundRoute": "MISSING",
+      "publicTruthfulBusinessLocation": "OWNER_VALUE_REQUIRED",
+      "publicSupportPhone": "OWNER_VALUE_REQUIRED",
+      "publicGoodsAndPricingDisclosure": "INSUFFICIENT_FOR_CURRENT_SAFEPAY_CHECKLIST",
+      "status": "OWNER_APPROVAL_AND_TRUTHFUL_VALUES_REQUIRED_BEFORE_IMPLEMENTATION_AND_PROVIDER_APPROVAL"
     }
   },
   "physicalCatalog": {
     "bootCatalogSource": "src/server/physical/bootCatalog.ts",
-    "runtimePrecedence": ["ISSUED_ONCE_CATALOG_JSON_EXPLICIT_OVERRIDE", "ACTIVE_NEON_OWNER_OS_CATALOG_VARIANTS", "AUDITED_BOOT_CATALOG_FALLBACK"],
-    "readinessUsesSameBootFallback": true,
     "currency": "USD",
-    "tee": {
-      "amountMinor": 3200,
-      "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
-      "colors": ["Bone", "Black", "Ash", "Navy", "Forest"]
-    },
+    "tee": { "amountMinor": 3200, "sizes": ["XS", "S", "M", "L", "XL", "2XL"], "colors": ["Bone", "Black", "Ash", "Navy", "Forest"] },
     "hat": { "amountMinor": 3400, "sizes": ["OS"], "colors": ["Bone", "Black"] },
     "tote": { "amountMinor": 3600, "sizes": ["OS"], "colors": ["Bone", "Black"] },
     "seasonalOptionalForm": "hoodie",
@@ -162,37 +163,37 @@
     "privacyKeys": "LIVE_PROVEN_BY_ENCRYPTED_ANSWER_CONTACT_AND_SHIPPING_PERSISTENCE",
     "catalog": "NO_ENV_REQUIRED_BOOT_FALLBACK_LIVE_PROVEN_AND_OWNER_OS_ALIGNED",
     "shippingEncryption": "LIVE_PROVEN_AES_256_GCM",
-    "nextKnownBoundary": "SAFEPAY_SANDBOX_CONFIGURATION_AND_HOSTED_CHECKOUT",
+    "nextKnownBoundary": "PUBLIC_MERCHANT_COMPLIANCE_APPROVAL_AND_SAFEPAY_SANDBOX_CONFIGURATION",
     "requiredForSafepaySandbox": ["SAFEPAY_ENVIRONMENT=sandbox", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET"],
     "safepayWebhookUrl": "https://issuedonce.shop/api/webhooks/safepay",
+    "requiredForPublicMerchantCompliance": ["truthful business address/location", "public support phone", "public support email"],
     "requiredForLiveDesignProof": ["OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN"],
     "requiredForSupport": ["SUPPORT_INBOX_EMAIL"],
     "requiredForPrintfulDraftProof": ["PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
     "factoryConfirmation": "PRINTFUL_ALLOW_CONFIRM_MUST_REMAIN_UNSET_OR_FALSE_DURING_RELEASE_PROOF"
   },
   "resolvedDuringCurrentCycle": [
-    "Live production customer journey remains green to the payment boundary",
-    "Database migration through 0027 remains verified",
-    "Real Resend OTP delivery and encrypted contact/shipping persistence remain live-proven",
-    "Physical catalog fallback and Owner OS readiness are aligned",
-    "GPT Image transparency-incompatible defaults were removed and readiness aligned",
-    "Vercel queue replay now treats only DuplicateMessageError as idempotent success while real failures propagate",
-    "Printful confirmation now re-fetches remote draft state immediately before the charge boundary",
-    "Printful confirmation refuses charge until every printable file has a provider file ID and status ok",
-    "Printful confirmation ignores preview-file processing because preview is not a printable production asset",
-    "Printful confirmation requires the exact provider order ID and a pending response before local IN_PRODUCTION transition",
-    "Printful failed/onhold/non-draft states can no longer be attached locally as DRAFT",
-    "All Printful hardening was verified with failing-first tests, full CI, production build, Browser QA and live issuedonce.shop smoke"
+    "Verified final Printful remote-state fix with full CI, typecheck, lint, production build, Browser QA and live issuedonce.shop smoke",
+    "Printful confirmation now refuses charge until printable files are provider-processed and status ok",
+    "Printful confirmation requires the exact provider order to still be draft immediately before charge",
+    "Printful confirmation requires exact provider order ID and pending response before local IN_PRODUCTION transition",
+    "Printful failed/onhold/non-draft provider states can no longer become local DRAFT",
+    "Compared the implemented classic Safepay webhook signature contract directly with Safepay's official Node SDK and confirmed that classic contract match",
+    "Identified newer March 2026 Safepay v2 hosted-checkout documentation drift and deliberately avoided speculative migration because its webhook payload does not document enough money/state truth",
+    "Audited the current Safepay merchant website checklist and identified missing public contact, business-location, terms, returns/refund and goods/pricing disclosure surfaces",
+    "Confirmed PR 3 contains no existing public legal/contact policy routes and current homepage footer only exposes the privacy anchor and BEGIN"
   ],
   "nextActions": [
+    "Owner approves the bounded public merchant compliance design: add CONTACT, TERMS, RETURNS/REFUNDS and STORE INFO surfaces, footer links, truthful merchant contact/location values and a readiness gate; preserve the mystery experience and derive displayed prices from canonical catalog truth",
+    "Owner provides truthful public business location/address and support phone; never fabricate foreign domicile",
     "Owner configures Safepay sandbox API/client key and shared webhook secret in Vercel Production/Preview and registers https://issuedonce.shop/api/webhooks/safepay in Safepay sandbox Developer/Endpoints",
-    "Redeploy so payment runtime loads sandbox credentials",
-    "Use the owner browser flow to click ISSUE MINE and verify redirect reaches Safepay sandbox hosted checkout",
+    "Redeploy and run the owner browser flow to ISSUE MINE",
+    "Use the real sandbox response to determine whether this account exposes classic v1 or current v2 hosted-checkout behavior; preserve amount/currency/state verification before accepting either protocol",
     "Complete one sandbox payment and independently verify signed webhook truth, payment attempt state, Issue reservation, duplicate replay handling and exception behavior",
     "Then configure/prove OPENAI_API_KEY and BLOB_READ_WRITE_TOKEN with one real queued design reaching REVIEW",
     "Configure SUPPORT_INBOX_EMAIL before support launch proof",
     "Then configure/prove Printful draft/webhook flow while PRINTFUL_ALLOW_CONFIRM remains disabled",
     "Only after all commercial gates are green promote/merge PR 3 and call the project launch-ready"
   ],
-  "nextOwnerAction": "Configure Safepay sandbox credentials and webhook endpoint without sharing secrets in chat, then reply 'Safepay added'."
+  "nextOwnerAction": "Approve the public merchant compliance design and provide truthful business location/address plus public support phone; Safepay sandbox credentials remain the next provider-secret action."
 }
