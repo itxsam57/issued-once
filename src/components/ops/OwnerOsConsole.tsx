@@ -9,6 +9,7 @@ import { HomePanel } from './HomePanel';
 import { IssuesPanel } from './IssuesPanel';
 import { ManufacturingPanel } from './ManufacturingPanel';
 import { OwnerOsShell, type OwnerOsSection } from './OwnerOsShell';
+import { ReferralsPanel } from './ReferralsPanel';
 import { SalesPanel } from './SalesPanel';
 import { SupportPanel } from './SupportPanel';
 import { SystemPanel } from './SystemPanel';
@@ -29,6 +30,7 @@ export function OwnerOsConsole() {
     case 'Designer': content = <DesignerPanel />; break;
     case 'Manufacturing': content = <ManufacturingPanel />; break;
     case 'Sales': content = <SalesPanel />; break;
+    case 'Referrals': content = <ReferralsPanel />; break;
     case 'Customers': content = <CustomersPanel />; break;
     case 'Support': content = <SupportPanel />; break;
     case 'Website': content = <WebsitePanel />; break;
