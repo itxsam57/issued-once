@@ -22,6 +22,26 @@ function request(file: File, reason = 'manual art direction') {
   return new Request(`https://issuedonce.shop/ops/api/designer/${issueId}/upload`, { method: 'POST', body: form });
 }
 
+test('diagnoses the multipart File boundary used by the route', async () => {
+  const file = new File([new Uint8Array(12000)], 'owner-art.png', { type: 'image/png' });
+  const parsed = (await request(file).formData()).get('file');
+  const prototype = parsed && typeof parsed === 'object' ? Object.getPrototypeOf(parsed) : null;
+  console.error('MANUAL_UPLOAD_MULTIPART_DIAGNOSTIC', JSON.stringify({
+    valueType: typeof parsed,
+    constructorName: parsed && typeof parsed === 'object' ? parsed.constructor?.name : null,
+    tag: Object.prototype.toString.call(parsed),
+    name: parsed && typeof parsed === 'object' && 'name' in parsed ? typeof parsed.name : null,
+    type: parsed && typeof parsed === 'object' && 'type' in parsed ? typeof parsed.type : null,
+    size: parsed && typeof parsed === 'object' && 'size' in parsed ? typeof parsed.size : null,
+    arrayBuffer: parsed && typeof parsed === 'object' && 'arrayBuffer' in parsed ? typeof parsed.arrayBuffer : null,
+    stream: parsed && typeof parsed === 'object' && 'stream' in parsed ? typeof parsed.stream : null,
+    text: parsed && typeof parsed === 'object' && 'text' in parsed ? typeof parsed.text : null,
+    slice: parsed && typeof parsed === 'object' && 'slice' in parsed ? typeof parsed.slice : null,
+    prototypeKeys: prototype ? Object.getOwnPropertyNames(prototype) : [],
+  }));
+  expect(parsed).not.toBeNull();
+});
+
 test('requires owner auth before reading or storing manual artwork', async () => {
   hasOpsSessionMock.mockResolvedValue(false);
   const response = await POST(request(new File([new Uint8Array(12000)], 'art.png', { type: 'image/png' })), { params: Promise.resolve({ issueId }) });
