@@ -35,7 +35,7 @@ function service(repository: RecoveryRepository, event: VerifiedPaymentEvent) {
   const gateway: PaymentGateway = { createCheckout: vi.fn(), verifyWebhook: vi.fn(() => event) };
   return new PaymentService({
     experiences: { findBySessionHash: vi.fn() },
-    quotes: { findById: vi.fn() },
+    quotes: { findById: vi.fn(), findLatestByExperienceId: vi.fn() },
     contacts: { findVerifiedByExperienceId: vi.fn() } as never,
     shipping: { findByExperienceId: vi.fn() } as never,
     payments: repository,
