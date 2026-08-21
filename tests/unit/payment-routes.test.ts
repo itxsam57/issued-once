@@ -6,12 +6,18 @@ const {
   createIssueServiceMock,
   dispatchPaidIssueDesignMock,
   enqueueIssueNotificationMock,
+  createReferralConversionServiceMock,
+  recordPaidReferralMock,
+  enqueueReferralNotificationMock,
 } = vi.hoisted(() => ({
   cookiesMock: vi.fn(),
   createPaymentServiceMock: vi.fn(),
   createIssueServiceMock: vi.fn(),
   dispatchPaidIssueDesignMock: vi.fn(),
   enqueueIssueNotificationMock: vi.fn(),
+  createReferralConversionServiceMock: vi.fn(),
+  recordPaidReferralMock: vi.fn(),
+  enqueueReferralNotificationMock: vi.fn(),
 }));
 
 vi.mock('next/headers', () => ({ cookies: cookiesMock }));
@@ -29,9 +35,19 @@ vi.mock('@/server/design/designDispatch', () => ({
 vi.mock('@/server/notifications/notificationQueue', () => ({
   enqueueIssueNotification: enqueueIssueNotificationMock,
 }));
+vi.mock('@/server/referrals/runtimeReferrals', () => ({
+  createReferralConversionService: createReferralConversionServiceMock,
+  ReferralRuntimeUnavailableError: class ReferralRuntimeUnavailableError extends Error {},
+}));
+vi.mock('@/server/referrals/referralNotificationQueue', () => ({
+  enqueueReferralNotification: enqueueReferralNotificationMock,
+}));
 
 import { POST as createPayment } from '@/app/api/payments/create/route';
 import { POST as safepayWebhook } from '@/app/api/webhooks/safepay/route';
+
+const issueId = '11111111-1111-4111-8111-111111111111';
+const conversionId = '22222222-2222-4222-8222-222222222222';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -39,12 +55,15 @@ beforeEach(() => {
   createIssueServiceMock.mockReturnValue({
     reserveForPaidAttempt: vi.fn().mockResolvedValue({
       kind: 'reserved',
-      issue: { id: '11111111-1111-4111-8111-111111111111', issueCode: 'IO-ABCD-EFGH' },
+      issue: { id: issueId, issueCode: 'IO-ABCD-EFGH' },
     }),
-    flagPaymentException: vi.fn().mockResolvedValue({ issueId: '11111111-1111-4111-8111-111111111111' }),
+    flagPaymentException: vi.fn().mockResolvedValue({ issueId }),
   });
   dispatchPaidIssueDesignMock.mockResolvedValue({ mode: 'HYBRID', queued: true, policyVersion: 1 });
   enqueueIssueNotificationMock.mockResolvedValue({ messageId: 'notification-message' });
+  recordPaidReferralMock.mockResolvedValue({ kind: 'not-referred' });
+  createReferralConversionServiceMock.mockReturnValue({ recordPaidAttempt: recordPaidReferralMock });
+  enqueueReferralNotificationMock.mockResolvedValue({ messageId: 'referral-notification-message' });
 });
 
 test('payment creation derives experience and return origin server-side', async () => {
@@ -68,9 +87,16 @@ test('payment creation derives experience and return origin server-side', async 
   });
 });
 
-test('safepay paid webhook preserves raw authentication evidence, mints one Issue, and dispatches policy-aware design plus payment email', async () => {
+test('safepay paid webhook preserves raw authentication evidence, mints one Issue, records referral conversion, and dispatches downstream work', async () => {
   const handleWebhook = vi.fn().mockResolvedValue({ kind: 'paid', paymentAttemptId: 'attempt-1' });
   createPaymentServiceMock.mockReturnValue({ handleWebhook });
+  recordPaidReferralMock.mockResolvedValue({
+    kind: 'created',
+    conversionId,
+    creatorId: '33333333-3333-4333-8333-333333333333',
+    rewardAmountMinor: 972,
+    currency: 'USD',
+  });
   const raw = '{"data":{"token":"evt-1"}}';
   const request = new Request('https://issuedonce.shop/api/webhooks/safepay', {
     method: 'POST',
@@ -82,24 +108,51 @@ test('safepay paid webhook preserves raw authentication evidence, mints one Issu
   expect(response.status).toBe(200);
   expect(handleWebhook).toHaveBeenCalledWith({ rawBody: raw, headers: request.headers });
   expect(createIssueServiceMock().reserveForPaidAttempt).toHaveBeenCalledWith('attempt-1');
-  expect(dispatchPaidIssueDesignMock).toHaveBeenCalledWith('11111111-1111-4111-8111-111111111111');
-  expect(enqueueIssueNotificationMock).toHaveBeenCalledWith(
-    '11111111-1111-4111-8111-111111111111',
-    'PAYMENT_RECEIVED',
-  );
+  expect(recordPaidReferralMock).toHaveBeenCalledWith({
+    paymentAttemptId: 'attempt-1',
+    issueId,
+  });
+  expect(enqueueReferralNotificationMock).toHaveBeenCalledWith(conversionId, 'SALE');
+  expect(dispatchPaidIssueDesignMock).toHaveBeenCalledWith(issueId);
+  expect(enqueueIssueNotificationMock).toHaveBeenCalledWith(issueId, 'PAYMENT_RECEIVED');
 });
 
-test('duplicate paid evidence can resume downstream policy dispatch without minting another Issue', async () => {
+test('duplicate paid evidence resumes referral notification recovery without minting another conversion or Issue', async () => {
   createPaymentServiceMock.mockReturnValue({
     handleWebhook: vi.fn().mockResolvedValue({ kind: 'duplicate', paymentAttemptId: 'attempt-1' }),
+  });
+  recordPaidReferralMock.mockResolvedValue({
+    kind: 'duplicate',
+    conversionId,
+    creatorId: '33333333-3333-4333-8333-333333333333',
+    rewardAmountMinor: 972,
+    currency: 'USD',
   });
   const response = await safepayWebhook(new Request('https://issuedonce.shop/api/webhooks/safepay', {
     method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'abc' },
   }));
 
   expect(response.status).toBe(200);
+  expect(recordPaidReferralMock).toHaveBeenCalledWith({ paymentAttemptId: 'attempt-1', issueId });
+  expect(enqueueReferralNotificationMock).toHaveBeenCalledWith(conversionId, 'SALE');
   expect(dispatchPaidIssueDesignMock).toHaveBeenCalledTimes(1);
   expect(enqueueIssueNotificationMock).toHaveBeenCalledTimes(1);
+});
+
+test('non-referred paid truth continues normal Issue flow without creator notification', async () => {
+  createPaymentServiceMock.mockReturnValue({
+    handleWebhook: vi.fn().mockResolvedValue({ kind: 'paid', paymentAttemptId: 'attempt-plain' }),
+  });
+  recordPaidReferralMock.mockResolvedValue({ kind: 'not-referred' });
+
+  const response = await safepayWebhook(new Request('https://issuedonce.shop/api/webhooks/safepay', {
+    method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'abc' },
+  }));
+
+  expect(response.status).toBe(200);
+  expect(recordPaidReferralMock).toHaveBeenCalledWith({ paymentAttemptId: 'attempt-plain', issueId });
+  expect(enqueueReferralNotificationMock).not.toHaveBeenCalled();
+  expect(dispatchPaidIssueDesignMock).toHaveBeenCalledWith(issueId);
 });
 
 test('signed refund flags the canonical Issue and never dispatches new design work', async () => {
@@ -113,6 +166,7 @@ test('signed refund flags the canonical Issue and never dispatches new design wo
 
   expect(response.status).toBe(200);
   expect(issueService.flagPaymentException).toHaveBeenCalledWith('attempt-1', 'PAYMENT_REFUNDED');
+  expect(recordPaidReferralMock).not.toHaveBeenCalled();
   expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
   expect(enqueueIssueNotificationMock).not.toHaveBeenCalledWith(expect.anything(), 'PAYMENT_RECEIVED');
 });
@@ -128,6 +182,7 @@ test('provider money exception flags an existing Issue instead of starting downs
 
   expect(response.status).toBe(200);
   expect(issueService.flagPaymentException).toHaveBeenCalledWith('attempt-1', 'PAYMENT_EXCEPTION');
+  expect(recordPaidReferralMock).not.toHaveBeenCalled();
   expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
 });
 
@@ -139,6 +194,8 @@ test('invalid authenticated webhook evidence is rejected and never triggers down
     method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'bad' },
   }));
   expect(response.status).toBe(401);
+  expect(recordPaidReferralMock).not.toHaveBeenCalled();
+  expect(enqueueReferralNotificationMock).not.toHaveBeenCalled();
   expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
   expect(enqueueIssueNotificationMock).not.toHaveBeenCalled();
 });
