@@ -132,7 +132,7 @@ test('stores only a keyed OTP digest and encrypted contact data, then verifies o
 });
 
 test('enforces resend cooldown, expiry, and a bounded wrong-code attempt budget', async () => {
-  const { service, advance } = createService();
+  const { service } = createService();
   const requested = await service.requestOtp({
     experienceToken: token,
     email: 'sam@example.com',
