@@ -28,7 +28,8 @@ describe('CommitmentScreen', () => {
     expect(screen.getByText('HOODIE / M / BONE')).toBeInTheDocument();
     expect(screen.getByText('$54.00')).toBeInTheDocument();
     expect(screen.getByText('Everything else stays unknown until it arrives.')).toBeInTheDocument();
-    expect(screen.queryByText(/refund|return|final sale|countdown|left in stock|people are viewing|preview|sample|artwork|palette|style/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/final sale|countdown|left in stock|people are viewing|design preview|artwork preview|sample artwork|palette preview|style preview|guaranteed refund|instant refund/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'RETURNS' })).toHaveAttribute('href', '/returns');
 
     await user.click(screen.getByRole('button', { name: 'ISSUE MINE' }));
     expect(onCommit).toHaveBeenCalledWith('qa-quote-001');
