@@ -61,7 +61,7 @@ export class PostgresReferralLifecycleRepository implements ReferralLifecycleRep
        )
        UPDATE referral_conversions conversion
        SET state = 'AVAILABLE',
-           available_at = COALESCE(conversion.available_at, $2),
+           available_at = COALESCE(available_at, $2),
            updated_at = GREATEST(conversion.updated_at, $2)
        FROM target
        WHERE conversion.id = target.id
