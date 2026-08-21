@@ -124,8 +124,6 @@ export interface ReferralRepository {
   findAttribution(id: string): Promise<ReferralAttributionRecord | null>;
   loadPaidReferralTruth(paymentAttemptId: string): Promise<PaidReferralTruth | null>;
   createConversion(input: CreateReferralConversionInput): Promise<CreateReferralConversionResult>;
-  markAvailableByIssueId(issueId: string, at: Date): Promise<ReferralLifecycleTransitionResult>;
-  reverseByPaymentAttemptId(paymentAttemptId: string, at: Date): Promise<ReferralLifecycleTransitionResult>;
   loadNotificationInput(conversionId: string): Promise<ReferralNotificationInput | null>;
   reserveNotification(input: ReserveReferralNotificationInput): Promise<boolean>;
   markNotificationSent(
@@ -140,4 +138,9 @@ export interface ReferralRepository {
     code: string,
     at: Date,
   ): Promise<void>;
+}
+
+export interface ReferralLifecycleRepository {
+  markAvailableByIssueId(issueId: string, at: Date): Promise<ReferralLifecycleTransitionResult>;
+  reverseByPaymentAttemptId(paymentAttemptId: string, at: Date): Promise<ReferralLifecycleTransitionResult>;
 }
