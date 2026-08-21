@@ -75,6 +75,8 @@ export type CreateReferralConversionInput = {
   updatedAt: Date;
 };
 
+export type ReferralConversionState = 'PENDING' | 'AVAILABLE' | 'REVERSED' | 'PAID_OUT';
+
 export type ReferralConversionIdentity = {
   id: string;
   creatorId: string;
@@ -82,10 +84,18 @@ export type ReferralConversionIdentity = {
   currency: string;
 };
 
+export type ReferralConversionLifecycleIdentity = ReferralConversionIdentity & {
+  state: ReferralConversionState;
+};
+
 export type CreateReferralConversionResult = {
   kind: 'created' | 'duplicate';
   conversion: ReferralConversionIdentity;
 };
+
+export type ReferralLifecycleTransitionResult =
+  | { kind: 'updated' | 'duplicate'; conversion: ReferralConversionLifecycleIdentity }
+  | { kind: 'not-referred' };
 
 export type ReferralNotificationKind = 'SALE' | 'REVERSAL';
 
@@ -114,6 +124,8 @@ export interface ReferralRepository {
   findAttribution(id: string): Promise<ReferralAttributionRecord | null>;
   loadPaidReferralTruth(paymentAttemptId: string): Promise<PaidReferralTruth | null>;
   createConversion(input: CreateReferralConversionInput): Promise<CreateReferralConversionResult>;
+  markAvailableByIssueId(issueId: string, at: Date): Promise<ReferralLifecycleTransitionResult>;
+  reverseByPaymentAttemptId(paymentAttemptId: string, at: Date): Promise<ReferralLifecycleTransitionResult>;
   loadNotificationInput(conversionId: string): Promise<ReferralNotificationInput | null>;
   reserveNotification(input: ReserveReferralNotificationInput): Promise<boolean>;
   markNotificationSent(
