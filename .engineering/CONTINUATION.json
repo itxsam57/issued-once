@@ -5,31 +5,28 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "3c20e8a46e9137abc4694e7cfd9741ef45ca1fe5",
-    "latestApplicationHead": "3c20e8a46e9137abc4694e7cfd9741ef45ca1fe5",
-    "currentMigrationHead": "0027_issue_prefix_search_indexes.sql"
+    "verifiedApplicationCandidate": "83b68b66a4229d5c539208f656aa49974e96d4b8",
+    "latestApplicationHead": "83b68b66a4229d5c539208f656aa49974e96d4b8",
+    "currentMigrationHead": "0028_design_controls.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "PRINTFUL_SAFETY_GREEN_PUBLIC_MERCHANT_COMPLIANCE_DESIGN_AND_SAFEPAY_SANDBOX_OWNER_ACTION_REQUIRED",
+    "decision": "DESIGN_POLICY_TASK1_GREEN_0028_ISOLATED_NEON_PROOF_GREEN_PRODUCTION_MIGRATION_APPROVAL_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Application and Printful charge-safety code is green on verified candidate 3c20e8a46e9137abc4694e7cfd9741ef45ca1fe5 with CI run 32405563664 and Browser QA run 32405563688, including the live issuedonce.shop customer journey. A fresh Safepay launch audit found two owner-facing release issues. First, Safepay's March 25 2026 v2 hosted-checkout guide documents /order/payments/v3/, Bearer authorization, integer base units, tracker= checkout URLs, source=hosted and SHA-512 over the raw webhook body, while Safepay's still-current classic SDK family implements the v1 order/v1/init, beacon= checkout and SHA-512 over the serialized data object used by ISSUED ONCE. The v2 guide does not document enough amount/currency/state webhook detail to safely replace the existing fail-closed verifier without real sandbox evidence, so no payment-truth weakening or speculative protocol migration was made. Second, Safepay's March 26 2026 website checklist requires public truthful contact/business-location information, clear goods/pricing description, working terms and a customized returns/refund policy. PR 3 currently has no public contact, terms or returns routes and the homepage footer only links to the in-page privacy note and BEGIN. Implementing the bounded compliance surface requires explicit owner design approval and truthful business address/phone values; no fake foreign domicile may be used. Safepay sandbox credentials and endpoint registration also remain an external owner gate."
+    "stopReason": "The owner-approved final product scope is locked in three specs/plans: creator referrals, configurable automatic/manual design control, and merchant/final launch controls. Design-control Task 1 completed TDD for policy domain and Postgres persistence. RED e042ec8a9fd3e323403847c4e1166b320ffcb8fb proved the policy domain was missing; GREEN eb7ad060d4750f7134ae12ba44be0cc9fdf761ee passed. RED 95797ebf023cdf032ad29d8d21d53f702dec25cc proved policy persistence was missing; repository implementation plus readonly type repair reached verified head 3590e147128780720694d11d19c0cfb505b2eb81. Migration RED 87b7c31e67d2e440022c167fcbb99a52f89f8441 produced 116 passing existing test files and exactly two intended failures because 0028 was absent and CURRENT still pointed at 0027. Migration implementation head 83b68b66a4229d5c539208f656aa49974e96d4b8 passed CI 32461002041 and Browser QA 32461002023 including the live issuedonce.shop OTP smoke. Neon prepare_database_migration created migration 79d6e76c-cb98-4d06-8f15-afa3d9ab7ad1 on temporary branch br-bold-base-axi9u2qu. Real PostgreSQL verification confirmed issue_design_policy_overrides exists, DESIGN_POLICY is accepted by the config constraint, OWNER_UPLOAD is accepted by candidate provenance, and a DESIGN_POLICY draft row can be inserted. Production branch br-dawn-cloud-axm880q9 remains untouched and verified only through 0027. Exact production migration approval is required before complete_database_migration may apply 0028."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
     "rules": [
-      "Treat mapped GitHub repo/branch as canonical source of truth",
-      "Maintain .engineering/CONTINUATION.json after every meaningful work cycle",
-      "Use evidence-backed debugging and verification before completion claims",
-      "Run the live production customer journey against issuedonce.shop before giving the owner another final-test link",
-      "Keep payment, design and manufacturing boundaries fail-closed",
-      "Never infer paid truth from a browser redirect",
-      "Never expose real secret values, session tokens, OTPs or private address data in repository state or chat",
-      "Never allow questionnaire answers, email or shipping data to be stored unencrypted",
-      "Never allow model output to enter manufacturing without explicit owner approval",
-      "Never allow Printful production confirmation without owner auth, kill switch, typed Issue confirmation and last-moment state reload",
-      "Never fabricate merchant domicile, address, phone, legal status or provider evidence",
-      "Never call a release gate green when it did not execute"
+      "Treat feat/mystery-foundation as canonical source of truth until promotion",
+      "Maintain this continuation file after every meaningful cycle",
+      "Use TDD RED before production behavior changes",
+      "Use fresh CI/build/browser evidence before success claims",
+      "Run live issuedonce.shop customer smoke before release claims",
+      "Browser redirect is never payment truth",
+      "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
+      "Never fabricate merchant domicile or provider evidence",
+      "Never allow manufacturing production without the independent kill switch, owner authorization, typed Issue confirmation, fresh eligibility reload, Printful file readiness and exact pending confirmation"
     ]
   },
   "database": {
@@ -37,50 +34,67 @@
     "databaseName": "neondb",
     "parentBranchId": "br-dawn-cloud-axm880q9",
     "productionState": "MIGRATED_AND_VERIFIED_THROUGH_0027",
-    "migrationId": "f990357c-ed37-409c-a02f-5f3166f7135c",
-    "ownerReportsVercelDatabaseUrlConfigured": true,
+    "pendingMigration": {
+      "migrationId": "79d6e76c-cb98-4d06-8f15-afa3d9ab7ad1",
+      "temporaryBranchName": "mcp-migration-2026-08-21T07-58-42",
+      "temporaryBranchId": "br-bold-base-axi9u2qu",
+      "migrationFile": "0028_design_controls.sql",
+      "isolatedProof": "GREEN",
+      "productionApplied": false
+    },
     "liveEvidence": {
       "questionDefinitions": 70,
-      "answerPersistence": "LIVE_PROVEN",
-      "latestObservedCompletedQuestionCount": 7,
-      "physicalSelectionPersistence": "LIVE_PROVEN_THROUGH_OBJECT_SIZE_BASE_HTTP_200",
-      "contactVerification": "LIVE_PROVEN_OWNER_BROWSER_AND_NEON_VERIFIED_CONTACT_ROW",
-      "shippingPersistence": "LIVE_PROVEN_OWNER_BROWSER_AND_NEON_ENCRYPTED_SNAPSHOT",
-      "shippingPayloadVersion": 1,
-      "shippingKeyVersion": "v1",
-      "shippingCiphertextPresent": true,
-      "shippingPlaintextPrivateFieldsStoredSeparately": false,
-      "activeCatalogVersionCount": 0,
-      "catalogRuntimeSource": "AUDITED_BOOT_FALLBACK",
-      "commercialSideEffectCountsBeforeSafepay": {
-        "paymentAttempts": 0,
-        "providerEvents": 0,
-        "issues": 0,
-        "designJobs": 0,
-        "manufacturingJobs": 0
-      }
+      "answers": "LIVE_PROVEN_ENCRYPTED",
+      "contactOtp": "LIVE_PROVEN",
+      "shipping": "LIVE_PROVEN_ENCRYPTED",
+      "catalogRuntime": "LIVE_PROVEN_AUDITED_BOOT_FALLBACK",
+      "paymentAttemptsBeforeSafepay": 0,
+      "issuesBeforeSafepay": 0,
+      "designJobsBeforeSafepay": 0,
+      "manufacturingJobsBeforeSafepay": 0
+    }
+  },
+  "finalProductScope": {
+    "referrals": {
+      "status": "OWNER_APPROVED_LOCKED_NOT_YET_IMPLEMENTED",
+      "specCommit": "46cd5e1514e8b653020864acfa2f7927a5de96b3",
+      "planCommit": "253e15c0bb571c27cdcbd9e24125cf7ac2051755",
+      "migrationPlanned": "0029_creator_referrals.sql"
+    },
+    "designControl": {
+      "status": "IMPLEMENTATION_IN_PROGRESS_TASK1_CODE_AND_SCHEMA_PROOF_GREEN",
+      "specCommit": "2ff771ba30f130deecbe6eb07e2a14bf901d36d9",
+      "planCommit": "1f1fec3fbdf516ad642d7064ade2f54712294ad7",
+      "globalModes": ["AUTO", "MANUAL", "HYBRID"],
+      "perIssueOverride": true,
+      "answerRevealSafeDefault": "HIDDEN_UNTIL_REVEALED",
+      "manualUpload": true,
+      "manualWithoutOpenAI": true,
+      "rejectFeedback": "QUICK_REASONS_PLUS_CUSTOM_INSTRUCTION",
+      "rejectBehaviorConfigurable": true,
+      "manualUploadApprovalConfigurable": true,
+      "manufacturingHandoffSafeDefault": "WAIT_FOR_OWNER",
+      "factoryConfirmationIndependentKillSwitchMandatory": true
+    },
+    "merchantLaunch": {
+      "status": "OWNER_APPROVED_LOCKED_NOT_YET_IMPLEMENTED",
+      "specCommit": "a877acef212d707ec568f3f7fe881af57640f3e5",
+      "planCommit": "4e5abc08d5753a2558f7c941ca1ccaac4395a574",
+      "requiredPublicRoutes": ["/store-info", "/contact", "/terms", "/returns"],
+      "truthfulMerchantIdentityRequired": true,
+      "quickProductPriceControl": true
     }
   },
   "verification": {
-    "catalogFallbackTestRedCommit": "b3146926e01534137c62d2ab367e381ca60778d6",
-    "catalogFallbackImplementationHead": "72bef30ad1ab78a9f5fa674e32126aaf062a6e90",
-    "commercialReleasePlanCommit": "ac32678a3e4515b520347c24e2cfbb4a30099d43",
-    "openaiTransparencyTestRedCommit": "b6aadb83f60fff5e0244b53806045c7a4ee9880c",
-    "openaiTransparencyFixHead": "83f67a1c8e01da92d2b906f9e67cba58d2cb6bfa",
-    "readinessAlignmentTestRedCommit": "3677571d7b7c7408956bf5b2a650a1cf40ac19ae",
-    "readinessAlignmentFixHead": "e6b5637568f9937a9e2b763a0146bcc1c0475f04",
-    "queueReplayTestRedCommit": "ce00b15ae85063c2ea6befe2cb0642b6eb7c8cd1",
-    "queueReplayFixHead": "64f450f202189f1f69d2c68ff2c9e980cb113e90",
-    "printfulFileReadinessTestRedCommit": "f6b96e0ff37e9b3812b8e4abc9ca9e3f30693233",
-    "printfulFileReadinessFixHead": "beeb51da12f3d12ca71132fa87ca8eac366b971e",
-    "printfulPendingTruthTestRedCommit": "5127429e65ebfa1f1f24f92411c1aa5610008548",
-    "printfulPendingTruthFixHead": "9812004b3b0e209b09a5f1fe5471e083f5772d43",
-    "printfulRemoteStateTestRedCommit": "ec0d679cd60aaadcb6dd62cecbcd5d2b9669d1f4",
-    "printfulRemoteStateFixHead": "3c20e8a46e9137abc4694e7cfd9741ef45ca1fe5",
-    "printfulLatestRedEvidence": "113_UNRELATED_TEST_FILES_PASSED_EXACTLY_1_NON_DRAFT_PROVIDER_STATE_ASSERTION_FAILED",
+    "designPolicyRedCommit": "e042ec8a9fd3e323403847c4e1166b320ffcb8fb",
+    "designPolicyDomainGreenCommit": "eb7ad060d4750f7134ae12ba44be0cc9fdf761ee",
+    "designPolicyRepositoryRedCommit": "95797ebf023cdf032ad29d8d21d53f702dec25cc",
+    "designPolicyRepositoryGreenHead": "3590e147128780720694d11d19c0cfb505b2eb81",
+    "designControlsMigrationRedCommit": "87b7c31e67d2e440022c167fcbb99a52f89f8441",
+    "designControlsMigrationGreenHead": "83b68b66a4229d5c539208f656aa49974e96d4b8",
     "ci": {
-      "run": 32405563664,
-      "job": 96543714575,
+      "run": 32461002041,
+      "job": 96707756595,
       "conclusion": "SUCCESS",
       "unitTests": "ALL_PASSED",
       "typecheck": "PASSED",
@@ -88,112 +102,32 @@
       "productionBuild": "PASSED"
     },
     "browser": {
-      "run": 32405563688,
-      "job": 96543714435,
+      "run": 32461002023,
+      "job": 96707756451,
       "conclusion": "SUCCESS",
-      "localPlaywright": "PASSED_DESKTOP_AND_MOBILE",
-      "liveProductionJourney": "SUCCESS",
-      "liveProductionAnswers": "7_OF_7_HTTP_200",
-      "liveProductionPhysicalObject": "HTTP_200",
-      "liveProductionSize": "HTTP_200",
-      "liveProductionBase": "HTTP_200",
-      "liveProductionOtpRequest": "HTTP_200",
-      "ownerLiveOtpVerification": "PASSED_REACHED_SHIPPING_FORM",
-      "ownerLiveShippingSubmission": "PASSED_FORM_COMPLETE_AND_NEON_ENCRYPTED_SNAPSHOT",
-      "permanentSmokeScript": "tests/e2e/live-production-smoke.mjs",
-      "productionSmokeUrl": "https://issuedonce.shop"
-    },
-    "domain": {
-      "name": "issuedonce.shop",
-      "ownerObservedProductionHomepage": true,
-      "liveAutomationReachedBegin": true,
-      "liveAutomationCompletedQuestionnaire": true,
-      "liveAutomationReachedOtp": true,
-      "ownerBrowserReachedShipping": true,
-      "ownerBrowserReachedFormComplete": true,
-      "status": "LIVE_APPLICATION_REACHABLE_CUSTOMER_JOURNEY_GREEN_TO_PAYMENT_BOUNDARY"
-    },
-    "providers": {
-      "resendSendingDomain": "otp.issuedonce.shop",
-      "resendFromAddress": "ISSUED ONCE <access@otp.issuedonce.shop>",
-      "resendOwnerReportsVercelEnvConfigured": true,
-      "resendRealDelivery": "LIVE_PROVEN_GMAIL_RECEIPT_2026-08-20T15:24:16Z",
-      "resendOtpVerification": "LIVE_PROVEN_OWNER_BROWSER_AND_NEON_VERIFIED_CONTACT_ROW",
-      "safepayProtocolImplemented": "CLASSIC_HOSTED_CHECKOUT_V1",
-      "safepayClassicSdkVerification": "OFFICIAL_NODE_SDK_STILL_MATCHES_SHA512_OVER_SERIALIZED_DATA_OBJECT_AND_X_SFPY_SIGNATURE",
-      "safepayCurrentV2DocsAudit": "MARCH_25_2026_V2_GUIDE_DIFFERS_ENDPOINT_AUTH_AMOUNT_CHECKOUT_QUERY_AND_RAW_BODY_SIGNATURE; DO_NOT_MIGRATE_PAYMENT_TRUTH_WITHOUT_SANDBOX_PAYLOAD_EVIDENCE",
-      "safepaySandboxCycle": "BLOCKED_PENDING_OWNER_SANDBOX_CREDENTIALS_AND_ENDPOINT_SETUP",
-      "openaiInterpretationModel": "gpt-5.6-terra",
-      "openaiArtworkModelDefault": "gpt-image-1.5",
-      "openaiArtworkTransparencyCompatibility": "CODE_TEST_AND_READINESS_PROVEN_NOT_LIVE_PROVIDER_PROVEN",
-      "openaiDeployedDesign": "NOT_LIVE_PROVEN",
-      "privateBlobSignedRead": "CODE_AND_TEST_PROVEN_NOT_LIVE_PROVIDER_PROVEN",
-      "vercelQueueReplaySafety": "CODE_AND_TEST_PROVEN_DUPLICATE_MESSAGE_COLLISIONS_ARE_IDEMPOTENT_REAL_FAILURES_RETHROW",
-      "vercelQueueConsumers": "CONFIGURED_NOT_LIVE_PROVEN_PROJECT_CONNECTOR_ENUMERATION_EMPTY",
-      "printfulWebhookContract": "CURRENT_V2_HEADERS_AND_HMAC_SHA256_RAW_BODY_MATCH_SOURCE",
-      "printfulDraft": "CODE_HARDENED_NOT_LIVE_PROVIDER_PROVEN",
-      "printfulFileReadiness": "CODE_AND_TEST_PROVEN_REQUIRES_PRINTABLE_FILES_WITH_PROVIDER_IDS_AND_STATUS_OK_BEFORE_CONFIRM",
-      "printfulConfirmTruth": "CODE_AND_TEST_PROVEN_REQUIRES_EXACT_PROVIDER_ORDER_ID_AND_PENDING_RESPONSE",
-      "printfulRemoteDraftTruth": "CODE_AND_TEST_PROVEN_ONLY_REMOTE_DRAFT_IS_DRAFT_SAFE_FAILED_ONHOLD_AND_OTHER_STATES_FAIL_CLOSED",
-      "printfulProduction": "DISABLED_NOT_RUN"
-    },
-    "publicMerchantCompliance": {
-      "safepayChecklistReviewed": "MARCH_26_2026",
-      "homepageFooter": "ONLY_PRIVACY_ANCHOR_AND_BEGIN",
-      "publicContactRoute": "MISSING",
-      "publicTermsRoute": "MISSING",
-      "publicReturnsRefundRoute": "MISSING",
-      "publicTruthfulBusinessLocation": "OWNER_VALUE_REQUIRED",
-      "publicSupportPhone": "OWNER_VALUE_REQUIRED",
-      "publicGoodsAndPricingDisclosure": "INSUFFICIENT_FOR_CURRENT_SAFEPAY_CHECKLIST",
-      "status": "OWNER_APPROVAL_AND_TRUTHFUL_VALUES_REQUIRED_BEFORE_IMPLEMENTATION_AND_PROVIDER_APPROVAL"
+      "localPlaywright": "PASSED",
+      "liveProductionJourney": "PASSED_TO_REAL_OTP_REQUEST",
+      "realOtpTrafficRetainedByOwnerDecision": true
     }
   },
-  "physicalCatalog": {
-    "bootCatalogSource": "src/server/physical/bootCatalog.ts",
-    "currency": "USD",
-    "tee": { "amountMinor": 3200, "sizes": ["XS", "S", "M", "L", "XL", "2XL"], "colors": ["Bone", "Black", "Ash", "Navy", "Forest"] },
-    "hat": { "amountMinor": 3400, "sizes": ["OS"], "colors": ["Bone", "Black"] },
-    "tote": { "amountMinor": 3600, "sizes": ["OS"], "colors": ["Bone", "Black"] },
-    "seasonalOptionalForm": "hoodie",
-    "productionStatus": "LIVE_PROVEN"
+  "providers": {
+    "resendOtp": "LIVE_PROVEN",
+    "safepay": "OWNER_SANDBOX_CONFIG_AND_REAL_PROTOCOL_PROOF_PENDING",
+    "openai": "CODE_COMPATIBILITY_PROVEN_LIVE_PROVIDER_PROOF_PENDING",
+    "blob": "CODE_PROVEN_LIVE_PROVIDER_PROOF_PENDING",
+    "vercelQueues": "CODE_AND_REPLAY_SAFETY_PROVEN_LIVE_CONSUMER_PROOF_PENDING",
+    "printful": "CODE_HARDENED_LIVE_DRAFT_AND_WEBHOOK_PROOF_PENDING",
+    "printfulProduction": "DISABLED"
   },
-  "productionRuntimeContract": {
-    "ownerConfigured": ["DATABASE_URL", "RESEND_API_KEY", "RESEND_FROM_EMAIL", "QUIZ_ENCRYPTION_KEY_V1", "IDENTITY_HMAC_KEY"],
-    "privacyKeys": "LIVE_PROVEN_BY_ENCRYPTED_ANSWER_CONTACT_AND_SHIPPING_PERSISTENCE",
-    "catalog": "NO_ENV_REQUIRED_BOOT_FALLBACK_LIVE_PROVEN_AND_OWNER_OS_ALIGNED",
-    "shippingEncryption": "LIVE_PROVEN_AES_256_GCM",
-    "nextKnownBoundary": "PUBLIC_MERCHANT_COMPLIANCE_APPROVAL_AND_SAFEPAY_SANDBOX_CONFIGURATION",
-    "requiredForSafepaySandbox": ["SAFEPAY_ENVIRONMENT=sandbox", "SAFEPAY_API_KEY", "SAFEPAY_WEBHOOK_SECRET"],
-    "safepayWebhookUrl": "https://issuedonce.shop/api/webhooks/safepay",
-    "requiredForPublicMerchantCompliance": ["truthful business address/location", "public support phone", "public support email"],
-    "requiredForLiveDesignProof": ["OPENAI_API_KEY", "BLOB_READ_WRITE_TOKEN"],
-    "requiredForSupport": ["SUPPORT_INBOX_EMAIL"],
-    "requiredForPrintfulDraftProof": ["PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
-    "factoryConfirmation": "PRINTFUL_ALLOW_CONFIRM_MUST_REMAIN_UNSET_OR_FALSE_DURING_RELEASE_PROOF"
-  },
-  "resolvedDuringCurrentCycle": [
-    "Verified final Printful remote-state fix with full CI, typecheck, lint, production build, Browser QA and live issuedonce.shop smoke",
-    "Printful confirmation now refuses charge until printable files are provider-processed and status ok",
-    "Printful confirmation requires the exact provider order to still be draft immediately before charge",
-    "Printful confirmation requires exact provider order ID and pending response before local IN_PRODUCTION transition",
-    "Printful failed/onhold/non-draft provider states can no longer become local DRAFT",
-    "Compared the implemented classic Safepay webhook signature contract directly with Safepay's official Node SDK and confirmed that classic contract match",
-    "Identified newer March 2026 Safepay v2 hosted-checkout documentation drift and deliberately avoided speculative migration because its webhook payload does not document enough money/state truth",
-    "Audited the current Safepay merchant website checklist and identified missing public contact, business-location, terms, returns/refund and goods/pricing disclosure surfaces",
-    "Confirmed PR 3 contains no existing public legal/contact policy routes and current homepage footer only exposes the privacy anchor and BEGIN"
-  ],
   "nextActions": [
-    "Owner approves the bounded public merchant compliance design: add CONTACT, TERMS, RETURNS/REFUNDS and STORE INFO surfaces, footer links, truthful merchant contact/location values and a readiness gate; preserve the mystery experience and derive displayed prices from canonical catalog truth",
-    "Owner provides truthful public business location/address and support phone; never fabricate foreign domicile",
-    "Owner configures Safepay sandbox API/client key and shared webhook secret in Vercel Production/Preview and registers https://issuedonce.shop/api/webhooks/safepay in Safepay sandbox Developer/Endpoints",
-    "Redeploy and run the owner browser flow to ISSUE MINE",
-    "Use the real sandbox response to determine whether this account exposes classic v1 or current v2 hosted-checkout behavior; preserve amount/currency/state verification before accepting either protocol",
-    "Complete one sandbox payment and independently verify signed webhook truth, payment attempt state, Issue reservation, duplicate replay handling and exception behavior",
-    "Then configure/prove OPENAI_API_KEY and BLOB_READ_WRITE_TOKEN with one real queued design reaching REVIEW",
-    "Configure SUPPORT_INBOX_EMAIL before support launch proof",
-    "Then configure/prove Printful draft/webhook flow while PRINTFUL_ALLOW_CONFIRM remains disabled",
-    "Only after all commercial gates are green promote/merge PR 3 and call the project launch-ready"
+    "Owner explicitly approves production migration 79d6e76c-cb98-4d06-8f15-afa3d9ab7ad1 for 0028 design controls",
+    "Apply and independently verify production 0028, then continue design-control Tasks 2-7",
+    "Implement and prove creator referral migration/domain/attribution/conversion/email/payout/Owner OS",
+    "Implement merchant public pages, readiness and quick product pricing control",
+    "Run Safepay sandbox checkout and signed webhook truth cycle",
+    "Run OpenAI/Blob/Queue design proof including manual fallback and owner QC",
+    "Run Printful unconfirmed draft and signed fulfillment proof with production confirmation disabled",
+    "Run final full code/UI/UX/live production audit and only then promote PR 3"
   ],
-  "nextOwnerAction": "Approve the public merchant compliance design and provide truthful business location/address plus public support phone; Safepay sandbox credentials remain the next provider-secret action."
+  "nextOwnerAction": "Explicitly approve production migration 79d6e76c-cb98-4d06-8f15-afa3d9ab7ad1 (0028 design controls). Do not share any secrets."
 }
