@@ -37,7 +37,7 @@ test('per-Issue override takes precedence over the active global policy', async 
 });
 
 test('publishes validated global policy as a new active DESIGN_POLICY version', async () => {
-  const params: unknown[][] = [];
+  const params: Array<readonly unknown[]> = [];
   const sql: SqlExecutor = { query: async (_query, nextParams) => {
     params.push(nextParams ?? []);
     return [{ version: 7 }] as never;
@@ -49,7 +49,7 @@ test('publishes validated global policy as a new active DESIGN_POLICY version', 
 });
 
 test('stores only validated partial per-Issue overrides and supports clearing them', async () => {
-  const calls: Array<{ query: string; params: unknown[] }> = [];
+  const calls: Array<{ query: string; params: readonly unknown[] }> = [];
   const sql: SqlExecutor = { query: async (query, params = []) => {
     calls.push({ query, params });
     return [] as never;
