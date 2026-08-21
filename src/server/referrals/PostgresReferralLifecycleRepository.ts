@@ -62,7 +62,7 @@ export class PostgresReferralLifecycleRepository implements ReferralLifecycleRep
        UPDATE referral_conversions conversion
        SET state = 'AVAILABLE',
            available_at = COALESCE(conversion.available_at, $2),
-           updated_at = $2
+           updated_at = GREATEST(conversion.updated_at, $2)
        FROM target
        WHERE conversion.id = target.id
          AND conversion.state = 'PENDING'
@@ -84,9 +84,9 @@ export class PostgresReferralLifecycleRepository implements ReferralLifecycleRep
       `UPDATE referral_conversions
        SET state = 'REVERSED',
            reversed_at = COALESCE(reversed_at, $2),
-           updated_at = $2
+           updated_at = GREATEST(updated_at, $2)
        WHERE payment_attempt_id = $1
-         AND state <> 'REVERSED'
+         AND state IN ('PENDING', 'AVAILABLE', 'PAID_OUT')
        RETURNING id, creator_id, reward_amount_minor, currency, state`,
       [paymentAttemptId, at],
     );
