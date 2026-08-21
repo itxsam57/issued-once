@@ -44,6 +44,12 @@ export async function POST(request: Request) {
 
     if (result.kind === 'refunded' && result.paymentAttemptId) {
       await issueService.flagPaymentException(result.paymentAttemptId, 'PAYMENT_REFUNDED');
+      const referral = await createReferralConversionService().reverseRefundedAttempt(
+        result.paymentAttemptId,
+      );
+      if (referral.kind !== 'not-referred') {
+        await enqueueReferralNotification(referral.conversionId, 'REVERSAL');
+      }
       return Response.json({ received: true, kind: result.kind });
     }
 
