@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import policyStyles from './commitment-policy-links.module.css';
 import type { ObjectType } from './ObjectSelection';
 
 export type CommitmentQuote = {
@@ -217,7 +218,7 @@ export function CommitmentScreen({
 
       <p className="commitment__unknown">Everything else stays unknown until it arrives.</p>
 
-      <nav className="commitment__policy-links" aria-label="Purchase information">
+      <nav className={policyStyles.links} aria-label="Purchase information">
         <Link href="/store-info">STORE INFO</Link>
         <Link href="/contact">CONTACT</Link>
         <Link href="/terms">TERMS</Link>
