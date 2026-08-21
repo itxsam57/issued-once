@@ -139,14 +139,19 @@ test('Owner OS quick pricing publishes the chosen future-sale price without touc
   await expect(page.getByRole('heading', { name: 'What the next customer can receive.' })).toBeVisible();
 
   const price = page.getByLabel('TEE quick price');
+  const publish = page.getByRole('button', { name: 'PUBLISH TEE PRICE' });
   await expect(price).toHaveValue('54.00');
+  const actionBox = await publish.boundingBox();
+  expect(actionBox).not.toBeNull();
+  expect(actionBox!.width).toBeGreaterThanOrEqual(140);
+  expect(actionBox!.height).toBeLessThanOrEqual(60);
   await price.fill('61.00');
 
   const publication = page.waitForRequest((request) => {
     const url = new URL(request.url());
     return request.method() === 'POST' && url.pathname === '/ops/api/website/catalog/price';
   });
-  await page.getByRole('button', { name: 'PUBLISH TEE PRICE' }).click();
+  await publish.click();
   const request = await publication;
   expect(request.postDataJSON()).toEqual({ productKey: 'tee', amountMinor: 6100, currency: 'USD' });
   await expect(page.getByText(/TEE price published for future sales/i)).toBeVisible();
