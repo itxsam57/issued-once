@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react';
 import type { QuestionDefinition, QuestionId } from '@/domain/experience/types';
 import type { ShippingAddress } from '@/server/shipping/ShippingRepository';
 import type { BaseColorOption } from './BaseColorSelection';
-import type { CommitmentQuote } from './CommitmentScreen';
+import type {
+  CommitmentQuote,
+  ReferralApplicationQuote,
+} from './CommitmentScreen';
 import { MysteryExperience } from './MysteryExperience';
 import type { ObjectType } from './ObjectSelection';
 import type { SizeOption } from './SizeConfirmation';
@@ -85,6 +88,16 @@ async function saveShipping(address: ShippingAddress): Promise<void> {
   await postJson<{ saved: true }>('/api/shipping', address);
 }
 
+async function applyReferral(
+  quoteId: string,
+  explicitCode?: string,
+): Promise<ReferralApplicationQuote> {
+  return postJson<ReferralApplicationQuote>('/api/referrals/apply', {
+    quoteId,
+    ...(explicitCode ? { explicitCode } : {}),
+  });
+}
+
 async function requestPayment(quoteId: string): Promise<void> {
   const payload = await postJson<{ checkoutUrl: string; paymentAttemptId: string }>(
     '/api/payments/create',
@@ -148,6 +161,7 @@ export function PublicInterviewExperience() {
       onRequestOtp={requestOtp}
       onVerifyOtp={verifyOtp}
       onShippingSubmitted={saveShipping}
+      onApplyReferral={applyReferral}
       onCheckoutRequested={requestPayment}
     />
   );
