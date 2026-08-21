@@ -5,14 +5,14 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "00c1eb7db12a2105ca2b4162edd5e479b82ee7ac",
-    "latestApplicationHead": "00c1eb7db12a2105ca2b4162edd5e479b82ee7ac",
+    "verifiedApplicationCandidate": "dc3e01653148d8cf0fd524195e0270dad956c866",
+    "latestApplicationHead": "dc3e01653148d8cf0fd524195e0270dad956c866",
     "repositoryMigrationHead": "0029_creator_referrals.sql",
     "productionMigrationHead": "0028_design_controls.sql"
   },
   "continuationGovernor": {
     "state": "CONTINUE",
-    "decision": "REFERRAL_TASKS_1_TO_5_COMPLETE_BEGIN_MERCHANT_TASK1_PUBLIC_MERCHANT_SURFACE_TDD",
+    "decision": "MERCHANT_TASK1_COMPLETE_BEGIN_TASK2_MERCHANT_READINESS_TDD",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -127,7 +127,7 @@
       "factoryConfirmationIndependentKillSwitchMandatory": true
     },
     "merchantLaunch": {
-      "status": "OWNER_APPROVED_TASK1_PUBLIC_MERCHANT_SURFACE_ACTIVE",
+      "status": "TASK1_COMPLETE_TASK2_MERCHANT_READINESS_ACTIVE",
       "specCommit": "a877acef212d707ec568f3f7fe881af57640f3e5",
       "planCommit": "4e5abc08d5753a2558f7c941ca1ccaac4395a574",
       "requiredPublicRoutes": [
@@ -136,12 +136,34 @@
         "/terms",
         "/returns"
       ],
+      "task1": {
+        "truthfulDeploymentBackedIdentity": true,
+        "noFabricatedDomicileFallback": true,
+        "canonicalCatalogPublicPricing": true,
+        "publicRoutes": true,
+        "homeAndCommitmentLinks": true,
+        "desktopMobileRouteQa": true,
+        "horizontalOverflowQa": true
+      },
       "truthfulMerchantIdentityRequired": true,
       "merchantReadinessFailClosedRequired": true,
       "quickProductPriceControl": true
     }
   },
   "verification": {
+    "merchantTask1Final": {
+      "head": "dc3e01653148d8cf0fd524195e0270dad956c866",
+      "ciRun": 32494604102,
+      "ciJob": 96809940414,
+      "ciConclusion": "SUCCESS",
+      "unitTypeLintBuild": "PASSED",
+      "browserRun": 32494603650,
+      "browserJob": 96809939125,
+      "browserConclusion": "SUCCESS",
+      "desktopMobileMerchantRoutes": "PASSED",
+      "liveProductionJourney": "PASSED_TO_REAL_OTP_WITHOUT_PAYMENT_OR_MANUFACTURING_SIDE_EFFECTS",
+      "productionDatabaseUntouched": true
+    },
     "referralsFinal": {
       "head": "00c1eb7db12a2105ca2b4162edd5e479b82ee7ac",
       "ciRun": 32489775020,
@@ -204,17 +226,15 @@
     "printfulProduction": "DISABLED"
   },
   "resolvedDuringCurrentCycle": [
-    "Referral Tasks 3 and 4 completed: authenticated PAID conversion/reward/creator notification and delivered/refund reward lifecycle are idempotent",
-    "Referral Task 5 completed: Owner OS creator management, immutable rule versions, encrypted payout requests, audited payout reveal and AVAILABLE-only settlement",
-    "Referrals became a first-class Owner OS room with creator economics and safe balances while normal payloads exclude creator email and payout plaintext",
-    "Owner OS browser harness strict selector ambiguity was fixed without changing product behavior",
-    "Accidentally truncated browser harness was restored exactly and reverified before any release claim",
-    "Final referrals candidate 00c1eb7 passed 142 test files, 366 tests, typecheck, lint, production build and 20 desktop/mobile Playwright tests",
-    "Live issuedonce.shop smoke reached real OTP on the final referrals candidate without payment or manufacturing side effects",
+    "Referral Tasks 1 through 5 remain complete with final code UI browser evidence",
+    "Merchant Task 1 added truthful deployment-backed identity and four public merchant routes without fabricated domicile fallback",
+    "Store info pricing is derived from the runtime canonical catalog and frozen historical quotes remain unchanged",
+    "Homepage and commitment stage expose restrained store info contact terms and returns links",
+    "Dedicated merchant Playwright coverage verifies all four routes in desktop/mobile projects and checks horizontal viewport overflow",
+    "Merchant Task 1 final candidate dc3e016 passed CI unit typecheck lint build Browser QA and live production OTP smoke",
     "Production database remains through 0028 and referral migration 0029 remains unapplied"
   ],
   "nextActions": [
-    "TDD Merchant Task 1 public merchant identity and /store-info /contact /terms /returns pages with homepage and commitment links",
     "TDD Merchant Task 2 merchant disclosure readiness gate that fails sandbox readiness closed when required public identity is missing",
     "TDD Merchant Task 3 one-action TEE HAT TOTE future-sale price publishing through the canonical catalog publication service",
     "Clean non-blocking lint warnings before final release gate",
