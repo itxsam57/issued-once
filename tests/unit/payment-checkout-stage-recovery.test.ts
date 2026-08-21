@@ -4,6 +4,10 @@ import { hashSessionToken } from '@/server/http/sessionToken';
 
 const sessionToken = 'stage-recovery';
 const now = new Date('2026-08-19T06:00:00Z');
+const quote = {
+  id: 'quote-1', experienceId: 'exp-1', productSlug: 'tee', variantId: 'tee-m-black',
+  amountMinor: 5400, currency: 'USD', expiresAt: new Date(now.getTime() + 600_000),
+};
 
 test('reused redirected payment repairs COMMITMENT_READY to CHECKOUT_STARTED before returning the URL', async () => {
   const advance = vi.fn(async () => undefined);
@@ -12,10 +16,10 @@ test('reused redirected payment repairs COMMITMENT_READY to CHECKOUT_STARTED bef
       id: 'exp-1', publicSessionHash: hash, stage: 'COMMITMENT_READY' as const, hookId: null,
       createdAt: now, updatedAt: now, expiresAt: new Date(now.getTime() + 3_600_000),
     }) : null) },
-    quotes: { findById: vi.fn(async () => ({
-      id: 'quote-1', experienceId: 'exp-1', productSlug: 'tee', variantId: 'tee-m-black',
-      amountMinor: 5400, currency: 'USD', expiresAt: new Date(now.getTime() + 600_000),
-    })) },
+    quotes: {
+      findById: vi.fn(async () => quote),
+      findLatestByExperienceId: vi.fn(async () => quote),
+    },
     contacts: { findVerifiedByExperienceId: vi.fn(async () => ({ id: 'contact-1', experienceId: 'exp-1' })) } as never,
     shipping: { findByExperienceId: vi.fn(async () => ({ id: 'ship-1', experienceId: 'exp-1', contactId: 'contact-1' })) } as never,
     payments: {
@@ -48,7 +52,10 @@ test('if stage repair fails, the hosted URL is not returned to the browser', asy
       id: 'exp-1', publicSessionHash: hash, stage: 'COMMITMENT_READY' as const, hookId: null,
       createdAt: now, updatedAt: now, expiresAt: new Date(now.getTime() + 3_600_000),
     })) },
-    quotes: { findById: vi.fn(async () => ({ id: 'quote-1', experienceId: 'exp-1', productSlug: 'tee', variantId: 'v1', amountMinor: 5400, currency: 'USD', expiresAt: new Date(now.getTime() + 600_000) })) },
+    quotes: {
+      findById: vi.fn(async () => quote),
+      findLatestByExperienceId: vi.fn(async () => quote),
+    },
     contacts: { findVerifiedByExperienceId: vi.fn(async () => ({ id: 'contact-1', experienceId: 'exp-1' })) } as never,
     shipping: { findByExperienceId: vi.fn(async () => ({ id: 'ship-1', experienceId: 'exp-1', contactId: 'contact-1' })) } as never,
     payments: {
