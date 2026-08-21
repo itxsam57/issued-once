@@ -9,6 +9,7 @@ import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
 import { enqueueIssueNotification } from '@/server/notifications/notificationQueue';
 import { ManualArtworkUploadService } from './ManualArtworkUploadService';
 import { OpsAuditService } from './OpsAuditService';
+import { OpsDesignPolicyService } from './OpsDesignPolicyService';
 import { OpsDesignerService } from './OpsDesignerService';
 import { OpsManufacturingService } from './OpsManufacturingService';
 import { OpsPrivateRevealService } from './OpsPrivateRevealService';
@@ -54,6 +55,13 @@ export function createOpsAttentionRepository() { return new PostgresOpsAttention
 export function createOpsPrivateRevealService() {
   const executor = sql();
   return new OpsPrivateRevealService(new PostgresOpsPrivateSource(executor), new OpsAuditService(new PostgresOpsAuditRepository(executor)));
+}
+export function createOpsDesignPolicyService() {
+  const executor = sql();
+  return new OpsDesignPolicyService(
+    new PostgresDesignPolicyRepository(executor),
+    new OpsAuditService(new PostgresOpsAuditRepository(executor)),
+  );
 }
 export function createOpsDesignerStore() { return new PostgresOpsDesignerStore(sql()); }
 export function createOpsDesignCandidateRepository() { return new PostgresOpsDesignCandidateRepository(sql()); }
