@@ -10,6 +10,7 @@ export const OWNER_OS_SECTIONS = [
   'Designer',
   'Manufacturing',
   'Sales',
+  'Referrals',
   'Customers',
   'Support',
   'Website',
