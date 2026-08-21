@@ -65,6 +65,10 @@ export default function Home() {
         <span>ISSUED ONCE / 2026</span>
         <nav aria-label="Footer">
           <a href="#privacy">PRIVACY</a>
+          <Link href="/store-info">STORE INFO</Link>
+          <Link href="/contact">CONTACT</Link>
+          <Link href="/terms">TERMS</Link>
+          <Link href="/returns">RETURNS</Link>
           <Link href="/begin">BEGIN</Link>
         </nav>
       </footer>
