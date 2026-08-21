@@ -131,3 +131,26 @@ test('Owner OS protects private data and exposes every control-plane room', asyn
   }
   await expect(page.getByText('Audit metadata never stores raw answers, email, phone, address, secrets or decrypted support text.')).toBeVisible();
 });
+
+test('Owner OS quick pricing publishes the chosen future-sale price without touching production providers', async ({ page }) => {
+  await mockOwnerApis(page);
+  await login(page);
+  await page.getByRole('button', { name: 'Website', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'What the next customer can receive.' })).toBeVisible();
+
+  const price = page.getByLabel('TEE quick price');
+  await expect(price).toHaveValue('54.00');
+  await price.fill('61.00');
+
+  const publication = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return request.method() === 'POST' && url.pathname === '/ops/api/website/catalog/price';
+  });
+  await page.getByRole('button', { name: 'PUBLISH TEE PRICE' }).click();
+  const request = await publication;
+  expect(request.postDataJSON()).toEqual({ productKey: 'tee', amountMinor: 6100, currency: 'USD' });
+  await expect(page.getByText(/TEE price published for future sales/i)).toBeVisible();
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+});
