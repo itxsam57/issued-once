@@ -14,6 +14,6 @@ test('0028 adds design policy config, per-Issue overrides, and manual artwork pr
   expect(sql).toMatch(/ops_design_candidates_source_check/i);
 });
 
-test('migration head advances to 0028 design controls', () => {
-  expect(readFileSync('db/migrations/CURRENT', 'utf8').trim()).toBe('0028_design_controls.sql');
+test('repository migration head is not behind 0028 design controls', () => {
+  expect(readFileSync('db/migrations/CURRENT', 'utf8').trim()).toMatch(/^002(?:8_design_controls|9_creator_referrals)\.sql$/);
 });
