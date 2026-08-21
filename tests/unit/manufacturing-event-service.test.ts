@@ -37,6 +37,33 @@ test('verified shipment applies exactly once and duplicate retries preserve Issu
   });
 });
 
+test('verified delivered truth advances the referral reward lifecycle and replay repeats only the idempotent transition call', async () => {
+  const deliveredEvent = {
+    ...event,
+    type: 'SHIPMENT_DELIVERED' as const,
+    providerEventId: 'evt-delivered',
+    deliveredAt: new Date('2026-08-21T13:00:00Z'),
+  };
+  const verifier = { verify: vi.fn(() => deliveredEvent) } as unknown as PrintfulWebhookVerifier;
+  let called = 0;
+  const repository: ManufacturingEventRepository = {
+    applyProviderEvent: vi.fn(async () => ({
+      kind: ++called === 1 ? 'applied' as const : 'duplicate' as const,
+      issueId,
+    })),
+  };
+  const referralLifecycle = {
+    markDeliveredIssue: vi.fn().mockResolvedValue({ kind: 'not-referred' }),
+  };
+  const service = new ManufacturingEventService(verifier, repository, referralLifecycle);
+
+  await service.handle({ rawBody: '{}', headers: new Headers() });
+  await service.handle({ rawBody: '{}', headers: new Headers() });
+
+  expect(referralLifecycle.markDeliveredIssue).toHaveBeenNthCalledWith(1, issueId);
+  expect(referralLifecycle.markDeliveredIssue).toHaveBeenNthCalledWith(2, issueId);
+});
+
 test('cross-link mismatch is quarantined rather than silently accepted', async () => {
   const verifier = { verify: vi.fn(() => event) } as unknown as PrintfulWebhookVerifier;
   const repository: ManufacturingEventRepository = {
