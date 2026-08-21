@@ -5,14 +5,14 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "438f260a26b83132085034ca5c458a900abb81fb",
-    "latestApplicationHead": "438f260a26b83132085034ca5c458a900abb81fb",
+    "verifiedApplicationCandidate": "f30e94ae00488e3fa74e2fe2b6f86194007caf29",
+    "latestApplicationHead": "f30e94ae00488e3fa74e2fe2b6f86194007caf29",
     "repositoryMigrationHead": "0029_creator_referrals.sql",
     "productionMigrationHead": "0028_design_controls.sql"
   },
   "continuationGovernor": {
     "state": "CONTINUE",
-    "decision": "REFERRAL_TASK2_ATTRIBUTION_CORE_AND_ROLLOUT_SAFETY_GREEN_CONTINUE_PUBLIC_ROUTES_AND_COMMITMENT_UI",
+    "decision": "REFERRAL_TASK2_COMPLETE_BEGIN_TASK3_SIGNED_PAID_CONVERSION_REWARD_AND_CREATOR_NOTIFICATION_TDD",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
     "stopReason": null
   },
@@ -66,7 +66,7 @@
   },
   "finalProductScope": {
     "referrals": {
-      "status": "TASK1_COMPLETE_TASK2_ATTRIBUTION_CORE_GREEN_PUBLIC_ROUTES_UI_IN_PROGRESS",
+      "status": "TASK2_COMPLETE_TASK3_PAID_CONVERSION_ACTIVE",
       "specCommit": "46cd5e1514e8b653020864acfa2f7927a5de96b3",
       "planCommit": "253e15c0bb571c27cdcbd9e24125cf7ac2051755",
       "migration": "0029_creator_referrals.sql",
@@ -92,8 +92,15 @@
         "latestQuoteSafepayGuard": true,
         "migrationFirstCompatibilityTrigger": true,
         "revisedIsolatedNeonProof": true,
-        "publicRoutes": false,
-        "commitmentUi": false
+        "publicRoutes": true,
+        "secureOpaqueCookie": true,
+        "commitmentUi": true,
+        "grossDiscountFinalLedger": true,
+        "automaticLinkAttribution": true,
+        "manualCodeReplacement": true,
+        "strictModeUnavailableReferralRecovery": true,
+        "desktopMobileReplacementBrowserProof": true,
+        "productionApplied": false
       }
     },
     "designControl": {
@@ -112,6 +119,27 @@
     }
   },
   "verification": {
+    "referralTask2Final": {
+      "head": "f30e94ae00488e3fa74e2fe2b6f86194007caf29",
+      "ciRun": 32479349058,
+      "ciConclusion": "SUCCESS",
+      "unitTestFiles": 134,
+      "unitTests": 334,
+      "typecheck": "PASSED",
+      "lint": "PASSED",
+      "productionBuild": "PASSED",
+      "browserRun": 32479349123,
+      "browserConclusion": "SUCCESS",
+      "browserTests": 20,
+      "desktopReferralReplacement": "PASSED",
+      "mobileReferralReplacement": "PASSED",
+      "replacementQuotePaymentProof": "quote-link-e2e -> quote-code-e2e -> Safepay request uses quote-code-e2e",
+      "liveProductionJourney": "PASSED_TO_REAL_OTP_WITHOUT_PAYMENT_OR_MANUFACTURING_SIDE_EFFECTS",
+      "visualEvidenceArtifactId": 9445497911,
+      "strictModeRegressionClosed": true,
+      "revised0029NeonProof": "SUCCESS",
+      "productionDatabaseUntouched": true
+    },
     "referralTask2Safety": {
       "head": "438f260a26b83132085034ca5c458a900abb81fb",
       "ciRun": 32476432853,
@@ -158,20 +186,26 @@
   },
   "resolvedDuringCurrentCycle": [
     "Signed opaque referral attribution token and server-side referral quote resolution implemented",
+    "Public /r code capture and /api/referrals/apply routes are complete with secure opaque attribution cookie",
     "Explicit referral code can replace prior link attribution without stacking discounts",
     "Self-referral guard uses verified customer email hash against creator email hash",
     "Referral discounts create new immutable quote snapshots instead of mutating previous quotes",
     "Safepay payment start rejects superseded quote IDs before creating a payment attempt",
-    "0029 now preserves old application quote inserts during migration-first rollout via compatibility trigger",
+    "Commitment UI applies captured attribution, permits manual replacement, and renders gross referral discount and final payable ledger",
+    "React Strict Mode automatic-referral pending lock reproduced with RED unit test and fixed at root without duplicate attribution requests",
+    "Desktop and mobile Playwright prove captured referral replacement and Safepay receives only the replacement quote ID",
+    "Referral commitment visual evidence inspected on desktop and mobile and remains coherent with the existing editorial paper-ledger UI",
+    "0029 preserves old application quote inserts during migration-first rollout via compatibility trigger",
     "Revised 0029 passed isolated Neon proof including legacy writer insert and positive referral snapshot",
     "Production database independently confirmed untouched and still through 0028",
-    "Full CI Browser QA and live customer smoke passed at 438f260a26b83132085034ca5c458a900abb81fb"
+    "Final Task2 CI Browser QA and live customer smoke passed at f30e94ae00488e3fa74e2fe2b6f86194007caf29"
   ],
   "nextActions": [
-    "TDD public /r code capture route and /api/referrals/apply route with signed opaque cookie",
-    "TDD commitment UI auto-applied link attribution explicit code override gross discount final display and newest quote checkout",
-    "Complete runtime referral wiring without exposing creator private data",
-    "Implement signed-PAID conversion reward notification and idempotent refund lifecycle",
+    "TDD signed-PAID referral conversion using persisted PAID payment truth and frozen referral quote snapshot",
+    "Make creator percentage reward derive from final authenticated paid amount while fixed reward remains exact configured snapshot",
+    "Make conversion and SALE notification reservation idempotent across Safepay replay and crash recovery",
+    "Send creator sale notification with reward and balances only and no buyer PII",
+    "Implement delivered-to-AVAILABLE and signed-refund-to-REVERSED lifecycle exactly once",
     "Implement encrypted payout requests and Owner OS Referrals management",
     "Implement merchant public pages readiness and quick product pricing control",
     "Clean non-blocking lint warnings before final release gate",
