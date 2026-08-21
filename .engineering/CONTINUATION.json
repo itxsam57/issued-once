@@ -5,21 +5,15 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "dc3e01653148d8cf0fd524195e0270dad956c866",
-    "latestApplicationHead": "dc3e01653148d8cf0fd524195e0270dad956c866",
+    "verifiedApplicationCandidate": "ebe97e85441fa99ca185a44661214a85e99e504a",
+    "latestApplicationHead": "ebe97e85441fa99ca185a44661214a85e99e504a",
     "repositoryMigrationHead": "0029_creator_referrals.sql",
     "productionMigrationHead": "0028_design_controls.sql"
   },
   "continuationGovernor": {
     "state": "CONTINUE",
-    "decision": "MERCHANT_TASK1_COMPLETE_BEGIN_TASK2_MERCHANT_READINESS_TDD",
-    "allowedStopStates": [
-      "OWNER_REQUIRED",
-      "BLOCKED",
-      "WAIT_EXTERNAL",
-      "LOOP_DETECTED",
-      "COMPLETE"
-    ],
+    "decision": "MERCHANT_TASK2_COMPLETE_BEGIN_TASK3_QUICK_PRODUCT_PRICE_TDD",
+    "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
     "stopReason": null
   },
   "engineeringFactory": {
@@ -57,10 +51,7 @@
       "legacySnapshotViolations": 0,
       "legacyWriterCompatibilityProof": "OLD_INSERT_GROSS_3200_DISCOUNT_0_FINAL_3200",
       "positiveQuoteProof": "GROSS_3200_DISCOUNT_320_FINAL_2880",
-      "negativeConstraintProofs": [
-        "DUPLICATE_NORMALIZED_CODE_REJECTED",
-        "DISCOUNT_WITHOUT_COMPLETE_ATTRIBUTION_SNAPSHOT_REJECTED"
-      ]
+      "negativeConstraintProofs": ["DUPLICATE_NORMALIZED_CODE_REJECTED", "DISCOUNT_WITHOUT_COMPLETE_ATTRIBUTION_SNAPSHOT_REJECTED"]
     },
     "liveEvidence": {
       "questionDefinitions": 70,
@@ -77,48 +68,11 @@
       "specCommit": "46cd5e1514e8b653020864acfa2f7927a5de96b3",
       "planCommit": "253e15c0bb571c27cdcbd9e24125cf7ac2051755",
       "migration": "0029_creator_referrals.sql",
-      "task1": {
-        "schemaRepositoryPolicy": true,
-        "encryptedCreatorEmail": true,
-        "encryptedPayoutDetails": true,
-        "immutableRuleVersions": true,
-        "quoteAndConversionConstraints": true,
-        "isolatedNeonProof": true,
-        "productionApplied": false
-      },
-      "task2": {
-        "signedOpaqueAttributionToken": true,
-        "tamperAndExpiryRejection": true,
-        "explicitCodeOverride": true,
-        "selfReferralHashGuard": true,
-        "immutableReplacementQuote": true,
-        "latestQuoteSafepayGuard": true,
-        "publicRoutesAndCommitmentUi": true,
-        "desktopMobileBrowserProof": true,
-        "productionApplied": false
-      },
-      "task3": {
-        "signedPaidConversion": true,
-        "frozenQuoteRewardSnapshot": true,
-        "percentageAndFixedRewardRules": true,
-        "idempotentConversionReservation": true,
-        "creatorSaleNotificationNoBuyerPii": true
-      },
-      "task4": {
-        "deliveredToAvailable": true,
-        "signedRefundToReversed": true,
-        "idempotentLifecycle": true
-      },
-      "task5": {
-        "ownerOsCreators": true,
-        "createEditPauseResume": true,
-        "immutableRuleVersionEditing": true,
-        "safeBalancesLedger": true,
-        "encryptedPayoutRequest": true,
-        "reasonGatedPayoutReveal": true,
-        "availableOnlySettlement": true,
-        "desktopMobileOwnerOsProof": true
-      }
+      "task1": {"schemaRepositoryPolicy": true, "encryptedCreatorEmail": true, "encryptedPayoutDetails": true, "immutableRuleVersions": true, "quoteAndConversionConstraints": true, "isolatedNeonProof": true, "productionApplied": false},
+      "task2": {"signedOpaqueAttributionToken": true, "tamperAndExpiryRejection": true, "explicitCodeOverride": true, "selfReferralHashGuard": true, "immutableReplacementQuote": true, "latestQuoteSafepayGuard": true, "publicRoutesAndCommitmentUi": true, "desktopMobileBrowserProof": true, "productionApplied": false},
+      "task3": {"signedPaidConversion": true, "frozenQuoteRewardSnapshot": true, "percentageAndFixedRewardRules": true, "idempotentConversionReservation": true, "creatorSaleNotificationNoBuyerPii": true},
+      "task4": {"deliveredToAvailable": true, "signedRefundToReversed": true, "idempotentLifecycle": true},
+      "task5": {"ownerOsCreators": true, "createEditPauseResume": true, "immutableRuleVersionEditing": true, "safeBalancesLedger": true, "encryptedPayoutRequest": true, "reasonGatedPayoutReveal": true, "availableOnlySettlement": true, "desktopMobileOwnerOsProof": true}
     },
     "designControl": {
       "status": "COMPLETE_CODE_UI_BROWSER_PROVIDER_BOUNDARIES_GREEN",
@@ -127,30 +81,32 @@
       "factoryConfirmationIndependentKillSwitchMandatory": true
     },
     "merchantLaunch": {
-      "status": "TASK1_COMPLETE_TASK2_MERCHANT_READINESS_ACTIVE",
+      "status": "TASKS1_2_COMPLETE_TASK3_QUICK_PRICE_ACTIVE",
       "specCommit": "a877acef212d707ec568f3f7fe881af57640f3e5",
       "planCommit": "4e5abc08d5753a2558f7c941ca1ccaac4395a574",
-      "requiredPublicRoutes": [
-        "/store-info",
-        "/contact",
-        "/terms",
-        "/returns"
-      ],
-      "task1": {
-        "truthfulDeploymentBackedIdentity": true,
-        "noFabricatedDomicileFallback": true,
-        "canonicalCatalogPublicPricing": true,
-        "publicRoutes": true,
-        "homeAndCommitmentLinks": true,
-        "desktopMobileRouteQa": true,
-        "horizontalOverflowQa": true
-      },
+      "requiredPublicRoutes": ["/store-info", "/contact", "/terms", "/returns"],
+      "task1": {"truthfulDeploymentBackedIdentity": true, "noFabricatedDomicileFallback": true, "canonicalCatalogPublicPricing": true, "publicRoutes": true, "homeAndCommitmentLinks": true, "desktopMobileRouteQa": true, "horizontalOverflowQa": true},
+      "task2": {"merchantReadinessCheck": true, "sandboxFailsClosedWithoutIdentity": true, "readinessPayloadExcludesMerchantValues": true, "systemPanelBoundaryVisible": true},
       "truthfulMerchantIdentityRequired": true,
       "merchantReadinessFailClosedRequired": true,
       "quickProductPriceControl": true
     }
   },
   "verification": {
+    "merchantTask2Final": {
+      "head": "ebe97e85441fa99ca185a44661214a85e99e504a",
+      "redHead": "aab2e819863b529ca3cec27af6b1b684285fe28d",
+      "redCiRun": 32494987447,
+      "redResult": "ONLY_NEW_MERCHANT_READINESS_EXPECTATIONS_FAILED_142_OTHER_FILES_GREEN",
+      "ciRun": 32495424975,
+      "ciJob": 96812562055,
+      "ciConclusion": "SUCCESS",
+      "unitTypeLintBuild": "PASSED",
+      "browserRun": 32495424977,
+      "browserJob": 96812561963,
+      "browserConclusion": "SUCCESS",
+      "liveProductionJourney": "PASSED_TO_REAL_OTP_WITHOUT_PAYMENT_OR_MANUFACTURING_SIDE_EFFECTS"
+    },
     "merchantTask1Final": {
       "head": "dc3e01653148d8cf0fd524195e0270dad956c866",
       "ciRun": 32494604102,
@@ -187,34 +143,7 @@
       "visualEvidenceDigest": "sha256:97c2e12b3a7852e15913f4196dba2d4cb6fd63a605d330d599d6183822467e9b",
       "productionDatabaseUntouched": true
     },
-    "referralTask2Final": {
-      "head": "dcc5a2c266eeca69852b475a54cf53358ac85670",
-      "ciRun": 32479643621,
-      "ciConclusion": "SUCCESS",
-      "browserRun": 32479643630,
-      "browserConclusion": "SUCCESS",
-      "revised0029NeonProof": "SUCCESS",
-      "productionDatabaseUntouched": true
-    },
-    "recoveryPolicySafety": {
-      "head": "1fd4eb5b04dbe69da985c68dd326aa47920b0496",
-      "ciRun": 32473218013,
-      "ciConclusion": "SUCCESS",
-      "browserRun": 32473217994,
-      "browserConclusion": "SUCCESS"
-    },
-    "designControl": {
-      "finalHead": "9605ed3f4666ecf11cb57a2b814c38a7ea53a5da",
-      "feedbackProviderBoundaryGreen": true,
-      "completePolicyUiGreen": true,
-      "approvedOnlyManufacturingDraftUiGreen": true,
-      "browserInteractionProofGreen": true
-    },
-    "technicalDebt": {
-      "lintWarningsLastCounted": 44,
-      "lintErrors": 0,
-      "releaseBlocker": false
-    }
+    "technicalDebt": {"lintWarningsLastCounted": 44, "lintErrors": 0, "releaseBlocker": false}
   },
   "providers": {
     "resendOtp": "LIVE_PROVEN",
@@ -227,15 +156,14 @@
   },
   "resolvedDuringCurrentCycle": [
     "Referral Tasks 1 through 5 remain complete with final code UI browser evidence",
-    "Merchant Task 1 added truthful deployment-backed identity and four public merchant routes without fabricated domicile fallback",
-    "Store info pricing is derived from the runtime canonical catalog and frozen historical quotes remain unchanged",
-    "Homepage and commitment stage expose restrained store info contact terms and returns links",
-    "Dedicated merchant Playwright coverage verifies all four routes in desktop/mobile projects and checks horizontal viewport overflow",
-    "Merchant Task 1 final candidate dc3e016 passed CI unit typecheck lint build Browser QA and live production OTP smoke",
+    "Merchant Task 1 truthful public merchant surface is fully verified",
+    "Merchant readiness now reuses the public merchant truth source and fails sandbox readiness closed without required name support email and location",
+    "Readiness response exposes only merchant readiness state/detail and not public identity values",
+    "Owner OS System room explicitly names public merchant disclosure as a launch boundary",
+    "Merchant Task 2 final candidate ebe97e8 passed CI unit typecheck lint build Browser QA and live production OTP smoke",
     "Production database remains through 0028 and referral migration 0029 remains unapplied"
   ],
   "nextActions": [
-    "TDD Merchant Task 2 merchant disclosure readiness gate that fails sandbox readiness closed when required public identity is missing",
     "TDD Merchant Task 3 one-action TEE HAT TOTE future-sale price publishing through the canonical catalog publication service",
     "Clean non-blocking lint warnings before final release gate",
     "Run Safepay sandbox checkout and signed webhook truth cycle after owner/provider configuration",
