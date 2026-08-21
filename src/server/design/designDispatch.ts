@@ -17,12 +17,14 @@ type EffectivePolicyReader = {
 type DispatchActions = {
   enqueue(issueId: string): Promise<unknown>;
   reserveManual(issueId: string): Promise<unknown>;
+  automationReady(): boolean;
 };
 
 export type DesignDispatchResult = {
   mode: DesignPolicy['mode'];
   queued: boolean;
   policyVersion: number;
+  fallback: boolean;
 };
 
 export class DesignDispatchService {
@@ -33,9 +35,17 @@ export class DesignDispatchService {
 
   async dispatchPaidIssueDesign(issueId: string): Promise<DesignDispatchResult> {
     const effective = await this.policies.getEffective(issueId);
-    if (effective.policy.mode === 'MANUAL') {
+    const manualMode = effective.policy.mode === 'MANUAL';
+    const fallback = !manualMode && !this.actions.automationReady();
+
+    if (manualMode || fallback) {
       await this.actions.reserveManual(issueId);
-      return { mode: 'MANUAL', queued: false, policyVersion: effective.globalVersion };
+      return {
+        mode: effective.policy.mode,
+        queued: false,
+        policyVersion: effective.globalVersion,
+        fallback,
+      };
     }
 
     await this.actions.enqueue(issueId);
@@ -43,6 +53,7 @@ export class DesignDispatchService {
       mode: effective.policy.mode,
       queued: true,
       policyVersion: effective.globalVersion,
+      fallback: false,
     };
   }
 }
@@ -53,6 +64,10 @@ function databaseUrl(): string {
   return value;
 }
 
+function hasDesignAutomationConfig(): boolean {
+  return Boolean(process.env.OPENAI_API_KEY?.trim() && process.env.BLOB_READ_WRITE_TOKEN?.trim());
+}
+
 export function createDesignDispatchService(): DesignDispatchService {
   const sql = createNeonSqlExecutor(databaseUrl());
   const designs = new PostgresDesignRepository(sql);
@@ -60,6 +75,7 @@ export function createDesignDispatchService(): DesignDispatchService {
     new PostgresDesignPolicyRepository(sql),
     {
       enqueue: (issueId) => enqueueDesignIssue(issueId),
+      automationReady: hasDesignAutomationConfig,
       reserveManual: async (issueId) => {
         const existing = await designs.findByIssueId(issueId);
         if (existing) return existing;
