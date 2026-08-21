@@ -18,6 +18,10 @@ export type DesignQuestionInput = {
   answer: string;
 };
 
+export type DesignRevisionContext = {
+  ownerFeedback?: string;
+};
+
 export interface DesignGateway {
   interpret(input: {
     issueCode: string;
@@ -25,9 +29,10 @@ export interface DesignGateway {
     sizeCode: string;
     colorCode: string;
     questions: readonly DesignQuestionInput[];
+    ownerFeedback?: string;
   }): Promise<StructuredDesignBrief>;
 
-  generateArtwork(brief: StructuredDesignBrief): Promise<{
+  generateArtwork(brief: StructuredDesignBrief, context?: DesignRevisionContext): Promise<{
     bytes: Buffer;
     mimeType: 'image/png';
     width: number;
