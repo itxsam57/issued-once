@@ -5,15 +5,15 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "83b68b66a4229d5c539208f656aa49974e96d4b8",
-    "latestApplicationHead": "83b68b66a4229d5c539208f656aa49974e96d4b8",
+    "verifiedApplicationCandidate": "a5cc9b38136d0d8468868f19cdb9db96310ea179",
+    "latestApplicationHead": "a5cc9b38136d0d8468868f19cdb9db96310ea179",
     "currentMigrationHead": "0028_design_controls.sql"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "decision": "DESIGN_POLICY_TASK1_GREEN_0028_ISOLATED_NEON_PROOF_GREEN_PRODUCTION_MIGRATION_APPROVAL_REQUIRED",
+    "state": "CONTINUE",
+    "decision": "DESIGN_CONTROLS_PRODUCTION_SCHEMA_AND_MANUAL_UPLOAD_GREEN_CONTINUE_OWNER_OS_POLICY_UI",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The owner-approved final product scope is locked in three specs/plans: creator referrals, configurable automatic/manual design control, and merchant/final launch controls. Design-control Task 1 completed TDD for policy domain and Postgres persistence. RED e042ec8a9fd3e323403847c4e1166b320ffcb8fb proved the policy domain was missing; GREEN eb7ad060d4750f7134ae12ba44be0cc9fdf761ee passed. RED 95797ebf023cdf032ad29d8d21d53f702dec25cc proved policy persistence was missing; repository implementation plus readonly type repair reached verified head 3590e147128780720694d11d19c0cfb505b2eb81. Migration RED 87b7c31e67d2e440022c167fcbb99a52f89f8441 produced 116 passing existing test files and exactly two intended failures because 0028 was absent and CURRENT still pointed at 0027. Migration implementation head 83b68b66a4229d5c539208f656aa49974e96d4b8 passed CI 32461002041 and Browser QA 32461002023 including the live issuedonce.shop OTP smoke. Neon prepare_database_migration created migration 79d6e76c-cb98-4d06-8f15-afa3d9ab7ad1 on temporary branch br-bold-base-axi9u2qu. Real PostgreSQL verification confirmed issue_design_policy_overrides exists, DESIGN_POLICY is accepted by the config constraint, OWNER_UPLOAD is accepted by candidate provenance, and a DESIGN_POLICY draft row can be inserted. Production branch br-dawn-cloud-axm880q9 remains untouched and verified only through 0027. Exact production migration approval is required before complete_database_migration may apply 0028."
+    "stopReason": null
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -33,14 +33,14 @@
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
     "parentBranchId": "br-dawn-cloud-axm880q9",
-    "productionState": "MIGRATED_AND_VERIFIED_THROUGH_0027",
-    "pendingMigration": {
+    "productionState": "MIGRATED_AND_VERIFIED_THROUGH_0028",
+    "latestMigration": {
       "migrationId": "79d6e76c-cb98-4d06-8f15-afa3d9ab7ad1",
-      "temporaryBranchName": "mcp-migration-2026-08-21T07-58-42",
-      "temporaryBranchId": "br-bold-base-axi9u2qu",
       "migrationFile": "0028_design_controls.sql",
       "isolatedProof": "GREEN",
-      "productionApplied": false
+      "productionApplied": true,
+      "productionVerified": true,
+      "temporaryProofBranchDeleted": true
     },
     "liveEvidence": {
       "questionDefinitions": 70,
@@ -48,6 +48,7 @@
       "contactOtp": "LIVE_PROVEN",
       "shipping": "LIVE_PROVEN_ENCRYPTED",
       "catalogRuntime": "LIVE_PROVEN_AUDITED_BOOT_FALLBACK",
+      "designPolicySchema": "LIVE_PROVEN_PRODUCTION",
       "paymentAttemptsBeforeSafepay": 0,
       "issuesBeforeSafepay": 0,
       "designJobsBeforeSafepay": 0,
@@ -62,7 +63,7 @@
       "migrationPlanned": "0029_creator_referrals.sql"
     },
     "designControl": {
-      "status": "IMPLEMENTATION_IN_PROGRESS_TASK1_CODE_AND_SCHEMA_PROOF_GREEN",
+      "status": "IMPLEMENTATION_IN_PROGRESS_POLICY_SCHEMA_SERVICE_AND_MANUAL_UPLOAD_GREEN",
       "specCommit": "2ff771ba30f130deecbe6eb07e2a14bf901d36d9",
       "planCommit": "1f1fec3fbdf516ad642d7064ade2f54712294ad7",
       "globalModes": ["AUTO", "MANUAL", "HYBRID"],
@@ -87,14 +88,14 @@
   },
   "verification": {
     "designPolicyRedCommit": "e042ec8a9fd3e323403847c4e1166b320ffcb8fb",
-    "designPolicyDomainGreenCommit": "eb7ad060d4750f7134ae12ba44be0cc9fdf761ee",
-    "designPolicyRepositoryRedCommit": "95797ebf023cdf032ad29d8d21d53f702dec25cc",
     "designPolicyRepositoryGreenHead": "3590e147128780720694d11d19c0cfb505b2eb81",
-    "designControlsMigrationRedCommit": "87b7c31e67d2e440022c167fcbb99a52f89f8441",
     "designControlsMigrationGreenHead": "83b68b66a4229d5c539208f656aa49974e96d4b8",
+    "designPolicyOpsServiceHead": "521e1bd688a33a8128585d7b07cbbd2c23744819",
+    "manualUploadRouteGreenHead": "a5cc9b38136d0d8468868f19cdb9db96310ea179",
+    "manualUploadDebugging": "ROOT_CAUSE_PROVEN_TEST_ENVIRONMENT_JSDOM_REWRITES_MULTIPART_FILE_TO_BLOB_9_BYTES; SERVER_ROUTE_TEST_MOVED_TO_NODE; PRODUCTION_NATIVE_FILE_VALIDATION_PRESERVED; TEST_MOCKS_ISOLATED",
     "ci": {
-      "run": 32461002041,
-      "job": 96707756595,
+      "run": 32465108587,
+      "job": 96719961442,
       "conclusion": "SUCCESS",
       "unitTests": "ALL_PASSED",
       "typecheck": "PASSED",
@@ -102,8 +103,8 @@
       "productionBuild": "PASSED"
     },
     "browser": {
-      "run": 32461002023,
-      "job": 96707756451,
+      "run": 32465108585,
+      "job": 96719961556,
       "conclusion": "SUCCESS",
       "localPlaywright": "PASSED",
       "liveProductionJourney": "PASSED_TO_REAL_OTP_REQUEST",
@@ -119,9 +120,17 @@
     "printful": "CODE_HARDENED_LIVE_DRAFT_AND_WEBHOOK_PROOF_PENDING",
     "printfulProduction": "DISABLED"
   },
+  "resolvedDuringCurrentCycle": [
+    "Applied and independently verified production migration 0028 design controls",
+    "Added audited Owner OS design policy service and runtime wiring",
+    "Confirmed manual upload service uses effective global/per-Issue policy and can auto-approve only when configured",
+    "Resolved manual upload route test failure without weakening production validation",
+    "Kept real OTP production smoke enabled per owner instruction"
+  ],
   "nextActions": [
-    "Owner explicitly approves production migration 79d6e76c-cb98-4d06-8f15-afa3d9ab7ad1 for 0028 design controls",
-    "Apply and independently verify production 0028, then continue design-control Tasks 2-7",
+    "TDD authenticated design-policy routes for global and per-Issue controls",
+    "Add Owner OS Designer toggles, manual upload, audited answer reveal, quick reject reasons and custom feedback",
+    "Wire policy into initial AI dispatch, rejection behavior, approval requirement and manufacturing handoff",
     "Implement and prove creator referral migration/domain/attribution/conversion/email/payout/Owner OS",
     "Implement merchant public pages, readiness and quick product pricing control",
     "Run Safepay sandbox checkout and signed webhook truth cycle",
@@ -129,5 +138,5 @@
     "Run Printful unconfirmed draft and signed fulfillment proof with production confirmation disabled",
     "Run final full code/UI/UX/live production audit and only then promote PR 3"
   ],
-  "nextOwnerAction": "Explicitly approve production migration 79d6e76c-cb98-4d06-8f15-afa3d9ab7ad1 (0028 design controls). Do not share any secrets."
+  "nextOwnerAction": null
 }
