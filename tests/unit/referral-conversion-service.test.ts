@@ -1,5 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { ReferralConversionService } from '@/server/referrals/ReferralConversionService';
+import type { PaidReferralTruth } from '@/server/referrals/ReferralRepository';
 
 const now = new Date('2026-08-21T12:15:00.000Z');
 const rules = {
@@ -10,7 +11,7 @@ const rules = {
   attributionWindowDays: 30,
 };
 
-const paidTruth = {
+const paidTruth: PaidReferralTruth = {
   paymentAttemptId: 'payment-ref-1',
   creatorId: 'creator-1',
   ruleVersionId: 'rule-1',
@@ -21,7 +22,7 @@ const paidTruth = {
   ruleSnapshot: { code: 'CREATOR-ONE', rules },
 };
 
-function setup(truth: typeof paidTruth | null = paidTruth) {
+function setup(truth: PaidReferralTruth | null = paidTruth) {
   const repository = {
     loadPaidReferralTruth: vi.fn().mockResolvedValue(truth),
     createConversion: vi.fn().mockImplementation(async (input) => ({
