@@ -54,6 +54,7 @@ test('passes a bounded PNG and reason to the audited manual-upload service', asy
   const file = new File([new Uint8Array(12000)], 'owner-art.png', { type: 'image/png' });
 
   const response = await POST(request(file), { params: Promise.resolve({ issueId }) });
+  if (response.status !== 200) console.error('MANUAL_UPLOAD_ROUTE_ERROR', response.status, await response.clone().text());
   expect(response.status).toBe(200);
   expect(response.headers.get('cache-control')).toMatch(/no-store/);
   const call = upload.mock.calls[0][0];
@@ -69,6 +70,7 @@ test('rejects oversized files before constructing the upload service', async () 
   hasOpsSessionMock.mockResolvedValue(true);
   const file = new File([new Uint8Array(20 * 1024 * 1024 + 1)], 'huge.png', { type: 'image/png' });
   const response = await POST(request(file), { params: Promise.resolve({ issueId }) });
+  if (response.status !== 413) console.error('MANUAL_UPLOAD_OVERSIZE_ERROR', response.status, await response.clone().text());
   expect(response.status).toBe(413);
   expect(createManualArtworkUploadServiceMock).not.toHaveBeenCalled();
 });
