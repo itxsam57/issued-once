@@ -160,3 +160,33 @@ test('Owner OS quick pricing publishes the chosen future-sale price without touc
   expect(overflow).toBeLessThanOrEqual(0);
   await page.screenshot({ path: `artifacts/visual/16-owner-quick-price-${testInfo.project.name}.png`, fullPage: true });
 });
+
+test('Owner OS new question editor keeps fields in a deliberate grid instead of baseline-staggering', async ({ page }, testInfo) => {
+  await mockOwnerApis(page);
+  await login(page);
+  await page.getByRole('button', { name: 'Website', exact: true }).click();
+
+  const questionId = page.getByPlaceholder('Question ID');
+  const prompt = page.getByPlaceholder('Prompt');
+  const family = page.locator('select').last();
+  const idBox = await questionId.boundingBox();
+  const promptBox = await prompt.boundingBox();
+  const familyBox = await family.boundingBox();
+  expect(idBox).not.toBeNull();
+  expect(promptBox).not.toBeNull();
+  expect(familyBox).not.toBeNull();
+
+  if (testInfo.project.name.includes('mobile')) {
+    expect(idBox!.width).toBeGreaterThanOrEqual(320);
+    expect(familyBox!.width).toBeGreaterThanOrEqual(320);
+    expect(promptBox!.width).toBeGreaterThanOrEqual(320);
+    expect(Math.abs(idBox!.x - familyBox!.x)).toBeLessThanOrEqual(2);
+    expect(Math.abs(idBox!.x - promptBox!.x)).toBeLessThanOrEqual(2);
+    expect(familyBox!.y).toBeGreaterThan(idBox!.y + idBox!.height);
+    expect(promptBox!.y).toBeGreaterThan(familyBox!.y + familyBox!.height);
+  } else {
+    expect(Math.abs(idBox!.y - familyBox!.y)).toBeLessThanOrEqual(2);
+    expect(promptBox!.y).toBeGreaterThan(idBox!.y + idBox!.height);
+    expect(promptBox!.width).toBeGreaterThan(idBox!.width + familyBox!.width);
+  }
+});
