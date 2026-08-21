@@ -77,6 +77,115 @@
   white-space: nowrap;
 }
 
+.commitment__price-stack {
+  min-width: clamp(280px, 29vw, 390px);
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: 20px 0 20px clamp(28px, 4vw, 64px);
+  border-left: 1px solid var(--hairline);
+}
+
+.commitment__price-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 30px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.19em;
+}
+
+.commitment__price-row > span:last-child {
+  font-family: var(--serif);
+  font-size: clamp(18px, 1.7vw, 25px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.commitment__price-row--discount {
+  color: var(--signal);
+}
+
+.commitment__price-row--final {
+  margin-top: 5px;
+  padding-top: 10px;
+  border-top: 1px solid var(--hairline);
+  color: var(--ink);
+}
+
+.commitment__price-row--final > span:last-child {
+  font-size: clamp(30px, 3.4vw, 52px);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+}
+
+.commitment__referral {
+  width: min(760px, 100%);
+  margin-top: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.commitment__referral > label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.commitment__referral-entry {
+  display: grid;
+  grid-template-columns: minmax(140px, 260px) auto;
+  align-items: end;
+  gap: 18px;
+}
+
+.commitment__referral input {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 0 7px;
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 18px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.commitment__referral input:focus {
+  border-color: var(--signal);
+}
+
+.commitment__referral input:disabled {
+  opacity: 0.45;
+}
+
+.commitment .commitment__referral-apply {
+  min-height: 38px;
+  margin: 0;
+  padding: 8px 0 7px;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+}
+
+.commitment__referral-state {
+  margin: 10px 0 0;
+  color: var(--signal);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.17em;
+}
+
 .commitment__unknown {
   width: min(760px, 100%);
   margin: clamp(28px, 4vh, 48px) 0 0;
@@ -170,6 +279,34 @@
     font-size: clamp(54px, 17vw, 76px);
   }
 
+  .commitment__price-stack {
+    min-width: 0;
+    padding: 18px 0 20px;
+    border-left: 0;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .commitment__price-row {
+    gap: 18px;
+  }
+
+  .commitment__price-row--final > span:last-child {
+    font-size: clamp(32px, 10vw, 44px);
+  }
+
+  .commitment__referral {
+    margin-top: 18px;
+  }
+
+  .commitment__referral-entry {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+  }
+
+  .commitment__referral input {
+    font-size: 16px;
+  }
+
   .commitment__unknown {
     margin-top: 24px;
     font-size: 18px;
@@ -181,5 +318,9 @@
 
   .commitment button {
     margin-top: 34px;
+  }
+
+  .commitment .commitment__referral-apply {
+    margin: 0;
   }
 }
