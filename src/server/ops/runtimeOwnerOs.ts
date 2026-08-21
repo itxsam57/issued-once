@@ -1,6 +1,7 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { createDesignService } from '@/server/design/runtimeDesign';
 import { enqueueDesignIssue } from '@/server/design/designQueue';
+import { DesignPolicyWorkflowService } from '@/server/design/DesignPolicyWorkflowService';
 import { PostgresDesignPolicyRepository } from '@/server/design/PostgresDesignPolicyRepository';
 import { VercelBlobArtworkStorage } from '@/server/design/VercelBlobArtworkStorage';
 import { createIssueService } from '@/server/issues/runtimeIssues';
@@ -63,6 +64,16 @@ export function createOpsDesignPolicyService() {
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
 }
+export function createDesignPolicyWorkflowService() {
+  const executor = sql();
+  return new DesignPolicyWorkflowService(
+    new PostgresDesignPolicyRepository(executor),
+    {
+      approve: (issueId) => createDesignService().approveForManufacturing(issueId),
+      createDraft: (issueId) => createManufacturingService().createDraft(issueId),
+    },
+  );
+}
 export function createOpsDesignerStore() { return new PostgresOpsDesignerStore(sql()); }
 export function createOpsDesignCandidateRepository() { return new PostgresOpsDesignCandidateRepository(sql()); }
 export function createOpsDesignerService() {
@@ -70,7 +81,7 @@ export function createOpsDesignerService() {
   return new OpsDesignerService(
     new PostgresOpsDesignerStore(executor),
     {
-      approve: (issueId) => createDesignService().approveForManufacturing(issueId),
+      approve: (issueId) => createDesignPolicyWorkflowService().afterOwnerApproval(issueId),
       enqueue: (issueId, mode, generationKey) => enqueueDesignIssue(issueId, { mode, generationKey, source: mode === 'regenerate' ? 'OWNER_REGENERATE' : 'OWNER_REINTERPRET' }),
     },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
@@ -82,7 +93,7 @@ export function createManualArtworkUploadService() {
     new PostgresDesignPolicyRepository(executor),
     new PostgresOpsDesignerStore(executor),
     new VercelBlobArtworkStorage(env('BLOB_READ_WRITE_TOKEN')),
-    { approve: (issueId) => createDesignService().approveForManufacturing(issueId) },
+    { approve: (issueId) => createDesignPolicyWorkflowService().afterOwnerApproval(issueId) },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
 }
