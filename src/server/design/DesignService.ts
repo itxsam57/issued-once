@@ -5,6 +5,13 @@ import { ArtworkQualityGate } from './ArtworkQualityGate';
 import type { DesignGateway, StructuredDesignBrief } from './DesignGateway';
 import type { DesignJobRecord, DesignRepository } from './DesignRepository';
 
+function normalizeOwnerFeedback(value?: string): string | undefined {
+  const feedback = value?.trim();
+  if (!feedback) return undefined;
+  if (feedback.length > 500) throw new Error('Owner design feedback is too long');
+  return feedback;
+}
+
 export class DesignService {
   constructor(
     private readonly repository: DesignRepository,
@@ -15,7 +22,8 @@ export class DesignService {
     private readonly qualityGate: ArtworkQualityGate = new ArtworkQualityGate(),
   ) {}
 
-  async createForIssue(issueId: string): Promise<DesignJobRecord> {
+  async createForIssue(issueId: string, ownerFeedback?: string): Promise<DesignJobRecord> {
+    const feedback = normalizeOwnerFeedback(ownerFeedback);
     let job = await this.repository.findByIssueId(issueId);
     let input = await this.repository.loadInput(issueId);
     if (!input) throw new Error('Design input is unavailable');
@@ -61,6 +69,7 @@ export class DesignService {
         sizeCode: input.sizeCode,
         colorCode: input.colorCode,
         questions,
+        ...(feedback ? { ownerFeedback: feedback } : {}),
       });
       const artwork = await this.gateway.generateArtwork(brief);
       const completionInput = await this.repository.loadInput(issueId);
@@ -91,7 +100,8 @@ export class DesignService {
     }
   }
 
-  async regenerateArtwork(issueId: string): Promise<DesignJobRecord> {
+  async regenerateArtwork(issueId: string, ownerFeedback?: string): Promise<DesignJobRecord> {
+    const feedback = normalizeOwnerFeedback(ownerFeedback);
     const [input, initialJob] = await Promise.all([
       this.repository.loadInput(issueId),
       this.repository.findByIssueId(issueId),
@@ -109,7 +119,7 @@ export class DesignService {
 
     try {
       const brief = await decryptPrivatePayload<StructuredDesignBrief>(initialJob.encryptedBrief);
-      const artwork = await this.gateway.generateArtwork(brief);
+      const artwork = await this.gateway.generateArtwork(brief, feedback ? { ownerFeedback: feedback } : undefined);
       const completionInput = await this.repository.loadInput(issueId);
       if (!completionInput || completionInput.issueStatus !== 'BEING_INTERPRETED') {
         throw new Error('Issue is no longer eligible for design completion');
