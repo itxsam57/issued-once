@@ -1,3 +1,4 @@
+import { readPublicMerchant } from '@/brand/publicMerchant';
 import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
 import { IssuedOnceCatalogGateway } from '@/server/physical/IssuedOnceCatalogGateway';
 import { ISSUED_ONCE_BOOT_CATALOG_JSON } from '@/server/physical/bootCatalog';
@@ -79,6 +80,21 @@ export class ReadinessService {
       : privacyKeysValid
         ? { key: 'privacy', label: 'Privacy keys', state: 'ready', detail: 'Both privacy keys decode to the required 32 bytes.' }
         : { key: 'privacy', label: 'Privacy keys', state: 'blocked', detail: 'Privacy keys are present but do not decode to exactly 32 bytes.' });
+
+    const merchant = readPublicMerchant(this.env);
+    checks.push(merchant.ready
+      ? {
+          key: 'merchant',
+          label: 'Public merchant disclosure',
+          state: 'ready',
+          detail: 'Required public merchant identity, support and location disclosures are configured.',
+        }
+      : {
+          key: 'merchant',
+          label: 'Public merchant disclosure',
+          state: 'missing',
+          detail: 'Required public merchant identity, support or location disclosure is incomplete.',
+        });
 
     let availableFactoryKeys: string[] = [];
     const configuredCatalogJson = this.env.ISSUED_ONCE_CATALOG_JSON?.trim();
@@ -226,6 +242,7 @@ export class ReadinessService {
     const readyForSandbox =
       state('database') === 'ready' &&
       state('privacy') === 'ready' &&
+      state('merchant') === 'ready' &&
       state('catalog') === 'ready' &&
       state('safepay') === 'configured' &&
       safepayEnvironment === 'sandbox' &&
