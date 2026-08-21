@@ -1,6 +1,7 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { createDesignService } from '@/server/design/runtimeDesign';
 import { enqueueDesignIssue } from '@/server/design/designQueue';
+import { dispatchPaidIssueDesign } from '@/server/design/designDispatch';
 import { DesignPolicyWorkflowService } from '@/server/design/DesignPolicyWorkflowService';
 import { PostgresDesignPolicyRepository } from '@/server/design/PostgresDesignPolicyRepository';
 import { VercelBlobArtworkStorage } from '@/server/design/VercelBlobArtworkStorage';
@@ -138,7 +139,7 @@ export function createOpsRecoveryService() {
   return new OpsRecoveryService(
     {
       reserveIssue: (paymentAttemptId) => createIssueService().reserveForPaidAttempt(paymentAttemptId),
-      enqueueDesign: (issueId) => enqueueDesignIssue(issueId),
+      enqueueDesign: (issueId) => dispatchPaidIssueDesign(issueId),
       enqueuePaymentNotification: (issueId) => enqueueIssueNotification(issueId, 'PAYMENT_RECEIVED'),
     },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
