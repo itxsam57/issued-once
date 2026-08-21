@@ -31,6 +31,7 @@ Apply in lexicographic filename order. Stop on first failure.
 27. `0026_issue_ledger_filter_indexes.sql`
 28. `0027_issue_prefix_search_indexes.sql`
 29. `0028_design_controls.sql`
+30. `0029_creator_referrals.sql`
 
 `CURRENT` points to the latest migration represented by this repository. It does **not** assert that any production database has been migrated.
 
@@ -51,6 +52,7 @@ Apply in lexicographic filename order. Stop on first failure.
 - `0026` adds newest-first Issue-ledger paging plus both sides of the country-filter join (`issues.shipping_snapshot_id` and `shipping_snapshots.country_code`) without indexing decrypted customer data.
 - `0027` enables PostgreSQL trigram search and adds GIN indexes for case-insensitive prefix lookup by Issue Code, Safepay provider reference, Printful order ID, and tracking number, matching the Owner OS ledger's existing `ILIKE` search behavior.
 - `0028` adds versioned global design policy, per-Issue design-policy overrides, and `OWNER_UPLOAD` provenance for manual artwork candidates while preserving the existing manufacturing safety state machine.
+- `0029` adds encrypted creator identities and payout details, immutable referral rule versions and checkout snapshots, signed-attribution storage, idempotent paid-sale conversions/reward states, notification idempotency, and payout allocation uniqueness. Existing non-referral quotes are backfilled as gross=final with zero discount.
 
 ## Verification state
 
@@ -62,4 +64,6 @@ On 2026-08-19, migration `0026` was re-proved after completing the country-filte
 
 On 2026-08-19, migration `0027` was exercised on isolated Neon branch `owner-os-prefix-search-proof-20260819` (`br-weathered-pine-ax2ywpyh`). Verification confirmed the `pg_trgm` extension and all four prefix-search indexes. With sequential scans disabled only for the proof query, PostgreSQL planned the existing case-insensitive Issue Code predicate as a Bitmap Index Scan on `issues_issue_code_trgm_idx`, confirming the index is eligible for the Owner OS `ILIKE 'prefix%'` search pattern. The temporary branch was deleted after verification.
 
-The production/default Neon database was subsequently migrated and independently verified through `0027`. Migration `0028` is repository-present but must be exercised on an isolated Neon branch and receive the explicit production migration approval before it is applied to production.
+On 2026-08-21, migration `0028` was exercised on an isolated Neon branch, then applied to the production/default branch and independently verified. Production is therefore verified through `0028_design_controls.sql`.
+
+Migration `0029_creator_referrals.sql` is repository-present and must be exercised on an isolated Neon proof branch before any production application decision. Repository `CURRENT` pointing to `0029` does not claim production has received it.
