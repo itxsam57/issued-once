@@ -100,9 +100,9 @@ test('four public merchant routes explain the real purchase and remedy contract 
   terms.unmount();
 
   render(<ReturnsPage />);
-  expect(screen.getByText(/personalized|made-to-order/i)).toBeInTheDocument();
-  expect(screen.getByText(/damaged|defective/i)).toBeInTheDocument();
-  expect(screen.getByText(/Issue Code/i)).toBeInTheDocument();
+  expect(screen.getByText(/Because each Issue is personalized or made-to-order/i)).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /Damaged, defective, materially wrong/i })).toBeInTheDocument();
+  expect(screen.getByText(/contact support with the Issue Code/i)).toBeInTheDocument();
   expect(document.body.textContent).not.toMatch(/Delaware|United Kingdom office|US corporation/i);
 });
 
