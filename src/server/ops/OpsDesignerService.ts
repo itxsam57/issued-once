@@ -1,3 +1,4 @@
+import type { DesignPolicy } from '@/server/design/DesignPolicy';
 import type { OpsAuditService } from './OpsAuditService';
 
 export type OpsDesignReworkMode = 'regenerate' | 'reinterpret';
@@ -27,6 +28,10 @@ export interface OpsDesignerStore {
   selectCandidate(issueId: string, candidateId: string): Promise<void>;
 }
 
+type PolicyReader = {
+  getEffective(issueId: string): Promise<{ globalVersion: number; override: unknown; policy: DesignPolicy }>;
+};
+
 export class OpsDesignerService {
   constructor(
     private readonly store: OpsDesignerStore,
@@ -35,6 +40,7 @@ export class OpsDesignerService {
       enqueue(issueId: string, mode: OpsDesignReworkMode, generationKey: string): Promise<unknown>;
     },
     private readonly audit: Pick<OpsAuditService, 'record'>,
+    private readonly policies?: PolicyReader,
   ) {}
 
   listQueue(limit = 100) {
@@ -83,14 +89,27 @@ export class OpsDesignerService {
     const reason = input.reason.trim();
     if (!reason || reason.length > 500) throw new Error('A rejection reason is required');
     const next = input.next ?? 'regenerate';
+    const effective = this.policies
+      ? await this.policies.getEffective(input.issueId)
+      : { globalVersion: 0, policy: { rejectBehavior: 'AUTO_REGENERATE' as const } };
+
+    if (effective.policy.rejectBehavior === 'WAIT_FOR_OWNER') {
+      await this.audit.record({
+        actor: 'OWNER', action: 'DESIGN_REJECTED', issueId: input.issueId,
+        targetType: 'design_job', targetId: input.issueId, reason,
+        safeMetadata: { next: 'WAIT_FOR_OWNER', policyVersion: effective.globalVersion },
+      });
+      return { issueId: input.issueId, queued: false, policyVersion: effective.globalVersion };
+    }
+
     const prepared = await this.store.prepareRework(input.issueId, next);
     await this.actions.enqueue(prepared.issueId, prepared.mode, prepared.generationKey);
     await this.audit.record({
       actor: 'OWNER', action: 'DESIGN_REJECTED', issueId: input.issueId,
       targetType: 'design_job', targetId: input.issueId, reason,
-      safeMetadata: { next: prepared.mode, generationKey: prepared.generationKey },
+      safeMetadata: { next: prepared.mode, generationKey: prepared.generationKey, policyVersion: effective.globalVersion },
     });
-    return prepared;
+    return { ...prepared, queued: true, policyVersion: effective.globalVersion };
   }
 
   async selectCandidate(input: { issueId: string; candidateId: string; reason: string }) {
