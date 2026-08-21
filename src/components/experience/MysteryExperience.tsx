@@ -4,7 +4,11 @@ import { useState } from 'react';
 import type { QuestionDefinition, QuestionId } from '@/domain/experience/types';
 import type { ShippingAddress } from '@/server/shipping/ShippingRepository';
 import { BaseColorSelection, type BaseColorOption } from './BaseColorSelection';
-import { CommitmentScreen, type CommitmentQuote } from './CommitmentScreen';
+import {
+  CommitmentScreen,
+  type CommitmentQuote,
+  type ReferralApplicationQuote,
+} from './CommitmentScreen';
 import { ContactVerification } from './ContactVerification';
 import { InterviewFlow } from './InterviewFlow';
 import { ObjectSelection, type ObjectType } from './ObjectSelection';
@@ -46,6 +50,10 @@ type MysteryExperienceProps = {
   onRequestOtp?: (email: string) => Promise<{ challengeId: string; retryAfterSeconds: number }>;
   onVerifyOtp?: (challengeId: string, code: string) => Promise<{ verified: true }>;
   onShippingSubmitted?: (address: ShippingAddress) => Promise<void>;
+  onApplyReferral?: (
+    quoteId: string,
+    explicitCode?: string,
+  ) => Promise<ReferralApplicationQuote>;
   onCheckoutRequested?: (quoteId: string) => Promise<void> | void;
 };
 
@@ -73,6 +81,7 @@ export function MysteryExperience({
   onRequestOtp,
   onVerifyOtp,
   onShippingSubmitted,
+  onApplyReferral,
   onCheckoutRequested,
 }: MysteryExperienceProps) {
   const [phase, setPhase] = useState<ExperiencePhase>('interview');
@@ -150,6 +159,7 @@ export function MysteryExperience({
           colorLabel: selectedColor.label,
         }}
         quote={commitmentQuote}
+        onApplyReferral={onApplyReferral}
         onCommit={onCheckoutRequested}
       />
     );
