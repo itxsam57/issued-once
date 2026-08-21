@@ -74,20 +74,32 @@ export function CommitmentScreen({
   const [referralState, setReferralState] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const automaticQuoteId = useRef<string | null>(null);
+  const automaticRequest = useRef<{
+    quoteId: string;
+    promise: Promise<ReferralApplicationQuote>;
+  } | null>(null);
   const lockedSelection = `${selection.object.toUpperCase()} / ${selection.sizeCode.toUpperCase()} / ${selection.colorLabel.toUpperCase()}`;
   const grossAmountMinor = currentQuote.grossAmountMinor ?? currentQuote.amountMinor;
   const discountAmountMinor = currentQuote.discountAmountMinor ?? 0;
   const hasDiscount = discountAmountMinor > 0;
 
   useEffect(() => {
-    if (!onApplyReferral || automaticQuoteId.current === quote.quoteId) return;
-    automaticQuoteId.current = quote.quoteId;
+    if (!onApplyReferral) return;
 
+    let request = automaticRequest.current;
+    if (!request || request.quoteId !== quote.quoteId) {
+      request = {
+        quoteId: quote.quoteId,
+        promise: onApplyReferral(quote.quoteId),
+      };
+      automaticRequest.current = request;
+    }
+
+    let active = true;
     setReferralPending(true);
-    void onApplyReferral(quote.quoteId)
+    void request.promise
       .then((result) => {
-        if (!result.applied) return;
+        if (!active || !result.applied) return;
         setCurrentQuote((current) => mergeReferralQuote(current, result));
       })
       .catch(() => {
@@ -95,8 +107,12 @@ export function CommitmentScreen({
         // the original frozen quote when the referral service cannot apply it.
       })
       .finally(() => {
-        setReferralPending(false);
+        if (active) setReferralPending(false);
       });
+
+    return () => {
+      active = false;
+    };
   }, [onApplyReferral, quote.quoteId]);
 
   async function applyCode() {
