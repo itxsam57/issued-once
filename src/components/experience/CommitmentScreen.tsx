@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import type { ObjectType } from './ObjectSelection';
 
@@ -215,6 +216,13 @@ export function CommitmentScreen({
       ) : null}
 
       <p className="commitment__unknown">Everything else stays unknown until it arrives.</p>
+
+      <nav className="commitment__policy-links" aria-label="Purchase information">
+        <Link href="/store-info">STORE INFO</Link>
+        <Link href="/contact">CONTACT</Link>
+        <Link href="/terms">TERMS</Link>
+        <Link href="/returns">RETURNS</Link>
+      </nav>
 
       {checkoutError ? (
         <p className="commitment__checkout-state" role="status">
