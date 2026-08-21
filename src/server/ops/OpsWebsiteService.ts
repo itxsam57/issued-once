@@ -16,6 +16,12 @@ export const opsCatalogSchema = z.object({
 });
 export type OpsCatalogPayload = z.infer<typeof opsCatalogSchema>;
 
+const quickPriceSchema = z.object({
+  productKey: z.enum(['tee', 'hat', 'tote']),
+  amountMinor: z.number().int().positive(),
+  currency: z.enum(['USD', 'PKR']),
+});
+
 export type OpsQuestionControl = {
   questionId: string;
   version: number;
@@ -87,6 +93,30 @@ export class OpsWebsiteService {
       safeMetadata: { version, currency: payload.currency, productCount: Object.keys(payload.products).length },
     });
     return version;
+  }
+
+  async publishProductPrice(input: unknown) {
+    const requested = quickPriceSchema.parse(input);
+    const state = await this.store.getState();
+    const current = state.catalog.payload;
+    if (requested.currency !== current.currency) throw new Error('Quick price currency must match the current catalog');
+    const product = current.products[requested.productKey];
+    if (!product) throw new Error(`Catalog product is not configured: ${requested.productKey}`);
+    if (!product.variants.some((variant) => variant.available)) throw new Error(`Catalog product has no sellable variants: ${requested.productKey}`);
+
+    const next: OpsCatalogPayload = {
+      ...current,
+      products: {
+        ...current.products,
+        [requested.productKey]: {
+          ...product,
+          variants: product.variants.map((variant) => variant.available
+            ? { ...variant, amountMinor: requested.amountMinor }
+            : { ...variant }),
+        },
+      },
+    };
+    return this.publishCatalog(next);
   }
 
   async updateQuestion(input: { questionId: string; version: number; active: boolean; weight: number }) {
