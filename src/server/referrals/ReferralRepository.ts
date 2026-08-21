@@ -22,7 +22,35 @@ export type CreateReferralPayoutRequestInput = {
   requestedAt: Date;
 };
 
+export type ActiveReferralRuleRecord = {
+  creatorId: string;
+  creatorEmailHash: string;
+  ruleVersionId: string;
+  normalizedCode: string;
+  active: boolean;
+  rules: ReferralRules;
+};
+
+export type ReferralAttributionRecord = ActiveReferralRuleRecord & {
+  id: string;
+  source: 'LINK' | 'CODE';
+  createdAt: Date;
+  expiresAt: Date;
+};
+
+export type CreateReferralAttributionInput = {
+  id: string;
+  creatorId: string;
+  ruleVersionId: string;
+  source: 'LINK' | 'CODE';
+  createdAt: Date;
+  expiresAt: Date;
+};
+
 export interface ReferralRepository {
   createCreator(input: CreateReferralCreatorInput): Promise<void>;
   createPayoutRequest(input: CreateReferralPayoutRequestInput): Promise<void>;
+  findActiveRuleByCode(code: string): Promise<ActiveReferralRuleRecord | null>;
+  createAttribution(input: CreateReferralAttributionInput): Promise<void>;
+  findAttribution(id: string): Promise<ReferralAttributionRecord | null>;
 }
