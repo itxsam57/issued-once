@@ -280,11 +280,11 @@ test('captured referral discount can be replaced by a manual code and checkout u
 
   await expect(page.getByText('FORM COMPLETE')).toBeVisible();
   await expect(page.getByText('TEE / M / BONE')).toBeVisible();
-  await expect(page.getByText('FORM')).toBeVisible();
+  await expect(page.getByText('FORM', { exact: true })).toBeVisible();
   await expect(page.getByText('$32.00')).toBeVisible();
-  await expect(page.getByText('REFERRAL')).toBeVisible();
+  await expect(page.getByText('REFERRAL', { exact: true })).toBeVisible();
   await expect(page.getByText('-$3.20')).toBeVisible();
-  await expect(page.getByText('FINAL')).toBeVisible();
+  await expect(page.getByText('FINAL', { exact: true })).toBeVisible();
   await expect(page.getByText('$28.80')).toBeVisible();
 
   await page.getByRole('textbox', { name: 'REFERRAL CODE' }).fill('creator-two');
