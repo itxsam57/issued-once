@@ -1,7 +1,7 @@
 import { handleCallback } from '@vercel/queue';
 import { z } from 'zod';
 import { createDesignService } from '@/server/design/runtimeDesign';
-import { createOpsDesignerStore } from '@/server/ops/runtimeOwnerOs';
+import { createDesignPolicyWorkflowService, createOpsDesignerStore } from '@/server/ops/runtimeOwnerOs';
 
 const messageSchema = z.object({
   issueId: z.string().uuid(),
@@ -19,6 +19,7 @@ export const POST = handleCallback(
       : await service.createForIssue(parsed.issueId);
     if (job.state === 'REVIEW') {
       await createOpsDesignerStore().captureCurrentCandidate(parsed.issueId, parsed.generationKey, parsed.source);
+      await createDesignPolicyWorkflowService().afterGeneratedReview(parsed.issueId);
     }
   },
   { visibilityTimeoutSeconds: 600 },
