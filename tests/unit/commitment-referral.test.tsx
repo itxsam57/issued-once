@@ -1,3 +1,4 @@
+import { StrictMode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { expect, test, vi } from 'vitest';
@@ -106,4 +107,27 @@ test('invalid manual code leaves the current quote intact and tells the customer
   expect(await screen.findByText(/code not applied/i)).toBeInTheDocument();
   await userEvent.click(screen.getByRole('button', { name: /issue mine/i }));
   expect(onCommit).toHaveBeenCalledWith('quote-link');
+});
+
+test('strict mode settles a failed automatic referral check instead of leaving checkout locked', async () => {
+  const onApplyReferral = vi.fn().mockRejectedValue(new Error('Referral service unavailable'));
+  const onCommit = vi.fn();
+
+  render(
+    <StrictMode>
+      <CommitmentScreen
+        selection={selection}
+        quote={initialQuote}
+        onApplyReferral={onApplyReferral}
+        onCommit={onCommit}
+      />
+    </StrictMode>,
+  );
+
+  await waitFor(() => expect(onApplyReferral).toHaveBeenCalledTimes(1));
+  const issueMine = await screen.findByRole('button', { name: 'ISSUE MINE' });
+  expect(issueMine).toBeEnabled();
+
+  await userEvent.click(issueMine);
+  expect(onCommit).toHaveBeenCalledWith('quote-gross');
 });
