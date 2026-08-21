@@ -43,16 +43,17 @@ test('WAIT_FOR_OWNER rejection records feedback without starting another generat
   expect(JSON.stringify(events)).toContain('WAIT_FOR_OWNER');
 });
 
-test('AUTO_REGENERATE rejection queues the requested next pass and preserves feedback in audit', async () => {
+test('AUTO_REGENERATE rejection queues the requested next pass and preserves feedback in queue and audit', async () => {
   const { service, prepareRework, enqueue, events } = setup('AUTO_REGENERATE');
+  const reason = 'TOO_BUSY — simplify the center';
 
-  await expect(service.reject({ issueId, reason: 'TOO_BUSY — simplify the center', next: 'regenerate' })).resolves.toMatchObject({
+  await expect(service.reject({ issueId, reason, next: 'regenerate' })).resolves.toMatchObject({
     issueId,
     generationKey: 'gen-2',
     queued: true,
     policyVersion: 5,
   });
   expect(prepareRework).toHaveBeenCalledWith(issueId, 'regenerate');
-  expect(enqueue).toHaveBeenCalledWith(issueId, 'regenerate', 'gen-2');
+  expect(enqueue).toHaveBeenCalledWith(issueId, 'regenerate', 'gen-2', reason);
   expect(JSON.stringify(events)).toContain('TOO_BUSY');
 });
