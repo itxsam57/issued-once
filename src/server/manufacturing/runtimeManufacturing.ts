@@ -1,5 +1,6 @@
 import { VercelBlobArtworkAccess } from '@/server/design/VercelBlobArtworkAccess';
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
+import { createReferralConversionService } from '@/server/referrals/runtimeReferrals';
 import { ManufacturingEventService } from './ManufacturingEventService';
 import { ManufacturingService } from './ManufacturingService';
 import { PostgresManufacturingEventRepository } from './PostgresManufacturingEventRepository';
@@ -43,5 +44,6 @@ export function createManufacturingEventService(): ManufacturingEventService {
       secretKeyHex: env('PRINTFUL_WEBHOOK_SECRET_HEX'),
     }),
     new PostgresManufacturingEventRepository(sql),
+    createReferralConversionService(),
   );
 }
