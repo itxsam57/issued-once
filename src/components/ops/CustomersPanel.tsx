@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styles from './owner-os.module.css';
 
 type Customer = {
@@ -19,7 +19,7 @@ export function CustomersPanel() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function load(next: string | null = null, append = false) {
+  const load = useCallback(async (next: string | null = null, append = false) => {
     const params = new URLSearchParams();
     if (email.trim()) params.set('email', email.trim());
     if (next) params.set('cursor', next);
@@ -28,12 +28,12 @@ export function CustomersPanel() {
     if (!response.ok) throw new Error(payload.error || 'Customers unavailable');
     setItems((current) => append ? [...current, ...(payload.items ?? [])] : (payload.items ?? []));
     setCursor(payload.nextCursor ?? null);
-  }
+  }, [email]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void load().catch((cause) => setError(cause instanceof Error ? cause.message : 'Customers unavailable')), 200);
     return () => window.clearTimeout(timer);
-  }, [email]);
+  }, [load]);
 
   return <div>
     <div className={styles.panelHead}>
