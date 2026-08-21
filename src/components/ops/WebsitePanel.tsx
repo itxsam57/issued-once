@@ -21,25 +21,47 @@ async function fetchWebsiteState(): Promise<State> {
   return payload;
 }
 
+function quickPriceValues(catalog: Catalog): Record<string, string> {
+  return Object.fromEntries(Object.entries(catalog.products).map(([productKey, product]) => {
+    const prices = [...new Set(product.variants.filter((variant) => variant.available).map((variant) => variant.amountMinor))];
+    return [productKey, prices.length === 1 ? (prices[0] / 100).toFixed(2) : ''];
+  }));
+}
+
+function parseMajorPrice(value: string): number | null {
+  const normalized = value.trim();
+  if (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(normalized)) return null;
+  const [major, fraction = ''] = normalized.split('.');
+  const amountMinor = Number(major) * 100 + Number(fraction.padEnd(2, '0'));
+  return Number.isSafeInteger(amountMinor) && amountMinor > 0 ? amountMinor : null;
+}
+
 export function WebsitePanel() {
   const [state, setState] = useState<State | null>(null);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [quickPrices, setQuickPrices] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
   const [newQuestion, setNewQuestion] = useState({ questionId: '', family: 'culture', prompt: '', optional: false });
 
+  function applyState(payload: State) {
+    const nextCatalog = structuredClone(payload.catalog.payload);
+    setState(payload);
+    setCatalog(nextCatalog);
+    setQuickPrices(quickPriceValues(nextCatalog));
+  }
+
   async function refresh() {
     const payload = await fetchWebsiteState();
-    setState(payload);
-    setCatalog(structuredClone(payload.catalog.payload));
+    applyState(payload);
   }
   useEffect(() => {
     let alive = true;
     void fetchWebsiteState()
       .then((payload) => {
         if (!alive) return;
-        setState(payload);
-        setCatalog(structuredClone(payload.catalog.payload));
+        applyState(payload);
       })
       .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Website controls unavailable'); });
     return () => { alive = false; };
@@ -52,10 +74,22 @@ export function WebsitePanel() {
   }, [state]);
 
   async function run(action: () => Promise<unknown>) {
-    setWorking(true); setError(null);
-    try { await action(); await refresh(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Website control failed'); }
+    setWorking(true); setError(null); setNotice(null);
+    try { await action(); await refresh(); return true; }
+    catch (cause) { setError(cause instanceof Error ? cause.message : 'Website control failed'); return false; }
     finally { setWorking(false); }
+  }
+
+  async function publishQuickPrice(productKey: string) {
+    if (!catalog) return;
+    const amountMinor = parseMajorPrice(quickPrices[productKey] ?? '');
+    if (amountMinor == null) {
+      setNotice(null);
+      setError('Enter a valid price with no more than two decimal places.');
+      return;
+    }
+    const ok = await run(() => post('/ops/api/website/catalog/price', { productKey, amountMinor, currency: catalog.currency }));
+    if (ok) setNotice(`${productKey.toUpperCase()} price published for future sales.`);
   }
 
   function mutateVariant(productKey: string, index: number, patch: Partial<Variant>) {
@@ -70,10 +104,16 @@ export function WebsitePanel() {
   return <div>
     <div className={styles.panelHead}><div><p>WEBSITE / CONTROL</p><h1>What the next customer can receive.</h1></div><span>{state ? `${state.catalog.source} / V${state.catalog.version}` : 'READING'}</span></div>
     {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
+    {notice ? <p role="status">{notice}</p> : null}
     {catalog ? <section className={styles.configSection}>
-      <div className={styles.panelHead}><div><h2>Retail catalog</h2><p>Changes affect future selections only. Existing quotes and Issues remain frozen.</p></div><button disabled={working} type="button" onClick={() => void run(() => post('/ops/api/website/catalog', catalog))}>PUBLISH CATALOG</button></div>
+      <div className={styles.panelHead}><div><h2>Retail catalog</h2><p>Changes affect future selections only. Existing quotes and Issues stay frozen.</p></div><button disabled={working} type="button" onClick={() => void run(() => post('/ops/api/website/catalog', catalog))}>PUBLISH CATALOG</button></div>
       {Object.entries(catalog.products).map(([productKey, product]) => <article className={styles.configCard} key={productKey}>
         <h3>{productKey.toUpperCase()} <small>{product.slug}</small></h3>
+        <div className={styles.questionRow}>
+          <div><strong>QUICK PRICE</strong><small>One price for every currently sellable {productKey.toUpperCase()} variant. Currency: {catalog.currency}.</small></div>
+          <label>{catalog.currency} <input aria-label={`${productKey.toUpperCase()} quick price`} inputMode="decimal" value={quickPrices[productKey] ?? ''} placeholder="mixed" onChange={(event) => setQuickPrices((current) => ({ ...current, [productKey]: event.target.value }))} /></label>
+          <button disabled={working} type="button" onClick={() => void publishQuickPrice(productKey)}>PUBLISH {productKey.toUpperCase()} PRICE</button>
+        </div>
         <div className={styles.configTable}>{product.variants.map((variant, index) => <div key={`${variant.id}-${index}`}>
           <input aria-label={`${productKey} variant id`} value={variant.id} onChange={(event) => mutateVariant(productKey, index, { id: event.target.value })} />
           <input aria-label={`${productKey} size`} value={variant.size} onChange={(event) => mutateVariant(productKey, index, { size: event.target.value })} />
