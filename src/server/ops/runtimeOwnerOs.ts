@@ -1,10 +1,13 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { createDesignService } from '@/server/design/runtimeDesign';
 import { enqueueDesignIssue } from '@/server/design/designQueue';
+import { PostgresDesignPolicyRepository } from '@/server/design/PostgresDesignPolicyRepository';
+import { VercelBlobArtworkStorage } from '@/server/design/VercelBlobArtworkStorage';
 import { createIssueService } from '@/server/issues/runtimeIssues';
 import { createManufacturingService } from '@/server/manufacturing/runtimeManufacturing';
 import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
 import { enqueueIssueNotification } from '@/server/notifications/notificationQueue';
+import { ManualArtworkUploadService } from './ManualArtworkUploadService';
 import { OpsAuditService } from './OpsAuditService';
 import { OpsDesignerService } from './OpsDesignerService';
 import { OpsManufacturingService } from './OpsManufacturingService';
@@ -62,6 +65,16 @@ export function createOpsDesignerService() {
       approve: (issueId) => createDesignService().approveForManufacturing(issueId),
       enqueue: (issueId, mode, generationKey) => enqueueDesignIssue(issueId, { mode, generationKey, source: mode === 'regenerate' ? 'OWNER_REGENERATE' : 'OWNER_REINTERPRET' }),
     },
+    new OpsAuditService(new PostgresOpsAuditRepository(executor)),
+  );
+}
+export function createManualArtworkUploadService() {
+  const executor = sql();
+  return new ManualArtworkUploadService(
+    new PostgresDesignPolicyRepository(executor),
+    new PostgresOpsDesignerStore(executor),
+    new VercelBlobArtworkStorage(env('BLOB_READ_WRITE_TOKEN')),
+    { approve: (issueId) => createDesignService().approveForManufacturing(issueId) },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
 }
