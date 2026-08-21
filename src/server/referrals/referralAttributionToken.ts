@@ -45,9 +45,10 @@ export function verifyReferralAttributionToken(
     if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) return null;
 
     const parsed = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')) as Partial<ReferralAttributionTokenPayload>;
-    if (typeof parsed.a !== 'string' || !parsed.a.trim() || !Number.isSafeInteger(parsed.e)) return null;
+    const expiryMs = parsed.e;
+    if (typeof parsed.a !== 'string' || !parsed.a.trim() || typeof expiryMs !== 'number' || !Number.isSafeInteger(expiryMs)) return null;
 
-    const expiresAt = new Date(parsed.e);
+    const expiresAt = new Date(expiryMs);
     if (!Number.isFinite(expiresAt.getTime()) || expiresAt.getTime() <= now.getTime()) return null;
     return { attributionId: parsed.a, expiresAt };
   } catch {
