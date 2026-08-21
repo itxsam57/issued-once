@@ -30,6 +30,7 @@ Apply in lexicographic filename order. Stop on first failure.
 26. `0025_delivered_metric_projection.sql`
 27. `0026_issue_ledger_filter_indexes.sql`
 28. `0027_issue_prefix_search_indexes.sql`
+29. `0028_design_controls.sql`
 
 `CURRENT` points to the latest migration represented by this repository. It does **not** assert that any production database has been migrated.
 
@@ -49,6 +50,7 @@ Apply in lexicographic filename order. Stop on first failure.
 - `0025` projects delivered counts independently of lifecycle timing so lifetime delivery totals do not require scanning delivered Issues.
 - `0026` adds newest-first Issue-ledger paging plus both sides of the country-filter join (`issues.shipping_snapshot_id` and `shipping_snapshots.country_code`) without indexing decrypted customer data.
 - `0027` enables PostgreSQL trigram search and adds GIN indexes for case-insensitive prefix lookup by Issue Code, Safepay provider reference, Printful order ID, and tracking number, matching the Owner OS ledger's existing `ILIKE` search behavior.
+- `0028` adds versioned global design policy, per-Issue design-policy overrides, and `OWNER_UPLOAD` provenance for manual artwork candidates while preserving the existing manufacturing safety state machine.
 
 ## Verification state
 
@@ -60,4 +62,4 @@ On 2026-08-19, migration `0026` was re-proved after completing the country-filte
 
 On 2026-08-19, migration `0027` was exercised on isolated Neon branch `owner-os-prefix-search-proof-20260819` (`br-weathered-pine-ax2ywpyh`). Verification confirmed the `pg_trgm` extension and all four prefix-search indexes. With sequential scans disabled only for the proof query, PostgreSQL planned the existing case-insensitive Issue Code predicate as a Bitmap Index Scan on `issues_issue_code_trgm_idx`, confirming the index is eligible for the Owner OS `ILIKE 'prefix%'` search pattern. The temporary branch was deleted after verification.
 
-The connected production/default Neon database was inspected during these proofs and did not contain the canonical `issues` table. Therefore production is **not** considered migrated. The complete ordered chain above must be applied and verified on the production branch before real payment/design/manufacturing traffic is enabled.
+The production/default Neon database was subsequently migrated and independently verified through `0027`. Migration `0028` is repository-present but must be exercised on an isolated Neon branch and receive the explicit production migration approval before it is applied to production.
