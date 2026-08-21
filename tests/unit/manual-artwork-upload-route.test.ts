@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import { expect, test, vi } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
 
 const { hasOpsSessionMock, createManualArtworkUploadServiceMock } = vi.hoisted(() => ({
   hasOpsSessionMock: vi.fn(),
@@ -16,6 +16,10 @@ vi.mock('@/server/ops/runtimeOps', () => ({
 import { POST } from '@/app/ops/api/designer/[issueId]/upload/route';
 
 const issueId = '11111111-1111-4111-8111-111111111111';
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 function request(file: File, reason = 'manual art direction') {
   const form = new FormData();
