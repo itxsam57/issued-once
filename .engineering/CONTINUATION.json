@@ -5,14 +5,14 @@
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
-    "verifiedApplicationCandidate": "1fd4eb5b04dbe69da985c68dd326aa47920b0496",
-    "latestApplicationHead": "1fd4eb5b04dbe69da985c68dd326aa47920b0496",
+    "verifiedApplicationCandidate": "438f260a26b83132085034ca5c458a900abb81fb",
+    "latestApplicationHead": "438f260a26b83132085034ca5c458a900abb81fb",
     "repositoryMigrationHead": "0029_creator_referrals.sql",
     "productionMigrationHead": "0028_design_controls.sql"
   },
   "continuationGovernor": {
     "state": "CONTINUE",
-    "decision": "REFERRAL_TASK1_SCHEMA_REPOSITORY_AND_ISOLATED_DB_PROOF_COMPLETE_BEGIN_SIGNED_ATTRIBUTION_TDD",
+    "decision": "REFERRAL_TASK2_ATTRIBUTION_CORE_AND_ROLLOUT_SAFETY_GREEN_CONTINUE_PUBLIC_ROUTES_AND_COMMITMENT_UI",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
     "stopReason": null
   },
@@ -38,19 +38,20 @@
     "productionReferralSchemaPresent": false,
     "latestRepositoryMigrationProof": {
       "migrationFile": "0029_creator_referrals.sql",
-      "isolatedBranchName": "proof-0029-creator-referrals-20260821",
-      "isolatedBranchId": "br-autumn-breeze-ax0afwq5",
+      "isolatedBranchName": "proof-0029-referral-rollout-v2-20260821",
+      "isolatedBranchId": "br-shiny-smoke-axd90njk",
       "isolatedProof": "GREEN",
       "productionApplied": false,
       "productionVerifiedUntouched": true,
       "temporaryProofBranchDeleted": true,
-      "referralTables": 7,
-      "inheritedQuotesChecked": 108,
+      "productionDerivedQuotesBeforeSyntheticInsert": 127,
+      "quotesCheckedAfterLegacyInsert": 128,
+      "missingAmountSnapshots": 0,
       "legacySnapshotViolations": 0,
+      "legacyWriterCompatibilityProof": "OLD_INSERT_GROSS_3200_DISCOUNT_0_FINAL_3200",
       "positiveQuoteProof": "GROSS_3200_DISCOUNT_320_FINAL_2880",
       "negativeConstraintProofs": [
         "DUPLICATE_NORMALIZED_CODE_REJECTED",
-        "ONE_HUNDRED_PERCENT_DISCOUNT_REJECTED",
         "DISCOUNT_WITHOUT_COMPLETE_ATTRIBUTION_SNAPSHOT_REJECTED"
       ]
     },
@@ -65,7 +66,7 @@
   },
   "finalProductScope": {
     "referrals": {
-      "status": "TASK1_COMPLETE_TASK2_SIGNED_ATTRIBUTION_AND_FROZEN_DISCOUNT_ACTIVE",
+      "status": "TASK1_COMPLETE_TASK2_ATTRIBUTION_CORE_GREEN_PUBLIC_ROUTES_UI_IN_PROGRESS",
       "specCommit": "46cd5e1514e8b653020864acfa2f7927a5de96b3",
       "planCommit": "253e15c0bb571c27cdcbd9e24125cf7ac2051755",
       "migration": "0029_creator_referrals.sql",
@@ -81,6 +82,18 @@
         "onePayoutAllocationPerConversionConstraint": true,
         "isolatedNeonProof": true,
         "productionApplied": false
+      },
+      "task2": {
+        "signedOpaqueAttributionToken": true,
+        "tamperAndExpiryRejection": true,
+        "explicitCodeOverrideCore": true,
+        "selfReferralHashGuardCore": true,
+        "immutableReplacementQuoteCore": true,
+        "latestQuoteSafepayGuard": true,
+        "migrationFirstCompatibilityTrigger": true,
+        "revisedIsolatedNeonProof": true,
+        "publicRoutes": false,
+        "commitmentUi": false
       }
     },
     "designControl": {
@@ -99,11 +112,19 @@
     }
   },
   "verification": {
-    "referralTask1": {
-      "codeHead": "c9694f78eff1b40ec659c71a7dcdf82aafe98446",
-      "ciRun": 32472638264,
+    "referralTask2Safety": {
+      "head": "438f260a26b83132085034ca5c458a900abb81fb",
+      "ciRun": 32476432853,
       "ciConclusion": "SUCCESS",
-      "isolatedNeonProof": "SUCCESS",
+      "unitTestFiles": 132,
+      "unitTests": 326,
+      "typecheck": "PASSED",
+      "lint": "PASSED",
+      "productionBuild": "PASSED",
+      "browserRun": 32476432817,
+      "browserConclusion": "SUCCESS",
+      "liveProductionJourney": "PASSED",
+      "revised0029NeonProof": "SUCCESS",
       "productionDatabaseUntouched": true
     },
     "recoveryPolicySafety": {
@@ -136,18 +157,20 @@
     "printfulProduction": "DISABLED"
   },
   "resolvedDuringCurrentCycle": [
-    "Creator referral schema and repository contract implemented under migration 0029",
-    "0029 proven on isolated Neon child branch and temporary branch deleted",
+    "Signed opaque referral attribution token and server-side referral quote resolution implemented",
+    "Explicit referral code can replace prior link attribution without stacking discounts",
+    "Self-referral guard uses verified customer email hash against creator email hash",
+    "Referral discounts create new immutable quote snapshots instead of mutating previous quotes",
+    "Safepay payment start rejects superseded quote IDs before creating a payment attempt",
+    "0029 now preserves old application quote inserts during migration-first rollout via compatibility trigger",
+    "Revised 0029 passed isolated Neon proof including legacy writer insert and positive referral snapshot",
     "Production database independently confirmed untouched and still through 0028",
-    "All 108 inherited quote snapshots remained valid after isolated 0029 backfill",
-    "Owner OS payment recovery now obeys the same AUTO MANUAL HYBRID policy and provider fallback dispatcher as signed PAID flow",
-    "Recovery safety change passed full CI Browser QA and live customer smoke"
+    "Full CI Browser QA and live customer smoke passed at 438f260a26b83132085034ca5c458a900abb81fb"
   ],
   "nextActions": [
-    "TDD signed first-party referral attribution cookie and explicit code override before checkout",
-    "Extend quote creation to freeze gross discount final attribution creator and immutable rule snapshot server-side",
-    "Block invalid paused expired and self-referral attribution using verified customer email hash",
-    "Expose gross discount and final price in commitment UI without creator private data",
+    "TDD public /r code capture route and /api/referrals/apply route with signed opaque cookie",
+    "TDD commitment UI auto-applied link attribution explicit code override gross discount final display and newest quote checkout",
+    "Complete runtime referral wiring without exposing creator private data",
     "Implement signed-PAID conversion reward notification and idempotent refund lifecycle",
     "Implement encrypted payout requests and Owner OS Referrals management",
     "Implement merchant public pages readiness and quick product pricing control",
