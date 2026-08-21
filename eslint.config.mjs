@@ -14,5 +14,11 @@ export default defineConfig([
       }],
     },
   },
+  {
+    // Owner-only artwork URLs may be short-lived/provider-backed. Render them directly
+    // instead of routing private production art through the public Next image optimizer.
+    files: ['src/components/ops/DesignerPanel.tsx', 'src/components/ops/OpsConsole.tsx'],
+    rules: { '@next/next/no-img-element': 'off' },
+  },
   globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
 ]);
