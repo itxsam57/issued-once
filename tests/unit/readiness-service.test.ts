@@ -12,6 +12,9 @@ const completeEnv: NodeJS.ProcessEnv = {
   DATABASE_URL: 'postgresql://hidden',
   QUIZ_ENCRYPTION_KEY_V1: Buffer.alloc(32, 1).toString('base64'),
   IDENTITY_HMAC_KEY: Buffer.alloc(32, 2).toString('base64'),
+  MERCHANT_PUBLIC_NAME: 'ISSUED ONCE',
+  MERCHANT_SUPPORT_EMAIL: 'support@issuedonce.shop',
+  MERCHANT_PUBLIC_LOCATION: 'Lahore, Punjab, Pakistan',
   ISSUED_ONCE_CATALOG_JSON: JSON.stringify({
     currency: 'USD',
     products: {
@@ -65,6 +68,7 @@ test('reports live/read-only boundaries separately from configured-only and safe
   expect(result.checks).toEqual(expect.arrayContaining([
     expect.objectContaining({ key: 'database', state: 'ready' }),
     expect.objectContaining({ key: 'privacy', state: 'ready' }),
+    expect.objectContaining({ key: 'merchant', state: 'ready' }),
     expect.objectContaining({ key: 'openai', state: 'ready' }),
     expect.objectContaining({ key: 'blob', state: 'ready' }),
     expect.objectContaining({ key: 'printful', state: 'ready' }),
@@ -73,7 +77,26 @@ test('reports live/read-only boundaries separately from configured-only and safe
     expect.objectContaining({ key: 'factory-confirm', state: 'safe' }),
   ]));
   expect(JSON.stringify(result)).not.toContain('hidden-');
+  expect(JSON.stringify(result)).not.toContain('support@issuedonce.shop');
+  expect(JSON.stringify(result)).not.toContain('Lahore, Punjab, Pakistan');
   expect(result.readyForSandbox).toBe(true);
+  expect(result.readyForProduction).toBe(false);
+});
+
+test('merchant disclosure fails sandbox readiness closed when required public identity is missing', async () => {
+  const env = { ...completeEnv };
+  delete env.MERCHANT_PUBLIC_NAME;
+  delete env.MERCHANT_SUPPORT_EMAIL;
+  delete env.MERCHANT_PUBLIC_LOCATION;
+
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'merchant',
+    state: 'missing',
+    detail: expect.stringMatching(/public merchant/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
   expect(result.readyForProduction).toBe(false);
 });
 
@@ -150,6 +173,7 @@ test('missing boundaries fail closed and never report production ready', async (
   expect(result.readyForProduction).toBe(false);
   expect(result.checks).toEqual(expect.arrayContaining([
     expect.objectContaining({ key: 'database', state: 'missing' }),
+    expect.objectContaining({ key: 'merchant', state: 'missing' }),
     expect.objectContaining({ key: 'openai', state: 'missing' }),
     expect.objectContaining({ key: 'factory-confirm', state: 'armed' }),
   ]));
