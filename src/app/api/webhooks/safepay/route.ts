@@ -8,6 +8,11 @@ import {
   createPaymentService,
   PaymentRuntimeUnavailableError,
 } from '@/server/payments/runtimePayments';
+import { enqueueReferralNotification } from '@/server/referrals/referralNotificationQueue';
+import {
+  createReferralConversionService,
+  ReferralRuntimeUnavailableError,
+} from '@/server/referrals/runtimeReferrals';
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
@@ -21,6 +26,13 @@ export async function POST(request: Request) {
 
     if ((result.kind === 'paid' || result.kind === 'duplicate') && result.paymentAttemptId) {
       const issue = await issueService.reserveForPaidAttempt(result.paymentAttemptId);
+      const referral = await createReferralConversionService().recordPaidAttempt({
+        paymentAttemptId: result.paymentAttemptId,
+        issueId: issue.issue.id,
+      });
+      if (referral.kind !== 'not-referred') {
+        await enqueueReferralNotification(referral.conversionId, 'SALE');
+      }
       await dispatchPaidIssueDesign(issue.issue.id);
       await enqueueIssueNotification(issue.issue.id, 'PAYMENT_RECEIVED');
       return Response.json({
@@ -44,7 +56,8 @@ export async function POST(request: Request) {
   } catch (error) {
     if (
       error instanceof PaymentRuntimeUnavailableError ||
-      error instanceof IssueRuntimeUnavailableError
+      error instanceof IssueRuntimeUnavailableError ||
+      error instanceof ReferralRuntimeUnavailableError
     ) {
       return Response.json({ error: 'Payment webhook is unavailable' }, { status: 503 });
     }
