@@ -52,6 +52,37 @@ test('converts exact internal minor units to Safepay major currency units when c
   expect(checkout.searchParams.get('webhooks')).toBe('true');
 });
 
+test('re-reads the Safepay tracker to verify original quoted money when settlement currency differs', async () => {
+  const fetchImpl = vi.fn(async (url: string) => {
+    expect(url).toBe('https://sandbox.api.getsafepay.com/order/v1/track_paid_1');
+    return new Response(JSON.stringify({
+      data: {
+        token: 'track_paid_1',
+        client: 'sec_test_123',
+        state: 'TRACKER_ENDED',
+        amount: 32,
+        currency: 'USD',
+      },
+      status: { errors: [], message: 'success' },
+    }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  });
+  const gateway = new SafepayPaymentGateway({
+    environment: 'sandbox',
+    apiKey: 'sec_test_123',
+    webhookSecret: 'webhook-secret',
+    fetchImpl: fetchImpl as typeof fetch,
+  });
+
+  await expect(gateway.verifyTracker({
+    providerReference: 'track_paid_1',
+    amountMinor: 3200,
+    currency: 'USD',
+  })).resolves.toBe(true);
+});
+
 test('verifies merchant webhook HMAC and converts decimal Safepay major-unit money to integer minor units', () => {
   const gateway = new SafepayPaymentGateway({
     environment: 'production', apiKey: 'sec_live', webhookSecret: 'foo',
