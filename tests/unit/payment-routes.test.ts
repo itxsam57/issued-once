@@ -7,6 +7,7 @@ const {
   dispatchPaidIssueDesignMock,
   enqueueIssueNotificationMock,
   createReferralConversionServiceMock,
+  referralsAreEnabledMock,
   recordPaidReferralMock,
   reverseRefundedReferralMock,
   enqueueReferralNotificationMock,
@@ -17,6 +18,7 @@ const {
   dispatchPaidIssueDesignMock: vi.fn(),
   enqueueIssueNotificationMock: vi.fn(),
   createReferralConversionServiceMock: vi.fn(),
+  referralsAreEnabledMock: vi.fn(),
   recordPaidReferralMock: vi.fn(),
   reverseRefundedReferralMock: vi.fn(),
   enqueueReferralNotificationMock: vi.fn(),
@@ -39,6 +41,7 @@ vi.mock('@/server/notifications/notificationQueue', () => ({
 }));
 vi.mock('@/server/referrals/runtimeReferrals', () => ({
   createReferralConversionService: createReferralConversionServiceMock,
+  referralsAreEnabled: referralsAreEnabledMock,
   ReferralRuntimeUnavailableError: class ReferralRuntimeUnavailableError extends Error {},
 }));
 vi.mock('@/server/referrals/referralNotificationQueue', () => ({
@@ -53,6 +56,7 @@ const conversionId = '22222222-2222-4222-8222-222222222222';
 
 beforeEach(() => {
   vi.clearAllMocks();
+  referralsAreEnabledMock.mockReturnValue(true);
   cookiesMock.mockResolvedValue({ get: vi.fn().mockReturnValue({ value: 'session-token' }) });
   createIssueServiceMock.mockReturnValue({
     reserveForPaidAttempt: vi.fn().mockResolvedValue({
@@ -233,6 +237,36 @@ test('invalid authenticated webhook evidence is rejected and never triggers down
     method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'bad' },
   }));
   expect(response.status).toBe(401);
+  expect(recordPaidReferralMock).not.toHaveBeenCalled();
+  expect(reverseRefundedReferralMock).not.toHaveBeenCalled();
+  expect(enqueueReferralNotificationMock).not.toHaveBeenCalled();
+  expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
+  expect(enqueueIssueNotificationMock).not.toHaveBeenCalled();
+});
+
+test('malformed Safepay webhook payload is a bad request and never triggers downstream work', async () => {
+  createPaymentServiceMock.mockReturnValue({
+    handleWebhook: vi.fn(() => { throw new Error('Safepay webhook body is invalid'); }),
+  });
+  const response = await safepayWebhook(new Request('https://issuedonce.shop/api/webhooks/safepay', {
+    method: 'POST', body: 'null', headers: { 'x-sfpy-signature': 'bad' },
+  }));
+  expect(response.status).toBe(400);
+  expect(recordPaidReferralMock).not.toHaveBeenCalled();
+  expect(reverseRefundedReferralMock).not.toHaveBeenCalled();
+  expect(enqueueReferralNotificationMock).not.toHaveBeenCalled();
+  expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
+  expect(enqueueIssueNotificationMock).not.toHaveBeenCalled();
+});
+
+test('unsupported Safepay webhook contract is bad input rather than a server failure', async () => {
+  createPaymentServiceMock.mockReturnValue({
+    handleWebhook: vi.fn(() => { throw new Error('Safepay webhook version is unsupported'); }),
+  });
+  const response = await safepayWebhook(new Request('https://issuedonce.shop/api/webhooks/safepay', {
+    method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'abc' },
+  }));
+  expect(response.status).toBe(400);
   expect(recordPaidReferralMock).not.toHaveBeenCalled();
   expect(reverseRefundedReferralMock).not.toHaveBeenCalled();
   expect(enqueueReferralNotificationMock).not.toHaveBeenCalled();

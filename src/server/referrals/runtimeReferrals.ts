@@ -22,6 +22,12 @@ function env(name: string): string {
   return value;
 }
 
+// The signing key is installed as part of the deliberate referral rollout.
+// Its absence means production is still on the pre-referral schema and must not run referral SQL.
+export function referralsAreEnabled(): boolean {
+  return Boolean(process.env.REFERRAL_ATTRIBUTION_SIGNING_KEY?.trim());
+}
+
 export function createReferralService(): ReferralService {
   const sql = createNeonSqlExecutor(env('DATABASE_URL'));
   return new ReferralService({
