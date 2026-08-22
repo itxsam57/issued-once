@@ -1,12 +1,7 @@
 import { expect, test, vi } from 'vitest';
-import type { CheckoutQuoteRepository } from '@/server/checkout/CheckoutService';
-import type { CheckoutStateRepository } from '@/server/checkout/CheckoutStartService';
-import type { ContactRepository } from '@/server/contact/ContactRepository';
-import type { ExperienceRepository } from '@/server/experience/ExperienceRepository';
 import { PaymentService } from '@/server/payments/PaymentService';
 import type { PaymentGateway } from '@/server/payments/PaymentGateway';
 import type { PaymentAttemptRecord, PaymentRepository } from '@/server/payments/PaymentRepository';
-import type { ShippingRepository } from '@/server/shipping/ShippingRepository';
 
 const now = new Date('2026-08-22T18:30:00.000Z');
 const attempt: PaymentAttemptRecord = {
@@ -32,43 +27,29 @@ function fixture(verified = true) {
   const recordProviderEvent = vi.fn(async () => true);
   const markPaid = vi.fn(async () => 'paid' as const);
   const payments = {
-    findReusable: vi.fn(),
-    create: vi.fn(),
-    attachProvider: vi.fn(),
     findByProviderReference,
     recordProviderEvent,
     markPaid,
-    markFailed: vi.fn(),
-    markRefunded: vi.fn(),
   } as unknown as PaymentRepository;
   const verifyTracker = vi.fn(async () => verified);
-  const gateway = {
-    createCheckout: vi.fn(),
-    verifyWebhook: vi.fn(),
-    verifyTracker,
-  } as unknown as PaymentGateway;
+  const gateway = { verifyTracker } as unknown as PaymentGateway;
   const service = new PaymentService({
-    experiences: { findBySessionHash: vi.fn() } as unknown as Pick<ExperienceRepository, 'findBySessionHash'>,
-    quotes: {
-      findById: vi.fn(),
-      findLatestByExperienceId: vi.fn(),
-    } as unknown as CheckoutQuoteRepository & { findLatestByExperienceId: ReturnType<typeof vi.fn> },
-    contacts: {} as ContactRepository,
-    shipping: {} as ShippingRepository,
+    experiences: {} as never,
+    quotes: {} as never,
+    contacts: {} as never,
+    shipping: {} as never,
     payments,
     gateway,
-    checkoutStates: {} as CheckoutStateRepository,
+    checkoutStates: {} as never,
     now: () => now,
   });
-  return { service, findByProviderReference, verifyTracker, recordProviderEvent, markPaid };
+  return { service, verifyTracker, recordProviderEvent, markPaid };
 }
 
 test('return reconciliation marks paid only after Reporter proves the stored frozen quote', async () => {
   const { service, verifyTracker, recordProviderEvent, markPaid } = fixture(true);
 
-  const result = await (service as PaymentService & {
-    reconcileTracker(input: { providerReference: string }): Promise<{ kind: string; paymentAttemptId?: string }>;
-  }).reconcileTracker({ providerReference: 'track_return_paid' });
+  const result = await service.reconcileTracker({ providerReference: 'track_return_paid' });
 
   expect(result).toEqual({ kind: 'paid', paymentAttemptId: 'attempt-return-paid' });
   expect(verifyTracker).toHaveBeenCalledWith({
@@ -98,9 +79,7 @@ test('return reconciliation marks paid only after Reporter proves the stored fro
 test('return reconciliation stays pending when Reporter cannot prove completion', async () => {
   const { service, recordProviderEvent, markPaid } = fixture(false);
 
-  const result = await (service as PaymentService & {
-    reconcileTracker(input: { providerReference: string }): Promise<{ kind: string; paymentAttemptId?: string }>;
-  }).reconcileTracker({ providerReference: 'track_return_paid' });
+  const result = await service.reconcileTracker({ providerReference: 'track_return_paid' });
 
   expect(result).toEqual({ kind: 'pending', paymentAttemptId: 'attempt-return-paid' });
   expect(recordProviderEvent).not.toHaveBeenCalled();
