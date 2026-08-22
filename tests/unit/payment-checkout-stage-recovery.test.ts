@@ -31,7 +31,7 @@ test('reused redirected payment repairs COMMITMENT_READY to CHECKOUT_STARTED bef
       create: vi.fn(), attachProvider: vi.fn(), findByProviderReference: vi.fn(), recordProviderEvent: vi.fn(),
       markPaid: vi.fn(), markFailed: vi.fn(), markRefunded: vi.fn(),
     },
-    gateway: { createCheckout: vi.fn(), verifyWebhook: vi.fn() },
+    gateway: { createCheckout: vi.fn(), verifyTracker: vi.fn(), verifyWebhook: vi.fn() },
     checkoutStates: { advance },
     now: () => now,
   });
@@ -62,7 +62,7 @@ test('if stage repair fails, the hosted URL is not returned to the browser', asy
       findReusable: vi.fn(async () => ({ id: 'pay-1', experienceId: 'exp-1', quoteId: 'quote-1', contactId: 'contact-1', shippingSnapshotId: 'ship-1', provider: 'SAFEPAY' as const, providerReference: 'track-1', checkoutUrl: 'https://sandbox.api.getsafepay.com/checkout/pay?beacon=track-1', amountMinor: 5400, currency: 'USD', status: 'REDIRECTED' as const, createdAt: now, updatedAt: now })),
       create: vi.fn(), attachProvider: vi.fn(), findByProviderReference: vi.fn(), recordProviderEvent: vi.fn(), markPaid: vi.fn(), markFailed: vi.fn(), markRefunded: vi.fn(),
     },
-    gateway: { createCheckout: vi.fn(), verifyWebhook: vi.fn() },
+    gateway: { createCheckout: vi.fn(), verifyTracker: vi.fn(), verifyWebhook: vi.fn() },
     checkoutStates: { advance: vi.fn(async () => { throw new Error('state transition unavailable'); }) },
     now: () => now,
   });
