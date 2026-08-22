@@ -60,7 +60,7 @@ test('creates a Safepay v3 payment session in exact minor units, mints a TBT, an
   expect(checkout.searchParams.get('environment')).toBe('sandbox');
   expect(checkout.searchParams.get('tracker')).toBe('track_v3_abc123');
   expect(checkout.searchParams.get('tbt')).toBe('tbt_test_abc');
-  expect(checkout.searchParams.get('source')).toBe('custom');
+  expect(checkout.searchParams.get('source')).toBe('hosted');
   expect(checkout.searchParams.get('redirect_url')).toBe('https://issuedonce.shop/payment/return');
   expect(checkout.searchParams.get('cancel_url')).toBe('https://issuedonce.shop/begin?payment=cancelled');
   expect(fetchImpl).toHaveBeenCalledTimes(2);
