@@ -89,13 +89,15 @@ function fixture(options: { contact?: boolean; shipping?: boolean } = {}) {
     findById: vi.fn(async (id: string) => id === quote.id ? quote : null),
     findLatestByExperienceId: vi.fn(async (experienceId: string) => experienceId === experience.id ? quote : null),
   };
-  const gateway: PaymentGateway = {
+  const verifyTracker = vi.fn(async () => true);
+  const gateway = {
     createCheckout: vi.fn(async (input) => ({
       providerReference: 'track-safe-1',
       checkoutUrl: `https://getsafepay.com/checkout/pay?beacon=track-safe-1&order_id=${input.paymentAttemptId}`,
     })),
     verifyWebhook: vi.fn(),
-  };
+    verifyTracker,
+  } as PaymentGateway & { verifyTracker: typeof verifyTracker };
   const payments = new MemoryPaymentRepository();
   const states: CheckoutStateRepository = { advance: vi.fn(async () => undefined) };
   const service = new PaymentService({
@@ -158,6 +160,25 @@ test('only a verified provider event with exact money truth can mark the attempt
   expect(await service.handleWebhook({ rawBody: '{}', headers: new Headers() })).toMatchObject({
     kind: 'duplicate', paymentAttemptId: attempt.id,
   });
+});
+
+test('accepts a converted settlement only after Safepay re-verifies the original tracker money', async () => {
+  const { service, payments, gateway } = fixture();
+  await service.start({ sessionToken: token, quoteId: 'quote-1', returnBaseUrl: 'https://issuedonce.shop' });
+  const attempt = [...payments.attempts.values()][0];
+
+  vi.mocked(gateway.verifyWebhook).mockReturnValue({
+    providerEventId: 'evt-fx', providerReference: 'track-safe-1', state: 'PAID', amountMinor: 1485000,
+    currency: 'PKR', reference: 'SAFE-FX-1', occurredAt: now,
+  });
+
+  expect(await service.handleWebhook({ rawBody: '{}', headers: new Headers() })).toMatchObject({
+    kind: 'paid', paymentAttemptId: attempt.id,
+  });
+  expect(gateway.verifyTracker).toHaveBeenCalledWith({
+    providerReference: 'track-safe-1', amountMinor: 5400, currency: 'USD',
+  });
+  expect(attempt.status).toBe('PAID');
 });
 
 test('authenticated payment with changed amount is quarantined instead of becoming paid', async () => {
