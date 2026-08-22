@@ -75,7 +75,10 @@ export async function POST(request: Request) {
     if (error instanceof Error && /signature|merchant/i.test(error.message)) {
       return Response.json({ error: 'Webhook authentication failed' }, { status: 401 });
     }
-    if (error instanceof Error && /webhook body|webhook data|payload|amount|timestamp/i.test(error.message)) {
+    if (
+      error instanceof Error &&
+      /webhook body|webhook data|webhook version|event type|payload|amount|currency|timestamp/i.test(error.message)
+    ) {
       return Response.json({ error: 'Webhook payload is invalid' }, { status: 400 });
     }
     console.error('safepay webhook processing failed', error);
