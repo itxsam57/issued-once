@@ -250,7 +250,7 @@ export class SafepayPaymentGateway implements PaymentGateway {
     checkout.searchParams.set('environment', this.options.environment);
     checkout.searchParams.set('tracker', token);
     checkout.searchParams.set('tbt', tbt);
-    checkout.searchParams.set('source', 'custom');
+    checkout.searchParams.set('source', 'hosted');
     checkout.searchParams.set('redirect_url', input.returnUrl);
     checkout.searchParams.set('cancel_url', input.cancelUrl);
 
