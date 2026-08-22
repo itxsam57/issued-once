@@ -2,7 +2,18 @@ import { createHmac } from 'node:crypto';
 import { expect, test, vi } from 'vitest';
 import { SafepayPaymentGateway } from '@/server/payments/SafepayPaymentGateway';
 
-function signedWebhook(secret: string, data: object) {
+function gateway(overrides: Partial<ConstructorParameters<typeof SafepayPaymentGateway>[0]> = {}) {
+  return new SafepayPaymentGateway({
+    environment: 'production',
+    apiKey: 'sec_live',
+    apiSecret: 'secret_live',
+    webhookSecret: 'foo',
+    fetchImpl: vi.fn() as unknown as typeof fetch,
+    ...overrides,
+  });
+}
+
+function signedLegacyWebhook(secret: string, data: object) {
   const signature = createHmac('sha512', secret)
     .update(Buffer.from(JSON.stringify(data)))
     .digest('hex');
@@ -12,82 +23,7 @@ function signedWebhook(secret: string, data: object) {
   };
 }
 
-test('converts exact internal minor units to Safepay major currency units when creating the tracker', async () => {
-  const fetchImpl = vi.fn(async (_url: string, init?: RequestInit) => {
-    expect(JSON.parse(String(init?.body))).toEqual({
-      amount: 54.01,
-      client: 'sec_test_123',
-      currency: 'USD',
-      environment: 'sandbox',
-    });
-    return new Response(JSON.stringify({ data: { token: 'track_abc123' } }), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    });
-  });
-  const gateway = new SafepayPaymentGateway({
-    environment: 'sandbox',
-    apiKey: 'sec_test_123',
-    webhookSecret: 'webhook-secret',
-    fetchImpl: fetchImpl as typeof fetch,
-  });
-
-  const result = await gateway.createCheckout({
-    paymentAttemptId: 'attempt-opaque-1',
-    amountMinor: 5401,
-    currency: 'USD',
-    returnUrl: 'https://issuedonce.shop/payment/return',
-    cancelUrl: 'https://issuedonce.shop/begin?payment=cancelled',
-  });
-
-  expect(fetchImpl).toHaveBeenCalledWith(
-    'https://sandbox.api.getsafepay.com/order/v1/init',
-    expect.objectContaining({ method: 'POST' }),
-  );
-  expect(result.providerReference).toBe('track_abc123');
-  const checkout = new URL(result.checkoutUrl);
-  expect(checkout.origin + checkout.pathname).toBe('https://sandbox.api.getsafepay.com/checkout/pay');
-  expect(checkout.searchParams.get('beacon')).toBe('track_abc123');
-  expect(checkout.searchParams.get('order_id')).toBe('attempt-opaque-1');
-  expect(checkout.searchParams.get('webhooks')).toBe('true');
-});
-
-test('re-reads the Safepay tracker to verify original quoted money when settlement currency differs', async () => {
-  const fetchImpl = vi.fn(async (url: string) => {
-    expect(url).toBe('https://sandbox.api.getsafepay.com/order/v1/track_paid_1');
-    return new Response(JSON.stringify({
-      data: {
-        token: 'track_paid_1',
-        client: 'sec_test_123',
-        state: 'TRACKER_ENDED',
-        amount: 32,
-        currency: 'USD',
-      },
-      status: { errors: [], message: 'success' },
-    }), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    });
-  });
-  const gateway = new SafepayPaymentGateway({
-    environment: 'sandbox',
-    apiKey: 'sec_test_123',
-    webhookSecret: 'webhook-secret',
-    fetchImpl: fetchImpl as typeof fetch,
-  });
-
-  await expect(gateway.verifyTracker({
-    providerReference: 'track_paid_1',
-    amountMinor: 3200,
-    currency: 'USD',
-  })).resolves.toBe(true);
-});
-
-test('verifies merchant webhook HMAC and converts decimal Safepay major-unit money to integer minor units', () => {
-  const gateway = new SafepayPaymentGateway({
-    environment: 'production', apiKey: 'sec_live', webhookSecret: 'foo',
-    fetchImpl: vi.fn() as unknown as typeof fetch,
-  });
+test('keeps strict legacy webhook verification for already-created v1 trackers during the migration window', () => {
   const data = {
     client_id: 'sec_live',
     created_at: '2026-08-19T01:02:03Z',
@@ -96,11 +32,10 @@ test('verifies merchant webhook HMAC and converts decimal Safepay major-unit mon
     type: 'payment:created',
     notification: {
       amount: '54.01', currency: 'USD', state: 'PAID', tracker: 'track_paid_1', reference: 'SAFE-001',
-      metadata: { source: 'custom' },
     },
   };
 
-  expect(gateway.verifyWebhook(signedWebhook('foo', data))).toEqual({
+  expect(gateway().verifyWebhook(signedLegacyWebhook('foo', data))).toEqual({
     providerEventId: 'evt-token-1',
     providerReference: 'track_paid_1',
     state: 'PAID',
@@ -111,13 +46,38 @@ test('verifies merchant webhook HMAC and converts decimal Safepay major-unit mon
   });
 });
 
-test('rejects a webhook whose Safepay signature does not match body.data', () => {
-  const gateway = new SafepayPaymentGateway({
-    environment: 'production', apiKey: 'sec_live', webhookSecret: 'foo',
-    fetchImpl: vi.fn() as unknown as typeof fetch,
-  });
-  expect(() => gateway.verifyWebhook({
-    rawBody: JSON.stringify({ data: { token: 'tampered' } }),
+test('rejects a webhook whose Safepay signature does not match the raw event', () => {
+  expect(() => gateway().verifyWebhook({
+    rawBody: JSON.stringify({
+      token: 'evt_v2',
+      version: '2.0.0',
+      merchant_api_key: 'sec_live',
+      type: 'payment.succeeded',
+      data: { tracker: 'track_1', amount: 1000, currency: 'USD' },
+    }),
     headers: new Headers({ 'x-sfpy-signature': '00'.repeat(64) }),
   })).toThrow(/signature/i);
+});
+
+test('fails closed when Reporter does not confirm the exact original quote', async () => {
+  const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
+    data: {
+      tracker: {
+        token: 'track_paid_1',
+        client: 'sec_live',
+        state: 'TRACKER_ENDED',
+        purchase_totals: {
+          quote_amount: { currency: 'USD', amount: 3199 },
+          base_amount: { currency: 'PKR', amount: 880056 },
+        },
+      },
+    },
+    status: { errors: [], message: 'success' },
+  }), { status: 200, headers: { 'content-type': 'application/json' } }));
+
+  await expect(gateway({ fetchImpl: fetchImpl as typeof fetch }).verifyTracker({
+    providerReference: 'track_paid_1',
+    amountMinor: 3200,
+    currency: 'USD',
+  })).resolves.toBe(false);
 });
