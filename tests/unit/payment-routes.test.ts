@@ -258,3 +258,18 @@ test('malformed Safepay webhook payload is a bad request and never triggers down
   expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
   expect(enqueueIssueNotificationMock).not.toHaveBeenCalled();
 });
+
+test('unsupported Safepay webhook contract is bad input rather than a server failure', async () => {
+  createPaymentServiceMock.mockReturnValue({
+    handleWebhook: vi.fn(() => { throw new Error('Safepay webhook version is unsupported'); }),
+  });
+  const response = await safepayWebhook(new Request('https://issuedonce.shop/api/webhooks/safepay', {
+    method: 'POST', body: '{}', headers: { 'x-sfpy-signature': 'abc' },
+  }));
+  expect(response.status).toBe(400);
+  expect(recordPaidReferralMock).not.toHaveBeenCalled();
+  expect(reverseRefundedReferralMock).not.toHaveBeenCalled();
+  expect(enqueueReferralNotificationMock).not.toHaveBeenCalled();
+  expect(dispatchPaidIssueDesignMock).not.toHaveBeenCalled();
+  expect(enqueueIssueNotificationMock).not.toHaveBeenCalled();
+});
