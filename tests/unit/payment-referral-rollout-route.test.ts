@@ -6,6 +6,8 @@ const {
   createReferralConversionServiceMock,
   referralsAreEnabledMock,
   recordPaidReferralMock,
+  reverseRefundedReferralMock,
+  flagPaymentExceptionMock,
   dispatchPaidIssueDesignMock,
   enqueueIssueNotificationMock,
   enqueueReferralNotificationMock,
@@ -15,6 +17,8 @@ const {
   createReferralConversionServiceMock: vi.fn(),
   referralsAreEnabledMock: vi.fn(),
   recordPaidReferralMock: vi.fn(),
+  reverseRefundedReferralMock: vi.fn(),
+  flagPaymentExceptionMock: vi.fn(),
   dispatchPaidIssueDesignMock: vi.fn(),
   enqueueIssueNotificationMock: vi.fn(),
   enqueueReferralNotificationMock: vi.fn(),
@@ -52,12 +56,13 @@ beforeEach(() => {
       kind: 'reserved',
       issue: { id: issueId, issueCode: 'IO-ABCD-EFGH' },
     }),
-    flagPaymentException: vi.fn(),
+    flagPaymentException: flagPaymentExceptionMock,
   });
   recordPaidReferralMock.mockResolvedValue({ kind: 'not-referred' });
+  reverseRefundedReferralMock.mockResolvedValue({ kind: 'not-referred' });
   createReferralConversionServiceMock.mockReturnValue({
     recordPaidAttempt: recordPaidReferralMock,
-    reverseRefundedAttempt: vi.fn(),
+    reverseRefundedAttempt: reverseRefundedReferralMock,
   });
   dispatchPaidIssueDesignMock.mockResolvedValue({ mode: 'HYBRID', queued: true, policyVersion: 1 });
   enqueueIssueNotificationMock.mockResolvedValue({ messageId: 'notification-message' });
@@ -76,5 +81,24 @@ test('paid webhook skips referral SQL before referral rollout while preserving t
   expect(recordPaidReferralMock).not.toHaveBeenCalled();
   expect(dispatchPaidIssueDesignMock).toHaveBeenCalledWith(issueId);
   expect(enqueueIssueNotificationMock).toHaveBeenCalledWith(issueId, 'PAYMENT_RECEIVED');
+  expect(enqueueReferralNotificationMock).not.toHaveBeenCalled();
+});
+
+test('refund webhook skips referral SQL before referral rollout while preserving the core refund flag', async () => {
+  createPaymentServiceMock.mockReturnValue({
+    handleWebhook: vi.fn().mockResolvedValue({ kind: 'refunded', paymentAttemptId: 'attempt-refund' }),
+  });
+
+  const response = await safepayWebhook(new Request('https://issuedonce.shop/api/webhooks/safepay', {
+    method: 'POST',
+    body: '{}',
+    headers: { 'x-sfpy-signature': 'abc' },
+  }));
+
+  expect(response.status).toBe(200);
+  expect(flagPaymentExceptionMock).toHaveBeenCalledWith('attempt-refund', 'PAYMENT_REFUNDED');
+  expect(referralsAreEnabledMock).toHaveBeenCalledTimes(1);
+  expect(createReferralConversionServiceMock).not.toHaveBeenCalled();
+  expect(reverseRefundedReferralMock).not.toHaveBeenCalled();
   expect(enqueueReferralNotificationMock).not.toHaveBeenCalled();
 });
