@@ -11,7 +11,7 @@ function postgresLikeExecutor(): SqlExecutor {
           throw new Error(`could not determine data type of parameter ${placeholder}`);
         }
       }
-      return [{ outcome: 'paid' }] as Row[];
+      return [{ outcome: 'paid' }] as unknown as Row[];
     },
   };
 }
