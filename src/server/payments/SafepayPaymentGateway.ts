@@ -291,12 +291,16 @@ export class SafepayPaymentGateway implements PaymentGateway {
   }
 
   verifyWebhook(input: { rawBody: string; headers: Headers }): VerifiedPaymentEvent {
-    let body: V2WebhookBody | { data?: LegacyWebhookData };
+    let parsed: unknown;
     try {
-      body = JSON.parse(input.rawBody) as V2WebhookBody | { data?: LegacyWebhookData };
+      parsed = JSON.parse(input.rawBody) as unknown;
     } catch {
       throw new Error('Safepay webhook body is invalid');
     }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('Safepay webhook body is invalid');
+    }
+    const body = parsed as V2WebhookBody | { data?: LegacyWebhookData };
 
     const provided = input.headers.get('x-sfpy-signature')?.trim() ?? '';
     const isV2 = 'version' in body || ('type' in body && typeof body.type === 'string' && body.type.includes('.'));
