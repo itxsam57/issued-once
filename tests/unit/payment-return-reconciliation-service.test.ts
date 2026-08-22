@@ -23,6 +23,7 @@ const attempt: PaymentAttemptRecord = {
 function fixture(reporterVerified: boolean) {
   const payments = {
     findByProviderReference: vi.fn(async (reference: string) => reference === attempt.providerReference ? structuredClone(attempt) : null),
+    recordProviderEvent: vi.fn(async () => true),
     markPaid: vi.fn(async () => 'paid' as const),
   } as unknown as PaymentRepository;
   const gateway = {
@@ -52,6 +53,16 @@ test('Reporter reconciliation marks the frozen redirected attempt paid without r
     amountMinor: 3200,
     currency: 'USD',
   });
+  expect(payments.recordProviderEvent).toHaveBeenCalledWith({
+    provider: 'SAFEPAY',
+    providerEventId: 'reporter:track_return_1',
+    providerReference: 'track_return_1',
+    state: 'PAID',
+    amountMinor: 3200,
+    currency: 'USD',
+    reference: null,
+    receivedAt: now,
+  });
   expect(payments.markPaid).toHaveBeenCalledWith({
     attemptId: 'attempt-return-1',
     providerEventId: 'reporter:track_return_1',
@@ -66,5 +77,6 @@ test('Reporter reconciliation stays pending when Safepay cannot prove the frozen
 
   await expect(service.reconcileTracker({ providerReference: 'track_return_1' }))
     .resolves.toEqual({ kind: 'pending', paymentAttemptId: 'attempt-return-1' });
+  expect(payments.recordProviderEvent).not.toHaveBeenCalled();
   expect(payments.markPaid).not.toHaveBeenCalled();
 });
