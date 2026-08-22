@@ -1,6 +1,6 @@
 # ISSUED ONCE — Production Environment Contract
 
-Date: 2026-08-19
+Date: 2026-08-22
 Branch: `feat/mystery-foundation`
 Status: configuration contract only; values are not committed here.
 
@@ -81,23 +81,68 @@ One of:
 - `sandbox`
 - `production`
 
-First end-to-end payment proof must start in sandbox. Production must be a deliberate owner change.
+Provider-contract proof should start in sandbox whenever possible. Production must always be a deliberate owner change and a controlled real-payment test.
 
 ### `SAFEPAY_API_KEY`
-Safepay merchant/client API key used to create payment trackers.
+Safepay merchant/client API key used as the merchant identity for checkout and webhook verification.
+
+### `SAFEPAY_API_SECRET`
+Server-only Safepay Merchant **Secret Key** used for authenticated server-to-server v3 tracker creation, Passport token creation, and Reporter verification.
+
+Rules:
+- never expose this value to browser JavaScript
+- never log it
+- never put it in a `NEXT_PUBLIC_*` variable
+- production payment runtime must fail closed when it is absent
 
 ### `SAFEPAY_WEBHOOK_SECRET`
-Safepay merchant webhook secret used to verify `x-sfpy-signature` with HMAC-SHA512 over the serialized webhook `data` object.
+Safepay webhook signing secret. Current v2 webhook verification uses HMAC-SHA512 over the **exact raw HTTP request body** and compares it to `x-sfpy-signature`.
 
 Production webhook endpoint:
 
 `https://issuedonce.shop/api/webhooks/safepay`
 
+### Safepay v3 payment contract
+
+New checkout sessions use the current server-side flow:
+
+1. create the payment with `/order/payments/v3/`
+2. send the quote amount as an integer in the currency's lowest denomination
+3. obtain the time-based Passport token server-to-server
+4. send the customer to the hosted `/embedded` checkout with `source=hosted`
+5. treat the browser redirect as navigation only, never payment truth
+6. authenticate the v2 webhook from the raw request body
+7. use Reporter v2 to prove the immutable original quote before moving a payment attempt to `PAID`
+
+Safepay may settle a foreign-currency quote into a different provider base currency. A callback settlement amount/currency therefore does not have to equal the ISSUED ONCE retail quote. When settlement money differs, the application must verify the tracker through Reporter and require `purchase_totals.quote_amount` to match the frozen payment attempt's original currency and integer minor amount exactly.
+
 Rules:
-- browser redirects are never payment proof
-- only authenticated server webhook evidence can mark a payment `PAID`
-- exact amount and currency must match the frozen payment attempt
+- only authenticated server evidence can mark a payment `PAID`
+- the frozen ISSUED ONCE quote is immutable after payment initiation
+- provider settlement conversion never rewrites the frozen quote
+- Reporter must show the successful tracker state and the exact original quote
+- signature or merchant-authentication failures return an authentication failure and never trigger downstream work
+- malformed webhook bodies/data fail as bad input and never trigger downstream work
 - questionnaire answers are never sent to Safepay
+- legacy v1 webhook verification exists only as transitional compatibility for already-created legacy trackers; new sessions must use v3
+
+## Referral rollout boundary
+
+### `REFERRAL_ATTRIBUTION_SIGNING_KEY`
+Server-only signing key for referral attribution. Its presence is also the explicit runtime signal that the referral schema rollout is enabled.
+
+Migration dependency:
+
+`db/migrations/0029_creator_referrals.sql`
+
+Rollout order is mandatory:
+
+1. obtain explicit owner approval for migration `0029_creator_referrals.sql`
+2. apply and verify migration `0029` in production
+3. only then configure `REFERRAL_ATTRIBUTION_SIGNING_KEY`
+4. verify referred paid, replay, and refund/reversal flows
+
+Do **not** configure the signing key before migration `0029` exists. Before rollout, its deliberate absence makes Safepay paid/refund webhooks skip referral SQL while preserving the canonical payment, Issue, design-dispatch, payment-notification, and refund-flag flows. Once the key is present, referral schema failures must fail loudly rather than silently degrading a partially enabled rollout.
 
 ## OpenAI design worker
 
@@ -245,7 +290,11 @@ If any of the following cannot be demonstrated, keep paid production disabled:
 
 - migrations applied and verified
 - encryption/HMAC keys backed up
-- Safepay signed webhook verified
+- Safepay Merchant Secret Key configured server-only
+- Safepay v3 checkout and Passport token proven
+- Safepay signed v2 webhook verified from the raw request body
+- Reporter v2 proves the exact frozen original quote
+- referral signing key remains absent until migration `0029` is explicitly approved and applied
 - exact retail catalog loaded
 - exactly mapped sampled Printful variants and print placements
 - OpenAI design call proven
