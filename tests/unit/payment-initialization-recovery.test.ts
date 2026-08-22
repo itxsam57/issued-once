@@ -46,7 +46,7 @@ function build(repository: Repository, createCheckout: PaymentGateway['createChe
     contacts: { findVerifiedByExperienceId: vi.fn(async () => ({ id: 'contact-1', experienceId: 'exp-1' })) } as never,
     shipping: { findByExperienceId: vi.fn(async () => ({ id: 'ship-1', experienceId: 'exp-1', contactId: 'contact-1' })) } as never,
     payments: repository,
-    gateway: { createCheckout, verifyWebhook: vi.fn() },
+    gateway: { createCheckout, verifyTracker: vi.fn(), verifyWebhook: vi.fn() },
     checkoutStates: { advance: vi.fn() },
   });
 }
