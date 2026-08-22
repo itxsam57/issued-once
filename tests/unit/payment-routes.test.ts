@@ -7,6 +7,7 @@ const {
   dispatchPaidIssueDesignMock,
   enqueueIssueNotificationMock,
   createReferralConversionServiceMock,
+  referralsAreEnabledMock,
   recordPaidReferralMock,
   reverseRefundedReferralMock,
   enqueueReferralNotificationMock,
@@ -17,6 +18,7 @@ const {
   dispatchPaidIssueDesignMock: vi.fn(),
   enqueueIssueNotificationMock: vi.fn(),
   createReferralConversionServiceMock: vi.fn(),
+  referralsAreEnabledMock: vi.fn(),
   recordPaidReferralMock: vi.fn(),
   reverseRefundedReferralMock: vi.fn(),
   enqueueReferralNotificationMock: vi.fn(),
@@ -39,6 +41,7 @@ vi.mock('@/server/notifications/notificationQueue', () => ({
 }));
 vi.mock('@/server/referrals/runtimeReferrals', () => ({
   createReferralConversionService: createReferralConversionServiceMock,
+  referralsAreEnabled: referralsAreEnabledMock,
   ReferralRuntimeUnavailableError: class ReferralRuntimeUnavailableError extends Error {},
 }));
 vi.mock('@/server/referrals/referralNotificationQueue', () => ({
@@ -53,6 +56,7 @@ const conversionId = '22222222-2222-4222-8222-222222222222';
 
 beforeEach(() => {
   vi.clearAllMocks();
+  referralsAreEnabledMock.mockReturnValue(true);
   cookiesMock.mockResolvedValue({ get: vi.fn().mockReturnValue({ value: 'session-token' }) });
   createIssueServiceMock.mockReturnValue({
     reserveForPaidAttempt: vi.fn().mockResolvedValue({
