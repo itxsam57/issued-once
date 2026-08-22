@@ -7,13 +7,13 @@
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
     "pullRequestState": "DRAFT",
-    "head": "bb80be395c9429c39bf2fa12393a05a3b0ac6177",
-    "repositoryMigrationHead": "0029_creator_referrals.sql",
-    "productionMigrationHead": "0028_design_controls.sql"
+    "verifiedApplicationHead": "9aed762eaf0d402c19c12b3461228f84af3f11ac",
+    "productionMigrationHead": "0028_design_controls.sql",
+    "nextRepositoryMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "SAFEPAY_V3_PROMOTED_ONE_CONTROLLED_REAL_PAYMENT_REQUIRED",
+    "decision": "SAFEPAY_REAL_PAYMENT_PROVEN_DESIGN_PROVIDER_CREDENTIALS_REQUIRED",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -21,160 +21,112 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "The verified Safepay v3 incident fix has been promoted to the canonical production branch and the post-promotion Vercel, CI, Browser QA and live production journey are green. The next proof requires one deliberate real checkout by the owner. Migration 0029 remains a separate explicit approval gate."
+    "stopReason": "The real Safepay payment cycle is proven end to end through authoritative Reporter verification, PAID persistence and exactly one Issue. The next live proof requires production OpenAI and private Blob credentials; no manufacturing or referral rollout is authorized."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "COMPLETE_TO_REAL_PAYMENT_GATE",
+    "internalWorkStatus": "COMPLETE_TO_LIVE_DESIGN_PROVIDER_GATE",
     "rules": [
-      "Treat feat/mystery-foundation as canonical source of truth until final release promotion",
+      "Treat feat/mystery-foundation as canonical until final release promotion",
       "Use TDD RED before behavior changes",
-      "Use fresh CI/build/browser/live evidence before success claims",
-      "Browser redirect is never payment truth",
-      "Only authenticated Safepay webhook plus authoritative Reporter verification may establish PAID truth",
+      "Require fresh CI, build, browser and production evidence before success claims",
+      "Browser navigation is never payment proof",
+      "Safepay PAID may be established by authenticated webhook truth or authoritative Reporter truth proving the immutable quote",
       "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
-      "Never fabricate merchant domicile or provider evidence",
       "Never apply production database migrations without exact owner approval",
       "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is applied and verified",
-      "Keep Printful production confirmation disabled until the independent owner release gate"
+      "Keep Printful production confirmation disabled until its independent owner release gate"
     ]
   },
-  "activeIncident": {
-    "name": "SAFEPAY_PRODUCTION_FX_SETTLEMENT_V3_MIGRATION",
-    "fixBranch": "fix/safepay-v3-production",
-    "pullRequest": 4,
-    "pullRequestState": "MERGED",
-    "verifiedFixHead": "cae10547be632f63f1b43233e37424c54e6ecf3e",
-    "metadataHead": "405c3e64812b75c0b1fdca49ca455002c82fe8ea",
-    "canonicalMergeHead": "bb80be395c9429c39bf2fa12393a05a3b0ac6177",
-    "status": "PROMOTED_REAL_PAYMENT_PROOF_PENDING",
-    "productionObservation": "A frozen USD 32.00 attempt received authenticated Safepay PAID settlement evidence in PKR. The legacy adapter could not prove the original USD quote and correctly failed closed to EXCEPTION with no Issue minted.",
-    "implementedContract": [
-      "Safepay v3 payment creation with integer minor units",
-      "server-only merchant Secret Key authentication through SAFEPAY_API_SECRET",
-      "Passport time-based token creation",
-      "hosted embedded checkout with source=hosted",
-      "Reporter v2 exact purchase_totals.quote_amount verification against frozen payment truth",
-      "raw-body HMAC-SHA512 v2 webhook authentication",
-      "transitional v1 webhook compatibility for already-created legacy trackers",
-      "converted settlement accepted only after Reporter proves the immutable original quote",
-      "paid and refund referral SQL skipped before referral rollout while canonical core flows continue",
-      "malformed/non-object webhook JSON rejected as bad input",
-      "signature and merchant failures classified as authentication failures",
-      "unsupported webhook contract input classified as bad input instead of 500"
+  "safepayProductionProof": {
+    "status": "LIVE_PROVEN",
+    "ownerConfirmedMerchantSecretConfigured": true,
+    "paymentAttemptId": "d5227dad-9f27-4fd8-a01b-a2e4a87e51ec",
+    "providerReference": "track_2d48c8c8-bdd5-454c-993d-be6223bccf8b",
+    "frozenAmountMinor": 3200,
+    "frozenCurrency": "USD",
+    "providerTruth": "REPORTER_V2_TRACKER_ENDED_QUOTE_PROVEN",
+    "signedWebhookObservedForThisPayment": false,
+    "reporterEventId": "reporter:track_2d48c8c8-bdd5-454c-993d-be6223bccf8b",
+    "attemptState": "PAID",
+    "issueId": "2573312e-0ce0-480f-a6a3-bd2211da296f",
+    "issueCode": "IO-GCDV-9R3H",
+    "issueCountForAttempt": 1,
+    "paymentException": null,
+    "incidentFixes": [
+      {
+        "pullRequest": 6,
+        "mergeHead": "0185fbb6fff53565659634fbd2c4e6e2bccc299d",
+        "scope": "Reporter-backed paid return reconciliation and shared paid finalization"
+      },
+      {
+        "pullRequest": 8,
+        "mergeHead": "9aed762eaf0d402c19c12b3461228f84af3f11ac",
+        "scope": "Fix PostgreSQL markPaid skipped-parameter failure"
+      }
     ],
-    "ownerConfirmedSafepayApiSecretConfigured": true,
-    "vercelConnectorCouldVerifySecretPresence": false,
-    "vercelConnectorLimitation": "Team is visible but project enumeration returns empty/403; secret value or presence cannot be independently read through the connector.",
-    "productionPromotionPerformed": true,
-    "realPaymentRetestPerformed": false,
-    "referralMigrationApplied": false
+    "rootCauseProof": "A temporary Neon clone reproduced PostgreSQL error: could not determine data type of parameter $2. Regression test was RED before the contiguous-parameter fix and GREEN afterward.",
+    "recoveryProbePullRequest": 7,
+    "recoveryProbeMerged": false,
+    "recoveryProbeClosed": true
   },
-  "database": {
+  "productionDatabase": {
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
-    "productionBranchId": "br-dawn-cloud-axm880q9",
-    "productionState": "MIGRATED_AND_READ_ONLY_VERIFIED_THROUGH_0028",
-    "productionReferralSchemaPresent": false,
-    "readOnlyReleaseAudit": {
-      "referralQuoteSnapshotColumnPresent": false,
-      "referralConversionsTablePresent": false,
-      "paymentAttemptCount": 2,
-      "issueCount": 0,
-      "auditedAt": "2026-08-22_AFTER_SAFEPAY_PROMOTION"
-    },
-    "referralMigration": {
-      "migrationFile": "0029_creator_referrals.sql",
-      "isolatedProof": "GREEN",
-      "productionApplied": false,
-      "ownerApprovalRequired": true,
-      "rolloutOrder": "APPLY_AND_VERIFY_0029_THEN_CONFIGURE_REFERRAL_ATTRIBUTION_SIGNING_KEY"
-    }
+    "branchId": "br-dawn-cloud-axm880q9",
+    "paymentAttemptCount": 3,
+    "providerEventCount": 3,
+    "issueCount": 1,
+    "designJobCount": 1,
+    "notificationDeliveryCount": 1,
+    "manufacturingJobCount": 0,
+    "referralQuoteSnapshotColumnPresent": false,
+    "referralConversionsTablePresent": false,
+    "migration0029Applied": false
+  },
+  "downstreamProof": {
+    "issueStatus": "BEING_INTERPRETED",
+    "designJobState": "QUEUED",
+    "designProvider": null,
+    "designModel": null,
+    "paymentReceivedNotification": "SENT_ONCE",
+    "manufacturingJobs": 0,
+    "printfulProductionConfirmation": "DISABLED"
   },
   "verification": {
-    "fixBranchFinal": {
-      "head": "405c3e64812b75c0b1fdca49ca455002c82fe8ea",
-      "verifiedCodeHead": "cae10547be632f63f1b43233e37424c54e6ecf3e",
-      "ciRun": 32582751359,
-      "ciConclusion": "SUCCESS",
-      "browserRun": 32582751405,
-      "browserConclusion": "SUCCESS",
-      "unitTestFiles": 147,
-      "unitTests": 387,
-      "typecheck": "PASSED",
-      "lint": "PASSED",
-      "productionBuild": "PASSED",
-      "vercelStatus": "SUCCESS"
-    },
-    "canonicalPostPromotion": {
-      "head": "bb80be395c9429c39bf2fa12393a05a3b0ac6177",
-      "vercelStatus": "SUCCESS",
-      "vercelDeployment": "https://vercel.com/samx4/issued-once/77UuqvoUbmd6btkCHx83NocCkBmw",
-      "ciRun": 32588195948,
-      "ciJob": 97067666260,
-      "ciConclusion": "SUCCESS",
-      "unitTests": "PASSED",
-      "typecheck": "PASSED",
-      "lint": "PASSED",
-      "productionBuild": "PASSED",
-      "browserRun": 32588195955,
-      "browserJob": 97067666311,
-      "browserConclusion": "SUCCESS",
-      "browserTests": "PASSED",
-      "liveProductionCustomerJourney": "PASSED",
-      "liveProductionPaymentPerformed": false,
-      "productionDatabaseAfterPromotion": "2_PAYMENT_ATTEMPTS_0_ISSUES_0029_ABSENT"
-    },
-    "tddEvidence": [
-      "Safepay Reporter v2 and hosted-source provider contract were proven RED before implementation correction",
-      "Referral paid pre-rollout dependency was proven RED before implementation",
-      "Referral refund pre-rollout dependency was proven RED before implementation",
-      "Malformed webhook shape and 400 classification were proven RED before implementation",
-      "Unsupported webhook version 400 classification was proven RED before implementation"
-    ],
-    "releaseAudit": {
-      "safepayIncidentPr": 4,
-      "safepayIncidentPrMerged": true,
-      "unresolvedSafepayPrReviewThreads": 0,
-      "canonicalPr": 3,
-      "canonicalPrStillDraft": true
-    }
+    "paidTransitionFixFinalHead": "570563855a9debdc33b38b31ce200448cd5fddb9",
+    "paidTransitionFixCI": 1126,
+    "paidTransitionFixTests": "396/396_PASS",
+    "paidTransitionFixTypecheck": "PASS",
+    "paidTransitionFixLint": "PASS",
+    "paidTransitionFixBuild": "PASS",
+    "paidTransitionFixVercel": "PASS",
+    "canonicalMergeHead": "9aed762eaf0d402c19c12b3461228f84af3f11ac",
+    "canonicalCI": 1127,
+    "canonicalCIConclusion": "PASS",
+    "canonicalBrowserQA": 1069,
+    "canonicalBrowserConclusion": "PASS",
+    "liveProductionCustomerJourney": "PASS",
+    "recoveryBrowserQA": 1068,
+    "recoveryBrowserConclusion": "PASS"
   },
   "providers": {
     "resendOtp": "LIVE_PROVEN",
-    "safepay": "V3_PROMOTED_OWNER_CONFIRMED_SECRET_REAL_PAYMENT_PROOF_PENDING",
-    "openai": "OWNER_CREDENTIAL_LIVE_PROVIDER_PROOF_PENDING",
-    "blob": "OWNER_CREDENTIAL_LIVE_PROVIDER_PROOF_PENDING",
-    "vercelQueues": "OWNER_CREDENTIAL_LIVE_CONSUMER_PROOF_PENDING",
+    "safepay": "LIVE_PROVEN_REPORTER_AUTHORITATIVE_FALLBACK",
+    "openai": "PRODUCTION_CREDENTIAL_AND_LIVE_GENERATION_PROOF_REQUIRED",
+    "blob": "PRODUCTION_CREDENTIAL_AND_PRIVATE_ARTWORK_PROOF_REQUIRED",
+    "vercelQueues": "DESIGN_TRIGGER_CONFIG_PRESENT_LIVE_DESIGN_CONSUMER_PROOF_PENDING",
     "printful": "OWNER_MAPPING_UNCONFIRMED_DRAFT_AND_SIGNED_WEBHOOK_PROOF_PENDING",
     "printfulProduction": "DISABLED"
   },
-  "safetyState": {
-    "browserRedirectNeverPaymentTruth": true,
-    "rawQuestionnaireAnswersNeverEnterPaymentMetadata": true,
-    "referralRuntimeDisabledBefore0029": true,
-    "printfulProductionConfirmationDisabled": true,
-    "productionMigration0029Applied": false
-  },
-  "resolvedDuringCurrentCycle": [
-    "Owner confirmed SAFEPAY_API_SECRET was added to Vercel Production",
-    "PR 4 was marked ready and merged into feat/mystery-foundation with exact verified head protection",
-    "Canonical merge commit bb80be39 deployed successfully through Vercel",
-    "Post-promotion CI 1108 passed tests, typecheck, lint and production build",
-    "Post-promotion Browser QA 1062 passed, including the live issuedonce.shop production customer journey",
-    "Production Neon was re-audited read-only after promotion: 2 payment attempts, 0 Issues, referral migration 0029 absent",
-    "No real payment was performed by automation and no manufacturing action occurred",
-    "Migration 0029 remains untouched"
-  ],
   "nextActions": [
-    "OWNER REAL PAYMENT: open issuedonce.shop and complete exactly one normal customer journey through Safepay payment",
-    "SYSTEM VERIFY: after the owner completes payment, inspect Neon for a new v3 payment attempt, signed provider event, PAID truth and exactly one canonical Issue",
-    "SYSTEM VERIFY: confirm Reporter proved the frozen original quote and that PKR settlement conversion did not mutate the USD quote",
-    "SYSTEM VERIFY: replay/idempotency evidence must not mint a second Issue",
-    "OWNER TEST: after payment proof, continue OpenAI + private Blob + Vercel Queue live design proof",
-    "OWNER TEST: configure Printful mappings/webhook and prove one real unconfirmed draft while production confirmation stays disabled",
-    "OWNER APPROVAL: separately approve production referral migration 0029 before any referral signing key is configured",
-    "OWNER DECISION: after provider evidence is green, perform final release audit and decide PR 3 promotion/merge"
+    "OWNER: configure OPENAI_API_KEY in Vercel Production without sharing the secret in chat",
+    "OWNER: configure BLOB_READ_WRITE_TOKEN in Vercel Production without sharing the secret in chat",
+    "SYSTEM: prove one live design generation from the already-paid Issue through OpenAI, private Blob and Vercel Queue consumer",
+    "SYSTEM: verify artwork remains private and the design job advances without exposing questionnaire or shipping data",
+    "OWNER: later provide/approve Printful mappings and prove one unconfirmed draft while production confirmation stays disabled",
+    "OWNER APPROVAL: separately approve migration 0029 before any referral signing key is configured",
+    "SYSTEM: perform final release audit before PR 3 promotion to main"
   ],
-  "nextOwnerAction": "COMPLETE_EXACTLY_ONE_REAL_SAFEPAY_PAYMENT_ON_ISSUEDONCE_SHOP"
+  "nextOwnerAction": "CONFIGURE_OPENAI_API_KEY_AND_BLOB_READ_WRITE_TOKEN_IN_VERCEL_PRODUCTION"
 }
