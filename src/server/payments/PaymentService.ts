@@ -145,17 +145,42 @@ export class PaymentService {
     | { kind: 'exception'; paymentAttemptId?: string }
   > {
     const event = this.dependencies.gateway.verifyWebhook(input);
+    const attempt = await this.dependencies.payments.findByProviderReference(event.providerReference);
+
+    if (!attempt) {
+      const fresh = await this.dependencies.payments.recordProviderEvent({
+        provider: 'SAFEPAY', providerEventId: event.providerEventId, providerReference: event.providerReference,
+        state: event.state, amountMinor: event.amountMinor, currency: event.currency, reference: event.reference, receivedAt: this.now(),
+      });
+      return { kind: fresh ? 'exception' : 'duplicate' };
+    }
+
+    let verifiedAmountMinor = event.amountMinor;
+    let verifiedCurrency = event.currency;
+    if (
+      event.state === 'PAID' &&
+      event.currency !== attempt.currency
+    ) {
+      const trackerVerified = await this.dependencies.gateway.verifyTracker({
+        providerReference: event.providerReference,
+        amountMinor: attempt.amountMinor,
+        currency: attempt.currency,
+      });
+      if (trackerVerified) {
+        verifiedAmountMinor = attempt.amountMinor;
+        verifiedCurrency = attempt.currency;
+      }
+    }
+
     const fresh = await this.dependencies.payments.recordProviderEvent({
       provider: 'SAFEPAY', providerEventId: event.providerEventId, providerReference: event.providerReference,
-      state: event.state, amountMinor: event.amountMinor, currency: event.currency, reference: event.reference, receivedAt: this.now(),
+      state: event.state, amountMinor: verifiedAmountMinor, currency: verifiedCurrency, reference: event.reference, receivedAt: this.now(),
     });
-    const attempt = await this.dependencies.payments.findByProviderReference(event.providerReference);
-    if (!attempt) return { kind: fresh ? 'exception' : 'duplicate' };
 
     if (event.state === 'PAID') {
       const outcome = await this.dependencies.payments.markPaid({
-        attemptId: attempt.id, providerEventId: event.providerEventId, amountMinor: event.amountMinor,
-        currency: event.currency, paidAt: event.occurredAt,
+        attemptId: attempt.id, providerEventId: event.providerEventId, amountMinor: verifiedAmountMinor,
+        currency: verifiedCurrency, paidAt: event.occurredAt,
       });
       if (outcome === 'paid') return { kind: 'paid', paymentAttemptId: attempt.id };
       if (outcome === 'duplicate') return { kind: 'duplicate', paymentAttemptId: attempt.id };
@@ -177,6 +202,6 @@ export class PaymentService {
       await this.dependencies.payments.markFailed(attempt.id, event.providerEventId, event.occurredAt);
       return { kind: 'failed', paymentAttemptId: attempt.id };
     }
-    return { kind: 'pending', paymentAttemptId: attempt.id };
+    return { kind: fresh ? 'pending' : 'duplicate', paymentAttemptId: attempt.id };
   }
 }
