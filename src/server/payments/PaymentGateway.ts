@@ -19,6 +19,12 @@ export interface PaymentGateway {
     cancelUrl: string;
   }): Promise<{ providerReference: string; checkoutUrl: string }>;
 
+  verifyTracker(input: {
+    providerReference: string;
+    amountMinor: number;
+    currency: string;
+  }): Promise<boolean>;
+
   verifyWebhook(input: {
     rawBody: string;
     headers: Headers;
