@@ -32,7 +32,11 @@ class RecoveryRepository implements PaymentRepository {
 }
 
 function service(repository: RecoveryRepository, event: VerifiedPaymentEvent) {
-  const gateway: PaymentGateway = { createCheckout: vi.fn(), verifyWebhook: vi.fn(() => event) };
+  const gateway: PaymentGateway = {
+    createCheckout: vi.fn(),
+    verifyTracker: vi.fn(async () => true),
+    verifyWebhook: vi.fn(() => event),
+  };
   return new PaymentService({
     experiences: { findBySessionHash: vi.fn() },
     quotes: { findById: vi.fn(), findLatestByExperienceId: vi.fn() },
