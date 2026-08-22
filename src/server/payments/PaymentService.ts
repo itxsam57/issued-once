@@ -157,10 +157,7 @@ export class PaymentService {
 
     let verifiedAmountMinor = event.amountMinor;
     let verifiedCurrency = event.currency;
-    if (
-      event.state === 'PAID' &&
-      event.currency !== attempt.currency
-    ) {
+    if (event.state === 'PAID' && event.currency !== attempt.currency) {
       const trackerVerified = await this.dependencies.gateway.verifyTracker({
         providerReference: event.providerReference,
         amountMinor: attempt.amountMinor,
@@ -202,6 +199,6 @@ export class PaymentService {
       await this.dependencies.payments.markFailed(attempt.id, event.providerEventId, event.occurredAt);
       return { kind: 'failed', paymentAttemptId: attempt.id };
     }
-    return { kind: fresh ? 'pending' : 'duplicate', paymentAttemptId: attempt.id };
+    return { kind: 'pending', paymentAttemptId: attempt.id };
   }
 }
