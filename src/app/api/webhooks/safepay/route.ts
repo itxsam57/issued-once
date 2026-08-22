@@ -72,10 +72,10 @@ export async function POST(request: Request) {
     ) {
       return Response.json({ error: 'Payment webhook is unavailable' }, { status: 503 });
     }
-    if (error instanceof Error && /signature|merchant|webhook body|webhook data/i.test(error.message)) {
+    if (error instanceof Error && /signature|merchant/i.test(error.message)) {
       return Response.json({ error: 'Webhook authentication failed' }, { status: 401 });
     }
-    if (error instanceof Error && /payload|amount|timestamp/i.test(error.message)) {
+    if (error instanceof Error && /webhook body|webhook data|payload|amount|timestamp/i.test(error.message)) {
       return Response.json({ error: 'Webhook payload is invalid' }, { status: 400 });
     }
     console.error('safepay webhook processing failed', error);
