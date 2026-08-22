@@ -84,16 +84,16 @@ export class PostgresPaymentRepository implements PaymentRepository {
       `WITH current AS (
          SELECT status,amount_minor,currency FROM payment_attempts WHERE id=$1 FOR UPDATE
        ), mismatch AS (
-         UPDATE payment_attempts SET status='EXCEPTION',updated_at=$5
+         UPDATE payment_attempts SET status='EXCEPTION',updated_at=$4
          WHERE id=$1 AND EXISTS (
            SELECT 1 FROM current
-           WHERE status IN ('CREATED','REDIRECTED') AND (amount_minor<>$3 OR currency<>$4)
+           WHERE status IN ('CREATED','REDIRECTED') AND (amount_minor<>$2 OR currency<>$3)
          ) RETURNING 'mismatch'::text AS outcome
        ), paid AS (
-         UPDATE payment_attempts SET status='PAID',updated_at=$5
+         UPDATE payment_attempts SET status='PAID',updated_at=$4
          WHERE id=$1 AND EXISTS (
            SELECT 1 FROM current
-           WHERE status IN ('CREATED','REDIRECTED') AND amount_minor=$3 AND currency=$4
+           WHERE status IN ('CREATED','REDIRECTED') AND amount_minor=$2 AND currency=$3
          ) AND NOT EXISTS (SELECT 1 FROM mismatch)
          RETURNING 'paid'::text AS outcome
        )
@@ -102,7 +102,7 @@ export class PostgresPaymentRepository implements PaymentRepository {
        UNION ALL SELECT 'duplicate'::text AS outcome WHERE EXISTS (SELECT 1 FROM current WHERE status='PAID')
        UNION ALL SELECT 'mismatch'::text AS outcome WHERE EXISTS (SELECT 1 FROM current WHERE status NOT IN ('CREATED','REDIRECTED','PAID'))
        LIMIT 1`,
-      [input.attemptId,input.providerEventId,input.amountMinor,input.currency,input.paidAt],
+      [input.attemptId,input.amountMinor,input.currency,input.paidAt],
     );
     if (!rows[0]) throw new Error('Payment attempt not found');
     return rows[0].outcome;
