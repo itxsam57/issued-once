@@ -39,8 +39,10 @@ type PassportResponse = {
   status?: { errors?: unknown[] };
 };
 
+type TrackerEnvelope = { tracker?: SafepayTracker };
+
 type TrackerLookupResponse = {
-  data?: SafepayTracker | { tracker?: SafepayTracker };
+  data?: SafepayTracker | TrackerEnvelope;
   status?: { errors?: unknown[] };
 };
 
@@ -145,6 +147,15 @@ function merchantClient(client: SafepayTracker['client']): string | null {
   return client.api_key?.trim() || client.apiKey?.trim() || null;
 }
 
+function isTrackerEnvelope(value: SafepayTracker | TrackerEnvelope): value is TrackerEnvelope {
+  return Object.prototype.hasOwnProperty.call(value, 'tracker');
+}
+
+function unwrapTracker(value: TrackerLookupResponse['data']): SafepayTracker | undefined {
+  if (!value) return undefined;
+  return isTrackerEnvelope(value) ? value.tracker : value;
+}
+
 function parseTimestamp(...candidates: Array<ProtoTimestamp | undefined>): Date {
   for (const value of candidates) {
     if (typeof value === 'string') {
@@ -239,7 +250,7 @@ export class SafepayPaymentGateway implements PaymentGateway {
     checkout.searchParams.set('environment', this.options.environment);
     checkout.searchParams.set('tracker', token);
     checkout.searchParams.set('tbt', tbt);
-    checkout.searchParams.set('source', 'hosted');
+    checkout.searchParams.set('source', 'custom');
     checkout.searchParams.set('redirect_url', input.returnUrl);
     checkout.searchParams.set('cancel_url', input.cancelUrl);
 
@@ -258,14 +269,13 @@ export class SafepayPaymentGateway implements PaymentGateway {
     assertCurrency(currency);
 
     const response = await this.fetchImpl(
-      `${apiBase(this.options.environment)}/reporter/api/v1/payments/${encodeURIComponent(providerReference)}`,
+      `${apiBase(this.options.environment)}/reporter/api/v2/payments/${encodeURIComponent(providerReference)}`,
       { headers: this.secretHeaders(), cache: 'no-store' },
     );
     if (!response.ok) throw new Error('Safepay tracker verification failed');
     const payload = (await response.json()) as TrackerLookupResponse;
     if (payload.status?.errors?.length) throw new Error('Safepay tracker verification failed');
-    const raw = payload.data;
-    const tracker = raw && 'tracker' in raw ? raw.tracker : raw;
+    const tracker = unwrapTracker(payload.data);
     if (!tracker) return false;
     if (tracker.token?.trim() && tracker.token.trim() !== providerReference) return false;
     const client = merchantClient(tracker.client);
