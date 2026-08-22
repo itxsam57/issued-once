@@ -163,9 +163,20 @@ export class PaymentService {
     if (!verified) return { kind: 'pending', paymentAttemptId: attempt.id };
 
     const paidAt = this.now();
+    const providerEventId = `reporter:${providerReference}`;
+    await this.dependencies.payments.recordProviderEvent({
+      provider: 'SAFEPAY',
+      providerEventId,
+      providerReference,
+      state: 'PAID',
+      amountMinor: attempt.amountMinor,
+      currency: attempt.currency,
+      reference: null,
+      receivedAt: paidAt,
+    });
     const outcome = await this.dependencies.payments.markPaid({
       attemptId: attempt.id,
-      providerEventId: `reporter:${providerReference}`,
+      providerEventId,
       amountMinor: attempt.amountMinor,
       currency: attempt.currency,
       paidAt,
