@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
+  "updatedAt": "2026-08-22",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
@@ -13,7 +14,7 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "INTERNAL_RELEASE_COMPLETE_OWNER_PROVIDER_TESTS_REQUIRED",
+    "decision": "SAFEPAY_V3_FIX_VERIFIED_OWNER_SECRET_AND_REAL_PROVIDER_PROOF_REQUIRED",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -21,7 +22,7 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "All internal code, UI, UX, lint, typecheck, build, browser, live OTP smoke, release-plan and PR-state work is complete. Remaining gates require owner/provider credentials or real provider actions, exact production migration approval, and the final promotion decision."
+    "stopReason": "The isolated Safepay v3 production-incident fix is internally verified, including FX-safe original-quote verification, paid/refund referral pre-rollout guards, malformed webhook rejection, full CI, Browser QA and Vercel preview. Production promotion now requires the owner-controlled Safepay Merchant Secret Key and one controlled real provider proof. Migration 0029 remains a separate explicit owner approval gate."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -37,6 +38,34 @@
       "Keep Printful production confirmation disabled until the independent owner release gate"
     ]
   },
+  "activeIncident": {
+    "name": "SAFEPAY_PRODUCTION_FX_SETTLEMENT_V3_MIGRATION",
+    "branch": "fix/safepay-v3-production",
+    "pullRequest": 4,
+    "pullRequestState": "DRAFT",
+    "verifiedHead": "cae10547be632f63f1b43233e37424c54e6ecf3e",
+    "status": "INTERNAL_FIX_VERIFIED_OWNER_SECRET_AND_REAL_PROVIDER_PROOF_REQUIRED",
+    "productionObservation": "A frozen USD 32.00 attempt received authenticated Safepay PAID settlement evidence in PKR. The legacy adapter could not prove the original USD quote and correctly failed closed to EXCEPTION with no Issue minted.",
+    "implementedContract": [
+      "Safepay v3 payment creation with integer minor units",
+      "server-only merchant Secret Key authentication",
+      "Passport time-based token creation",
+      "hosted embedded checkout source",
+      "Reporter v2 exact purchase_totals.quote_amount verification against frozen payment truth",
+      "raw-body HMAC-SHA512 v2 webhook authentication",
+      "transitional v1 webhook compatibility for already-created legacy trackers",
+      "converted settlement accepted only after Reporter proves the immutable original quote",
+      "paid and refund referral SQL skipped before referral rollout while canonical core flows continue",
+      "malformed non-object webhook JSON rejected as bad input",
+      "signature and merchant failures remain authentication failures",
+      "unsupported webhook contract input is rejected as bad input rather than a server fault"
+    ],
+    "productionPromotionPerformed": false,
+    "realPaymentRetestPerformed": false,
+    "requiredSecret": "SAFEPAY_API_SECRET",
+    "requiredSecretPolicy": "SERVER_ONLY_NEVER_LOG_OR_EXPOSE",
+    "referralMigrationApplied": false
+  },
   "database": {
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
@@ -48,7 +77,11 @@
       "designPolicyOverrideTablePresent": true,
       "designPolicyConfigConstraintPresent": true,
       "referralCreatorsTablePresent": false,
-      "referralQuoteSnapshotColumnPresent": false
+      "referralQuoteSnapshotColumnPresent": false,
+      "referralConversionsTablePresent": false,
+      "paymentAttemptCount": 2,
+      "issueCount": 0,
+      "auditedAt": "2026-08-22"
     },
     "referralMigrationProof": {
       "migrationFile": "0029_creator_referrals.sql",
@@ -91,7 +124,9 @@
       "encryptedPayoutDetails": true,
       "availableOnlySettlement": true,
       "desktopMobileBrowserProof": true,
-      "productionApplied": false
+      "productionApplied": false,
+      "runtimeRolloutSignal": "REFERRAL_ATTRIBUTION_SIGNING_KEY",
+      "rolloutOrder": "APPLY_0029_THEN_CONFIGURE_SIGNING_KEY"
     },
     "designControl": {
       "status": "INTERNAL_COMPLETE_PROVIDER_LIVE_PROOF_OWNER_GATE",
@@ -143,6 +178,30 @@
       "visualEvidenceDigest": "sha256:9d814af123fac960abd90c5a079988862f4020d52d574f92b69d1b17f203669b",
       "productionDatabaseUntouched": true
     },
+    "safepayIncidentCandidate": {
+      "head": "cae10547be632f63f1b43233e37424c54e6ecf3e",
+      "ciRun": 32582559260,
+      "ciJob": 97054023439,
+      "ciConclusion": "SUCCESS",
+      "unitTestFiles": 147,
+      "unitTests": 387,
+      "typecheck": "PASSED",
+      "lint": "PASSED",
+      "productionBuild": "PASSED",
+      "browserRun": 32582559257,
+      "browserJob": 97054023382,
+      "browserConclusion": "SUCCESS",
+      "vercelStatus": "SUCCESS",
+      "vercelDeployment": "https://vercel.com/samx4/issued-once/8zmU1jAuEkvdWyevVHgYAnCxnrWE",
+      "productionPromotionPerformed": false,
+      "productionDatabaseWritePerformed": false,
+      "productionProviderRetestPerformed": false,
+      "tddEvidence": [
+        "Referral refund pre-rollout guard reproduced RED before implementation",
+        "Malformed webhook shape and 400 classification reproduced RED before implementation",
+        "Unsupported webhook version 400 classification reproduced RED with 386 passing and 1 failing test before implementation"
+      ]
+    },
     "uiDefectTdd": {
       "quickPriceGeometry": {
         "redHead": "7c31c60422dac27e192d333dccb0fc253c354b6f",
@@ -167,12 +226,15 @@
       "obviousTodoFixmeNotImplementedStubs": 0,
       "publicUiScreenshotAudit": "GREEN",
       "ownerOsScreenshotAudit": "GREEN",
-      "vercelConnectorProjectEnumeration": "LIMITED_EMPTY_RESULT_INDEPENDENT_LIVE_DOMAIN_QA_GREEN"
+      "vercelConnectorProjectEnumeration": "LIMITED_EMPTY_RESULT_INDEPENDENT_LIVE_DOMAIN_QA_GREEN",
+      "safepayIncidentPr": 4,
+      "safepayIncidentPrDraft": true,
+      "safepayIncidentPrMergeable": true
     }
   },
   "providers": {
     "resendOtp": "LIVE_PROVEN",
-    "safepay": "OWNER_SANDBOX_CONFIG_AND_REAL_PROTOCOL_PROOF_PENDING",
+    "safepay": "INTERNAL_V3_FIX_VERIFIED_OWNER_API_SECRET_AND_REAL_PROVIDER_PROOF_PENDING",
     "openai": "OWNER_CREDENTIAL_LIVE_PROVIDER_PROOF_PENDING",
     "blob": "OWNER_CREDENTIAL_LIVE_PROVIDER_PROOF_PENDING",
     "vercelQueues": "OWNER_CREDENTIAL_LIVE_CONSUMER_PROOF_PENDING",
@@ -190,14 +252,25 @@
     "Production database re-audited read-only: design-control 0028 present and referral 0029 absent",
     "PR 3 release body reconciled to current truth and retained as draft",
     "Merchant Launch plan reconciled: internal tasks complete, provider/owner gates remain open",
-    "No production migration, paid provider cycle, Printful production confirmation or PR merge was performed"
+    "Safepay production FX settlement incident isolated on fix/safepay-v3-production PR 4",
+    "Safepay adapter migrated to v3 creation, Passport, hosted checkout and Reporter v2 original-quote verification",
+    "Current v2 raw-body HMAC-SHA512 webhook contract implemented with legacy v1 compatibility",
+    "Converted settlement no longer forces a false money mismatch when Reporter proves the exact frozen original quote",
+    "Paid and refund Safepay webhook paths no longer depend on unapproved referral migration 0029 while referrals are disabled",
+    "Malformed non-object webhook JSON is rejected cleanly and bad provider input is classified separately from authentication failure",
+    "Safepay incident head cae10547 passed 147 files / 387 tests, typecheck, lint, production build, Browser QA and Vercel",
+    "Production database re-audited read-only: referral 0029 absent, 2 payment attempts, 0 Issues",
+    "Production environment runbook updated for SAFEPAY_API_SECRET and the mandatory 0029-then-referral-key rollout order",
+    "No production migration, new real payment, Printful production confirmation or PR merge was performed"
   ],
   "nextActions": [
-    "OWNER TEST: configure and run Safepay sandbox checkout plus signed PAID, replay and refund/exception evidence",
+    "OWNER CONFIG: add Vercel Production SAFEPAY_API_SECRET from the Safepay Merchant Dashboard Secret Key; keep it server-only",
+    "OWNER PROVIDER PROOF: after secret configuration and deliberate promotion, create one controlled v3 checkout and verify hosted checkout plus Passport token behavior",
+    "OWNER PROVIDER PROOF: complete one controlled real payment and verify signed v2 payment.succeeded evidence, Reporter exact original quote, PAID attempt and exactly one canonical Issue",
     "OWNER TEST: configure and prove OpenAI plus private Blob plus Vercel Queue live design flow and manual fallback",
     "OWNER TEST: configure Printful mappings/webhook and prove one real unconfirmed draft plus signed fulfillment events while production confirmation stays disabled",
-    "OWNER APPROVAL: when provider evidence is ready, approve production referral migration 0029 and configure REFERRAL_ATTRIBUTION_SIGNING_KEY",
+    "OWNER APPROVAL: separately approve production referral migration 0029; apply and verify it before configuring REFERRAL_ATTRIBUTION_SIGNING_KEY",
     "OWNER DECISION: after all provider evidence is green, perform final release audit and choose PR promotion/merge"
   ],
-  "nextOwnerAction": "BEGIN_OWNER_PROVIDER_TEST_MATRIX"
+  "nextOwnerAction": "CONFIGURE_SAFEPAY_API_SECRET_AND_RUN_ONE_CONTROLLED_REAL_PROVIDER_PROOF"
 }
