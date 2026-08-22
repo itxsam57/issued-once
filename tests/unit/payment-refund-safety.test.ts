@@ -35,6 +35,7 @@ test('signed full refund returns the payment identity and changes paid truth to 
   const repository = new RefundRepository();
   const gateway: PaymentGateway = {
     createCheckout: vi.fn(),
+    verifyTracker: vi.fn(async () => true),
     verifyWebhook: vi.fn(() => ({
       providerEventId: 'refund-1', providerReference: 'track-1', state: 'REFUNDED' as const,
       amountMinor: 5400, currency: 'USD', reference: 'refund-ref', occurredAt: new Date('2026-08-19T05:00:00Z'),
