@@ -1,0 +1,212 @@
+.interview-complete__proceed,
+.object-selection button {
+  justify-self: start;
+  min-height: 44px;
+  margin-top: clamp(38px, 6vh, 72px);
+  padding: 12px 0 10px;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  transition: color 160ms ease, letter-spacing 160ms ease;
+}
+
+.interview-complete__proceed:hover,
+.interview-complete__proceed:focus-visible,
+.object-selection button:hover:not(:disabled),
+.object-selection button:focus-visible:not(:disabled) {
+  color: var(--signal);
+  letter-spacing: 0.25em;
+  outline: none;
+}
+
+.object-selection button:disabled {
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.42;
+}
+
+.object-selection {
+  width: 100%;
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  padding: clamp(28px, 5vw, 76px);
+  position: relative;
+  overflow: hidden;
+}
+
+.object-selection::before {
+  content: '';
+  position: absolute;
+  left: clamp(28px, 5vw, 76px);
+  right: clamp(28px, 5vw, 76px);
+  top: clamp(28px, 5vw, 76px);
+  height: 1px;
+  background: var(--hairline);
+}
+
+.object-selection__signal {
+  margin: 0 0 24px;
+  color: var(--signal);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+.object-selection h1 {
+  width: min(1080px, 94%);
+  margin: 0 0 clamp(54px, 8vh, 104px);
+  font-family: var(--serif);
+  font-size: clamp(52px, 7vw, 108px);
+  font-weight: 400;
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+
+.object-selection__options {
+  width: min(1180px, 100%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.object-selection__option {
+  min-height: clamp(154px, 20vh, 238px);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding: 20px 26px 24px;
+  border-right: 1px solid var(--hairline);
+  cursor: pointer;
+  position: relative;
+  transition: color 160ms ease;
+}
+
+.object-selection__option:first-of-type {
+  border-left: 1px solid var(--hairline);
+}
+
+.object-selection__option input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.object-selection__index {
+  justify-self: end;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+}
+
+.object-selection__option > span:last-child {
+  align-self: end;
+  font-family: var(--serif);
+  font-size: clamp(44px, 5vw, 76px);
+  letter-spacing: -0.05em;
+  line-height: 0.86;
+}
+
+.object-selection__option::after {
+  content: '';
+  position: absolute;
+  left: 26px;
+  top: 22px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.object-selection__option:has(input:checked) {
+  color: var(--signal);
+}
+
+.object-selection__option:has(input:checked)::after {
+  background: var(--signal);
+}
+
+.object-selection__option:has(input:focus-visible) {
+  outline: 1px solid var(--signal);
+  outline-offset: -1px;
+}
+
+@media (max-width: 720px) {
+  .object-selection {
+    padding: 24px 20px 36px;
+  }
+
+  .object-selection::before {
+    left: 20px;
+    right: 20px;
+    top: 24px;
+  }
+
+  .object-selection__signal {
+    margin-bottom: 20px;
+  }
+
+  .object-selection h1 {
+    width: 100%;
+    margin-bottom: 46px;
+    font-size: clamp(48px, 13vw, 70px);
+  }
+
+  .object-selection__options {
+    grid-template-columns: 1fr;
+  }
+
+  .object-selection__option,
+  .object-selection__option:first-of-type {
+    min-height: 100px;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: 1fr;
+    align-items: center;
+    padding: 14px 2px;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .object-selection__index {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    padding-right: 2px;
+  }
+
+  .object-selection__option > span:last-child {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    font-size: 46px;
+  }
+
+  .object-selection__option::after {
+    left: auto;
+    right: 0;
+    top: auto;
+    bottom: 12px;
+  }
+
+  .interview-complete__proceed,
+  .object-selection button {
+    min-height: 48px;
+    margin-top: 38px;
+  }
+}

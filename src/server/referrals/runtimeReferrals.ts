@@ -1,0 +1,66 @@
+import { PostgresContactRepository } from '@/server/contact/PostgresContactRepository';
+import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
+import { PostgresExperienceRepository } from '@/server/experience/PostgresExperienceRepository';
+import { ResendCustomerEmailGateway } from '@/server/notifications/ResendCustomerEmailGateway';
+import { PostgresReferralLifecycleRepository } from './PostgresReferralLifecycleRepository';
+import { PostgresReferralQuoteRepository } from './PostgresReferralQuoteRepository';
+import { PostgresReferralRepository } from './PostgresReferralRepository';
+import { ReferralConversionService } from './ReferralConversionService';
+import { ReferralNotificationService } from './ReferralNotificationService';
+import { ReferralService } from './ReferralService';
+
+export class ReferralRuntimeUnavailableError extends Error {
+  constructor(message = 'Referral runtime is not configured') {
+    super(message);
+    this.name = 'ReferralRuntimeUnavailableError';
+  }
+}
+
+function env(name: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) throw new ReferralRuntimeUnavailableError(`${name} is required`);
+  return value;
+}
+
+// The signing key is installed as part of the deliberate referral rollout.
+// Its absence means production is still on the pre-referral schema and must not run referral SQL.
+export function referralsAreEnabled(): boolean {
+  return Boolean(process.env.REFERRAL_ATTRIBUTION_SIGNING_KEY?.trim());
+}
+
+export function createReferralService(): ReferralService {
+  const sql = createNeonSqlExecutor(env('DATABASE_URL'));
+  return new ReferralService({
+    referrals: new PostgresReferralRepository(sql),
+    quotes: new PostgresReferralQuoteRepository(sql),
+    contacts: new PostgresContactRepository(sql),
+    experiences: new PostgresExperienceRepository(sql),
+    signingKey: env('REFERRAL_ATTRIBUTION_SIGNING_KEY'),
+  });
+}
+
+export function createReferralConversionService(): ReferralConversionService {
+  const sql = createNeonSqlExecutor(env('DATABASE_URL'));
+  const referrals = new PostgresReferralRepository(sql);
+  const lifecycle = new PostgresReferralLifecycleRepository(sql);
+  return new ReferralConversionService({
+    repository: {
+      loadPaidReferralTruth: (paymentAttemptId) => referrals.loadPaidReferralTruth(paymentAttemptId),
+      createConversion: (input) => referrals.createConversion(input),
+      markAvailableByIssueId: (issueId, at) => lifecycle.markAvailableByIssueId(issueId, at),
+      reverseByPaymentAttemptId: (paymentAttemptId, at) => lifecycle.reverseByPaymentAttemptId(paymentAttemptId, at),
+    },
+  });
+}
+
+export function createReferralNotificationService(): ReferralNotificationService {
+  const sql = createNeonSqlExecutor(env('DATABASE_URL'));
+  return new ReferralNotificationService(
+    new PostgresReferralRepository(sql),
+    new ResendCustomerEmailGateway({
+      apiKey: env('RESEND_API_KEY'),
+      from: env('RESEND_FROM_EMAIL'),
+      replyTo: process.env.SUPPORT_REPLY_TO?.trim() || undefined,
+    }),
+  );
+}

@@ -1,0 +1,199 @@
+.base-color {
+  width: 100%;
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  padding: clamp(28px, 5vw, 76px);
+  position: relative;
+  overflow: hidden;
+}
+
+.base-color::before {
+  content: '';
+  position: absolute;
+  left: clamp(28px, 5vw, 76px);
+  right: clamp(28px, 5vw, 76px);
+  top: clamp(28px, 5vw, 76px);
+  height: 1px;
+  background: var(--hairline);
+}
+
+.base-color__signal {
+  margin: 0 0 24px;
+  color: var(--signal);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+.base-color h1 {
+  width: min(920px, 92%);
+  margin: 0 0 clamp(52px, 8vh, 104px);
+  font-family: var(--serif);
+  font-size: clamp(52px, 7vw, 108px);
+  font-weight: 400;
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+
+.base-color__options {
+  width: min(980px, 100%);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.base-color__option {
+  min-height: 116px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px 10px;
+  border-right: 1px solid var(--hairline);
+  cursor: pointer;
+  position: relative;
+  transition: color 160ms ease;
+}
+
+.base-color__option:first-of-type {
+  border-left: 1px solid var(--hairline);
+}
+
+.base-color__option input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.base-color__swatch {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(19, 19, 15, 0.24);
+  border-radius: 50%;
+  background: var(--base-color-swatch);
+  box-shadow: 0 0 0 0 var(--signal);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.base-color__label {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.base-color__option::after {
+  content: '';
+  position: absolute;
+  bottom: 12px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.base-color__option:has(input:checked) .base-color__label {
+  color: var(--signal);
+}
+
+.base-color__option:has(input:checked) .base-color__swatch {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 1px var(--paper), 0 0 0 2px var(--signal);
+}
+
+.base-color__option:has(input:checked)::after {
+  background: var(--signal);
+}
+
+.base-color__option:has(input:focus-visible) {
+  outline: 1px solid var(--signal);
+  outline-offset: -1px;
+}
+
+.base-color button {
+  justify-self: start;
+  min-height: 44px;
+  margin-top: clamp(36px, 5vh, 64px);
+  padding: 12px 0 10px;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  transition: color 160ms ease, letter-spacing 160ms ease;
+}
+
+.base-color button:hover:not(:disabled),
+.base-color button:focus-visible:not(:disabled) {
+  color: var(--signal);
+  letter-spacing: 0.25em;
+  outline: none;
+}
+
+.base-color button:disabled {
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.42;
+}
+
+@media (max-width: 720px) {
+  .base-color {
+    padding: 24px 20px 36px;
+  }
+
+  .base-color::before {
+    left: 20px;
+    right: 20px;
+    top: 24px;
+  }
+
+  .base-color h1 {
+    width: 100%;
+    margin-bottom: 46px;
+    font-size: clamp(48px, 14vw, 72px);
+  }
+
+  .base-color__options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .base-color__option,
+  .base-color__option:first-of-type {
+    min-height: 92px;
+    border-left: 0;
+    border-right: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .base-color__option:nth-child(3n + 1) {
+    border-left: 1px solid var(--hairline);
+  }
+
+  .base-color__swatch {
+    width: 25px;
+    height: 25px;
+  }
+
+  .base-color button {
+    min-height: 48px;
+    margin-top: 30px;
+  }
+}

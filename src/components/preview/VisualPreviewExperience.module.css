@@ -1,0 +1,24 @@
+.otpHint {
+  position: fixed;
+  z-index: 21;
+  right: 14px;
+  bottom: 14px;
+  padding: 7px 10px;
+  border: 1px solid rgba(19, 19, 15, 0.22);
+  background: rgba(238, 233, 221, 0.92);
+  color: #13130f;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+}
+
+@media (max-width: 640px) {
+  .otpHint {
+    right: 10px;
+    bottom: 44px;
+    font-size: 8px;
+  }
+}
