@@ -59,6 +59,13 @@ test('rejects a webhook whose Safepay signature does not match the raw event', (
   })).toThrow(/signature/i);
 });
 
+test('rejects parsed non-object webhook bodies as invalid input', () => {
+  expect(() => gateway().verifyWebhook({
+    rawBody: 'null',
+    headers: new Headers(),
+  })).toThrow(/webhook body is invalid/i);
+});
+
 test('fails closed when Reporter does not confirm the exact original quote', async () => {
   const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
     data: {
