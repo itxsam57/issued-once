@@ -12,6 +12,7 @@ import { enqueueReferralNotification } from '@/server/referrals/referralNotifica
 import {
   createReferralConversionService,
   ReferralRuntimeUnavailableError,
+  referralsAreEnabled,
 } from '@/server/referrals/runtimeReferrals';
 
 export async function POST(request: Request) {
@@ -26,12 +27,14 @@ export async function POST(request: Request) {
 
     if ((result.kind === 'paid' || result.kind === 'duplicate') && result.paymentAttemptId) {
       const issue = await issueService.reserveForPaidAttempt(result.paymentAttemptId);
-      const referral = await createReferralConversionService().recordPaidAttempt({
-        paymentAttemptId: result.paymentAttemptId,
-        issueId: issue.issue.id,
-      });
-      if (referral.kind !== 'not-referred') {
-        await enqueueReferralNotification(referral.conversionId, 'SALE');
+      if (referralsAreEnabled()) {
+        const referral = await createReferralConversionService().recordPaidAttempt({
+          paymentAttemptId: result.paymentAttemptId,
+          issueId: issue.issue.id,
+        });
+        if (referral.kind !== 'not-referred') {
+          await enqueueReferralNotification(referral.conversionId, 'SALE');
+        }
       }
       await dispatchPaidIssueDesign(issue.issue.id);
       await enqueueIssueNotification(issue.issue.id, 'PAYMENT_RECEIVED');
