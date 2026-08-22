@@ -14,6 +14,17 @@ type TrackerResponse = {
   data?: { token?: string };
 };
 
+type TrackerLookupResponse = {
+  data?: {
+    token?: string;
+    client?: string;
+    state?: string;
+    amount?: string | number;
+    currency?: string;
+  };
+  status?: { errors?: unknown[] };
+};
+
 type WebhookData = {
   client_id?: string;
   created_at?: string;
@@ -122,6 +133,36 @@ export class SafepayPaymentGateway implements PaymentGateway {
     checkout.searchParams.set('webhooks', 'true');
 
     return { providerReference: token, checkoutUrl: checkout.toString() };
+  }
+
+  async verifyTracker(input: {
+    providerReference: string;
+    amountMinor: number;
+    currency: string;
+  }): Promise<boolean> {
+    const providerReference = input.providerReference.trim();
+    if (!providerReference.startsWith('track_')) return false;
+    if (!Number.isSafeInteger(input.amountMinor) || input.amountMinor <= 0) return false;
+    const currency = input.currency.trim().toUpperCase();
+    assertCurrency(currency);
+
+    const response = await this.fetchImpl(
+      `${apiBase(this.options.environment)}/order/v1/${encodeURIComponent(providerReference)}`,
+      { headers: { accept: 'application/json' }, cache: 'no-store' },
+    );
+    if (!response.ok) throw new Error('Safepay tracker verification failed');
+    const payload = (await response.json()) as TrackerLookupResponse;
+    if (payload.status?.errors?.length) throw new Error('Safepay tracker verification failed');
+    const data = payload.data;
+    if (!data) return false;
+    if (data.token?.trim() && data.token.trim() !== providerReference) return false;
+    if (data.client?.trim() !== this.options.apiKey) return false;
+    if (data.state?.trim().toUpperCase() !== 'TRACKER_ENDED') return false;
+    if (data.amount === undefined || !data.currency?.trim()) return false;
+
+    const trackerCurrency = data.currency.trim().toUpperCase();
+    assertCurrency(trackerCurrency);
+    return trackerCurrency === currency && decimalToMinor(data.amount) === input.amountMinor;
   }
 
   verifyWebhook(input: { rawBody: string; headers: Headers }): VerifiedPaymentEvent {
