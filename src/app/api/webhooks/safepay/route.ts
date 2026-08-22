@@ -1,9 +1,8 @@
-import { dispatchPaidIssueDesign } from '@/server/design/designDispatch';
 import {
   createIssueService,
   IssueRuntimeUnavailableError,
 } from '@/server/issues/runtimeIssues';
-import { enqueueIssueNotification } from '@/server/notifications/notificationQueue';
+import { finalizePaidAttempt } from '@/server/payments/finalizePaidAttempt';
 import {
   createPaymentService,
   PaymentRuntimeUnavailableError,
@@ -23,28 +22,17 @@ export async function POST(request: Request) {
       rawBody,
       headers: request.headers,
     });
-    const issueService = createIssueService();
 
     if ((result.kind === 'paid' || result.kind === 'duplicate') && result.paymentAttemptId) {
-      const issue = await issueService.reserveForPaidAttempt(result.paymentAttemptId);
-      if (referralsAreEnabled()) {
-        const referral = await createReferralConversionService().recordPaidAttempt({
-          paymentAttemptId: result.paymentAttemptId,
-          issueId: issue.issue.id,
-        });
-        if (referral.kind !== 'not-referred') {
-          await enqueueReferralNotification(referral.conversionId, 'SALE');
-        }
-      }
-      await dispatchPaidIssueDesign(issue.issue.id);
-      await enqueueIssueNotification(issue.issue.id, 'PAYMENT_RECEIVED');
+      const issue = await finalizePaidAttempt(result.paymentAttemptId);
       return Response.json({
         received: true,
         kind: result.kind,
-        issueCode: issue.issue.issueCode,
+        issueCode: issue.issueCode,
       });
     }
 
+    const issueService = createIssueService();
     if (result.kind === 'refunded' && result.paymentAttemptId) {
       await issueService.flagPaymentException(result.paymentAttemptId, 'PAYMENT_REFUNDED');
       if (referralsAreEnabled()) {
