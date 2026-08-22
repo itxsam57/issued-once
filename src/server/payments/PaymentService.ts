@@ -23,6 +23,14 @@ type Dependencies = {
   now?: () => Date;
 };
 
+type PaymentTruthResult =
+  | { kind: 'paid'; paymentAttemptId: string }
+  | { kind: 'refunded'; paymentAttemptId: string }
+  | { kind: 'failed'; paymentAttemptId: string }
+  | { kind: 'pending'; paymentAttemptId: string }
+  | { kind: 'duplicate'; paymentAttemptId?: string }
+  | { kind: 'exception'; paymentAttemptId?: string };
+
 function safeOrigin(value: string): string {
   const url = new URL(value);
   if (url.protocol !== 'https:' && url.hostname !== 'localhost') throw new Error('Payment return origin must use HTTPS');
@@ -136,14 +144,38 @@ export class PaymentService {
     return { checkoutUrl: checkoutUrl.toString(), paymentAttemptId: attempt.id };
   }
 
-  async handleWebhook(input: { rawBody: string; headers: Headers }): Promise<
-    | { kind: 'paid'; paymentAttemptId: string }
-    | { kind: 'refunded'; paymentAttemptId: string }
-    | { kind: 'failed'; paymentAttemptId: string }
-    | { kind: 'pending'; paymentAttemptId: string }
-    | { kind: 'duplicate'; paymentAttemptId?: string }
-    | { kind: 'exception'; paymentAttemptId?: string }
-  > {
+  async reconcileTracker(input: { providerReference: string }): Promise<PaymentTruthResult> {
+    const providerReference = input.providerReference.trim();
+    if (!providerReference.startsWith('track_')) return { kind: 'exception' };
+
+    const attempt = await this.dependencies.payments.findByProviderReference(providerReference);
+    if (!attempt) return { kind: 'exception' };
+    if (attempt.status === 'PAID') return { kind: 'duplicate', paymentAttemptId: attempt.id };
+    if (attempt.status !== 'CREATED' && attempt.status !== 'REDIRECTED') {
+      return { kind: 'exception', paymentAttemptId: attempt.id };
+    }
+
+    const verified = await this.dependencies.gateway.verifyTracker({
+      providerReference,
+      amountMinor: attempt.amountMinor,
+      currency: attempt.currency,
+    });
+    if (!verified) return { kind: 'pending', paymentAttemptId: attempt.id };
+
+    const paidAt = this.now();
+    const outcome = await this.dependencies.payments.markPaid({
+      attemptId: attempt.id,
+      providerEventId: `reporter:${providerReference}`,
+      amountMinor: attempt.amountMinor,
+      currency: attempt.currency,
+      paidAt,
+    });
+    if (outcome === 'paid') return { kind: 'paid', paymentAttemptId: attempt.id };
+    if (outcome === 'duplicate') return { kind: 'duplicate', paymentAttemptId: attempt.id };
+    return { kind: 'exception', paymentAttemptId: attempt.id };
+  }
+
+  async handleWebhook(input: { rawBody: string; headers: Headers }): Promise<PaymentTruthResult> {
     const event = this.dependencies.gateway.verifyWebhook(input);
     const attempt = await this.dependencies.payments.findByProviderReference(event.providerReference);
 
