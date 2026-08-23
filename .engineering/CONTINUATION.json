@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-23T22:30:00+05:00",
+  "updatedAt": "2026-08-24T04:56:28+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -9,22 +9,22 @@
     "canonicalPullRequestState": "DRAFT",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
+    "migrationImplementationHead": "328011839ec79b18e8c016ca5fb4bba124b45eca",
     "hostingerReleaseCandidateBranch": "release/hostinger-candidate-20260823",
     "hostingerReleaseCandidateHead": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
-    "lastFullyDeployedApplicationHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
-    "canonicalCodeHeadPendingReplacementDeployment": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
     "productionMigrationHead": "0030_background_jobs.sql",
+    "stagedProductionMigration": "0031_quiz_encryption_key_v2.sql",
     "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "HOSTINGER_TEMP_HEALTH_GREEN_LIVE_SMOKE_BLOCKED_MISSING_EXISTING_QUIZ_ENCRYPTION_KEY_V1",
+    "decision": "QUIZ_V2_IMPLEMENTATION_AND_TEMP_0031_PROOF_GREEN_PRODUCTION_0031_APPROVAL_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Temporary Hostinger deployment is live on release 929081a8 with database, durable queue and private filesystem storage healthy. Independent GitHub live proof run 32654984170 passed exact release health but failed the first /api/experience/answer request with HTTP 503 Answer persistence is unavailable. Code tracing proves answer persistence requires QUIZ_ENCRYPTION_KEY_V1, and Hostinger does not yet have the existing production key. Owner must copy the existing V1 encryption key from the prior production environment into Hostinger without exposing it in chat; generating a new V1 key is forbidden because existing encrypted answers must remain decryptable."
+    "stopReason": "The V1-to-V2 preservation implementation is complete and verified, CI and Browser QA are green, and managed migration 0031 is verified on Neon temporary branch br-sweet-bread-axagx9qp. Production remains intentionally V1-only with 1,868 current V1 rows and zero V2 rows. The next action is the separately locked production schema mutation 0031, which requires exact owner approval before managed migration completion."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "HOSTINGER_TEMP_RUNTIME_GREEN_OWNER_SECRET_TRANSFER_REQUIRED",
+    "internalWorkStatus": "V2_BRIDGE_STAGED_TEMP_MIGRATION_VERIFIED_OWNER_0031_GATE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Use TDD RED before behavior changes",
@@ -34,31 +34,85 @@
       "Browser navigation is never payment proof",
       "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
       "Never apply production database migrations without exact owner approval",
+      "Never replace or expose QUIZ_ENCRYPTION_KEY_V1",
+      "New questionnaire writes use V2 only; V1 remains decrypt-only until independent production V1 count is zero",
+      "Stop V1-to-V2 rotation immediately on any failed row and retain V1",
       "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is separately approved, applied and verified",
       "Keep Printful production confirmation disabled until its independent owner release gate",
-      "Do not create real charges solely for QA; use non-payment test paths",
-      "Reuse existing versioned encryption keys during runtime migration; never silently rotate a live key version"
+      "Do not create real charges solely for QA; use non-payment test paths"
     ]
   },
+  "quizEncryptionV2Migration": {
+    "status": "IMPLEMENTED_AND_TEMPORARY_BRANCH_VERIFIED_AWAITING_PRODUCTION_APPROVAL",
+    "implementationHead": "328011839ec79b18e8c016ca5fb4bba124b45eca",
+    "implementationVerification": {
+      "ciRun": 1353,
+      "ciResult": "PASS_UNIT_TYPECHECK_LINT_BUILD",
+      "browserQaRun": 1252,
+      "browserQaResult": "PASS",
+      "v2Writer": true,
+      "v1V2Reader": true,
+      "boundedRotationService": true,
+      "compareAndSwapWrites": true,
+      "vercelProductionOnlyRotationRoute": true,
+      "aggregateOnlyRotationResponse": true
+    },
+    "productionObservedBeforeApply": {
+      "observedAt": "2026-08-23T23:49:32Z",
+      "v1Count": 1868,
+      "v2Count": 0,
+      "constraint": "V1_ONLY",
+      "unexpectedKeyVersionCount": 0
+    },
+    "managedMigration0031": {
+      "file": "db/migrations/0031_quiz_encryption_key_v2.sql",
+      "migrationId": "36a667fe-e801-4496-ae67-e9b1719472d2",
+      "databaseName": "neondb",
+      "projectId": "autumn-butterfly-25489215",
+      "temporaryBranchName": "mcp-migration-2026-08-23T23-49-32",
+      "temporaryBranchId": "br-sweet-bread-axagx9qp",
+      "parentProductionBranchId": "br-dawn-cloud-axm880q9",
+      "temporaryStatus": "APPLIED_AND_VERIFIED",
+      "productionStatus": "NOT_APPLIED_OWNER_APPROVAL_REQUIRED",
+      "temporaryVerification": {
+        "constraintAllowsV1V2": true,
+        "constraintValidated": true,
+        "v1Count": 1868,
+        "v2Count": 0,
+        "unexpectedKeyVersionCount": 0,
+        "referralCreatorsTablePresent": false,
+        "referralConversionsTablePresent": false,
+        "manufacturingJobCount": 0,
+        "manufacturingProviderEventCount": 0
+      },
+      "productionReadOnlyVerificationAfterPrepare": {
+        "constraintStillV1Only": true,
+        "v1Count": 1868,
+        "v2Count": 0,
+        "referralCreatorsTablePresent": false,
+        "referralConversionsTablePresent": false,
+        "manufacturingJobCount": 0,
+        "manufacturingProviderEventCount": 0
+      }
+    }
+  },
   "hostingerMigration": {
-    "status": "TEMP_RUNTIME_HEALTH_GREEN_LIVE_CUSTOMER_SMOKE_BLOCKED_ON_EXISTING_ENCRYPTION_SECRET",
+    "status": "TEMP_RUNTIME_HEALTH_GREEN_WAITING_FOR_V2_PRESERVATION_PRODUCTION_GATE",
     "pullRequest": 13,
     "migrationBranch": "infra/hostinger-migration-20260823",
     "releaseCandidateBranch": "release/hostinger-candidate-20260823",
-    "applicationHead": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
+    "deployedApplicationHead": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
     "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
     "verification": {
-      "ciRun": 1329,
-      "ciResult": "PASS_PNPM_11_23_FROZEN_INSTALL_UNIT_TYPECHECK_LINT_BUILD",
-      "browserQaRun": 1228,
-      "browserQaResult": "PASS",
+      "deployedReleaseCiRun": 1329,
+      "deployedReleaseCiResult": "PASS_PNPM_11_23_FROZEN_INSTALL_UNIT_TYPECHECK_LINT_BUILD",
+      "deployedReleaseBrowserQaRun": 1228,
+      "deployedReleaseBrowserQaResult": "PASS",
       "runtimeHealth": "PASS_HOSTINGER_EXACT_SHA_DATABASE_QUEUE_STORAGE_ALL_TRUE",
       "runtimeHealthReleaseId": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
-      "liveProofRunId": 32654984170,
-      "liveProofHealthStep": "PASS",
-      "liveProofPhysicalStep": "FAIL_FIRST_ANSWER_HTTP_503_ANSWER_PERSISTENCE_UNAVAILABLE",
-      "liveProofRootCause": "QUIZ_ENCRYPTION_KEY_V1 is absent from Hostinger runtime",
-      "lockfileCommitted": true,
+      "migrationImplementationCiRun": 1353,
+      "migrationImplementationBrowserQaRun": 1252,
+      "migrationImplementationVerification": "PASS",
       "productionRuntimeVercelPackageCoupling": false
     },
     "backgroundJobsMigration": {
@@ -73,13 +127,13 @@
       "runbook": "docs/operations/hostinger-deployment.md",
       "temporaryHostingerDeploymentRequired": true,
       "requiredHealth": "HTTP_200_HOSTINGER_EXACT_SHA_DATABASE_QUEUE_STORAGE_ALL_TRUE",
-      "healthStatus": "PASSED",
+      "healthStatus": "PASSED_ON_CURRENT_929081_RELEASE",
       "requiredPhysicalMatrix": [
         "TEE_M_BONE_OBJECT_SIZE_BASE_HTTP_200",
         "CAP_OS_BONE_OBJECT_SIZE_BASE_HTTP_200",
         "TOTE_OS_BONE_OBJECT_SIZE_BASE_HTTP_200"
       ],
-      "physicalMatrixStatus": "BLOCKED_BEFORE_FIRST_OBJECT_SELECTION_ON_MISSING_QUIZ_ENCRYPTION_KEY_V1",
+      "physicalMatrixStatus": "WAITING_FOR_V2_ROTATION_AND_COMPATIBLE_HOSTINGER_RELEASE",
       "realOtpBoundary": "TEE_ONLY",
       "productionDomainCutoverAllowed": false
     }
@@ -105,28 +159,32 @@
     "branchId": "br-dawn-cloud-axm880q9",
     "backgroundJobsTablePresent": true,
     "backgroundJobsDueIndexPresent": true,
-    "backgroundJobCount": 0,
+    "backgroundJobCountAt0030Verification": 0,
     "manufacturingJobCount": 0,
     "manufacturingProviderEventCount": 0,
     "referralCreatorsTablePresent": false,
     "referralConversionsTablePresent": false,
     "checkoutQuoteReferralCreatorColumnPresent": false,
     "migration0029Applied": false,
-    "migration0030Applied": true
+    "migration0030Applied": true,
+    "migration0031Applied": false
   },
   "safetyGates": {
     "realQaPayment": "NOT_PERFORMED",
     "printfulProductionConfirmation": "DISABLED",
     "migration0029": "NOT_APPLIED",
+    "migration0031": "NOT_APPLIED_OWNER_APPROVAL_REQUIRED",
     "referralSigningKeyRollout": "NOT_PERFORMED",
     "productionDomainCutover": "NOT_PERFORMED"
   },
   "nextActions": [
-    "OWNER: copy the existing production QUIZ_ENCRYPTION_KEY_V1 value from the prior Vercel production environment into Hostinger Environment variables; do not generate a replacement and do not paste the value into chat",
-    "OWNER: save Hostinger environment variables and redeploy release/hostinger-candidate-20260823",
-    "SYSTEM: rerun exact live release proof against the temporary Hostinger URL and continue root-cause debugging only if another boundary fails",
-    "SYSTEM: after Tee/Cap/Tote pass, verify production Neon read-only and keep manufacturing/referral safety invariants unchanged",
-    "SYSTEM: only after temporary proof, cut issuedonce.shop to Hostinger and repeat exact health, live product matrix and read-only Neon corroboration"
+    "OWNER: explicitly approve production migration 0031_quiz_encryption_key_v2.sql / managed migration 36a667fe-e801-4496-ae67-e9b1719472d2",
+    "SYSTEM: after approval, complete managed migration 0031 against production branch br-dawn-cloud-axm880q9 and independently verify schema plus safety invariants",
+    "OWNER+SYSTEM: configure the same new V2 key in Vercel production and Hostinger without exposing it; preserve Vercel V1 unchanged and add a separate temporary rotation token only to Vercel",
+    "SYSTEM: deploy the compatible Vercel bridge and rotate bounded batches until endpoint remaining is zero, stopping immediately on any failure",
+    "SYSTEM: independently verify production Neon V1 count exactly zero, V2 full population, manufacturing 0/0, referral schema absent",
+    "SYSTEM: freeze and deploy the compatible Hostinger release, prove exact health and Tee/Cap/Tote temporary-domain matrix without real payment or Printful confirmation",
+    "SYSTEM: configure/prove Hostinger durable cron, cut issuedonce.shop only after temporary proof, then repeat exact health, matrix and Neon safety proof before retiring Vercel"
   ],
-  "nextOwnerAction": "COPY_EXISTING_PRODUCTION_QUIZ_ENCRYPTION_KEY_V1_TO_HOSTINGER_AND_REDEPLOY"
+  "nextOwnerAction": "APPROVE_PRODUCTION_MIGRATION_0031"
 }
