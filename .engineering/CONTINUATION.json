@@ -1,19 +1,23 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-23",
+  "updatedAt": "2026-08-23T10:55:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
     "pullRequestState": "DRAFT",
+    "canonicalMetadataHeadBeforeRepair": "209787cba3f0e8a750624aa18fef7fc65f06218b",
     "verifiedApplicationHead": "5e3154150e37b601608d943338a8f94c6609217c",
+    "activeRepairBranch": "fix/workflow-audit-otp-live-owner-20260823",
+    "repairSpecCommit": "7500321e51622edf3c13b8d84803403f8139ab0e",
+    "repairSpecPath": "docs/superpowers/specs/2026-08-23-workflow-audit-otp-live-owner-design.md",
     "productionMigrationHead": "0028_design_controls.sql",
     "nextRepositoryMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "REPEAT_ORDER_LIFECYCLE_AUTOMATION_PROVEN_LIVE_OWNER_SESSION_TEST_REQUIRED",
+    "decision": "WORKFLOW_AUDIT_OTP_LIVE_OWNER_SPEC_REVIEW_REQUIRED",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -21,15 +25,15 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "Unlimited repeat ordering is implemented, merged, deployed and release-gated. Three successive isolated preview orders passed on desktop and mobile across KEEP PREVIOUS ANSWERS and ANSWER AGAIN, real PostgreSQL semantics were proven on a disposable Neon branch and the branch was deleted, canonical CI/Browser QA/Vercel passed, and the live issuedonce.shop smoke passed. The remaining proof requires the owner's existing post-checkout browser session to confirm the terminal repeat-choice UI and child-order transition in production without making an unnecessary real payment."
+    "stopReason": "Production evidence exposed two release-blocking workflow defects after the repeat-order lifecycle fix: the newest real PAID Issue exists canonically but an already-open Owner OS can remain stale because core panels fetch only on mount; and a same-browser repeat child does not inherit the parent's verified contact, forcing another OTP. Gmail evidence also proves identical OTP subjects collapse many different valid codes into one conversation, while the client discards safe server error reasons and reports every failure as a code mismatch. The architectural repair design is committed and self-reviewed; implementation is gated only by the required written-spec owner review."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "COMPLETE_TO_REPEAT_ORDER_OWNER_TEST_GATE",
+    "internalWorkStatus": "WORKFLOW_REPAIR_DESIGN_READY",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Use TDD RED before behavior changes",
-      "Require fresh CI, build, browser and production evidence before success claims",
+      "Require fresh CI, build, browser, production and database evidence before success claims",
       "Browser navigation is never payment proof",
       "Safepay PAID may be established by authenticated webhook truth or authoritative Reporter truth proving the immutable quote",
       "New Safepay hosted checkout URLs must explicitly request webhook delivery with webhooks=true",
@@ -37,13 +41,14 @@
       "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
       "Never apply production database migrations without exact owner approval",
       "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is applied and verified",
-      "Keep Printful production confirmation disabled until its independent owner release gate"
+      "Keep Printful production confirmation disabled until its independent owner release gate",
+      "Do not create real charges solely for QA; use preview/fake payment paths",
+      "A paid Issue present in Neon but absent from Owner OS is a release blocker"
     ]
   },
   "repeatOrderLifecycle": {
-    "status": "MERGED_DEPLOYED_AUTOMATED_PROOF_COMPLETE_OWNER_SESSION_TEST_REQUIRED",
+    "status": "MERGED_DEPLOYED_AUTOMATED_PROOF_COMPLETE_NEW_CONTACT_CONTINUITY_DEFECT_FOUND",
     "pullRequest": 10,
-    "featureHead": "4da8ba7bc4db0d2c158628d6c90f9392b08e50b4",
     "canonicalMergeHead": "5e3154150e37b601608d943338a8f94c6609217c",
     "terminalChoice": [
       "KEEP_PREVIOUS_ANSWERS",
@@ -52,45 +57,55 @@
     "orderIsolation": "DETERMINISTIC_HASH_CHAIN_CHILD_SESSION_PER_REPEAT",
     "reuseSemantics": "NEW_PROFILE_COMPLETE_CHILD_WITH_SEVEN_ENCRYPTED_ANSWERS_AND_EXACT_SEVEN_QUESTION_SNAPSHOTS",
     "freshSemantics": "NEW_QUESTION_1_CHILD_WITH_IMMEDIATELY_PREVIOUS_PROMPT_EXCLUDED_PER_REQUIRED_FAMILY",
-    "oppositeChoiceRetry": "PERSISTED_WINNING_MODE_RETURNED_WITHOUT_DUPLICATE_COPY",
-    "previewPaymentSafety": "VISUAL_PREVIEW_ONLY_AND_PRODUCTION_SAFEPAY_RUNTIME_NOT_INVOKED",
-    "threeOrderBrowserProof": "PASS_DESKTOP_AND_MOBILE",
-    "postgresSemanticProof": "PASS_ON_DISPOSABLE_NEON_BRANCH",
-    "postgresProofBranchDeleted": true,
-    "productionMigrationRequired": false
+    "verifiedContactCurrentBehavior": "NOT_INHERITED_TO_CHILD",
+    "verifiedContactTargetBehavior": "INHERIT_VERIFIED_CONTACT_SNAPSHOT_FOR_BOTH_REPEAT_MODES_WITHOUT_COPYING_OTP_CHALLENGES; NEW_OTP_ONLY_IF_EMAIL_CHANGES",
+    "productionMigrationRequiredForTarget": false
+  },
+  "activeWorkflowIncident": {
+    "status": "DESIGN_APPROVAL_GATE",
+    "productionLatestPaid": {
+      "paymentAttemptId": "e6af01a5-1639-4184-b155-d69c842013e7",
+      "status": "PAID",
+      "amountMinor": 3200,
+      "currency": "USD",
+      "issueId": "c449b9f9-6b7d-49c2-ba1c-6c562a6d1786",
+      "issueCode": "IO-GUUM-8UR9",
+      "issueStatus": "BEING_INTERPRETED",
+      "objectType": "tee",
+      "designState": "QUEUED",
+      "designProvider": null,
+      "designModel": null
+    },
+    "ownerOsDefect": "CORE_OWNER_PANELS_FETCH_ON_MOUNT_AND_CAN_HIDE_EXTERNAL_PAYMENT_UPDATES_UNTIL_RELOAD",
+    "otpDefectEvidence": {
+      "paidParentExperienceId": "2b0af384-d1af-481f-99ec-1ad3e380e6c1",
+      "paidParentHasVerifiedContact": true,
+      "repeatChildExperienceId": "0c2d6125-c8f5-4b40-b3b0-55e5876821d8",
+      "repeatChildMode": "repeat:fresh",
+      "repeatChildHasVerifiedContact": false,
+      "latestFailedChallengeId": "6c6ba8d3-d95a-4789-9402-ecf0094dae28",
+      "latestFailedChallengeAttemptsRemaining": 0,
+      "deliveryThreadingFinding": "IDENTICAL_OTP_SUBJECT_COLLAPSES_DIFFERENT_CODES_IN_GMAIL",
+      "clientErrorFinding": "SAFE_SERVER_ERROR_REASON_DISCARDED_AND_ALL_VERIFY_FAILURES_RENDER_AS_CODE_DID_NOT_MATCH"
+    },
+    "chosenIdentityRule": "SAME_BROWSER_REPEAT_ORDERS_INHERIT_VERIFIED_EMAIL; OTP_REQUIRED_ONLY_TO_CHANGE_EMAIL",
+    "qaScope": [
+      "TEE_FULL_PREVIEW_PURCHASE_DESKTOP_AND_MOBILE",
+      "HAT_FULL_PREVIEW_PURCHASE_DESKTOP_AND_MOBILE",
+      "TOTE_FULL_PREVIEW_PURCHASE_DESKTOP_AND_MOBILE",
+      "OTP_WRONG_CORRECT_EXPIRED_LOCKED_RESEND_STALE_AND_CHANGE_EMAIL",
+      "REPEAT_REUSE_AND_FRESH_WITH_VERIFIED_CONTACT_INHERITANCE",
+      "OWNER_OS_ALL_ROOMS_AND_BUTTONS",
+      "OWNER_OS_AUTOMATIC_EXTERNAL_EVENT_REFRESH",
+      "PRODUCTION_DATABASE_INVARIANTS"
+    ]
   },
   "safepayProductionProof": {
     "status": "LIVE_PROVEN",
     "ownerConfirmedMerchantSecretConfigured": true,
-    "providerTruth": "REPORTER_V2_TRACKER_ENDED_QUOTE_PROVEN_FOR_TWO_REAL_PAYMENTS",
-    "signedWebhookObservedForProvenPayments": false,
-    "webhookOptInRepairStatus": "DEPLOYED_AWAITING_NEXT_NORMAL_PAYMENT_DELIVERY_PROOF",
-    "realPayments": [
-      {
-        "paymentAttemptId": "d5227dad-9f27-4fd8-a01b-a2e4a87e51ec",
-        "providerReference": "track_2d48c8c8-bdd5-454c-993d-be6223bccf8b",
-        "amountMinor": 3200,
-        "currency": "USD",
-        "reporterEventId": "reporter:track_2d48c8c8-bdd5-454c-993d-be6223bccf8b",
-        "attemptState": "PAID",
-        "issueId": "2573312e-0ce0-480f-a6a3-bd2211da296f",
-        "issueCode": "IO-GCDV-9R3H",
-        "issueCountForAttempt": 1,
-        "signedWebhookObserved": false
-      },
-      {
-        "paymentAttemptId": "2a0bde42-5631-4fc2-9356-ce3d8d03cfb7",
-        "providerReference": "track_4b3aacdf-3c64-4575-8e04-83a6a0c284f1",
-        "amountMinor": 3200,
-        "currency": "USD",
-        "reporterEventId": "reporter:track_4b3aacdf-3c64-4575-8e04-83a6a0c284f1",
-        "attemptState": "PAID",
-        "issueId": "8f2742be-6248-4be6-af3a-33b2774b3f77",
-        "issueCode": "IO-YQCP-CJXQ",
-        "issueCountForAttempt": 1,
-        "signedWebhookObserved": false
-      }
-    ],
+    "providerTruth": "REPORTER_V2_AND_CURRENT_PRODUCTION_PAYMENT_RECORDS",
+    "signedWebhookObservedForEarlierProvenPayments": false,
+    "webhookOptInRepairStatus": "DEPLOYED_AWAITING_NEXT_NORMAL_SIGNED_WEBHOOK_PROOF",
     "incidentFixes": [
       {
         "pullRequest": 6,
@@ -107,59 +122,23 @@
         "mergeHead": "f1e2da9d94214946641a67c76403a50ef487980d",
         "scope": "Explicitly enable Safepay hosted-checkout webhook delivery with webhooks=true"
       }
-    ],
-    "webhookRootCauseProof": "TDD RED CI #1129 passed all 396 pre-existing tests and failed only the new checkout contract assertion because webhooks was null. The minimal webhooks=true repair then passed 397/397 tests, typecheck, lint, build, Vercel and canonical live Browser QA.",
-    "recoveryProbePullRequest": 7,
-    "recoveryProbeMerged": false,
-    "recoveryProbeClosed": true
+    ]
   },
   "productionDatabase": {
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
     "branchId": "br-dawn-cloud-axm880q9",
-    "paymentAttemptCount": 4,
-    "providerEventCount": 4,
-    "issueCount": 2,
-    "designJobCount": 2,
-    "notificationDeliveryCount": 2,
+    "paymentAttemptCount": 5,
+    "providerEventCount": 5,
+    "issueCount": 3,
+    "designJobCount": 3,
+    "notificationDeliveryCount": 3,
     "manufacturingJobCount": 0,
-    "referralQuoteSnapshotColumnPresent": false,
     "referralConversionsTablePresent": false,
     "migration0029Applied": false
   },
-  "downstreamProof": {
-    "paidIssueCount": 2,
-    "latestIssueCode": "IO-YQCP-CJXQ",
-    "latestIssueStatus": "BEING_INTERPRETED",
-    "latestDesignJobState": "QUEUED",
-    "latestDesignProvider": null,
-    "latestDesignModel": null,
-    "paymentReceivedNotifications": "TWO_SENT_ONCE",
-    "manufacturingJobs": 0,
-    "printfulProductionConfirmation": "DISABLED"
-  },
-  "verification": {
-    "webhookOptInRedHead": "b7de768d6fa4b7239672040e2095de6093c6005e",
-    "webhookOptInRedCI": 1129,
-    "webhookOptInRedEvidence": "396_EXISTING_PASS_1_NEW_EXPECTED_FAIL",
-    "webhookOptInGreenHead": "912c0d51df1b7c18ff560922ca8b8dc83c070052",
-    "webhookOptInGreenCI": 1130,
-    "webhookOptInGreenTests": "397/397_PASS",
-    "repeatOrderFeatureHead": "4da8ba7bc4db0d2c158628d6c90f9392b08e50b4",
-    "repeatOrderFeatureCI": 1168,
-    "repeatOrderFeatureCIConclusion": "PASS",
-    "repeatOrderFeatureBrowserQA": 1091,
-    "repeatOrderFeatureBrowserConclusion": "PASS",
-    "canonicalMergeHead": "5e3154150e37b601608d943338a8f94c6609217c",
-    "canonicalCI": 1169,
-    "canonicalCIConclusion": "PASS",
-    "canonicalBrowserQA": 1092,
-    "canonicalBrowserConclusion": "PASS",
-    "canonicalVercelProduction": "PASS",
-    "liveProductionCustomerJourney": "PASS"
-  },
   "providers": {
-    "resendOtp": "LIVE_PROVEN",
+    "resendOtp": "LIVE_DELIVERY_PROVEN_NEW_THREADING_AND_RECOVERY_REPAIR_REQUIRED",
     "safepay": "LIVE_PROVEN_REPORTER_FALLBACK_WEBHOOK_OPT_IN_DEPLOYED_NEXT_SIGNED_WEBHOOK_PROOF_PENDING",
     "openai": "PRODUCTION_CREDENTIAL_AND_LIVE_GENERATION_PROOF_REQUIRED",
     "blob": "PRODUCTION_CREDENTIAL_AND_PRIVATE_ARTWORK_PROOF_REQUIRED",
@@ -168,17 +147,17 @@
     "printfulProduction": "DISABLED"
   },
   "nextActions": [
-    "OWNER TEST: in the browser session that completed a real order, open /begin and verify MAKE ANOTHER ONE? appears",
-    "OWNER TEST: choose KEEP PREVIOUS ANSWERS and verify the new order opens directly at form selection without showing the seven-question interview",
-    "OWNER TEST: do not make another payment solely for this UI/session proof; stop before ISSUE MINE unless placing a genuine order",
-    "SYSTEM: after owner proof, continue to the production OpenAI + private Blob design-provider gate",
-    "SYSTEM: on the next normal Safepay payment, verify that a signed webhook arrives and is persisted; do not create an extra charge solely for this proof",
-    "OWNER: configure OPENAI_API_KEY in Vercel Production without sharing the secret in chat",
-    "OWNER: configure BLOB_READ_WRITE_TOKEN in Vercel Production without sharing the secret in chat",
-    "SYSTEM: prove one live design generation from an already-paid Issue through OpenAI, private Blob and Vercel Queue consumer",
-    "OWNER: later provide/approve Printful mappings while production confirmation stays disabled",
+    "OWNER REVIEW: approve docs/superpowers/specs/2026-08-23-workflow-audit-otp-live-owner-design.md",
+    "SYSTEM: after approval, invoke writing-plans and implement test-first on fix/workflow-audit-otp-live-owner-20260823",
+    "SYSTEM: prove tee, hat and tote full preview purchases on desktop and mobile with distinct dummy payments",
+    "SYSTEM: prove verified contact inheritance for both repeat modes and OTP recovery/error/threading behavior",
+    "SYSTEM: prove every Owner OS room/button and automatic refresh when canonical data changes after mount",
+    "SYSTEM: run full tests, typecheck, lint, production build, CI, Browser QA, code review and Vercel deployment verification",
+    "SYSTEM: after deployment, verify newest real paid Issue IO-GUUM-8UR9 is surfaced by Owner OS without requiring a page reload",
+    "SYSTEM: re-read production Neon invariants and confirm manufacturing remains zero and migration 0029 remains unapplied",
+    "OWNER: separately configure OPENAI_API_KEY and BLOB_READ_WRITE_TOKEN only when returning to the design-provider gate",
     "OWNER APPROVAL: separately approve migration 0029 before any referral signing key is configured",
     "SYSTEM: perform final release audit before PR 3 promotion to main"
   ],
-  "nextOwnerAction": "LIVE_REPEAT_ORDER_SESSION_TEST_KEEP_PREVIOUS_ANSWERS"
+  "nextOwnerAction": "APPROVE_WORKFLOW_AUDIT_OTP_LIVE_OWNER_SPEC"
 }
