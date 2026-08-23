@@ -7,6 +7,7 @@ function env(overrides: Partial<NodeJS.ProcessEnv> = {}): NodeJS.ProcessEnv {
     DATABASE_URL: 'postgresql://configured',
     QUIZ_ENCRYPTION_KEY_V1: Buffer.alloc(32, 1).toString('base64'),
     IDENTITY_HMAC_KEY: Buffer.alloc(32, 2).toString('base64'),
+    MERCHANT_PUBLIC_NAME: 'ISSUED ONCE', MERCHANT_SUPPORT_EMAIL: 'support@issuedonce.shop', MERCHANT_PUBLIC_LOCATION: 'Lahore, Punjab, Pakistan',
     ISSUED_ONCE_CATALOG_JSON: JSON.stringify({
       currency: 'USD',
       products: {
@@ -17,7 +18,9 @@ function env(overrides: Partial<NodeJS.ProcessEnv> = {}): NodeJS.ProcessEnv {
     }),
     SAFEPAY_ENVIRONMENT: 'sandbox', SAFEPAY_API_KEY: 'safepay', SAFEPAY_WEBHOOK_SECRET: 'webhook',
     RESEND_API_KEY: 'resend', RESEND_FROM_EMAIL: 'issue@issuedonce.shop', SUPPORT_INBOX_EMAIL: 'support@issuedonce.shop',
-    OPENAI_API_KEY: 'openai', BLOB_READ_WRITE_TOKEN: 'blob',
+    OPENAI_API_KEY: 'openai',
+    ARTWORK_STORAGE_DIR: '/private/artwork', ARTWORK_SIGNING_KEY: 'artwork-signing-key-that-is-long-enough', APP_ORIGIN: 'https://issuedonce.shop',
+    CRON_SECRET: 'cron-secret-that-is-long-enough',
     PRINTFUL_API_TOKEN: 'printful', PRINTFUL_STORE_ID: '123', PRINTFUL_WEBHOOK_PUBLIC_KEY: 'public-key',
     PRINTFUL_WEBHOOK_SECRET_HEX: 'aa'.repeat(32),
     PRINTFUL_VARIANT_MAP_JSON: JSON.stringify({
@@ -33,7 +36,8 @@ function service(environment: NodeJS.ProcessEnv) {
   return new ReadinessService({
     env: environment,
     databasePing: vi.fn(async () => true),
-    blobPing: vi.fn(async () => true),
+    storagePing: vi.fn(async () => true),
+    queuePing: vi.fn(async () => true),
     fetchImpl: vi.fn(async (url: string) => {
       if (url.startsWith('https://api.openai.com/')) return new Response('{}', { status: 200 });
       if (url === 'https://api.printful.com/stores') return new Response(JSON.stringify({ result: [{ id: 123 }] }), { status: 200 });
