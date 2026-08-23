@@ -1,9 +1,9 @@
 name: Hostinger Temporary Release Proof
 
 on:
-  push:
+  pull_request:
     branches:
-      - infra/hostinger-migration-20260823
+      - feat/mystery-foundation
     paths:
       - '.github/workflows/hostinger-temp-proof.yml'
 
