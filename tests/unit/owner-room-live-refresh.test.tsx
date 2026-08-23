@@ -200,7 +200,7 @@ describe('Owner OS live rooms', () => {
 
   it('refreshes Manufacturing every 15 seconds without triggering any production action', async () => {
     let fresh = false;
-    const fetchMock = vi.fn(() => response({
+    const fetchMock = vi.fn((_input: RequestInfo | URL, _init?: RequestInit) => response({
       confirmArmed: false,
       items: [{
         issueId: '77777777-7777-4777-8777-777777777777',
