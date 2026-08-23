@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import styles from './repeat-order-choice.module.css';
 
 export type RepeatOrderMode = 'reuse' | 'fresh';
 
@@ -26,14 +27,14 @@ export function RepeatOrderChoice({ onChoose }: RepeatOrderChoiceProps) {
   }
 
   return (
-    <section className="repeat-order-choice" aria-labelledby="repeat-order-heading">
+    <section className={styles.choice} aria-labelledby="repeat-order-heading">
       <p className="interview-complete__signal">NEXT ISSUE / PROFILE</p>
       <h1 id="repeat-order-heading">MAKE ANOTHER ONE?</h1>
-      <p className="repeat-order-choice__copy">
+      <p className={styles.copy}>
         Keep what you already told us, or give this Issue a completely new set of traces.
       </p>
 
-      <div className="repeat-order-choice__actions">
+      <div className={styles.actions}>
         <button
           type="button"
           disabled={submitting !== null}
@@ -51,7 +52,7 @@ export function RepeatOrderChoice({ onChoose }: RepeatOrderChoiceProps) {
       </div>
 
       {error ? (
-        <p className="repeat-order-choice__error" role="alert">
+        <p className={styles.error} role="alert">
           That choice did not hold. Try it again.
         </p>
       ) : null}
