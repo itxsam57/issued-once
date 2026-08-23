@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 type LiveResourceOptions<T> = {
   load: () => Promise<T>;
   intervalMs: number;
-  enabled?: boolean;
 };
 
 type LiveResourceState<T> = {
@@ -23,20 +22,20 @@ function errorMessage(error: unknown): string {
 export function useLiveResource<T>({
   load,
   intervalMs,
-  enabled = true,
 }: LiveResourceOptions<T>): LiveResourceState<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(enabled);
+  const [loading, setLoading] = useState(true);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const loadRef = useRef(load);
   const generationRef = useRef(0);
   const mountedRef = useRef(false);
 
-  loadRef.current = load;
+  useEffect(() => {
+    loadRef.current = load;
+  }, [load]);
 
   const refresh = useCallback(async () => {
-    if (!enabled) return;
     const generation = ++generationRef.current;
     if (mountedRef.current) setLoading(true);
 
@@ -54,18 +53,10 @@ export function useLiveResource<T>({
         setLoading(false);
       }
     }
-  }, [enabled]);
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
-    if (!enabled) {
-      setLoading(false);
-      return () => {
-        mountedRef.current = false;
-        generationRef.current += 1;
-      };
-    }
-
     void refresh();
 
     const refreshIfVisible = () => {
@@ -87,7 +78,7 @@ export function useLiveResource<T>({
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [enabled, intervalMs, refresh]);
+  }, [intervalMs, refresh]);
 
   return { data, error, loading, updatedAt, refresh };
 }
