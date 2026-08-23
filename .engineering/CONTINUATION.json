@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-22",
+  "updatedAt": "2026-08-23",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
     "pullRequestState": "DRAFT",
-    "verifiedApplicationHead": "9aed762eaf0d402c19c12b3461228f84af3f11ac",
+    "verifiedApplicationHead": "f1e2da9d94214946641a67c76403a50ef487980d",
     "productionMigrationHead": "0028_design_controls.sql",
     "nextRepositoryMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "SAFEPAY_REAL_PAYMENT_PROVEN_DESIGN_PROVIDER_CREDENTIALS_REQUIRED",
+    "decision": "SAFEPAY_LIVE_PAYMENT_AND_WEBHOOK_OPT_IN_REPAIR_PROVEN_DESIGN_PROVIDER_CREDENTIALS_REQUIRED",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -21,7 +21,7 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "The real Safepay payment cycle is proven end to end through authoritative Reporter verification, PAID persistence and exactly one Issue. The next live proof requires production OpenAI and private Blob credentials; no manufacturing or referral rollout is authorized."
+    "stopReason": "Two real Safepay payments are safely PAID with exactly one Issue each through authoritative Reporter verification. The missing-webhook root cause was the omitted hosted-checkout webhook opt-in; webhooks=true is now deployed and release-gated. A future normal payment can prove signed webhook delivery. The next active build gate still requires production OpenAI and private Blob credentials; no manufacturing or referral rollout is authorized."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -32,6 +32,8 @@
       "Require fresh CI, build, browser and production evidence before success claims",
       "Browser navigation is never payment proof",
       "Safepay PAID may be established by authenticated webhook truth or authoritative Reporter truth proving the immutable quote",
+      "New Safepay hosted checkout URLs must explicitly request webhook delivery with webhooks=true",
+      "Keep Reporter reconciliation as an independent payment-truth fallback even when webhooks are enabled",
       "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
       "Never apply production database migrations without exact owner approval",
       "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is applied and verified",
@@ -41,18 +43,35 @@
   "safepayProductionProof": {
     "status": "LIVE_PROVEN",
     "ownerConfirmedMerchantSecretConfigured": true,
-    "paymentAttemptId": "d5227dad-9f27-4fd8-a01b-a2e4a87e51ec",
-    "providerReference": "track_2d48c8c8-bdd5-454c-993d-be6223bccf8b",
-    "frozenAmountMinor": 3200,
-    "frozenCurrency": "USD",
-    "providerTruth": "REPORTER_V2_TRACKER_ENDED_QUOTE_PROVEN",
-    "signedWebhookObservedForThisPayment": false,
-    "reporterEventId": "reporter:track_2d48c8c8-bdd5-454c-993d-be6223bccf8b",
-    "attemptState": "PAID",
-    "issueId": "2573312e-0ce0-480f-a6a3-bd2211da296f",
-    "issueCode": "IO-GCDV-9R3H",
-    "issueCountForAttempt": 1,
-    "paymentException": null,
+    "providerTruth": "REPORTER_V2_TRACKER_ENDED_QUOTE_PROVEN_FOR_TWO_REAL_PAYMENTS",
+    "signedWebhookObservedForProvenPayments": false,
+    "webhookOptInRepairStatus": "DEPLOYED_AWAITING_NEXT_NORMAL_PAYMENT_DELIVERY_PROOF",
+    "realPayments": [
+      {
+        "paymentAttemptId": "d5227dad-9f27-4fd8-a01b-a2e4a87e51ec",
+        "providerReference": "track_2d48c8c8-bdd5-454c-993d-be6223bccf8b",
+        "amountMinor": 3200,
+        "currency": "USD",
+        "reporterEventId": "reporter:track_2d48c8c8-bdd5-454c-993d-be6223bccf8b",
+        "attemptState": "PAID",
+        "issueId": "2573312e-0ce0-480f-a6a3-bd2211da296f",
+        "issueCode": "IO-GCDV-9R3H",
+        "issueCountForAttempt": 1,
+        "signedWebhookObserved": false
+      },
+      {
+        "paymentAttemptId": "2a0bde42-5631-4fc2-9356-ce3d8d03cfb7",
+        "providerReference": "track_4b3aacdf-3c64-4575-8e04-83a6a0c284f1",
+        "amountMinor": 3200,
+        "currency": "USD",
+        "reporterEventId": "reporter:track_4b3aacdf-3c64-4575-8e04-83a6a0c284f1",
+        "attemptState": "PAID",
+        "issueId": "8f2742be-6248-4be6-af3a-33b2774b3f77",
+        "issueCode": "IO-YQCP-CJXQ",
+        "issueCountForAttempt": 1,
+        "signedWebhookObserved": false
+      }
+    ],
     "incidentFixes": [
       {
         "pullRequest": 6,
@@ -63,9 +82,14 @@
         "pullRequest": 8,
         "mergeHead": "9aed762eaf0d402c19c12b3461228f84af3f11ac",
         "scope": "Fix PostgreSQL markPaid skipped-parameter failure"
+      },
+      {
+        "pullRequest": 9,
+        "mergeHead": "f1e2da9d94214946641a67c76403a50ef487980d",
+        "scope": "Explicitly enable Safepay hosted-checkout webhook delivery with webhooks=true"
       }
     ],
-    "rootCauseProof": "A temporary Neon clone reproduced PostgreSQL error: could not determine data type of parameter $2. Regression test was RED before the contiguous-parameter fix and GREEN afterward.",
+    "webhookRootCauseProof": "TDD RED CI #1129 passed all 396 pre-existing tests and failed only the new checkout contract assertion because webhooks was null. The minimal webhooks=true repair then passed 397/397 tests, typecheck, lint, build, Vercel and canonical live Browser QA.",
     "recoveryProbePullRequest": 7,
     "recoveryProbeMerged": false,
     "recoveryProbeClosed": true
@@ -74,45 +98,49 @@
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
     "branchId": "br-dawn-cloud-axm880q9",
-    "paymentAttemptCount": 3,
-    "providerEventCount": 3,
-    "issueCount": 1,
-    "designJobCount": 1,
-    "notificationDeliveryCount": 1,
+    "paymentAttemptCount": 4,
+    "providerEventCount": 4,
+    "issueCount": 2,
+    "designJobCount": 2,
+    "notificationDeliveryCount": 2,
     "manufacturingJobCount": 0,
     "referralQuoteSnapshotColumnPresent": false,
     "referralConversionsTablePresent": false,
     "migration0029Applied": false
   },
   "downstreamProof": {
-    "issueStatus": "BEING_INTERPRETED",
-    "designJobState": "QUEUED",
-    "designProvider": null,
-    "designModel": null,
-    "paymentReceivedNotification": "SENT_ONCE",
+    "paidIssueCount": 2,
+    "latestIssueCode": "IO-YQCP-CJXQ",
+    "latestIssueStatus": "BEING_INTERPRETED",
+    "latestDesignJobState": "QUEUED",
+    "latestDesignProvider": null,
+    "latestDesignModel": null,
+    "paymentReceivedNotifications": "TWO_SENT_ONCE",
     "manufacturingJobs": 0,
     "printfulProductionConfirmation": "DISABLED"
   },
   "verification": {
-    "paidTransitionFixFinalHead": "570563855a9debdc33b38b31ce200448cd5fddb9",
-    "paidTransitionFixCI": 1126,
-    "paidTransitionFixTests": "396/396_PASS",
-    "paidTransitionFixTypecheck": "PASS",
-    "paidTransitionFixLint": "PASS",
-    "paidTransitionFixBuild": "PASS",
-    "paidTransitionFixVercel": "PASS",
-    "canonicalMergeHead": "9aed762eaf0d402c19c12b3461228f84af3f11ac",
-    "canonicalCI": 1127,
+    "webhookOptInRedHead": "b7de768d6fa4b7239672040e2095de6093c6005e",
+    "webhookOptInRedCI": 1129,
+    "webhookOptInRedEvidence": "396_EXISTING_PASS_1_NEW_EXPECTED_FAIL",
+    "webhookOptInGreenHead": "912c0d51df1b7c18ff560922ca8b8dc83c070052",
+    "webhookOptInGreenCI": 1130,
+    "webhookOptInGreenTests": "397/397_PASS",
+    "webhookOptInGreenTypecheck": "PASS",
+    "webhookOptInGreenLint": "PASS",
+    "webhookOptInGreenBuild": "PASS",
+    "webhookOptInGreenVercelPreview": "PASS",
+    "canonicalMergeHead": "f1e2da9d94214946641a67c76403a50ef487980d",
+    "canonicalCI": 1131,
     "canonicalCIConclusion": "PASS",
-    "canonicalBrowserQA": 1069,
+    "canonicalBrowserQA": 1071,
     "canonicalBrowserConclusion": "PASS",
-    "liveProductionCustomerJourney": "PASS",
-    "recoveryBrowserQA": 1068,
-    "recoveryBrowserConclusion": "PASS"
+    "canonicalVercelProduction": "PASS",
+    "liveProductionCustomerJourney": "PASS"
   },
   "providers": {
     "resendOtp": "LIVE_PROVEN",
-    "safepay": "LIVE_PROVEN_REPORTER_AUTHORITATIVE_FALLBACK",
+    "safepay": "LIVE_PROVEN_REPORTER_FALLBACK_WEBHOOK_OPT_IN_DEPLOYED_NEXT_SIGNED_WEBHOOK_PROOF_PENDING",
     "openai": "PRODUCTION_CREDENTIAL_AND_LIVE_GENERATION_PROOF_REQUIRED",
     "blob": "PRODUCTION_CREDENTIAL_AND_PRIVATE_ARTWORK_PROOF_REQUIRED",
     "vercelQueues": "DESIGN_TRIGGER_CONFIG_PRESENT_LIVE_DESIGN_CONSUMER_PROOF_PENDING",
@@ -120,9 +148,10 @@
     "printfulProduction": "DISABLED"
   },
   "nextActions": [
+    "SYSTEM: on the next normal Safepay payment, verify that a signed webhook arrives and is persisted; do not create an extra charge solely for this proof",
     "OWNER: configure OPENAI_API_KEY in Vercel Production without sharing the secret in chat",
     "OWNER: configure BLOB_READ_WRITE_TOKEN in Vercel Production without sharing the secret in chat",
-    "SYSTEM: prove one live design generation from the already-paid Issue through OpenAI, private Blob and Vercel Queue consumer",
+    "SYSTEM: prove one live design generation from an already-paid Issue through OpenAI, private Blob and Vercel Queue consumer",
     "SYSTEM: verify artwork remains private and the design job advances without exposing questionnaire or shipping data",
     "OWNER: later provide/approve Printful mappings and prove one unconfirmed draft while production confirmation stays disabled",
     "OWNER APPROVAL: separately approve migration 0029 before any referral signing key is configured",
