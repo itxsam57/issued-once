@@ -1,19 +1,11 @@
 # ISSUED ONCE — Hostinger Deployment Runbook
 
 Date: 2026-08-23
-Status: owner-gated execution runbook for PR #13. Do not cut production traffic until every temporary-domain gate below passes.
-
-## Frozen release candidate
-
-- Branch: `release/hostinger-candidate-20260823`
-- Exact application SHA: `44730e01cd85c934266eaa4e11e83c6ad5ef741a`
-- CI: #1319 — frozen install, unit tests, typecheck, lint and production build PASS
-- Browser QA: #1218 — PASS
-- PR #13 migration branch may continue receiving governor/documentation commits; **do not deploy that moving branch**. Deploy the frozen release-candidate branch above.
+Status: execution runbook for PR #13. Do not cut production traffic until every temporary-domain gate below passes.
 
 ## Immutable safety rules
 
-- Deploy the frozen release candidate to a Hostinger temporary domain first.
+- Deploy the frozen release-candidate branch to a Hostinger temporary domain first.
 - Do not connect or repoint `issuedonce.shop` until live release health and Tee/Cap/Tote browser gates pass.
 - Do not configure `REFERRAL_ATTRIBUTION_SIGNING_KEY`; migration `0029_creator_referrals.sql` remains separately owner-gated.
 - Do not enable `PRINTFUL_ALLOW_CONFIRM`; production manufacturing confirmation stays disabled.
@@ -21,55 +13,53 @@ Status: owner-gated execution runbook for PR #13. Do not cut production traffic 
 - Never paste production secret values into GitHub issues, commits, logs, or chat.
 - Keep canonical artwork outside both `public_html` and Hostinger's redeployed Node build directory.
 
-## 1. Database prerequisite
+## 1. Frozen release
 
-Migration `0030_background_jobs.sql` must be applied and verified in production before the Hostinger release can report `queueReady=true`.
+Deploy exactly:
 
-Prepared managed Neon migration:
+- Branch: `release/hostinger-candidate-20260823`
+- Release SHA: `44730e01cd85c934266eaa4e11e83c6ad5ef741a`
+- `RELEASE_ID=44730e01cd85c934266eaa4e11e83c6ad5ef741a`
 
-- Migration ID: `ac06c578-5607-460b-8550-5b3fc30c6742`
-- Verified temporary branch: `br-polished-poetry-ax22k0ae`
-- Production parent branch: `br-dawn-cloud-axm880q9`
-- Current production status: **NOT APPLIED — owner approval required**
+This release passed CI #1319 (frozen install, unit tests, typecheck, lint and production build) and Browser QA #1218. Do not deploy the later metadata-only migration branch head.
 
-Required verification after the owner-approved migration:
+The application also captures git HEAD into the Next build ID and `ISSUED_ONCE_RELEASE_ID`; `RELEASE_ID` is an explicit second lock.
 
-```sql
-SELECT to_regclass('public.background_jobs')::text AS table_name,
-       (SELECT COUNT(*)
-          FROM pg_indexes
-         WHERE schemaname = 'public'
-           AND tablename = 'background_jobs'
-           AND indexname = 'background_jobs_due_idx') AS due_index_count;
-```
+## 2. Database prerequisite — COMPLETE
 
-Expected:
-- `table_name = background_jobs`
-- `due_index_count = 1`
+Owner-approved migration `0030_background_jobs.sql` was applied to production Neon branch `br-dawn-cloud-axm880q9` through managed migration `ac06c578-5607-460b-8550-5b3fc30c6742` and verified on 2026-08-23.
 
-This migration is independent from referral migration `0029`; applying `0030` does not authorize `0029`.
+Verified production state:
 
-## 2. Create the temporary Hostinger Node.js app
+- `background_jobs` exists
+- `background_jobs_due_idx` exists exactly once
+- queue contains 0 jobs immediately after migration
+- manufacturing jobs remain 0
+- manufacturing provider events remain 0
+- referral migration `0029` remains absent
+
+Applying `0030` did not authorize `0029`.
+
+## 3. Create the temporary Hostinger Node.js app
 
 In hPanel:
 
-1. Go to **Websites → Add Website → Deploy Web App / Node.js Web App**.
-2. Use a **temporary domain**, not `issuedonce.shop`.
-3. Choose **Connect with GitHub** and authorize Hostinger.
+1. Go to **Websites → Add Website → Node.js Web App** (some hPanel versions label the intermediate choice **Deploy Web App**).
+2. Choose a **temporary domain**, not `issuedonce.shop`.
+3. Select **Import Git Repository / Connect with GitHub** and authorize Hostinger.
 4. Select private repository `itxsam57/issued-once`.
 5. Select branch `release/hostinger-candidate-20260823`.
-6. Confirm the branch resolves to `44730e01cd85c934266eaa4e11e83c6ad5ef741a` before accepting the deployment as evidence.
-7. Framework: **Next.js**.
-8. Node.js: **22.x**.
-9. Package manager: **pnpm**.
-10. Install command: `pnpm install --frozen-lockfile` when Hostinger exposes an install-command field; otherwise allow its pnpm install detection and verify the committed lockfile is used.
-11. Build command: `pnpm build`.
-12. Start command: `pnpm start`.
-13. If an output-directory field is requested for a Next.js backend app, use `.next` only when hPanel does not auto-detect Next.js.
+6. Framework: **Next.js**.
+7. Node.js: **22.x**.
+8. Package manager: **pnpm**.
+9. Install command: `pnpm install --frozen-lockfile` when Hostinger exposes an install-command field; otherwise use its pnpm lockfile detection.
+10. Build command: `pnpm build`.
+11. Start command: `pnpm start`.
+12. If an output-directory field is requested for a Next.js backend app, use `.next` only when hPanel does not auto-detect Next.js.
 
 Do not connect the production domain during this step.
 
-## 3. Private artwork directory
+## 4. Private artwork directory
 
 Hostinger stores deployed backend build files under a path like:
 
@@ -85,9 +75,9 @@ Set:
 
 `ARTWORK_STORAGE_DIR=/home/<hostinger-user>/issued-once-private-artwork`
 
-The release-health probe performs a real write/read/delete against this directory using collision-free per-request probe files. A permissions/path mistake therefore keeps `storageReady=false` and blocks release proof.
+The application release-health probe performs a real write/read/delete against this directory. A permissions/path mistake therefore keeps `storageReady=false` and blocks release proof.
 
-## 4. Hostinger environment variables
+## 5. Hostinger environment variables
 
 Enter values in hPanel's Environment Variables screen. Do not commit them to the repository.
 
@@ -133,11 +123,11 @@ Enter values in hPanel's Environment Variables screen. Do not commit them to the
 - `REFERRAL_ATTRIBUTION_SIGNING_KEY`
 - `PRINTFUL_ALLOW_CONFIRM=true`
 
-If hPanel environment variables are changed after deployment, redeploy before testing.
+If hPanel environment variables are changed after deployment, redeploy before testing because runtime configuration changes require a redeployment.
 
-## 5. Temporary deployment health gate
+## 6. First temporary deployment gate
 
-After Hostinger says deployment is running, do not trust dashboard status alone.
+After Hostinger says deployment is running, do not trust the dashboard status alone.
 
 Call:
 
@@ -148,21 +138,21 @@ Required response:
 - HTTP 200
 - `ok: true`
 - `runtimeProvider: "hostinger"`
-- `releaseId: "44730e01cd85c934266eaa4e11e83c6ad5ef741a"`
+- `releaseId` equals `44730e01cd85c934266eaa4e11e83c6ad5ef741a`
 - `databaseReady: true`
 - `queueReady: true`
 - `storageReady: true`
 
-Any mismatch blocks browser testing.
+Any mismatch blocks the migration and must be fixed before browser testing.
 
-## 6. Live Release QA
+## 7. Live release QA
 
-Run GitHub Actions workflow **Live Release QA** with:
+Use GitHub Actions workflow **Live Release QA** with:
 
 - `deployment_url = https://<temporary-hostinger-domain>`
 - `expected_release = 44730e01cd85c934266eaa4e11e83c6ad5ef741a`
 
-The workflow must first pass release health and then independently prove:
+The workflow must first pass the release-health probe and then independently prove:
 
 - Tee → `M` → Bone
 - Cap → `OS` → Bone
@@ -174,7 +164,7 @@ The workflow must first pass release health and then independently prove:
 
 A Hostinger dashboard screenshot is not sufficient evidence.
 
-## 7. Neon read-only post-test proof
+## 8. Neon read-only post-test proof
 
 After the temporary-domain browser matrix, verify production Neon read-only:
 
@@ -189,43 +179,36 @@ After the temporary-domain browser matrix, verify production Neon read-only:
 
 No mutation is authorized by this proof step.
 
-## 8. Configure durable job cron
+## 9. Configure durable job cron
 
 Only after the temporary release is healthy:
 
-1. Manually test the protected drain endpoint once with the configured `CRON_SECRET`:
-
-```sh
-curl --fail --silent --show-error --request POST \
-  --header 'Authorization: Bearer <CRON_SECRET>' \
-  'https://<temporary-hostinger-domain>/api/internal/jobs/drain'
-```
-
+1. Manually test the protected drain endpoint once with the configured `CRON_SECRET`.
 2. Require HTTP success and a valid JSON drain result before scheduling it.
 3. In hPanel go to **Websites → Dashboard → Advanced → Cron Jobs**.
 4. Select **Custom**.
-5. Use the same protected POST command. If hPanel rejects the command because of quoting/special characters, put it in a private `.sh` file and schedule `/bin/sh <absolute-path-to-script>` instead.
+5. Schedule a protected POST to `/api/internal/jobs/drain` using the same secret.
 6. Choose the smallest safe schedule hPanel allows for this account; cron schedules are UTC.
 7. After the first scheduled execution, use **View Output** to confirm it ran successfully.
 
 Do not expose `CRON_SECRET` in a public file or URL query parameter.
 
-## 9. Production domain cutover
+## 10. Production domain cutover
 
-Cutover is allowed only after sections 5–8 are green.
+Cutover is allowed only after sections 6–9 are green.
 
-1. Connect `issuedonce.shop` to the proved Node.js app.
+1. In hPanel connect `issuedonce.shop` to the proved Node.js app.
 2. Complete any required DNS change and require HTTPS to serve the Hostinger app.
 3. Change `APP_ORIGIN=https://issuedonce.shop`.
 4. Change the cron URL to `https://issuedonce.shop/api/internal/jobs/drain`.
 5. Redeploy so the new `APP_ORIGIN` is active.
-6. Re-run `/api/health/release` against `https://issuedonce.shop` and require the same exact release candidate SHA.
+6. Re-run `/api/health/release` against `https://issuedonce.shop` and require the same exact SHA.
 7. Re-run **Live Release QA** against `https://issuedonce.shop` with the same `expected_release`.
 8. Re-run the Neon read-only safety proof.
 
-Only after this second live proof may PR #13 be considered eligible to merge into the canonical branch.
+Only after this second live proof may the migration PR be considered eligible to merge into the canonical branch.
 
-## 10. Rollback rule
+## 11. Rollback rule
 
 If the Hostinger release fails before domain cutover, leave `issuedonce.shop` on the existing provider and repair the temporary deployment.
 
@@ -241,7 +224,7 @@ If a problem appears after cutover:
 
 Migration is complete only when all are true:
 
-- frozen release candidate `44730e01cd85c934266eaa4e11e83c6ad5ef741a` has green CI and Browser QA
+- exact release SHA has green CI and Browser QA
 - migration `0030` applied and verified in production
 - Hostinger temporary deployment health is green
 - exact deployed SHA proven
