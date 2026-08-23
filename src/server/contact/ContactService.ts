@@ -7,6 +7,7 @@ import {
 import { encryptPrivatePayload } from '@/server/crypto/privatePayload';
 import type { ExperienceRepository } from '@/server/experience/ExperienceRepository';
 import { hashSessionToken } from '@/server/http/sessionToken';
+import { verifyContactContinuityToken } from './contactContinuity';
 import type {
   ContactRepository,
   OtpChallengeRecord,
@@ -63,6 +64,69 @@ export class ContactService {
     const experience = await this.experiences.findBySessionHash(hashSessionToken(token));
     if (!experience) throw new Error('Experience not found');
     return experience;
+  }
+
+  async checkContinuity(input: {
+    experienceToken: string;
+    email: string;
+    continuityToken?: string;
+  }): Promise<{ alreadyVerified: boolean }> {
+    const experience = await this.requireExperience(input.experienceToken);
+    if (!input.continuityToken) return { alreadyVerified: false };
+
+    let continuity;
+    try {
+      continuity = verifyContactContinuityToken(
+        input.continuityToken,
+        experience.publicSessionHash,
+      );
+    } catch {
+      return { alreadyVerified: false };
+    }
+
+    return {
+      alreadyVerified: safeHexEqual(
+        continuity.emailHash,
+        emailLookupHash(input.email),
+      ),
+    };
+  }
+
+  async reuseVerified(input: {
+    experienceToken: string;
+    email: string;
+    continuityToken?: string;
+  }): Promise<{ verified: true }> {
+    const experience = await this.requireExperience(input.experienceToken);
+    if (!input.continuityToken) {
+      throw new Error('Verified email reuse is not available');
+    }
+
+    let continuity;
+    try {
+      continuity = verifyContactContinuityToken(
+        input.continuityToken,
+        experience.publicSessionHash,
+      );
+    } catch {
+      throw new Error('Verified email reuse is not available');
+    }
+
+    const expectedEmailHash = emailLookupHash(input.email);
+    if (!safeHexEqual(continuity.emailHash, expectedEmailHash)) {
+      throw new Error('Verified email reuse is not available');
+    }
+
+    const copied = await this.contacts.copyVerifiedContact({
+      sourceContactId: continuity.sourceContactId,
+      targetExperienceId: experience.id,
+      expectedEmailHash,
+      newContactId: randomUUID(),
+      now: this.now(),
+    });
+    if (!copied) throw new Error('Verified email reuse is not available');
+
+    return { verified: true };
   }
 
   async requestOtp(input: {
