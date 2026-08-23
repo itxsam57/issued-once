@@ -1,5 +1,7 @@
 const baseUrl = process.env.LIVE_PRODUCTION_URL?.replace(/\/$/, '');
 if (!baseUrl) throw new Error('LIVE_PRODUCTION_URL is required');
+const expectedReleaseId = process.env.EXPECTED_RELEASE_ID?.trim();
+if (!expectedReleaseId) throw new Error('EXPECTED_RELEASE_ID is required');
 
 const healthPath = '/api/health/release';
 const response = await fetch(`${baseUrl}${healthPath}`, {
@@ -28,6 +30,9 @@ if (runtimeProvider !== 'hostinger') {
 }
 if (typeof releaseId !== 'string' || !releaseId.trim() || releaseId === 'unknown') {
   throw new Error('release health releaseId is missing');
+}
+if (releaseId !== expectedReleaseId) {
+  throw new Error(`release health releaseId mismatch: expected ${expectedReleaseId}, received ${releaseId}`);
 }
 if (typeof version !== 'string' || !version.trim()) {
   throw new Error('release health version is missing');
