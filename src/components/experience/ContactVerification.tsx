@@ -190,7 +190,7 @@ export function ContactVerification({
 
       {mode === 'reuse-confirm' ? (
         <div className={styles.form}>
-          <p className={styles.signal}>THIS EMAIL IS ALREADY VERIFIED</p>
+          <p className={styles.signal}>THIS EMAIL IS ALREADY VERIFIED.</p>
           <p className={styles.note}><strong>{normalizedEmail}</strong> was verified earlier in this browser&apos;s order chain.</p>
           <p className={styles.note}>Use it for this order, or change the email.</p>
           {error ? <p className={styles.error} role="alert">{error}</p> : null}
