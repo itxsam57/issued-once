@@ -68,11 +68,10 @@ const VISUAL_QA_BASE_COLOR_CATALOG = {
   },
 } as const;
 
-const VISUAL_QA_COMMITMENT_QUOTE = {
-  quoteId: 'qa-live-quote-001',
-  amountMinor: 5400,
-  currency: 'USD',
-  expiresAt: '2026-08-18T07:00:00.000Z',
+const VISUAL_QA_PRICE_MINOR = {
+  tee: 3200,
+  hat: 3400,
+  tote: 3600,
 } as const;
 
 const PREVIEW_CHALLENGE_ID = 'owner-preview-challenge';
@@ -124,7 +123,22 @@ export function VisualPreviewExperience({ mode = 'qa' }: VisualPreviewExperience
         onSizeConfirmed={async () => undefined}
         baseColorCatalog={VISUAL_QA_BASE_COLOR_CATALOG}
         onBaseColorConfirmed={async () => undefined}
-        getCommitmentQuote={async () => VISUAL_QA_COMMITMENT_QUOTE}
+        getCommitmentQuote={async (selection) => {
+          const amountMinor = selection.object === 'tee'
+            ? VISUAL_QA_PRICE_MINOR.tee
+            : selection.object === 'hat'
+              ? VISUAL_QA_PRICE_MINOR.hat
+              : selection.object === 'tote'
+                ? VISUAL_QA_PRICE_MINOR.tote
+                : null;
+          if (amountMinor == null) return null;
+          return {
+            quoteId: `qa-${selection.object}-${selection.sizeCode}-${selection.colorCode}`,
+            amountMinor,
+            currency: 'USD',
+            expiresAt: '2099-01-01T00:00:00.000Z',
+          };
+        }}
         onRequestOtp={async () => ({ challengeId: PREVIEW_CHALLENGE_ID, retryAfterSeconds: 0 })}
         onVerifyOtp={async (challengeId, code) => {
           if (challengeId !== PREVIEW_CHALLENGE_ID || code !== PREVIEW_OTP) {
