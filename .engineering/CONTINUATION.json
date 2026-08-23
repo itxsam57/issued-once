@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-23T19:16:00+05:00",
+  "updatedAt": "2026-08-23T19:37:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -13,25 +13,18 @@
     "hostingerReleaseCandidateHead": "44730e01cd85c934266eaa4e11e83c6ad5ef741a",
     "lastFullyDeployedApplicationHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
     "canonicalCodeHeadPendingReplacementDeployment": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
-    "productionMigrationHead": "0028_design_controls.sql",
-    "preparedHostingerMigration": "0030_background_jobs.sql",
+    "productionMigrationHead": "0030_background_jobs.sql",
     "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "HOSTINGER_RELEASE_CANDIDATE_PROVEN_AWAITING_PRODUCTION_0030_APPROVAL",
-    "allowedStopStates": [
-      "OWNER_REQUIRED",
-      "BLOCKED",
-      "WAIT_EXTERNAL",
-      "LOOP_DETECTED",
-      "COMPLETE"
-    ],
-    "stopReason": "All currently executable repository work for the Hostinger runtime candidate is proven. Release candidate 44730e01 passed frozen-install CI 1319 including unit, typecheck, lint and production build, and Browser QA 1218. Migration 0030 was verified on isolated Neon branches and is now prepared as managed migration ac06c578-5607-460b-8550-5b3fc30c6742. The next step changes the production database and therefore requires exact owner approval before execution."
+    "decision": "PRODUCTION_0030_APPLIED_HOSTINGER_TEMP_DEPLOYMENT_ACCOUNT_ACTION_REQUIRED",
+    "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
+    "stopReason": "Owner approved production migration 0030. Managed migration ac06c578-5607-460b-8550-5b3fc30c6742 was applied successfully to production Neon branch br-dawn-cloud-axm880q9 and the temporary migration branch was cleaned up. Production verification confirms background_jobs and background_jobs_due_idx exist, the queue is empty, referral migration 0029 remains absent, and manufacturing remains 0/0. The next step requires access to the owner's Hostinger hPanel to authorize the private GitHub repository and create the temporary Node.js deployment from the frozen release-candidate branch. No Hostinger account connector is available in this workspace."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "HOSTINGER_RELEASE_CANDIDATE_FROZEN_OWNER_DB_APPROVAL_REQUIRED",
+    "internalWorkStatus": "HOSTINGER_RELEASE_CANDIDATE_AND_DB_READY_OWNER_HPANEL_ACTION_REQUIRED",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Use TDD RED before behavior changes",
@@ -48,20 +41,11 @@
     ]
   },
   "hostingerMigration": {
-    "status": "RELEASE_CANDIDATE_PROVEN_AWAITING_OWNER_DB_APPROVAL",
+    "status": "RELEASE_CANDIDATE_AND_DATABASE_READY_AWAITING_TEMP_HOSTINGER_DEPLOYMENT",
     "pullRequest": 13,
     "migrationBranch": "infra/hostinger-migration-20260823",
     "releaseCandidateBranch": "release/hostinger-candidate-20260823",
     "applicationHead": "44730e01cd85c934266eaa4e11e83c6ad5ef741a",
-    "runtimeChanges": [
-      "Vercel Queue production runtime replaced by durable Postgres background jobs",
-      "Vercel Blob production runtime replaced by private filesystem artwork storage behind existing storage/access abstractions",
-      "Owner Designer and manufacturing artwork reads use signed application URLs for fs:// private locators",
-      "Protected Hostinger cron drain handles design and notification jobs",
-      "Release health proves Hostinger provider, exact release identity, database, queue schema and storage read/write",
-      "Live Release QA requires exact release SHA before Tee/Cap/Tote physical-gate smoke runs",
-      "pnpm-lock.yaml is committed and CI, Browser QA and Live Release QA use frozen installs"
-    ],
     "verification": {
       "ciRun": 1319,
       "ciResult": "PASS_FROZEN_INSTALL_UNIT_TYPECHECK_LINT_BUILD",
@@ -72,23 +56,13 @@
       "openReviewThreads": 0,
       "submittedReviews": 0
     },
-    "storageHealthConcurrencyRepair": {
-      "redCommit": "35ca2f59c23b50baa087b8dafa2f28190a21da7e",
-      "redCiRun": 1318,
-      "redResult": "1_FAILED_515_PASSED_EEXIST_FIXED_HEALTH_PROBE_COLLISION",
-      "greenCommit": "44730e01cd85c934266eaa4e11e83c6ad5ef741a",
-      "greenCiRun": 1319,
-      "greenBrowserQaRun": 1218,
-      "fix": "Each storage health request uses its own random private probe path and removes only its own probe."
-    },
     "backgroundJobsMigration": {
       "file": "db/migrations/0030_background_jobs.sql",
       "managedMigrationId": "ac06c578-5607-460b-8550-5b3fc30c6742",
-      "managedTemporaryBranchName": "mcp-migration-2026-08-23T14-14-11",
-      "managedTemporaryBranchId": "br-polished-poetry-ax22k0ae",
       "parentProductionBranchId": "br-dawn-cloud-axm880q9",
-      "temporaryVerification": "PASS_BACKGROUND_JOBS_TABLE_DUE_INDEX_LEASE_STATE_CONSTRAINT_EMPTY_QUEUE",
-      "productionStatus": "NOT_APPLIED_OWNER_APPROVAL_REQUIRED"
+      "productionStatus": "APPLIED_AND_VERIFIED",
+      "productionVerification": "PASS_BACKGROUND_JOBS_TABLE_DUE_INDEX_EMPTY_QUEUE",
+      "temporaryMigrationBranchCleanedUp": true
     },
     "deploymentGate": {
       "runbook": "docs/operations/hostinger-deployment.md",
@@ -122,14 +96,16 @@
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
     "branchId": "br-dawn-cloud-axm880q9",
-    "backgroundJobsTablePresent": false,
+    "backgroundJobsTablePresent": true,
+    "backgroundJobsDueIndexPresent": true,
+    "backgroundJobCount": 0,
     "manufacturingJobCount": 0,
     "manufacturingProviderEventCount": 0,
     "referralCreatorsTablePresent": false,
     "referralConversionsTablePresent": false,
     "checkoutQuoteReferralCreatorColumnPresent": false,
     "migration0029Applied": false,
-    "migration0030Applied": false
+    "migration0030Applied": true
   },
   "safetyGates": {
     "realQaPayment": "NOT_PERFORMED",
@@ -139,13 +115,13 @@
     "productionDomainCutover": "NOT_PERFORMED"
   },
   "nextActions": [
-    "OWNER: explicitly approve applying managed migration ac06c578-5607-460b-8550-5b3fc30c6742 (0030_background_jobs.sql) to production Neon branch br-dawn-cloud-axm880q9",
-    "SYSTEM: after approval, complete the managed migration and verify background_jobs plus due index while re-reading manufacturing/referral safety invariants",
-    "OWNER/SYSTEM: authorize/connect the private GitHub repository in Hostinger hPanel and create a temporary Node.js deployment from release/hostinger-candidate-20260823 at 44730e01",
-    "SYSTEM: configure Hostinger runtime variables without exposing values and keep Blob/Vercel Queue/referral/Printful-confirm switches absent or safe",
+    "OWNER: in Hostinger hPanel authorize GitHub access to private repository itxsam57/issued-once and create a temporary Node.js web app using branch release/hostinger-candidate-20260823",
+    "OWNER/SYSTEM: configure Node 22, pnpm, frozen install, build/start commands and required runtime variables without exposing secret values",
+    "SYSTEM: verify temporary deployment /api/health/release returns runtimeProvider hostinger, exact release 44730e01, databaseReady true, queueReady true and storageReady true",
     "SYSTEM: run Live Release QA against the temporary Hostinger URL requiring exact SHA health and Tee/Cap/Tote physical gates",
+    "SYSTEM: verify production Neon read-only after temporary smoke and keep manufacturing/referral safety invariants unchanged",
     "SYSTEM: only after temporary proof, cut issuedonce.shop to Hostinger and repeat exact health, live product matrix and read-only Neon corroboration",
     "OWNER: only after custom-domain live proof, retry the preserved Tote session"
   ],
-  "nextOwnerAction": "APPROVE_PRODUCTION_NEON_MIGRATION_0030_MANAGED_ID_ac06c578-5607-460b-8550-5b3fc30c6742"
+  "nextOwnerAction": "HOSTINGER_HPANEL_AUTHORIZE_PRIVATE_GITHUB_REPO_AND_CREATE_TEMP_NODE_APP_FROM_release/hostinger-candidate-20260823"
 }
