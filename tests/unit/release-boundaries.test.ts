@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
@@ -17,7 +17,14 @@ afterEach(async () => {
 test('storage probe proves private write/read capability and removes its probe file', async () => {
   const ping = createStorageReadWritePing(root);
   await expect(ping()).resolves.toBe(true);
-  await expect(readFile(join(root, '.issued-once-health-probe'), 'utf8')).rejects.toMatchObject({ code: 'ENOENT' });
+  expect((await readdir(root)).filter((name) => name.startsWith('.issued-once-health-probe'))).toEqual([]);
+});
+
+test('concurrent storage health probes use collision-free files and all succeed', async () => {
+  const ping = createStorageReadWritePing(root);
+  const results = await Promise.all(Array.from({ length: 24 }, () => ping()));
+  expect(results).toEqual(Array.from({ length: 24 }, () => true));
+  expect((await readdir(root)).filter((name) => name.startsWith('.issued-once-health-probe'))).toEqual([]);
 });
 
 test('queue schema probe reports ready only when the background_jobs table exists', async () => {
