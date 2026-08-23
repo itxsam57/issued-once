@@ -7,13 +7,13 @@
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
     "pullRequestState": "DRAFT",
-    "verifiedApplicationHead": "f1e2da9d94214946641a67c76403a50ef487980d",
+    "verifiedApplicationHead": "5e3154150e37b601608d943338a8f94c6609217c",
     "productionMigrationHead": "0028_design_controls.sql",
     "nextRepositoryMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "SAFEPAY_LIVE_PAYMENT_AND_WEBHOOK_OPT_IN_REPAIR_PROVEN_DESIGN_PROVIDER_CREDENTIALS_REQUIRED",
+    "decision": "REPEAT_ORDER_LIFECYCLE_AUTOMATION_PROVEN_LIVE_OWNER_SESSION_TEST_REQUIRED",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -21,11 +21,11 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "Two real Safepay payments are safely PAID with exactly one Issue each through authoritative Reporter verification. The missing-webhook root cause was the omitted hosted-checkout webhook opt-in; webhooks=true is now deployed and release-gated. A future normal payment can prove signed webhook delivery. The next active build gate still requires production OpenAI and private Blob credentials; no manufacturing or referral rollout is authorized."
+    "stopReason": "Unlimited repeat ordering is implemented, merged, deployed and release-gated. Three successive isolated preview orders passed on desktop and mobile across KEEP PREVIOUS ANSWERS and ANSWER AGAIN, real PostgreSQL semantics were proven on a disposable Neon branch and the branch was deleted, canonical CI/Browser QA/Vercel passed, and the live issuedonce.shop smoke passed. The remaining proof requires the owner's existing post-checkout browser session to confirm the terminal repeat-choice UI and child-order transition in production without making an unnecessary real payment."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "COMPLETE_TO_LIVE_DESIGN_PROVIDER_GATE",
+    "internalWorkStatus": "COMPLETE_TO_REPEAT_ORDER_OWNER_TEST_GATE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Use TDD RED before behavior changes",
@@ -39,6 +39,25 @@
       "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is applied and verified",
       "Keep Printful production confirmation disabled until its independent owner release gate"
     ]
+  },
+  "repeatOrderLifecycle": {
+    "status": "MERGED_DEPLOYED_AUTOMATED_PROOF_COMPLETE_OWNER_SESSION_TEST_REQUIRED",
+    "pullRequest": 10,
+    "featureHead": "4da8ba7bc4db0d2c158628d6c90f9392b08e50b4",
+    "canonicalMergeHead": "5e3154150e37b601608d943338a8f94c6609217c",
+    "terminalChoice": [
+      "KEEP_PREVIOUS_ANSWERS",
+      "ANSWER_AGAIN"
+    ],
+    "orderIsolation": "DETERMINISTIC_HASH_CHAIN_CHILD_SESSION_PER_REPEAT",
+    "reuseSemantics": "NEW_PROFILE_COMPLETE_CHILD_WITH_SEVEN_ENCRYPTED_ANSWERS_AND_EXACT_SEVEN_QUESTION_SNAPSHOTS",
+    "freshSemantics": "NEW_QUESTION_1_CHILD_WITH_IMMEDIATELY_PREVIOUS_PROMPT_EXCLUDED_PER_REQUIRED_FAMILY",
+    "oppositeChoiceRetry": "PERSISTED_WINNING_MODE_RETURNED_WITHOUT_DUPLICATE_COPY",
+    "previewPaymentSafety": "VISUAL_PREVIEW_ONLY_AND_PRODUCTION_SAFEPAY_RUNTIME_NOT_INVOKED",
+    "threeOrderBrowserProof": "PASS_DESKTOP_AND_MOBILE",
+    "postgresSemanticProof": "PASS_ON_DISPOSABLE_NEON_BRANCH",
+    "postgresProofBranchDeleted": true,
+    "productionMigrationRequired": false
   },
   "safepayProductionProof": {
     "status": "LIVE_PROVEN",
@@ -126,14 +145,15 @@
     "webhookOptInGreenHead": "912c0d51df1b7c18ff560922ca8b8dc83c070052",
     "webhookOptInGreenCI": 1130,
     "webhookOptInGreenTests": "397/397_PASS",
-    "webhookOptInGreenTypecheck": "PASS",
-    "webhookOptInGreenLint": "PASS",
-    "webhookOptInGreenBuild": "PASS",
-    "webhookOptInGreenVercelPreview": "PASS",
-    "canonicalMergeHead": "f1e2da9d94214946641a67c76403a50ef487980d",
-    "canonicalCI": 1131,
+    "repeatOrderFeatureHead": "4da8ba7bc4db0d2c158628d6c90f9392b08e50b4",
+    "repeatOrderFeatureCI": 1168,
+    "repeatOrderFeatureCIConclusion": "PASS",
+    "repeatOrderFeatureBrowserQA": 1091,
+    "repeatOrderFeatureBrowserConclusion": "PASS",
+    "canonicalMergeHead": "5e3154150e37b601608d943338a8f94c6609217c",
+    "canonicalCI": 1169,
     "canonicalCIConclusion": "PASS",
-    "canonicalBrowserQA": 1071,
+    "canonicalBrowserQA": 1092,
     "canonicalBrowserConclusion": "PASS",
     "canonicalVercelProduction": "PASS",
     "liveProductionCustomerJourney": "PASS"
@@ -148,14 +168,17 @@
     "printfulProduction": "DISABLED"
   },
   "nextActions": [
+    "OWNER TEST: in the browser session that completed a real order, open /begin and verify MAKE ANOTHER ONE? appears",
+    "OWNER TEST: choose KEEP PREVIOUS ANSWERS and verify the new order opens directly at form selection without showing the seven-question interview",
+    "OWNER TEST: do not make another payment solely for this UI/session proof; stop before ISSUE MINE unless placing a genuine order",
+    "SYSTEM: after owner proof, continue to the production OpenAI + private Blob design-provider gate",
     "SYSTEM: on the next normal Safepay payment, verify that a signed webhook arrives and is persisted; do not create an extra charge solely for this proof",
     "OWNER: configure OPENAI_API_KEY in Vercel Production without sharing the secret in chat",
     "OWNER: configure BLOB_READ_WRITE_TOKEN in Vercel Production without sharing the secret in chat",
     "SYSTEM: prove one live design generation from an already-paid Issue through OpenAI, private Blob and Vercel Queue consumer",
-    "SYSTEM: verify artwork remains private and the design job advances without exposing questionnaire or shipping data",
-    "OWNER: later provide/approve Printful mappings and prove one unconfirmed draft while production confirmation stays disabled",
+    "OWNER: later provide/approve Printful mappings while production confirmation stays disabled",
     "OWNER APPROVAL: separately approve migration 0029 before any referral signing key is configured",
     "SYSTEM: perform final release audit before PR 3 promotion to main"
   ],
-  "nextOwnerAction": "CONFIGURE_OPENAI_API_KEY_AND_BLOB_READ_WRITE_TOKEN_IN_VERCEL_PRODUCTION"
+  "nextOwnerAction": "LIVE_REPEAT_ORDER_SESSION_TEST_KEEP_PREVIOUS_ANSWERS"
 }
