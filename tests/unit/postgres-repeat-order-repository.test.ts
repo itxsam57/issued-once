@@ -35,6 +35,7 @@ describe('PostgresRepeatOrderRepository', () => {
         created: true,
         answer_count: 7,
         question_count: 7,
+        set_count: 1,
       },
     ]);
 
@@ -63,6 +64,7 @@ describe('PostgresRepeatOrderRepository', () => {
         created: false,
         answer_count: 0,
         question_count: 0,
+        set_count: 0,
       },
     ]);
 
@@ -85,6 +87,7 @@ describe('PostgresRepeatOrderRepository', () => {
         created: true,
         answer_count: 6,
         question_count: 7,
+        set_count: 1,
       },
     ]);
 
