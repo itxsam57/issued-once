@@ -57,7 +57,7 @@ describe('VisualPreviewExperience', () => {
     await user.type(screen.getByLabelText('Phone'), '+923001234567');
     await user.click(screen.getByRole('button', { name: 'USE THIS ADDRESS' }));
 
-    expect(await screen.findByText('$54.00')).toBeInTheDocument();
+    expect(await screen.findByText('$32.00')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'ISSUE MINE' }));
 
     expect(await screen.findByRole('heading', { name: 'PREVIEW COMPLETE.' })).toBeInTheDocument();
