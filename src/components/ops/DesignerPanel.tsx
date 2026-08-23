@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import styles from './owner-os.module.css';
+import { useLiveResource } from './useLiveResource';
 
 type QueueItem = {
   issueId: string; issueCode: string; issueStatus: string; objectType: string; sizeCode: string; colorCode: string;
@@ -26,6 +27,7 @@ type EffectivePolicy = { globalVersion: number; override: Partial<DesignPolicy> 
 type RevealedAnswer = { slot: string; prompt: string; answer: unknown };
 type ReadinessCheck = { key: string; label: string; state: 'ready' | 'configured' | 'missing' | 'blocked' | 'safe' | 'armed'; detail: string };
 type Readiness = { checkedAt: string; checks: ReadinessCheck[]; readyForSandbox: boolean; readyForProduction: false };
+type DesignerSnapshot = { items: QueueItem[]; policy: DesignPolicy; readiness: Readiness };
 
 async function readJson<T>(response: Response, fallback: string): Promise<T> {
   const payload = await response.json().catch(() => ({})) as T & { error?: string };
@@ -58,6 +60,10 @@ async function fetchReadiness(): Promise<Readiness> {
   const response = await fetch('/ops/api/readiness', { credentials: 'same-origin', cache: 'no-store' });
   return readJson<Readiness>(response, 'Design runtime readiness unavailable');
 }
+async function fetchDesignerSnapshot(): Promise<DesignerSnapshot> {
+  const [items, policy, readiness] = await Promise.all([fetchDesignerQueue(), fetchGlobalPolicy(), fetchReadiness()]);
+  return { items, policy, readiness };
+}
 
 const QUICK_REASONS = ['TOO BUSY', 'TOO LITERAL', 'WEAK CONCEPT', 'WRONG MOOD', 'TYPOGRAPHY', 'PLACEMENT', 'NOT WEARABLE', 'OTHER'] as const;
 
@@ -77,6 +83,7 @@ export function DesignerPanel() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
+  const live = useLiveResource<DesignerSnapshot>({ load: fetchDesignerSnapshot, intervalMs: 15_000 });
 
   const readinessCheck = (key: string) => readiness?.checks.find((check) => check.key === key);
   const openAI = readinessCheck('openai');
@@ -87,28 +94,28 @@ export function DesignerPanel() {
   const manualReady = blob?.state === 'ready';
   const factorySafe = factorySwitch?.state === 'safe';
 
-  async function refresh() {
-    const [next, policy, nextReadiness] = await Promise.all([fetchDesignerQueue(), fetchGlobalPolicy(), fetchReadiness()]);
-    setItems(next);
-    setGlobalPolicy(policy);
-    setReadiness(nextReadiness);
-    if (selected) {
-      const nextSelected = next.find((item) => item.issueId === selected.issueId) ?? null;
-      setSelected(nextSelected);
-      if (nextSelected) setIssuePolicy(await fetchIssuePolicy(nextSelected.issueId));
-    }
-  }
+  async function refresh() { await live.refresh(); }
   async function loadCandidates(issueId: string) { setCandidates(await fetchCandidates(issueId)); }
 
   useEffect(() => {
-    let alive = true;
-    void Promise.all([fetchDesignerQueue(), fetchGlobalPolicy(), fetchReadiness()])
-      .then(([next, policy, nextReadiness]) => {
-        if (alive) { setItems(next); setGlobalPolicy(policy); setReadiness(nextReadiness); }
-      })
-      .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Designer unavailable'); });
-    return () => { alive = false; };
-  }, []);
+    if (!live.data) return;
+    const { items: next, policy, readiness: nextReadiness } = live.data;
+    setItems(next);
+    setGlobalPolicy(policy);
+    setReadiness(nextReadiness);
+    if (!selected) return;
+    const nextSelected = next.find((item) => item.issueId === selected.issueId) ?? null;
+    setSelected(nextSelected);
+    if (!nextSelected) {
+      setCandidates([]);
+      setIssuePolicy(null);
+      setAnswers(null);
+      return;
+    }
+    void fetchIssuePolicy(nextSelected.issueId)
+      .then(setIssuePolicy)
+      .catch((cause) => setError(cause instanceof Error ? cause.message : 'Issue design policy unavailable'));
+  }, [live.data, selected?.issueId]);
 
   function choose(item: QueueItem) {
     setSelected(item);
@@ -198,6 +205,8 @@ export function DesignerPanel() {
     void run(() => saveGlobalPolicy(next), message);
   }
 
+  const visibleError = error ?? live.error;
+
   return <div>
     <div className={styles.panelHead}><div><p>DESIGNER / STUDIO</p><h1>What each mind became.</h1></div><button type="button" disabled={working} onClick={() => void refresh()}>REFRESH</button></div>
 
@@ -248,7 +257,7 @@ export function DesignerPanel() {
       <p className={styles.privacyFlags}>Policy never bypasses the independent factory charge switch. A design handoff creates only an unconfirmed draft unless the separate production gate is deliberately armed and confirmed.</p>
     </section>
 
-    {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
+    {visibleError ? <p role="alert" className={styles.alert}>{visibleError}</p> : null}
     {notice ? <p role="status" className={styles.alert}>{notice}</p> : null}
     <div className={styles.ledgerLayout}>
       <div className={styles.ledgerList}>{items.map((item) => <button key={item.issueId} type="button" aria-pressed={selected?.issueId === item.issueId} onClick={() => choose(item)}>
