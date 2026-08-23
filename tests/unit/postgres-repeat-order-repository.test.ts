@@ -48,7 +48,8 @@ describe('PostgresRepeatOrderRepository', () => {
       created: true,
     });
     expect(sql.calls).toHaveLength(1);
-    expect(sql.calls[0].text).toContain('ON CONFLICT (public_session_hash) DO NOTHING');
+    expect(sql.calls[0].text).toContain('ON CONFLICT (public_session_hash) DO UPDATE');
+    expect(sql.calls[0].text).toContain('public_session_hash = experiences.public_session_hash');
     expect(sql.calls[0].text).toContain('experience_answers');
     expect(sql.calls[0].text).toContain('experience_question_sets');
     expect(sql.calls[0].text).toContain('experience_question_set_items');
