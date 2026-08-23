@@ -3,8 +3,8 @@ import { createDesignService } from '@/server/design/runtimeDesign';
 import { enqueueDesignIssue } from '@/server/design/designQueue';
 import { dispatchPaidIssueDesign } from '@/server/design/designDispatch';
 import { DesignPolicyWorkflowService } from '@/server/design/DesignPolicyWorkflowService';
+import { FilesystemArtworkStorage } from '@/server/design/FilesystemArtworkStorage';
 import { PostgresDesignPolicyRepository } from '@/server/design/PostgresDesignPolicyRepository';
-import { VercelBlobArtworkStorage } from '@/server/design/VercelBlobArtworkStorage';
 import { createIssueService } from '@/server/issues/runtimeIssues';
 import { createManufacturingService } from '@/server/manufacturing/runtimeManufacturing';
 import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
@@ -101,7 +101,7 @@ export function createManualArtworkUploadService() {
   return new ManualArtworkUploadService(
     new PostgresDesignPolicyRepository(executor),
     new PostgresOpsDesignerStore(executor),
-    new VercelBlobArtworkStorage(env('BLOB_READ_WRITE_TOKEN')),
+    new FilesystemArtworkStorage(env('ARTWORK_STORAGE_DIR')),
     { approve: (issueId) => createDesignPolicyWorkflowService().afterOwnerApproval(issueId) },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
