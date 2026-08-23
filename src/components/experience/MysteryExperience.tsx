@@ -31,10 +31,20 @@ type BaseColorCatalog = Partial<
   Record<ObjectType, Readonly<Record<string, readonly BaseColorOption[]>>>
 >;
 
+type ExperiencePhase =
+  | 'interview'
+  | 'form'
+  | 'size'
+  | 'base'
+  | 'contact'
+  | 'shipping'
+  | 'commitment';
+
 type MysteryExperienceProps = {
   questions?: readonly QuestionDefinition[];
   initialQuestionPosition?: number;
   interviewInitiallyComplete?: boolean;
+  initialPhase?: Extract<ExperiencePhase, 'interview' | 'form'>;
   onAnswer: (payload: AnswerPayload) => Promise<void> | void;
   onInterviewComplete?: () => Promise<void> | void;
   onObjectSelected: (object: ObjectType) => Promise<readonly SizeOption[] | void> | readonly SizeOption[] | void;
@@ -57,19 +67,11 @@ type MysteryExperienceProps = {
   onCheckoutRequested?: (quoteId: string) => Promise<void> | void;
 };
 
-type ExperiencePhase =
-  | 'interview'
-  | 'form'
-  | 'size'
-  | 'base'
-  | 'contact'
-  | 'shipping'
-  | 'commitment';
-
 export function MysteryExperience({
   questions,
   initialQuestionPosition,
   interviewInitiallyComplete,
+  initialPhase = 'interview',
   onAnswer,
   onInterviewComplete,
   onObjectSelected,
@@ -84,7 +86,7 @@ export function MysteryExperience({
   onApplyReferral,
   onCheckoutRequested,
 }: MysteryExperienceProps) {
-  const [phase, setPhase] = useState<ExperiencePhase>('interview');
+  const [phase, setPhase] = useState<ExperiencePhase>(initialPhase);
   const [selectedObject, setSelectedObject] = useState<ObjectType | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<{ code: string; label: string } | null>(null);
