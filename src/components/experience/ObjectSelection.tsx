@@ -17,13 +17,19 @@ const CURRENT_ISSUE_OBJECTS: Array<{ value: ObjectType; label: string; index: st
 export function ObjectSelection({ onSelect }: ObjectSelectionProps) {
   const [selected, setSelected] = useState<ObjectType | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function lockForm() {
     if (!selected || submitting) return;
 
     setSubmitting(true);
+    setError(null);
     try {
       await onSelect(selected);
+    } catch (cause) {
+      setError(cause instanceof Error && cause.message
+        ? cause.message
+        : 'That form could not be saved yet.');
     } finally {
       setSubmitting(false);
     }
@@ -43,7 +49,10 @@ export function ObjectSelection({ onSelect }: ObjectSelectionProps) {
               name="object"
               value={object.value}
               checked={selected === object.value}
-              onChange={() => setSelected(object.value)}
+              onChange={() => {
+                setSelected(object.value);
+                setError(null);
+              }}
             />
             <span className="object-selection__index" aria-hidden="true">
               {object.index}
@@ -53,6 +62,7 @@ export function ObjectSelection({ onSelect }: ObjectSelectionProps) {
         ))}
       </fieldset>
 
+      {error ? <p role="alert">{error}</p> : null}
       <button type="button" onClick={lockForm} disabled={!selected || submitting}>
         {submitting ? '...' : 'LOCK FORM'}
       </button>

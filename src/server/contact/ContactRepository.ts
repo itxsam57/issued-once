@@ -35,4 +35,11 @@ export interface ContactRepository {
     contact: VerifiedContactRecord;
   }): Promise<boolean>;
   findVerifiedByExperienceId(experienceId: string): Promise<VerifiedContactRecord | null>;
+  copyVerifiedContact(input: {
+    sourceContactId: string;
+    targetExperienceId: string;
+    expectedEmailHash: string;
+    newContactId: string;
+    now: Date;
+  }): Promise<boolean>;
 }

@@ -13,6 +13,11 @@ on:
       - 'pnpm-lock.yaml'
       - '.github/workflows/browser-qa.yml'
   workflow_dispatch:
+    inputs:
+      preview_url:
+        description: Repair-branch Vercel preview URL
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -48,7 +53,7 @@ jobs:
       - name: Live Vercel owner preview
         if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/feat/mystery-foundation'
         env:
-          PREVIEW_URL: https://issued-once-git-feat-mystery-foundation-samx4.vercel.app
+          PREVIEW_URL: ${{ inputs.preview_url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: node tests/e2e/live-owner-preview.mjs
       - name: Live production customer journey

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLiveResource } from './useLiveResource';
 import styles from './owner-os.module.css';
 
 type Snapshot = {
@@ -30,28 +31,29 @@ async function fetchSales(days: number): Promise<Snapshot> {
 
 export function SalesPanel() {
   const [days, setDays] = useState(30);
-  const [data, setData] = useState<Snapshot | null>(null);
-  const [loadedDays, setLoadedDays] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const previousDays = useRef(days);
+  const load = useCallback(() => fetchSales(days), [days]);
+  const live = useLiveResource({ load, intervalMs: 20_000 });
 
   useEffect(() => {
-    let alive = true;
-    void fetchSales(days)
-      .then((value) => { if (alive) { setData(value); setLoadedDays(days); setError(null); } })
-      .catch((cause) => { if (alive) { setLoadedDays(days); setError(cause instanceof Error ? cause.message : 'Sales unavailable'); } });
-    return () => { alive = false; };
-  }, [days]);
+    if (previousDays.current === days) return;
+    previousDays.current = days;
+    void live.refresh();
+  }, [days, live.refresh]);
 
-  const loading = loadedDays !== days;
+  const data = live.data;
   return <div>
     <div className={styles.panelHead}>
       <div><p>SALES / CANONICAL</p><h1>What actually sold.</h1></div>
-      <select aria-label="Sales window" value={days} onChange={(event) => setDays(Number(event.target.value))}>
-        <option value={7}>7 DAYS</option><option value={30}>30 DAYS</option><option value={90}>90 DAYS</option><option value={3650}>LIFETIME</option>
-      </select>
+      <div className={styles.actionRow}>
+        <select aria-label="Sales window" value={days} onChange={(event) => setDays(Number(event.target.value))}>
+          <option value={7}>7 DAYS</option><option value={30}>30 DAYS</option><option value={90}>90 DAYS</option><option value={3650}>LIFETIME</option>
+        </select>
+        <button type="button" onClick={() => void live.refresh()}>REFRESH</button>
+      </div>
     </div>
-    {!loading && error ? <p role="alert" className={styles.alert}>{error}</p> : null}
-    {loading || !data ? <p>READING SALES</p> : <>
+    {live.error ? <p role="alert" className={styles.alert}>{live.error}</p> : null}
+    {!data ? <p>READING SALES</p> : <>
       <div className={styles.metricGrid}>
         <article><span>PAID ORDERS</span><strong>{data.paidOrders}</strong></article><article><span>GROSS</span><strong>{money(data.grossMinor, data.currency)}</strong></article>
         <article><span>REFUNDED</span><strong>{money(data.refundedMinor, data.currency)}</strong></article><article><span>NET AFTER REFUNDS</span><strong>{money(data.netAfterRefundMinor, data.currency)}</strong></article>

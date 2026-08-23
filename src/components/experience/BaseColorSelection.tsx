@@ -17,13 +17,19 @@ type BaseColorSelectionProps = {
 export function BaseColorSelection({ colors, onConfirm }: BaseColorSelectionProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function confirm() {
     if (!selected || submitting) return;
 
     setSubmitting(true);
+    setError(null);
     try {
       await onConfirm(selected);
+    } catch (cause) {
+      setError(cause instanceof Error && cause.message
+        ? cause.message
+        : 'That color could not be saved yet.');
     } finally {
       setSubmitting(false);
     }
@@ -43,7 +49,10 @@ export function BaseColorSelection({ colors, onConfirm }: BaseColorSelectionProp
               name="base-color"
               value={color.code}
               checked={selected === color.code}
-              onChange={() => setSelected(color.code)}
+              onChange={() => {
+                setSelected(color.code);
+                setError(null);
+              }}
               aria-label={color.label}
             />
             <span
@@ -56,6 +65,7 @@ export function BaseColorSelection({ colors, onConfirm }: BaseColorSelectionProp
         ))}
       </fieldset>
 
+      {error ? <p role="alert">{error}</p> : null}
       <button type="button" onClick={confirm} disabled={!selected || submitting}>
         {submitting ? '...' : 'LOCK BASE'}
       </button>

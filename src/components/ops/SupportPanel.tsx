@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLiveResource } from './useLiveResource';
 import styles from './owner-os.module.css';
 
 type NotificationEventKey = 'PAYMENT_RECEIVED'|'IN_PRODUCTION'|'SHIPPED'|'DELIVERED';
@@ -20,43 +21,41 @@ async function fetchCases(filter: 'OPEN'|'CLOSED'): Promise<Case[]> {
 
 export function SupportPanel() {
   const [filter, setFilter] = useState<'OPEN'|'CLOSED'>('OPEN');
-  const [items, setItems] = useState<Case[]>([]);
-  const [selected, setSelected] = useState<Case | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [message, setMessage] = useState<unknown>(null);
   const [note, setNote] = useState('');
   const [reply, setReply] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
+  const previousFilter = useRef(filter);
+  const load = useCallback(() => fetchCases(filter), [filter]);
+  const { data, error: liveError, refresh } = useLiveResource({ load, intervalMs: 15_000 });
+  const items = data ?? [];
+  const selected = selectedId ? items.find((item) => item.requestId === selectedId) ?? null : null;
 
-  async function refresh() {
-    const next = await fetchCases(filter);
-    setItems(next);
-    if (selected) setSelected(next.find((item) => item.requestId === selected.requestId) ?? null);
-  }
   useEffect(() => {
-    let alive = true;
-    void fetchCases(filter)
-      .then((next) => { if (alive) setItems(next); })
-      .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Support unavailable'); });
-    return () => { alive = false; };
-  }, [filter]);
+    if (previousFilter.current === filter) return;
+    previousFilter.current = filter;
+    void refresh();
+  }, [filter, refresh]);
 
   function clearEditor() { setReason(''); setMessage(null); setNote(''); setReply(''); }
-  function choose(item: Case) { setSelected(item); clearEditor(); setError(null); }
-  function changeFilter(next: 'OPEN'|'CLOSED') { setFilter(next); setSelected(null); clearEditor(); setError(null); }
+  function choose(item: Case) { setSelectedId(item.requestId); clearEditor(); setActionError(null); }
+  function changeFilter(next: 'OPEN'|'CLOSED') { setFilter(next); setSelectedId(null); clearEditor(); setActionError(null); }
 
   async function run(action: () => Promise<unknown>) {
-    setWorking(true); setError(null);
+    setWorking(true); setActionError(null);
     try { await action(); await refresh(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Support action failed'); }
+    catch (cause) { setActionError(cause instanceof Error ? cause.message : 'Support action failed'); }
     finally { setWorking(false); }
   }
 
+  const error = actionError ?? liveError;
   return <div>
     <div className={styles.panelHead}>
       <div><p>SUPPORT / DESK</p><h1>What needs a human.</h1></div>
-      <select value={filter} onChange={(event) => changeFilter(event.target.value as 'OPEN'|'CLOSED')}><option value="OPEN">OPEN</option><option value="CLOSED">CLOSED</option></select>
+      <div className={styles.actionRow}><select value={filter} onChange={(event) => changeFilter(event.target.value as 'OPEN'|'CLOSED')}><option value="OPEN">OPEN</option><option value="CLOSED">CLOSED</option></select><button type="button" onClick={() => void refresh()}>REFRESH</button></div>
     </div>
     {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
     <div className={styles.ledgerLayout}>

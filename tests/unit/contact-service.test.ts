@@ -58,6 +58,10 @@ class MemoryContactRepository implements ContactRepository {
   async findVerifiedByExperienceId(experienceId: string) {
     return this.contact?.experienceId === experienceId ? this.contact : null;
   }
+
+  async copyVerifiedContact() {
+    return false;
+  }
 }
 
 class MemoryDelivery implements OtpDeliveryGateway {

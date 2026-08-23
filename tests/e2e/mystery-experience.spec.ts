@@ -149,7 +149,7 @@ test('the mystery journey crosses private traces, physical locks, identity, dest
   await expect(page.getByText('FORM COMPLETE')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'From here, it becomes ours to interpret.' })).toBeVisible();
   await expect(page.getByText('TEE / M / BONE')).toBeVisible();
-  await expect(page.getByText('$54.00')).toBeVisible();
+  await expect(page.getByText('$32.00')).toBeVisible();
   await expect(page.getByText('Everything else stays unknown until it arrives.')).toBeVisible();
   const issueMine = page.getByRole('button', { name: 'ISSUE MINE' });
   await expect(issueMine).toBeVisible();

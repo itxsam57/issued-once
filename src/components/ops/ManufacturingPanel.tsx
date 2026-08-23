@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useLiveResource } from './useLiveResource';
 import styles from './owner-os.module.css';
 
 type Item = {
@@ -23,47 +24,31 @@ async function fetchManufacturingQueue(): Promise<QueuePayload> {
 }
 
 export function ManufacturingPanel() {
-  const [items, setItems] = useState<Item[]>([]);
-  const [selected, setSelected] = useState<Item | null>(null);
-  const [armed, setArmed] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState('');
   const [reason, setReason] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
-
-  async function refresh() {
-    const payload = await fetchManufacturingQueue();
-    setItems(payload.items);
-    setArmed(payload.confirmArmed);
-    if (selected) setSelected(payload.items.find((item) => item.issueId === selected.issueId) ?? null);
-  }
-
-  useEffect(() => {
-    let alive = true;
-    void fetchManufacturingQueue()
-      .then((payload) => {
-        if (!alive) return;
-        setItems(payload.items);
-        setArmed(payload.confirmArmed);
-      })
-      .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Manufacturing unavailable'); });
-    return () => { alive = false; };
-  }, []);
+  const { data, error: liveError, refresh } = useLiveResource({ load: fetchManufacturingQueue, intervalMs: 15_000 });
+  const items = data?.items ?? [];
+  const armed = data?.confirmArmed ?? false;
+  const selected = selectedId ? items.find((item) => item.issueId === selectedId) ?? null : null;
 
   function choose(item: Item) {
-    setSelected(item);
+    setSelectedId(item.issueId);
     setConfirmation('');
     setReason('');
-    setError(null);
+    setActionError(null);
   }
 
   async function run(action: () => Promise<void>) {
-    setWorking(true); setError(null);
+    setWorking(true); setActionError(null);
     try { await action(); await refresh(); setConfirmation(''); setReason(''); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Manufacturing action failed'); }
+    catch (cause) { setActionError(cause instanceof Error ? cause.message : 'Manufacturing action failed'); }
     finally { setWorking(false); }
   }
 
+  const error = actionError ?? liveError;
   return <div>
     <div className={styles.panelHead}>
       <div><p>MANUFACTURING / CONTROL</p><h1>What is becoming physical.</h1></div>

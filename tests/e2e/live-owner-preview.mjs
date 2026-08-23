@@ -104,7 +104,7 @@ async function runJourney(browser, profile) {
   await page.getByLabel('Phone').fill('+923001234567');
   await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
 
-  await page.getByText('$54.00').waitFor();
+  await page.getByText('$32.00').waitFor();
   await page.getByRole('button', { name: 'ISSUE MINE' }).click();
   await page.getByRole('heading', { name: 'PREVIEW COMPLETE.' }).waitFor();
   await page.getByText('No payment was attempted.').waitFor();

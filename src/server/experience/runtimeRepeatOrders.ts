@@ -1,12 +1,13 @@
-import { createNeonSqlExecutor } from './NeonSqlExecutor';
-import { PostgresExperienceRepository } from './PostgresExperienceRepository';
-import { PostgresRepeatOrderRepository } from './PostgresRepeatOrderRepository';
-import { RepeatOrderService } from './RepeatOrderService';
+import { PostgresContactRepository } from '@/server/contact/PostgresContactRepository';
 import { PreviewExperienceRepository } from '@/server/preview/PreviewExperienceRepository';
 import { PreviewQuestionSetRepository } from '@/server/preview/PreviewQuestionSetRepository';
 import { PreviewRepeatOrderRepository } from '@/server/preview/PreviewRepeatOrderRepository';
 import { PostgresQuestionSetRepository } from '@/server/questions/PostgresQuestionSetRepository';
 import { getQuestionSelectionService } from '@/server/questions/runtimeQuestions';
+import { createNeonSqlExecutor } from './NeonSqlExecutor';
+import { PostgresExperienceRepository } from './PostgresExperienceRepository';
+import { PostgresRepeatOrderRepository } from './PostgresRepeatOrderRepository';
+import { RepeatOrderService } from './RepeatOrderService';
 
 export class RepeatOrderRuntimeUnavailableError extends Error {
   constructor(message = 'Repeat-order runtime is not configured') {
@@ -32,6 +33,7 @@ export function createRepeatOrderService(): RepeatOrderService {
       experiences: new PreviewExperienceRepository(),
       repeats: new PreviewRepeatOrderRepository(),
       questions: questionGateway(questions),
+      contacts: { findVerifiedByExperienceId: async () => null },
     });
   }
 
@@ -43,5 +45,6 @@ export function createRepeatOrderService(): RepeatOrderService {
     experiences: new PostgresExperienceRepository(sql),
     repeats: new PostgresRepeatOrderRepository(sql),
     questions: questionGateway(questions),
+    contacts: new PostgresContactRepository(sql),
   });
 }
