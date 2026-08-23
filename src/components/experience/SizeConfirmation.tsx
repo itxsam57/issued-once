@@ -18,6 +18,7 @@ type SizeConfirmationProps = {
 export function SizeConfirmation({ object, sizes, onConfirm }: SizeConfirmationProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const selectedSize = sizes.find((size) => size.code === selected) ?? null;
 
@@ -25,8 +26,13 @@ export function SizeConfirmation({ object, sizes, onConfirm }: SizeConfirmationP
     if (!selected || submitting) return;
 
     setSubmitting(true);
+    setError(null);
     try {
       await onConfirm(selected);
+    } catch (cause) {
+      setError(cause instanceof Error && cause.message
+        ? cause.message
+        : 'That size could not be saved yet.');
     } finally {
       setSubmitting(false);
     }
@@ -46,7 +52,10 @@ export function SizeConfirmation({ object, sizes, onConfirm }: SizeConfirmationP
               name="size"
               value={size.code}
               checked={selected === size.code}
-              onChange={() => setSelected(size.code)}
+              onChange={() => {
+                setSelected(size.code);
+                setError(null);
+              }}
               aria-label={size.measurements ? `${size.label} — ${size.measurements}` : size.label}
             />
             <span className="size-confirmation__code">{size.code}</span>
@@ -64,6 +73,7 @@ export function SizeConfirmation({ object, sizes, onConfirm }: SizeConfirmationP
         </div>
       ) : null}
 
+      {error ? <p role="alert">{error}</p> : null}
       <button type="button" onClick={confirm} disabled={!selected || submitting}>
         {submitting ? '...' : 'CONFIRM SIZE'}
       </button>
