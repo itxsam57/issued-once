@@ -5,6 +5,7 @@ import {
   REQUIRED_QUESTION_FAMILIES,
   type QuestionFamily,
 } from '@/domain/questions/QuestionVault';
+import type { ContactRepository } from '@/server/contact/ContactRepository';
 import {
   deriveNextOrderSessionToken,
   hashSessionToken,
@@ -27,8 +28,14 @@ type Dependencies = {
   experiences: Pick<ExperienceRepository, 'findBySessionHash'>;
   repeats: RepeatOrderRepository;
   questions: QuestionProfileGateway;
+  contacts: Pick<ContactRepository, 'findVerifiedByExperienceId'>;
   now?: () => Date;
   createId?: () => string;
+};
+
+type ContactContinuityDescriptor = {
+  sourceContactId: string;
+  emailHash: string;
 };
 
 function requireCompleteAssignment(
@@ -65,6 +72,7 @@ export class RepeatOrderService {
     stage: Awaited<ReturnType<RepeatOrderRepository['resolve']>>['stage'];
     experienceId: string;
     questions: readonly AssignedQuestionRecord[];
+    contactContinuity?: ContactContinuityDescriptor;
   }> {
     const source = await this.dependencies.experiences.findBySessionHash(
       hashSessionToken(input.sessionToken),
@@ -78,6 +86,10 @@ export class RepeatOrderService {
       await this.dependencies.questions.findByExperienceId(source.id),
       'Source profile assignment is incomplete',
     );
+    const sourceContact = await this.dependencies.contacts.findVerifiedByExperienceId(source.id);
+    const contactContinuity = sourceContact
+      ? { sourceContactId: sourceContact.id, emailHash: sourceContact.emailHash }
+      : undefined;
 
     const token = deriveNextOrderSessionToken(input.sessionToken);
     const createdAt = this.now();
@@ -101,6 +113,7 @@ export class RepeatOrderService {
         stage: child.stage,
         experienceId: child.experienceId,
         questions,
+        ...(contactContinuity ? { contactContinuity } : {}),
       };
     }
 
@@ -128,6 +141,7 @@ export class RepeatOrderService {
       stage: child.stage,
       experienceId: child.experienceId,
       questions,
+      ...(contactContinuity ? { contactContinuity } : {}),
     };
   }
 }
