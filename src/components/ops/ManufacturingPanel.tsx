@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLiveResource } from './useLiveResource';
 import styles from './owner-os.module.css';
 
 type Item = {
@@ -23,51 +24,39 @@ async function fetchManufacturingQueue(): Promise<QueuePayload> {
 }
 
 export function ManufacturingPanel() {
-  const [items, setItems] = useState<Item[]>([]);
   const [selected, setSelected] = useState<Item | null>(null);
-  const [armed, setArmed] = useState(false);
   const [confirmation, setConfirmation] = useState('');
   const [reason, setReason] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
-
-  async function refresh() {
-    const payload = await fetchManufacturingQueue();
-    setItems(payload.items);
-    setArmed(payload.confirmArmed);
-    if (selected) setSelected(payload.items.find((item) => item.issueId === selected.issueId) ?? null);
-  }
+  const live = useLiveResource({ load: fetchManufacturingQueue, intervalMs: 15_000 });
+  const items = live.data?.items ?? [];
+  const armed = live.data?.confirmArmed ?? false;
 
   useEffect(() => {
-    let alive = true;
-    void fetchManufacturingQueue()
-      .then((payload) => {
-        if (!alive) return;
-        setItems(payload.items);
-        setArmed(payload.confirmArmed);
-      })
-      .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Manufacturing unavailable'); });
-    return () => { alive = false; };
-  }, []);
+    if (!live.data) return;
+    setSelected((current) => current ? live.data!.items.find((item) => item.issueId === current.issueId) ?? null : null);
+  }, [live.data]);
 
   function choose(item: Item) {
     setSelected(item);
     setConfirmation('');
     setReason('');
-    setError(null);
+    setActionError(null);
   }
 
   async function run(action: () => Promise<void>) {
-    setWorking(true); setError(null);
-    try { await action(); await refresh(); setConfirmation(''); setReason(''); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Manufacturing action failed'); }
+    setWorking(true); setActionError(null);
+    try { await action(); await live.refresh(); setConfirmation(''); setReason(''); }
+    catch (cause) { setActionError(cause instanceof Error ? cause.message : 'Manufacturing action failed'); }
     finally { setWorking(false); }
   }
 
+  const error = actionError ?? live.error;
   return <div>
     <div className={styles.panelHead}>
       <div><p>MANUFACTURING / CONTROL</p><h1>What is becoming physical.</h1></div>
-      <div><span>{armed ? 'FACTORY CONFIRM / ARMED' : 'FACTORY CONFIRM / SAFE'}</span><button type="button" onClick={() => void refresh()}>REFRESH</button></div>
+      <div><span>{armed ? 'FACTORY CONFIRM / ARMED' : 'FACTORY CONFIRM / SAFE'}</span><button type="button" onClick={() => void live.refresh()}>REFRESH</button></div>
     </div>
     {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
     <div className={styles.ledgerLayout}>

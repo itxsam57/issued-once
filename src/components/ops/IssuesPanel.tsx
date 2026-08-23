@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { IssueDetailPanel } from './IssueDetailPanel';
+import { useLiveResource } from './useLiveResource';
 import styles from './owner-os.module.css';
 
 type IssueRow = {
@@ -35,10 +36,26 @@ type Filters = {
   to: string;
 };
 
+type IssuePage = { items: IssueRow[]; nextCursor: string | null };
+
 const EMPTY_FILTERS: Filters = {
   issueStatus: '', paymentStatus: '', designState: '', manufacturingState: '', objectType: '',
   supportOpen: '', paymentException: '', country: '', from: '', to: '',
 };
+
+async function fetchIssuePage(search: string, filters: Filters, cursor: string | null = null): Promise<IssuePage> {
+  const params = new URLSearchParams({ view: 'ledger', limit: '50' });
+  if (search.trim()) params.set('search', search.trim());
+  if (cursor) params.set('cursor', cursor);
+  for (const [key, value] of Object.entries(filters)) {
+    const trimmed = value.trim();
+    if (trimmed) params.set(key, key === 'country' ? trimmed.toUpperCase() : trimmed);
+  }
+  const response = await fetch(`/ops/api/issues?${params}`, { credentials: 'same-origin', cache: 'no-store' });
+  const payload = await response.json() as { items?: IssueRow[]; nextCursor?: string | null; error?: string };
+  if (!response.ok) throw new Error(payload.error || 'Issue ledger unavailable');
+  return { items: payload.items ?? [], nextCursor: payload.nextCursor ?? null };
+}
 
 export function IssuesPanel() {
   const [rows, setRows] = useState<IssueRow[]>([]);
@@ -46,43 +63,66 @@ export function IssuesPanel() {
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [selected, setSelected] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async (cursor: string | null = null, append = false) => {
-    const params = new URLSearchParams({ view: 'ledger', limit: '50' });
-    if (search.trim()) params.set('search', search.trim());
-    if (cursor) params.set('cursor', cursor);
-    for (const [key, value] of Object.entries(filters)) {
-      const trimmed = value.trim();
-      if (trimmed) params.set(key, key === 'country' ? trimmed.toUpperCase() : trimmed);
-    }
-    const response = await fetch(`/ops/api/issues?${params}`, { credentials: 'same-origin', cache: 'no-store' });
-    const payload = await response.json() as { items?: IssueRow[]; nextCursor?: string | null; error?: string };
-    if (!response.ok) throw new Error(payload.error || 'Issue ledger unavailable');
-    setRows((current) => append ? [...current, ...(payload.items ?? [])] : (payload.items ?? []));
-    setNextCursor(payload.nextCursor ?? null);
-  }, [search, filters]);
+  const [appendError, setAppendError] = useState<string | null>(null);
+  const firstPageCount = useRef(0);
+  const loadedMore = useRef(false);
+  const firstQuery = useRef(true);
+  const load = useCallback(() => fetchIssuePage(search, filters), [search, filters]);
+  const live = useLiveResource({ load, intervalMs: 20_000 });
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setError(null);
-      void load().catch((cause) => setError(cause instanceof Error ? cause.message : 'Issue ledger unavailable'));
-    }, 180);
+    if (!live.data) return;
+    const page = live.data;
+    setRows((current) => {
+      const tail = loadedMore.current ? current.slice(firstPageCount.current) : [];
+      const firstIds = new Set(page.items.map((item) => item.issueId));
+      firstPageCount.current = page.items.length;
+      return [...page.items, ...tail.filter((item) => !firstIds.has(item.issueId))];
+    });
+    if (!loadedMore.current) setNextCursor(page.nextCursor);
+  }, [live.data]);
+
+  useEffect(() => {
+    if (firstQuery.current) {
+      firstQuery.current = false;
+      return;
+    }
+    loadedMore.current = false;
+    firstPageCount.current = 0;
+    setRows([]);
+    setNextCursor(null);
+    setAppendError(null);
+    const timer = window.setTimeout(() => void live.refresh(), 180);
     return () => window.clearTimeout(timer);
-  }, [load]);
+  }, [search, filters, live.refresh]);
+
+  async function loadMore() {
+    if (!nextCursor) return;
+    try {
+      const page = await fetchIssuePage(search, filters, nextCursor);
+      loadedMore.current = true;
+      setRows((current) => {
+        const known = new Set(current.map((item) => item.issueId));
+        return [...current, ...page.items.filter((item) => !known.has(item.issueId))];
+      });
+      setNextCursor(page.nextCursor);
+      setAppendError(null);
+    } catch (cause) {
+      setAppendError(cause instanceof Error ? cause.message : 'Issue ledger unavailable');
+    }
+  }
 
   const setFilter = (key: keyof Filters, value: string) => setFilters((current) => ({ ...current, [key]: value }));
+  const error = appendError ?? live.error;
 
   return (
     <div>
       <div className={styles.panelHead}>
         <div><p>ISSUES / CANONICAL LEDGER</p><h1>Every paid piece.</h1></div>
-        <input
-          aria-label="Search Issues"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Issue / Safepay / Printful / tracking"
-        />
+        <div className={styles.actionRow}>
+          <input aria-label="Search Issues" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Issue / Safepay / Printful / tracking" />
+          <button type="button" onClick={() => void live.refresh()}>REFRESH</button>
+        </div>
       </div>
       <div className={styles.filterBar}>
         <select aria-label="Issue status filter" value={filters.issueStatus} onChange={(event) => setFilter('issueStatus', event.target.value)}>
@@ -127,8 +167,8 @@ export function IssuesPanel() {
               {issue.paymentExceptionCode ? <em>PAYMENT ATTENTION</em> : null}
             </button>
           ))}
-          {nextCursor ? <button type="button" onClick={() => void load(nextCursor, true)}>LOAD MORE</button> : null}
-          {rows.length === 0 ? <p>NO ISSUES MATCH</p> : null}
+          {nextCursor ? <button type="button" onClick={() => void loadMore()}>LOAD MORE</button> : null}
+          {rows.length === 0 && !live.loading ? <p>NO ISSUES MATCH</p> : null}
         </div>
         <IssueDetailPanel issueId={selected} />
       </div>
