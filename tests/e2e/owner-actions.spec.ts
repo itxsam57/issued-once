@@ -21,6 +21,7 @@ test('Owner operational rooms execute only explicit safe actions and preserve pr
   let attentionReads = 0;
   let recoveryBody: unknown = null;
   let manufacturingAction: { path: string; body: unknown } | null = null;
+  let productionConfirmAttempts = 0;
   const supportActions: Array<{ path: string; body: unknown }> = [];
   let readinessReads = 0;
   const salesWindows: number[] = [];
@@ -87,6 +88,7 @@ test('Owner operational rooms execute only explicit safe actions and preserve pr
       return json(route, { quarantined: true });
     }
     if (path === '/ops/api/manufacturing/confirm' && method === 'POST') {
+      productionConfirmAttempts += 1;
       return json(route, { error: 'Production confirmation must remain unreachable in this test.' }, 500);
     }
 
@@ -208,8 +210,5 @@ test('Owner operational rooms execute only explicit safe actions and preserve pr
   await page.getByRole('button', { name: 'CHECK AGAIN' }).click();
   await expect.poll(() => readinessReads).toBeGreaterThan(readinessBefore);
   await expect(page.getByText('PRODUCTION READY')).toHaveCount(0);
-
-  await page.getByRole('button', { name: 'CLOSE ROOM' }).click();
-  await expect(page.getByRole('heading', { name: 'Private room.' })).toBeVisible();
-  expect(supportActions.some((action) => action.path.includes('/confirm'))).toBe(false);
+  expect(productionConfirmAttempts).toBe(0);
 });

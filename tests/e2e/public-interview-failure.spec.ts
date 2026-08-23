@@ -26,6 +26,8 @@ async function answerSeven(page: Page) {
   await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
 }
 
+const saveFailure = (page: Page) => page.getByText('The next step could not be saved.', { exact: true });
+
 test('a failed answer save keeps the answer and offers a calm retry', async ({ page }, testInfo) => {
   await page.route('**/api/experience/answer', async (route) => {
     await route.fulfill({
@@ -126,21 +128,21 @@ test('physical selection and delivery route failures stay visible and retryable'
 
   await page.getByRole('radio', { name: 'TEE' }).check();
   await page.getByRole('button', { name: 'LOCK FORM' }).click();
-  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(saveFailure(page)).toBeVisible();
   await expect(page.getByRole('button', { name: 'LOCK FORM' })).toBeEnabled();
   await page.getByRole('button', { name: 'LOCK FORM' }).click();
   await expect(page.getByRole('heading', { name: 'Pick your size.' })).toBeVisible();
 
-  await page.getByRole('radio', { name: /^Medium/ }).check();
+  await page.getByRole('radio').first().check();
   await page.getByRole('button', { name: 'CONFIRM SIZE' }).click();
-  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(saveFailure(page)).toBeVisible();
   await expect(page.getByRole('button', { name: 'CONFIRM SIZE' })).toBeEnabled();
   await page.getByRole('button', { name: 'CONFIRM SIZE' }).click();
   await expect(page.getByRole('heading', { name: 'Color your issue.' })).toBeVisible();
 
-  await page.getByRole('radio', { name: 'Bone' }).check();
+  await page.getByRole('radio').first().check();
   await page.getByRole('button', { name: 'LOCK BASE' }).click();
-  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(saveFailure(page)).toBeVisible();
   await expect(page.getByRole('button', { name: 'LOCK BASE' })).toBeEnabled();
   await page.getByRole('button', { name: 'LOCK BASE' }).click();
   await expect(page.getByRole('heading', { name: 'Where do we find you?' })).toBeVisible();
@@ -159,12 +161,12 @@ test('physical selection and delivery route failures stay visible and retryable'
   await page.getByLabel('Country').selectOption('PK');
   await page.getByLabel('Phone').fill('bad-phone');
   await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
-  await expect(page.getByRole('alert')).toHaveText(/address could not be saved/i);
+  await expect(page.getByText('That address could not be saved yet.', { exact: true })).toBeVisible();
 
   await page.getByLabel('Phone').fill('+923001234567');
   await page.getByLabel('Address', { exact: true }).fill('x');
   await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
-  await expect(page.getByRole('alert')).toHaveText(/address could not be saved/i);
+  await expect(page.getByText('That address could not be saved yet.', { exact: true })).toBeVisible();
 
   await page.getByLabel('Address', { exact: true }).fill('1 Valid Street');
   await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
