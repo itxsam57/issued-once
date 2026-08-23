@@ -2,7 +2,7 @@
   "name": "issued-once",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.15.0",
+  "packageManager": "pnpm@11.23.0",
   "engines": {
     "node": ">=22.12.0"
   },
