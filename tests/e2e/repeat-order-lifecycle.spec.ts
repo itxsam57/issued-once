@@ -22,25 +22,63 @@ type PreviewPaymentPayload = {
   paymentAttemptId: string;
 };
 
+type DeliveryHarness = {
+  checks: string[];
+  otpRequests: string[];
+  reused: string[];
+};
+
 async function capture(page: Page, name: string) {
   await mkdir('artifacts/visual', { recursive: true });
   await page.screenshot({ path: `artifacts/visual/${name}.png`, fullPage: true });
 }
 
-async function installDeliveryStubs(page: Page) {
-  await page.route('**/api/contact/request-otp', async (route) => {
+async function installDeliveryStubs(page: Page): Promise<DeliveryHarness> {
+  const harness: DeliveryHarness = { checks: [], otpRequests: [], reused: [] };
+  let firstAddressVerified = false;
+
+  await page.route('**/api/contact/check-email', async (route) => {
     const body = route.request().postDataJSON() as { email: string };
-    expect(body).toEqual({ email: 'repeat@example.com' });
+    harness.checks.push(body.email);
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ challengeId: 'challenge-repeat', retryAfterSeconds: 60 }),
+      body: JSON.stringify({
+        alreadyVerified: firstAddressVerified && body.email === 'repeat@example.com',
+      }),
+    });
+  });
+
+  await page.route('**/api/contact/reuse-verified', async (route) => {
+    const body = route.request().postDataJSON() as { email: string };
+    expect(body).toEqual({ email: 'repeat@example.com' });
+    harness.reused.push(body.email);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ verified: true }),
+    });
+  });
+
+  await page.route('**/api/contact/request-otp', async (route) => {
+    const body = route.request().postDataJSON() as { email: string };
+    harness.otpRequests.push(body.email);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        challengeId: `challenge-repeat-${harness.otpRequests.length}`,
+        retryAfterSeconds: 60,
+        requestTag: `REPEAT0${harness.otpRequests.length}`,
+      }),
     });
   });
 
   await page.route('**/api/contact/verify-otp', async (route) => {
     const body = route.request().postDataJSON() as { challengeId: string; code: string };
-    expect(body).toEqual({ challengeId: 'challenge-repeat', code: '123456' });
+    expect(body.code).toBe('123456');
+    expect(body.challengeId).toMatch(/^challenge-repeat-[12]$/);
+    if (harness.otpRequests.at(-1) === 'repeat@example.com') firstAddressVerified = true;
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -65,6 +103,8 @@ async function installDeliveryStubs(page: Page) {
       body: JSON.stringify({ saved: true }),
     });
   });
+
+  return harness;
 }
 
 async function installPreviewPaymentCapture(page: Page): Promise<PreviewPaymentPayload[]> {
@@ -104,7 +144,22 @@ async function answerSevenAssignedQuestions(page: Page) {
   await expect(page.getByRole('heading', { name: 'WE HAVE ENOUGH.' })).toBeVisible();
 }
 
-async function reachCommitment(page: Page) {
+async function fillShipping(page: Page) {
+  await expect(page.getByRole('heading', { name: 'Where does it go?' })).toBeVisible();
+  await page.getByLabel('Name').fill('Repeat Customer');
+  await page.getByLabel('Address', { exact: true }).fill('7 New Issue Road');
+  await page.getByLabel('City').fill('Peshawar');
+  await page.getByLabel('Province / state / region').fill('Khyber Pakhtunkhwa');
+  await page.getByLabel('Postal code').fill('25000');
+  await page.getByLabel('Country').selectOption('PK');
+  await page.getByLabel('Phone').fill('+923001234567');
+  await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
+}
+
+async function reachCommitment(
+  page: Page,
+  options: { email: string; reusePrior?: boolean; proveChangeEmail?: boolean },
+) {
   await page.getByRole('radio', { name: 'TEE' }).check();
   await page.getByRole('button', { name: 'LOCK FORM' }).click();
   await expect(page.getByRole('heading', { name: 'Pick your size.' })).toBeVisible();
@@ -117,20 +172,26 @@ async function reachCommitment(page: Page) {
   await page.getByRole('button', { name: 'LOCK BASE' }).click();
   await expect(page.getByRole('heading', { name: 'Where do we find you?' })).toBeVisible();
 
-  await page.getByLabel('Email').fill('repeat@example.com');
+  await page.getByLabel('Email').fill(options.email);
   await page.getByRole('button', { name: 'SEND CODE' }).click();
-  await page.getByLabel('Verification code').fill('123456');
-  await page.getByRole('button', { name: 'VERIFY' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Where does it go?' })).toBeVisible();
-  await page.getByLabel('Name').fill('Repeat Customer');
-  await page.getByLabel('Address', { exact: true }).fill('7 New Issue Road');
-  await page.getByLabel('City').fill('Peshawar');
-  await page.getByLabel('Province / state / region').fill('Khyber Pakhtunkhwa');
-  await page.getByLabel('Postal code').fill('25000');
-  await page.getByLabel('Country').selectOption('PK');
-  await page.getByLabel('Phone').fill('+923001234567');
-  await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
+  if (options.reusePrior) {
+    await expect(page.getByText('THIS EMAIL IS ALREADY VERIFIED.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'USE THIS EMAIL' })).toBeVisible();
+    if (options.proveChangeEmail) {
+      await page.getByRole('button', { name: 'CHANGE EMAIL' }).click();
+      await expect(page.getByLabel('Email')).toHaveValue(options.email);
+      await page.getByRole('button', { name: 'SEND CODE' }).click();
+      await expect(page.getByText('THIS EMAIL IS ALREADY VERIFIED.')).toBeVisible();
+    }
+    await page.getByRole('button', { name: 'USE THIS EMAIL' }).click();
+  } else {
+    await expect(page.getByText(/Request REPEAT0[12]/)).toBeVisible();
+    await page.getByLabel('Verification code').fill('123456');
+    await page.getByRole('button', { name: 'VERIFY' }).click();
+  }
+
+  await fillShipping(page);
 
   await expect(page.getByText('FORM COMPLETE')).toBeVisible();
   await expect(
@@ -163,8 +224,8 @@ async function previewCheckout(
 test.describe('repeat-order lifecycle', () => {
   test.setTimeout(180_000);
 
-  test('three successive orders remain isolated across reuse and fresh-answer paths', async ({ page }, testInfo) => {
-    await installDeliveryStubs(page);
+  test('three successive orders remain isolated and contact reuse is explicit', async ({ page }, testInfo) => {
+    const delivery = await installDeliveryStubs(page);
     const previewPayments = await installPreviewPaymentCapture(page);
 
     const firstStartPromise = page.waitForResponse((response) =>
@@ -182,7 +243,7 @@ test.describe('repeat-order lifecycle', () => {
     await answerSevenAssignedQuestions(page);
     await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
     await expect(page.getByRole('heading', { name: 'Pick the shape your issue lives on.' })).toBeVisible();
-    await reachCommitment(page);
+    await reachCommitment(page, { email: 'repeat@example.com' });
     const firstPaymentId = await previewCheckout(page, previewPayments, 1);
     await capture(page, `16-repeat-choice-first-${testInfo.project.name}`);
 
@@ -200,7 +261,14 @@ test.describe('repeat-order lifecycle', () => {
 
     await expect(page.getByRole('heading', { name: 'Pick the shape your issue lives on.' })).toBeVisible();
     await expect(page.getByText('01 / 07')).toHaveCount(0);
-    await reachCommitment(page);
+    const otpCountBeforeReuse = delivery.otpRequests.length;
+    await reachCommitment(page, {
+      email: 'repeat@example.com',
+      reusePrior: true,
+      proveChangeEmail: true,
+    });
+    expect(delivery.otpRequests).toHaveLength(otpCountBeforeReuse);
+    expect(delivery.reused).toEqual(['repeat@example.com']);
     const secondPaymentId = await previewCheckout(page, previewPayments, 2);
     await capture(page, `17-repeat-choice-second-${testInfo.project.name}`);
 
@@ -224,9 +292,16 @@ test.describe('repeat-order lifecycle', () => {
     await answerSevenAssignedQuestions(page);
     await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
     await expect(page.getByRole('heading', { name: 'Pick the shape your issue lives on.' })).toBeVisible();
-    await reachCommitment(page);
+    await reachCommitment(page, { email: 'fresh@example.com' });
     const thirdPaymentId = await previewCheckout(page, previewPayments, 3);
 
+    expect(delivery.otpRequests).toEqual(['repeat@example.com', 'fresh@example.com']);
+    expect(delivery.checks).toEqual([
+      'repeat@example.com',
+      'repeat@example.com',
+      'repeat@example.com',
+      'fresh@example.com',
+    ]);
     expect(new Set([firstPaymentId, secondPaymentId, thirdPaymentId]).size).toBe(3);
     await capture(page, `19-repeat-choice-third-${testInfo.project.name}`);
   });
