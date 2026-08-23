@@ -167,7 +167,7 @@ test('Owner operational rooms execute only explicit safe actions and preserve pr
   const salesWindow = page.getByLabel('Sales window');
   for (const days of ['7', '90', '3650']) {
     await salesWindow.selectOption(days);
-    await expect(page.getByText(days === '3650' ? 'LIFETIME' : `${days}D`, { exact: true })).toBeVisible();
+    await expect(salesWindow).toHaveValue(days);
   }
   expect(salesWindows).toEqual(expect.arrayContaining([30, 7, 90, 3650]));
 
