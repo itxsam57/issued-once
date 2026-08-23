@@ -1,15 +1,54 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { SESSION_COOKIE_NAME } from '@/server/http/sessionCookie';
+import type { OtpVerificationErrorCode } from '@/server/contact/ContactService';
 import {
   ContactRuntimeUnavailableError,
   createContactService,
 } from '@/server/contact/runtimeContact';
+import { SESSION_COOKIE_NAME } from '@/server/http/sessionCookie';
 
 const schema = z.object({
   challengeId: z.string().min(1).max(100),
   code: z.string().regex(/^\d{6}$/),
 });
+
+const OTP_CODES = new Set<OtpVerificationErrorCode>([
+  'WRONG_CODE',
+  'ATTEMPT_LIMIT',
+  'EXPIRED',
+  'USED_OR_STALE',
+  'CHALLENGE_NOT_FOUND',
+]);
+
+function typedOtpFailure(error: unknown): {
+  code: OtpVerificationErrorCode;
+  attemptsRemaining?: number;
+} | null {
+  if (!(error instanceof Error) || !('code' in error)) return null;
+  const code = (error as Error & { code?: unknown }).code;
+  if (typeof code !== 'string' || !OTP_CODES.has(code as OtpVerificationErrorCode)) {
+    return null;
+  }
+  const attemptsRemaining = (error as Error & { attemptsRemaining?: unknown }).attemptsRemaining;
+  return {
+    code: code as OtpVerificationErrorCode,
+    ...(typeof attemptsRemaining === 'number' ? { attemptsRemaining } : {}),
+  };
+}
+
+function safeMessage(code: OtpVerificationErrorCode): string {
+  switch (code) {
+    case 'WRONG_CODE':
+      return 'That code did not match.';
+    case 'ATTEMPT_LIMIT':
+      return 'Too many incorrect codes. Send a new code.';
+    case 'EXPIRED':
+      return 'That code expired. Send a new code.';
+    case 'USED_OR_STALE':
+    case 'CHALLENGE_NOT_FOUND':
+      return 'That code is no longer active. Send a new code.';
+  }
+}
 
 export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null));
@@ -33,12 +72,21 @@ export async function POST(request: Request) {
     if (error instanceof ContactRuntimeUnavailableError) {
       return Response.json({ error: 'Contact verification is unavailable' }, { status: 503 });
     }
-    if (error instanceof Error && /attempt limit/i.test(error.message)) {
-      return Response.json({ error: 'That code can no longer be used. Request another.' }, { status: 429 });
+
+    const otpFailure = typedOtpFailure(error);
+    if (otpFailure) {
+      return Response.json(
+        {
+          error: safeMessage(otpFailure.code),
+          code: otpFailure.code,
+          ...(otpFailure.attemptsRemaining !== undefined
+            ? { attemptsRemaining: otpFailure.attemptsRemaining }
+            : {}),
+        },
+        { status: otpFailure.code === 'ATTEMPT_LIMIT' ? 429 : 409 },
+      );
     }
-    if (error instanceof Error && /expired|used|code|challenge|not found/i.test(error.message)) {
-      return Response.json({ error: 'That code could not be verified' }, { status: 409 });
-    }
+
     console.error('contact otp verification failed', error);
     return Response.json({ error: 'Contact verification failed' }, { status: 500 });
   }
