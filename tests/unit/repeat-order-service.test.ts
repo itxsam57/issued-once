@@ -52,7 +52,7 @@ function createHarness(input?: {
     }),
   };
   const questions = {
-    assign: vi.fn().mockImplementation(async (experienceId: string) => {
+    findByExperienceId: vi.fn().mockImplementation(async (experienceId: string) => {
       if (experienceId === sourceExperience.id) return previous;
       return resolvedMode === 'reuse' ? previous : fresh;
     }),
@@ -85,6 +85,9 @@ describe('RepeatOrderService', () => {
     expect(result.token).toBe(deriveNextOrderSessionToken(sourceToken));
     expect(sourceExperience.stage).toBe('CHECKOUT_STARTED');
     expect(harness.questions.assignExcluding).not.toHaveBeenCalled();
+    expect(result.questions.map((question) => question.questionId)).toEqual(
+      harness.previous.map((question) => question.questionId),
+    );
   });
 
   it('creates a fresh child at QUESTION_1 and excludes all seven immediately previous question ids', async () => {
@@ -112,6 +115,15 @@ describe('RepeatOrderService', () => {
     expect(harness.questions.assignExcluding).not.toHaveBeenCalled();
   });
 
+  it('returns the persisted winning fresh mode when an opposite reuse choice loses the child race', async () => {
+    const harness = createHarness({ resolvedMode: 'fresh', resolvedStage: 'QUESTION_1' });
+
+    const result = await harness.service.choose({ sessionToken: sourceToken, mode: 'reuse' });
+
+    expect(result.mode).toBe('fresh');
+    expect(harness.questions.assignExcluding).toHaveBeenCalledOnce();
+  });
+
   it('rejects repeat-order choice unless the source experience is terminal checkout', async () => {
     const harness = createHarness({
       source: { ...sourceExperience, stage: 'COMMITMENT_READY' },
@@ -120,6 +132,16 @@ describe('RepeatOrderService', () => {
     await expect(
       harness.service.choose({ sessionToken: sourceToken, mode: 'reuse' }),
     ).rejects.toThrow('Repeat order is not unlocked');
+    expect(harness.repeats.resolve).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when the terminal source has no stored seven-question assignment', async () => {
+    const harness = createHarness();
+    harness.questions.findByExperienceId.mockResolvedValueOnce(null);
+
+    await expect(
+      harness.service.choose({ sessionToken: sourceToken, mode: 'fresh' }),
+    ).rejects.toThrow('Source profile assignment is incomplete');
     expect(harness.repeats.resolve).not.toHaveBeenCalled();
   });
 });
