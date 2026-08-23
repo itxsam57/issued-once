@@ -1,0 +1,47 @@
+name: Hostinger Temporary Release Proof
+
+on:
+  push:
+    branches:
+      - infra/hostinger-migration-20260823
+    paths:
+      - '.github/workflows/hostinger-temp-proof.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prove-hostinger-temp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
+      EXPECTED_RELEASE_ID: 929081a8c08b0836ec74037cbb0a7aa59ec88640
+    steps:
+      - name: Checkout frozen Hostinger candidate
+        uses: actions/checkout@v4
+        with:
+          ref: release/hostinger-candidate-20260823
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.23.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install chromium
+      - name: Prove release identity and runtime boundaries
+        run: node tests/e2e/live-release-health.mjs
+      - name: Prove Tee Cap Tote physical gates
+        run: node tests/e2e/live-production-smoke.mjs
+      - name: Upload live proof evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hostinger-temporary-live-proof
+          path: artifacts/visual
+          if-no-files-found: ignore
+          retention-days: 7
