@@ -1,24 +1,24 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-23T15:46:00+05:00",
+  "updatedAt": "2026-08-23T16:41:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "branch": "feat/mystery-foundation",
     "pullRequest": 3,
     "pullRequestState": "DRAFT",
-    "verifiedApplicationHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
+    "lastFullyDeployedApplicationHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
+    "canonicalCodeHeadPendingDeployment": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
     "workflowRepairPullRequest": 11,
-    "workflowRepairHead": "ba0b10c26b95570a7aed88bf996b56c91a7084a4",
-    "workflowRepairMergeHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
-    "repairSpecCommit": "7500321e51622edf3c13b8d84803403f8139ab0e",
-    "repairSpecPath": "docs/superpowers/specs/2026-08-23-workflow-audit-otp-live-owner-design.md",
+    "toteRepairPullRequest": 12,
+    "toteRepairHead": "7a1962a2d46335bb0fa517623fd01312770dc366",
+    "toteRepairMergeHead": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
     "productionMigrationHead": "0028_design_controls.sql",
     "nextRepositoryMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "decision": "WORKFLOW_REPAIR_COMPLETE_OWNER_TEST_AND_PROVIDER_GATES_REQUIRED",
+    "state": "WAIT_EXTERNAL",
+    "decision": "TOTE_PRODUCTION_FIX_MERGED_AWAITING_VERCEL_DEPLOYMENT_AND_LIVE_REPROOF",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -26,107 +26,74 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "The workflow-audit repair is merged, deployed and canonically verified. The remaining release gates require owner participation or credentials: live Owner OS session confirmation on the deployed site, production OpenAI + private Blob credentials for a real already-paid design generation, Printful product mapping for an unconfirmed draft, and separate explicit approval before migration 0029/referral signing-key rollout. No system-executable repair blocker remains in the completed workflow-audit scope."
+    "stopReason": "Owner production testing exposed a Tote-only PostgreSQL deserialization defect. PR 12 fixed the exact root cause and is merged into canonical with full pre-merge CI and Browser QA green, and canonical CI is green. The required canonical live production matrix ran before the new canonical Vercel deployment because Vercel rejected commit 33cc9119 with its free-tier build-rate limit. The live matrix therefore hit the prior deployment: Tee M/Bone and Hat OS/Bone passed, while Tote OS reproduced the old 500. Do not call the Tote production path fixed until Vercel deploys the canonical repair and the live Tee/Hat/Tote matrix is rerun successfully."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "WORKFLOW_REPAIR_MERGED_CANONICAL_VERIFIED_OWNER_TEST_READY",
+    "internalWorkStatus": "TOTE_ROOT_CAUSE_FIXED_MERGED_WAITING_EXTERNAL_DEPLOYMENT",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Use TDD RED before behavior changes",
       "Require fresh CI, build, browser, production and database evidence before success claims",
+      "Preview-only product matrix evidence is insufficient for production physical-gate claims",
+      "Canonical live smoke must exercise Tee, Hat and Tote through object, size and base APIs",
       "Browser navigation is never payment proof",
-      "Safepay PAID may be established by authenticated webhook truth or authoritative Reporter truth proving the immutable quote",
-      "New Safepay hosted checkout URLs must explicitly request webhook delivery with webhooks=true",
-      "Keep Reporter reconciliation as an independent payment-truth fallback even when webhooks are enabled",
       "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
       "Never apply production database migrations without exact owner approval",
       "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is applied and verified",
       "Keep Printful production confirmation disabled until its independent owner release gate",
-      "Do not create real charges solely for QA; use preview/fake payment paths",
-      "A paid Issue present in Neon but absent from Owner OS is a release blocker"
+      "Do not create real charges solely for QA; use non-payment test paths"
     ]
   },
   "workflowAuditRepair": {
     "status": "MERGED_DEPLOYED_CANONICAL_VERIFIED",
     "pullRequest": 11,
-    "repairHead": "ba0b10c26b95570a7aed88bf996b56c91a7084a4",
     "mergeHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
-    "resolved": [
-      "SHORT_LIVED_SIGNED_REPEAT_CONTACT_CONTINUITY_WITH_VERSION_AND_30_MINUTE_EXPIRY",
-      "EXPLICIT_MATCHING_EMAIL_REENTRY_BEFORE_VERIFIED_CONTACT_REUSE",
-      "NO_OTP_CHALLENGE_COPY_TO_REPEAT_CHILD",
-      "OTP_REQUEST_TAGS_TO_DISAMBIGUATE_DELIVERIES",
-      "SAFE_OTP_ERROR_AND_RECOVERY_STATES",
-      "OWNER_HOME_10S_LIVE_REFRESH",
-      "OWNER_ATTENTION_10S_LIVE_REFRESH",
-      "OWNER_SALES_20S_LIVE_REFRESH",
-      "OWNER_ISSUES_20S_LIVE_REFRESH",
-      "OWNER_DESIGNER_15S_LIVE_REFRESH",
-      "OWNER_MANUFACTURING_15S_LIVE_REFRESH_WITH_READ_ONLY_POLLING",
-      "OWNER_SUPPORT_15S_LIVE_REFRESH",
-      "OWNER_CUSTOMERS_30S_LIVE_REFRESH",
-      "OWNER_SYSTEM_15S_LIVE_REFRESH",
-      "TEE_HAT_TOTE_DESKTOP_AND_MOBILE_PREVIEW_PURCHASE_MATRIX",
-      "OWNER_OS_SAFE_ACTION_BROWSER_COVERAGE",
-      "REPAIR_BRANCH_PREVIEW_TARGET_HARNESS"
-    ],
-    "verification": {
-      "preMergeCi": {
-        "run": 1235,
-        "result": "PASS"
-      },
-      "preMergeBrowserQa": {
-        "run": 1150,
-        "result": "PASS"
-      },
-      "canonicalCi": {
-        "run": 1236,
-        "result": "PASS"
-      },
-      "canonicalBrowserQa": {
-        "run": 1151,
-        "result": "PASS"
-      },
-      "canonicalLiveProductionCustomerSmoke": "PASS",
-      "vercelDeployment": "READY",
-      "productionDatabaseReadOnlyProof": "PASS"
+    "canonicalCi": 1237,
+    "canonicalBrowserQa": 1152
+  },
+  "toteProductionRepair": {
+    "status": "MERGED_CI_VERIFIED_DEPLOYMENT_BLOCKED",
+    "ownerObservedSymptom": "TOTE reached OS size confirmation then displayed The next step could not be saved.",
+    "productionRootCause": "PostgresPhysicalSelectionRepository accepted tee, hoodie and hat when deserializing persisted physical selections but omitted the canonical tote ObjectType. A valid persisted tote/io-tote row was therefore rejected on the following size request as Stored physical object is invalid.",
+    "productionChange": "Add tote to the persisted physical-object validator; no schema, payment, manufacturing or catalog redesign required.",
+    "tdd": {
+      "redCommit": "8b652cfdec85d81dfbd5a34b0a4227b4d7e9418b",
+      "redCiRun": 1238,
+      "redResult": "1_FAILED_482_PASSED_EXPECTED_STORED_PHYSICAL_OBJECT_IS_INVALID",
+      "greenRepairHead": "7a1962a2d46335bb0fa517623fd01312770dc366",
+      "preMergeCiRun": 1242,
+      "preMergeCiResult": "PASS_UNIT_TYPECHECK_LINT_BUILD",
+      "preMergeBrowserQaRun": 1154,
+      "preMergeBrowserQaResult": "PASS"
+    },
+    "merge": {
+      "pullRequest": 12,
+      "canonicalMergeHead": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
+      "canonicalCiRun": 1243,
+      "canonicalCiResult": "PASS"
+    },
+    "testGapClosed": {
+      "oldGap": "Tee/Hat/Tote matrix used preview repository while canonical live production smoke exercised Tee only.",
+      "newGate": "Canonical live production smoke independently requires successful /api/experience/object, /api/experience/size and /api/experience/base for Tee M/Bone, Hat OS/Bone and Tote OS/Bone before passing."
+    },
+    "canonicalLiveAttempt": {
+      "browserQaRun": 1155,
+      "result": "FAIL_EXPECTED_OLD_DEPLOYMENT",
+      "tee": "PASS_M_BONE_COMMITMENT_READY",
+      "hat": "PASS_OS_BONE_COMMITMENT_READY",
+      "tote": "OLD_DEPLOYMENT_SIZE_HTTP_500_OBJECT_SELECTED",
+      "deploymentEvidence": "GitHub combined status for 33cc9119 reports Vercel=failure with build-rate-limit target; PR3 Vercel Ready comment remained on the previous 2026-08-23T10:54Z deployment during the 11:39Z live run."
+    },
+    "ownerOriginalToteSession": {
+      "preserved": true,
+      "stage": "OBJECT_SELECTED",
+      "object": "tote",
+      "productSlug": "io-tote",
+      "sizeCode": null,
+      "expiresAt": "2026-09-22T11:17:39.197Z",
+      "retryInstructionAfterDeployment": "Use the existing browser session and press CONFIRM SIZE again; questionnaire restart should not be required."
     }
-  },
-  "repeatOrderLifecycle": {
-    "status": "MERGED_DEPLOYED_AUTOMATED_PROOF_COMPLETE_CONTACT_CONTINUITY_REPAIRED",
-    "pullRequest": 10,
-    "terminalChoice": [
-      "KEEP_PREVIOUS_ANSWERS",
-      "ANSWER_AGAIN"
-    ],
-    "orderIsolation": "DETERMINISTIC_HASH_CHAIN_CHILD_SESSION_PER_REPEAT",
-    "reuseSemantics": "NEW_PROFILE_COMPLETE_CHILD_WITH_SEVEN_ENCRYPTED_ANSWERS_AND_EXACT_SEVEN_QUESTION_SNAPSHOTS",
-    "freshSemantics": "NEW_QUESTION_1_CHILD_WITH_IMMEDIATELY_PREVIOUS_PROMPT_EXCLUDED_PER_REQUIRED_FAMILY",
-    "verifiedContactBehavior": "SAME_BROWSER_REPEAT MAY REUSE THE VERIFIED CONTACT ONLY AFTER EXPLICIT REENTRY OF THE MATCHING EMAIL AND VALID SHORT_LIVED SIGNED CONTINUITY; OTP IS REQUIRED FOR A DIFFERENT EMAIL",
-    "productionMigrationRequiredForTarget": false
-  },
-  "productionLatestPaid": {
-    "issueCode": "IO-GUUM-8UR9",
-    "issueStatus": "BEING_INTERPRETED",
-    "objectType": "tee",
-    "productSlug": "io-tee"
-  },
-  "qaProof": {
-    "catalogPreviewMatrix": "TEE_HAT_TOTE_DESKTOP_MOBILE_PASS",
-    "otpRecoveryAndContinuity": "AUTOMATED_PASS",
-    "repeatReuseAndFresh": "AUTOMATED_PASS",
-    "ownerOsRoomsAndSafeActions": "AUTOMATED_PASS",
-    "ownerOsAutomaticRefresh": "AUTOMATED_PASS",
-    "liveProductionCustomerJourney": "PASS",
-    "liveOwnerOsProductionSession": "OWNER_SESSION_PROOF_PENDING"
-  },
-  "safepayProductionProof": {
-    "status": "LIVE_PROVEN",
-    "ownerConfirmedMerchantSecretConfigured": true,
-    "providerTruth": "REPORTER_V2_AND_CURRENT_PRODUCTION_PAYMENT_RECORDS",
-    "signedWebhookObservedForEarlierProvenPayments": false,
-    "webhookOptInRepairStatus": "DEPLOYED_AWAITING_NEXT_NORMAL_SIGNED_WEBHOOK_PROOF"
   },
   "productionDatabase": {
     "projectId": "autumn-butterfly-25489215",
@@ -139,35 +106,20 @@
     "checkoutQuoteReferralCreatorColumnPresent": false,
     "migration0029Applied": false
   },
-  "providers": {
-    "resendOtp": "LIVE_DELIVERY_PROVEN_THREADING_RECOVERY_AND_SAFE_ERROR_REPAIR_DEPLOYED",
-    "safepay": "LIVE_PROVEN_REPORTER_FALLBACK_WEBHOOK_OPT_IN_DEPLOYED_NEXT_SIGNED_WEBHOOK_PROOF_PENDING",
-    "openai": "OWNER_PRODUCTION_CREDENTIAL_AND_LIVE_GENERATION_PROOF_REQUIRED",
-    "blob": "OWNER_PRODUCTION_CREDENTIAL_AND_PRIVATE_ARTWORK_PROOF_REQUIRED",
-    "vercelQueues": "DESIGN_TRIGGER_CONFIG_PRESENT_LIVE_DESIGN_CONSUMER_PROOF_PENDING",
-    "vercelDeployment": "CANONICAL_READY_AND_LIVE_CUSTOMER_SMOKE_PASS",
-    "printful": "OWNER_MAPPING_UNCONFIRMED_DRAFT_AND_SIGNED_WEBHOOK_PROOF_PENDING",
-    "printfulProduction": "DISABLED"
-  },
-  "ownerTesting": {
-    "ready": true,
-    "url": "https://issuedonce.shop",
-    "noRealChargeRequiredForQa": true,
-    "focus": [
-      "CUSTOMER_FRONT_PAGE_AND_SEVEN_QUESTION_FLOW",
-      "TEE_HAT_TOTE_OBJECT_SIZE_COLOR_FLOW",
-      "OTP_AND_REPEAT_CONTACT_REUSE",
-      "PHONE_AND_PROVINCE_REQUIRED_SHIPPING",
-      "OWNER_OS_LIVE_REFRESH_AND_IO_GUUM_8UR9_VISIBILITY"
-    ]
+  "safetyGates": {
+    "realQaPayment": "NOT_PERFORMED",
+    "printfulProductionConfirmation": "DISABLED",
+    "migration0029": "NOT_APPLIED",
+    "referralSigningKeyRollout": "NOT_PERFORMED"
   },
   "nextActions": [
-    "OWNER TEST: exercise the deployed issuedonce.shop customer flow and Owner OS; no extra real payment is required solely for QA",
-    "OWNER: configure production OPENAI_API_KEY and BLOB_READ_WRITE_TOKEN without sharing secret values in chat when returning to the design-provider gate",
-    "SYSTEM: after credentials exist, generate one live design from an already-paid Issue and prove private Blob + queue + Owner OS visibility",
-    "OWNER: confirm Printful product mappings and authorize one real unconfirmed draft only; production confirmation remains disabled",
-    "OWNER APPROVAL: separately approve migration 0029 before referral tables/signing key are applied",
-    "SYSTEM: perform final release audit before PR 3 promotion to main"
+    "SYSTEM: when Vercel build-rate capacity is available, verify the latest feat/mystery-foundation deployment includes the Tote repair",
+    "SYSTEM: rerun canonical Browser QA 1155 failed job or equivalent against the newly deployed issuedonce.shop",
+    "SYSTEM: require LIVE_PRODUCTION_TEE_PHYSICAL_GATE_PASS, LIVE_PRODUCTION_HAT_PHYSICAL_GATE_PASS and LIVE_PRODUCTION_TOTE_PHYSICAL_GATE_PASS with HTTP 200 for object/size/base",
+    "SYSTEM: verify the newest production Tote smoke row reaches COMMITMENT_READY with size OS and a locked base color",
+    "SYSTEM: re-read manufacturing/referral invariants and keep them unchanged",
+    "OWNER: after live proof passes, retry CONFIRM SIZE in the existing Tote browser session; no questionnaire restart should be needed",
+    "OWNER/SYSTEM: only after this repair is live-proven return to the separate design-provider, Printful draft, referral migration and final-release gates"
   ],
-  "nextOwnerAction": "OWNER_TEST_LIVE_FLOW_AND_OWNER_OS_THEN_CONFIGURE_DESIGN_PROVIDER_CREDENTIALS"
+  "nextOwnerAction": "NONE_UNTIL_VERCEL_DEPLOYS_REPAIR; EXISTING_TOTE_SESSION_CAN_RETRY_AFTER_LIVE_PROOF"
 }
