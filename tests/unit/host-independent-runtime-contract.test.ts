@@ -35,6 +35,7 @@ test('production runtime has no Vercel package or source coupling', () => {
 
 test('readiness reports private filesystem storage and durable Postgres jobs without Blob configuration', async () => {
   const env: NodeJS.ProcessEnv = {
+    NODE_ENV: 'test',
     DATABASE_URL: 'postgresql://hidden',
     QUIZ_ENCRYPTION_KEY_V1: Buffer.alloc(32, 1).toString('base64'),
     IDENTITY_HMAC_KEY: Buffer.alloc(32, 2).toString('base64'),
