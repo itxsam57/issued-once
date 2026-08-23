@@ -45,7 +45,7 @@ describe('repeat contact verification UI', () => {
 
     expect(calls.onCheckEmail).toHaveBeenCalledWith('sam@example.com');
     expect(calls.onRequestOtp).not.toHaveBeenCalled();
-    expect(screen.getByText('THIS EMAIL IS ALREADY VERIFIED')).toBeInTheDocument();
+    expect(screen.getByText('THIS EMAIL IS ALREADY VERIFIED.')).toBeInTheDocument();
     expect(calls.onComplete).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole('button', { name: 'USE THIS EMAIL' }));
