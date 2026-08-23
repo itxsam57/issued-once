@@ -3,6 +3,7 @@ import {
   createContactContinuityToken,
   verifyContactContinuityToken,
 } from '@/server/contact/contactContinuity';
+import { contactContinuityCookieOptions } from '@/server/http/sessionCookie';
 
 beforeAll(() => {
   process.env.IDENTITY_HMAC_KEY = Buffer.alloc(32, 7).toString('base64');
@@ -16,17 +17,37 @@ describe('contact continuity proof', () => {
     issuedAt: new Date('2026-08-23T06:00:00.000Z'),
   };
 
-  it('round-trips only for the child session it was issued to', () => {
+  it('round-trips only for the child session it was issued to with explicit version and expiry', () => {
     const token = createContactContinuityToken(input);
 
-    expect(verifyContactContinuityToken(token, input.childSessionHash)).toEqual({
+    expect(verifyContactContinuityToken(
+      token,
+      input.childSessionHash,
+      new Date('2026-08-23T06:29:59.000Z'),
+    )).toEqual({
+      version: 1,
       sourceContactId: input.sourceContactId,
       emailHash: input.emailHash,
       childSessionHash: input.childSessionHash,
       issuedAt: input.issuedAt.toISOString(),
+      expiresAt: '2026-08-23T06:30:00.000Z',
     });
 
     expect(() => verifyContactContinuityToken(token, 'c'.repeat(64))).toThrow(/session/i);
+  });
+
+  it('rejects a continuity proof once its short lifetime has expired', () => {
+    const token = createContactContinuityToken(input);
+
+    expect(() => verifyContactContinuityToken(
+      token,
+      input.childSessionHash,
+      new Date('2026-08-23T06:30:00.000Z'),
+    )).toThrow(/expired/i);
+  });
+
+  it('keeps the browser continuity cookie short-lived instead of inheriting the 30-day session lifetime', () => {
+    expect(contactContinuityCookieOptions.maxAge).toBe(30 * 60);
   });
 
   it('rejects a tampered payload', () => {
