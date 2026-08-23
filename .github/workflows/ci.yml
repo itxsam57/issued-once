@@ -19,8 +19,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Install dependencies
+      - name: Install dependencies and generate lockfile
         run: pnpm install --no-frozen-lockfile
+      - name: Capture generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: issued-once-pnpm-lock
+          path: pnpm-lock.yaml
+          if-no-files-found: error
+          retention-days: 1
       - name: Unit tests
         run: pnpm test
       - name: Typecheck
