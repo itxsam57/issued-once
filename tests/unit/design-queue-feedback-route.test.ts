@@ -12,10 +12,6 @@ const {
   afterGeneratedReview: vi.fn(),
 }));
 
-vi.mock('@vercel/queue', () => ({
-  handleCallback: (handler: unknown) => handler,
-}));
-
 vi.mock('@/server/design/runtimeDesign', () => ({
   createDesignService: () => ({ createForIssue, regenerateArtwork }),
 }));
@@ -25,16 +21,16 @@ vi.mock('@/server/ops/runtimeOwnerOs', () => ({
   createDesignPolicyWorkflowService: () => ({ afterGeneratedReview }),
 }));
 
-import { POST } from '@/app/api/queue/design/route';
+import { handleDesignJob } from '@/server/jobs/issuedOnceJobHandlers';
 
 const issueId = '11111111-1111-4111-8111-111111111111';
 
-test('design queue callback delivers owner feedback to regeneration and preserves candidate workflow', async () => {
+test('design job handler delivers owner feedback to regeneration and preserves candidate workflow', async () => {
   regenerateArtwork.mockResolvedValueOnce({ state: 'REVIEW' });
   captureCurrentCandidate.mockResolvedValueOnce(undefined);
   afterGeneratedReview.mockResolvedValueOnce(undefined);
 
-  await (POST as unknown as (message: unknown) => Promise<void>)({
+  await handleDesignJob({
     issueId,
     mode: 'regenerate',
     generationKey: 'gen-2',
