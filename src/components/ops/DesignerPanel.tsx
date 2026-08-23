@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import styles from './owner-os.module.css';
 import { useLiveResource } from './useLiveResource';
 
@@ -68,12 +68,9 @@ async function fetchDesignerSnapshot(): Promise<DesignerSnapshot> {
 const QUICK_REASONS = ['TOO BUSY', 'TOO LITERAL', 'WEAK CONCEPT', 'WRONG MOOD', 'TYPOGRAPHY', 'PLACEMENT', 'NOT WEARABLE', 'OTHER'] as const;
 
 export function DesignerPanel() {
-  const [items, setItems] = useState<QueueItem[]>([]);
-  const [selected, setSelected] = useState<QueueItem | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [globalPolicy, setGlobalPolicy] = useState<DesignPolicy | null>(null);
   const [issuePolicy, setIssuePolicy] = useState<EffectivePolicy | null>(null);
-  const [readiness, setReadiness] = useState<Readiness | null>(null);
   const [reason, setReason] = useState('');
   const [instruction, setInstruction] = useState('');
   const [revealReason, setRevealReason] = useState('Design review');
@@ -84,6 +81,10 @@ export function DesignerPanel() {
   const [notice, setNotice] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
   const live = useLiveResource<DesignerSnapshot>({ load: fetchDesignerSnapshot, intervalMs: 15_000 });
+  const items = live.data?.items ?? [];
+  const globalPolicy = live.data?.policy ?? null;
+  const readiness = live.data?.readiness ?? null;
+  const selected = selectedId ? items.find((item) => item.issueId === selectedId) ?? null : null;
 
   const readinessCheck = (key: string) => readiness?.checks.find((check) => check.key === key);
   const openAI = readinessCheck('openai');
@@ -97,28 +98,8 @@ export function DesignerPanel() {
   async function refresh() { await live.refresh(); }
   async function loadCandidates(issueId: string) { setCandidates(await fetchCandidates(issueId)); }
 
-  useEffect(() => {
-    if (!live.data) return;
-    const { items: next, policy, readiness: nextReadiness } = live.data;
-    setItems(next);
-    setGlobalPolicy(policy);
-    setReadiness(nextReadiness);
-    if (!selected) return;
-    const nextSelected = next.find((item) => item.issueId === selected.issueId) ?? null;
-    setSelected(nextSelected);
-    if (!nextSelected) {
-      setCandidates([]);
-      setIssuePolicy(null);
-      setAnswers(null);
-      return;
-    }
-    void fetchIssuePolicy(nextSelected.issueId)
-      .then(setIssuePolicy)
-      .catch((cause) => setError(cause instanceof Error ? cause.message : 'Issue design policy unavailable'));
-  }, [live.data, selected?.issueId]);
-
   function choose(item: QueueItem) {
-    setSelected(item);
+    setSelectedId(item.issueId);
     setCandidates([]);
     setIssuePolicy(null);
     setReason('');
@@ -148,8 +129,7 @@ export function DesignerPanel() {
     const response = await fetch('/ops/api/designer/policy', {
       method: 'PUT', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify(policy),
     });
-    const saved = await readJson<{ policy: DesignPolicy }>(response, 'Global design policy could not be saved');
-    setGlobalPolicy(saved.policy);
+    await readJson<{ policy: DesignPolicy }>(response, 'Global design policy could not be saved');
   }
 
   async function saveIssueField<K extends keyof DesignPolicy>(key: K, value: DesignPolicy[K] | undefined) {
@@ -201,7 +181,6 @@ export function DesignerPanel() {
   function updateGlobal<K extends keyof DesignPolicy>(key: K, value: DesignPolicy[K], message: string) {
     if (!globalPolicy) return;
     const next = { ...globalPolicy, [key]: value };
-    setGlobalPolicy(next);
     void run(() => saveGlobalPolicy(next), message);
   }
 

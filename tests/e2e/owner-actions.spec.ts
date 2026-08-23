@@ -151,9 +151,9 @@ test('Owner operational rooms execute only explicit safe actions and preserve pr
   const searchRequest = page.waitForRequest((request) => new URL(request.url()).pathname === '/ops/api/issues' && new URL(request.url()).searchParams.get('search') === ISSUE_CODE);
   await page.getByLabel('Search Issues').fill(ISSUE_CODE);
   await searchRequest;
-  expect(issueQueries.some((query) => query.includes('cursor=page-2'))).toBe(true);
-  expect(issueQueries.some((query) => query.includes('paymentStatus=PAID'))).toBe(true);
-  expect(issueQueries.some((query) => query.includes(`search=${ISSUE_CODE}`))).toBe(true);
+  await expect.poll(() => issueQueries.some((query) => new URLSearchParams(query).get('cursor') === 'page-2')).toBe(true);
+  await expect.poll(() => issueQueries.some((query) => new URLSearchParams(query).get('paymentStatus') === 'PAID')).toBe(true);
+  await expect.poll(() => issueQueries.some((query) => new URLSearchParams(query).get('search') === ISSUE_CODE)).toBe(true);
 
   await page.getByRole('button', { name: 'Manufacturing', exact: true }).click();
   await page.getByRole('button', { name: new RegExp(ISSUE_CODE) }).click();
@@ -178,8 +178,8 @@ test('Owner operational rooms execute only explicit safe actions and preserve pr
   const customerSearch = page.waitForRequest((request) => new URL(request.url()).pathname === '/ops/api/customers' && new URL(request.url()).searchParams.get('email') === 'verified@example.com');
   await page.getByLabel('Find customer by verified email').fill('verified@example.com');
   await customerSearch;
-  expect(customerQueries.some((query) => query.includes('cursor=customer-2'))).toBe(true);
-  expect(customerQueries.some((query) => query.includes('email=verified%40example.com'))).toBe(true);
+  await expect.poll(() => customerQueries.some((query) => new URLSearchParams(query).get('cursor') === 'customer-2')).toBe(true);
+  await expect.poll(() => customerQueries.some((query) => new URLSearchParams(query).get('email') === 'verified@example.com')).toBe(true);
 
   await page.getByRole('button', { name: 'Support', exact: true }).click();
   await page.getByRole('button', { name: new RegExp(ISSUE_CODE) }).click();

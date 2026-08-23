@@ -15,14 +15,15 @@ const MATRIX: MatrixObject[] = [
   { key: 'tote', radio: 'TOTE', size: /^One size/, color: 'Bone', price: '$36.00' },
 ];
 
+const VISUAL_QA_PATH = '/visual-qa/experience';
+
 async function answerText(page: Page, value: string) {
   await page.getByLabel('Your answer').fill(value);
   await page.getByRole('button', { name: 'CONTINUE' }).click();
 }
 
 async function reachObjectSelection(page: Page) {
-  await page.goto('/');
-  await page.getByRole('link', { name: /BEGIN/ }).first().click();
+  await page.goto(VISUAL_QA_PATH);
   await expect(page.getByText('VISUAL QA / NOT PRODUCTION')).toBeVisible();
   await expect(page.getByText('01 / 07')).toBeVisible();
 

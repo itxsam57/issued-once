@@ -1,13 +1,21 @@
 import { mkdir } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 
+async function continueText(page: Page, value: string) {
+  await page.getByLabel('Your answer').fill(value);
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+}
+
 async function answerSeven(page: Page) {
-  for (let position = 1; position <= 7; position += 1) {
-    const text = page.getByLabel('Your answer');
-    if (await text.isVisible().catch(() => false)) await text.fill(`failure-path-${position}`);
-    else await page.getByRole('radio').first().check();
-    await page.getByRole('button', { name: 'CONTINUE' }).click();
-  }
+  await continueText(page, 'failure-path-1');
+  await continueText(page, 'failure-path-2');
+  await page.getByLabel('4 a.m.').check();
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  await continueText(page, 'failure-path-4');
+  await continueText(page, 'failure-path-5');
+  await continueText(page, 'failure-path-6');
+  await expect(page.getByText('07 / 07')).toBeVisible();
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
   await expect(page.getByRole('heading', { name: 'WE HAVE ENOUGH.' })).toBeVisible();
   await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
 }

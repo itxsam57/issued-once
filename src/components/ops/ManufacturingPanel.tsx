@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLiveResource } from './useLiveResource';
 import styles from './owner-os.module.css';
 
@@ -24,22 +24,18 @@ async function fetchManufacturingQueue(): Promise<QueuePayload> {
 }
 
 export function ManufacturingPanel() {
-  const [selected, setSelected] = useState<Item | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState('');
   const [reason, setReason] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
-  const live = useLiveResource({ load: fetchManufacturingQueue, intervalMs: 15_000 });
-  const items = live.data?.items ?? [];
-  const armed = live.data?.confirmArmed ?? false;
-
-  useEffect(() => {
-    if (!live.data) return;
-    setSelected((current) => current ? live.data!.items.find((item) => item.issueId === current.issueId) ?? null : null);
-  }, [live.data]);
+  const { data, error: liveError, refresh } = useLiveResource({ load: fetchManufacturingQueue, intervalMs: 15_000 });
+  const items = data?.items ?? [];
+  const armed = data?.confirmArmed ?? false;
+  const selected = selectedId ? items.find((item) => item.issueId === selectedId) ?? null : null;
 
   function choose(item: Item) {
-    setSelected(item);
+    setSelectedId(item.issueId);
     setConfirmation('');
     setReason('');
     setActionError(null);
@@ -47,16 +43,16 @@ export function ManufacturingPanel() {
 
   async function run(action: () => Promise<void>) {
     setWorking(true); setActionError(null);
-    try { await action(); await live.refresh(); setConfirmation(''); setReason(''); }
+    try { await action(); await refresh(); setConfirmation(''); setReason(''); }
     catch (cause) { setActionError(cause instanceof Error ? cause.message : 'Manufacturing action failed'); }
     finally { setWorking(false); }
   }
 
-  const error = actionError ?? live.error;
+  const error = actionError ?? liveError;
   return <div>
     <div className={styles.panelHead}>
       <div><p>MANUFACTURING / CONTROL</p><h1>What is becoming physical.</h1></div>
-      <div><span>{armed ? 'FACTORY CONFIRM / ARMED' : 'FACTORY CONFIRM / SAFE'}</span><button type="button" onClick={() => void live.refresh()}>REFRESH</button></div>
+      <div><span>{armed ? 'FACTORY CONFIRM / ARMED' : 'FACTORY CONFIRM / SAFE'}</span><button type="button" onClick={() => void refresh()}>REFRESH</button></div>
     </div>
     {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
     <div className={styles.ledgerLayout}>
