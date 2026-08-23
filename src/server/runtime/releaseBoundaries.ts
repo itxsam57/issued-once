@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -11,18 +12,13 @@ export type QueryExecutor = {
 export function createStorageReadWritePing(rootValue: string): () => Promise<boolean> {
   const root = resolve(rootValue);
   return async () => {
-    const probe = resolve(root, '.issued-once-health-probe');
+    const probe = resolve(root, `.issued-once-health-probe-${randomUUID()}`);
     await mkdir(root, { recursive: true, mode: 0o700 });
-    const payload = `issued-once:${process.pid}`;
+    const payload = `issued-once:${process.pid}:${randomUUID()}`;
     try {
       await writeFile(probe, payload, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
       return (await readFile(probe, 'utf8')) === payload;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
-        await unlink(probe).catch(() => undefined);
-        await writeFile(probe, payload, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
-        return (await readFile(probe, 'utf8')) === payload;
-      }
+    } catch {
       return false;
     } finally {
       await unlink(probe).catch(() => undefined);
