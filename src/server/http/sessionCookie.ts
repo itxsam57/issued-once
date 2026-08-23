@@ -1,5 +1,6 @@
 export const SESSION_COOKIE_NAME = '__Host-io_session';
 export const CONTACT_CONTINUITY_COOKIE_NAME = '__Host-io_contact_continuity';
+export const CONTACT_CONTINUITY_MAX_AGE_SECONDS = 30 * 60;
 
 export const sessionCookieOptions = {
   httpOnly: true,
@@ -11,4 +12,5 @@ export const sessionCookieOptions = {
 
 export const contactContinuityCookieOptions = {
   ...sessionCookieOptions,
+  maxAge: CONTACT_CONTINUITY_MAX_AGE_SECONDS,
 };
