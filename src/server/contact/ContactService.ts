@@ -19,6 +19,28 @@ const OTP_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_ATTEMPTS = 5;
 
+export type OtpVerificationErrorCode =
+  | 'WRONG_CODE'
+  | 'ATTEMPT_LIMIT'
+  | 'EXPIRED'
+  | 'USED_OR_STALE'
+  | 'CHALLENGE_NOT_FOUND';
+
+export class OtpVerificationError extends Error {
+  constructor(
+    message: string,
+    readonly code: OtpVerificationErrorCode,
+    readonly attemptsRemaining?: number,
+  ) {
+    super(message);
+    this.name = 'OtpVerificationError';
+  }
+}
+
+export function otpRequestTag(challengeId: string): string {
+  return challengeId.replace(/-/g, '').slice(0, 8).toUpperCase();
+}
+
 function loadIdentityKey(): Buffer {
   const encoded = process.env.IDENTITY_HMAC_KEY;
   if (!encoded) throw new Error('IDENTITY_HMAC_KEY is required');
@@ -133,7 +155,7 @@ export class ContactService {
     experienceToken: string;
     email: string;
     ipKey: string;
-  }): Promise<{ challengeId: string; retryAfterSeconds: number }> {
+  }): Promise<{ challengeId: string; retryAfterSeconds: number; requestTag: string }> {
     const experience = await this.requireExperience(input.experienceToken);
     const email = normalizeEmail(input.email);
     if (!email || !email.includes('@') || email.length > 320) {
@@ -169,7 +191,11 @@ export class ContactService {
     await this.contacts.createChallenge(record);
     await this.delivery.sendOtp({ email, code, challengeId });
 
-    return { challengeId, retryAfterSeconds: RESEND_COOLDOWN_MS / 1000 };
+    return {
+      challengeId,
+      retryAfterSeconds: RESEND_COOLDOWN_MS / 1000,
+      requestTag: otpRequestTag(challengeId),
+    };
   }
 
   async verifyOtp(input: {
@@ -180,14 +206,36 @@ export class ContactService {
     const experience = await this.requireExperience(input.experienceToken);
     const challenge = await this.contacts.findChallenge(input.challengeId);
     if (!challenge || challenge.experienceId !== experience.id) {
-      throw new Error('OTP challenge not found');
+      throw new OtpVerificationError(
+        'OTP challenge not found',
+        'CHALLENGE_NOT_FOUND',
+      );
     }
-    if (challenge.consumedAt) throw new Error('OTP challenge has already been used');
+    if (challenge.consumedAt) {
+      throw new OtpVerificationError(
+        'OTP challenge has already been used',
+        'USED_OR_STALE',
+      );
+    }
 
     const now = this.now();
-    if (challenge.expiresAt.getTime() < now.getTime()) throw new Error('OTP challenge expired');
-    if (challenge.attemptsRemaining <= 0) throw new Error('OTP attempt limit reached');
-    if (!/^\d{6}$/.test(input.code)) throw new Error('OTP code is invalid');
+    if (challenge.expiresAt.getTime() < now.getTime()) {
+      throw new OtpVerificationError('OTP challenge expired', 'EXPIRED');
+    }
+    if (challenge.attemptsRemaining <= 0) {
+      throw new OtpVerificationError(
+        'OTP attempt limit reached',
+        'ATTEMPT_LIMIT',
+        0,
+      );
+    }
+    if (!/^\d{6}$/.test(input.code)) {
+      throw new OtpVerificationError(
+        'OTP code is invalid',
+        'WRONG_CODE',
+        challenge.attemptsRemaining,
+      );
+    }
 
     const candidate = keyedDigest(
       `otp:${challenge.id}:${challenge.emailHash}:${input.code}`,
@@ -195,7 +243,18 @@ export class ContactService {
     if (!safeHexEqual(candidate, challenge.codeHash)) {
       const remaining = Math.max(0, challenge.attemptsRemaining - 1);
       await this.contacts.recordFailedAttempt(challenge.id, remaining);
-      throw new Error(remaining === 0 ? 'OTP attempt limit reached' : 'OTP code is invalid');
+      if (remaining === 0) {
+        throw new OtpVerificationError(
+          'OTP attempt limit reached',
+          'ATTEMPT_LIMIT',
+          0,
+        );
+      }
+      throw new OtpVerificationError(
+        'OTP code is invalid',
+        'WRONG_CODE',
+        remaining,
+      );
     }
 
     const contact: VerifiedContactRecord = {
@@ -206,7 +265,12 @@ export class ContactService {
       verifiedAt: now,
     };
     const verified = await this.contacts.verifyContact({ challengeId: challenge.id, contact });
-    if (!verified) throw new Error('OTP challenge could not be verified');
+    if (!verified) {
+      throw new OtpVerificationError(
+        'OTP challenge is no longer active',
+        'USED_OR_STALE',
+      );
+    }
 
     return { verified: true };
   }
