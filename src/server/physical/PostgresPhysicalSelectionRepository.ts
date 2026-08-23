@@ -1,12 +1,12 @@
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type {
   BaseSelectionRepository,
-  BaseSelectionTransition,
   ObjectSelectionTransition,
   PhysicalSelectionRecord,
   PhysicalSelectionRepository,
   SizeSelectionRepository,
   SizeSelectionTransition,
+  BaseSelectionTransition,
 } from './PhysicalSelectionRepository';
 
 type TransitionRow = {
@@ -26,7 +26,7 @@ type PhysicalSelectionRow = {
 };
 
 function isObjectType(value: string): value is PhysicalSelectionRecord['object'] {
-  return value === 'tee' || value === 'hoodie' || value === 'hat';
+  return value === 'tee' || value === 'hoodie' || value === 'hat' || value === 'tote';
 }
 
 export class PostgresPhysicalSelectionRepository
