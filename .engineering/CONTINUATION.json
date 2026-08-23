@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-23T19:37:00+05:00",
+  "updatedAt": "2026-08-23T19:41:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -20,7 +20,7 @@
     "state": "OWNER_REQUIRED",
     "decision": "PRODUCTION_0030_APPLIED_HOSTINGER_TEMP_DEPLOYMENT_ACCOUNT_ACTION_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Owner approved production migration 0030. Managed migration ac06c578-5607-460b-8550-5b3fc30c6742 was applied successfully to production Neon branch br-dawn-cloud-axm880q9 and the temporary migration branch was cleaned up. Production verification confirms background_jobs and background_jobs_due_idx exist, the queue is empty, referral migration 0029 remains absent, and manufacturing remains 0/0. The next step requires access to the owner's Hostinger hPanel to authorize the private GitHub repository and create the temporary Node.js deployment from the frozen release-candidate branch. No Hostinger account connector is available in this workspace."
+    "stopReason": "Owner approved and production migration 0030 is now applied and verified. Frozen release candidate 44730e01 remains the deployable application artifact with CI 1319 and Browser QA 1218 green. The Hostinger deployment runbook now records the completed production prerequisite and pins the temporary deployment to release/hostinger-candidate-20260823. The next action requires Hostinger hPanel account authorization of the private GitHub repository; no Hostinger account connector is available in this workspace."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
