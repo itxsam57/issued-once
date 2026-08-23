@@ -1,11 +1,18 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import type { ExperienceStage } from '@/domain/experience/types';
+import { createContactContinuityToken } from '@/server/contact/contactContinuity';
 import {
   createRepeatOrderService,
   RepeatOrderRuntimeUnavailableError,
 } from '@/server/experience/runtimeRepeatOrders';
-import { SESSION_COOKIE_NAME, sessionCookieOptions } from '@/server/http/sessionCookie';
+import {
+  CONTACT_CONTINUITY_COOKIE_NAME,
+  contactContinuityCookieOptions,
+  SESSION_COOKIE_NAME,
+  sessionCookieOptions,
+} from '@/server/http/sessionCookie';
+import { hashSessionToken } from '@/server/http/sessionToken';
 import { toInterviewQuestions } from '@/server/questions/QuestionSelectionService';
 
 const schema = z.object({
@@ -41,6 +48,19 @@ export async function POST(request: Request) {
     });
 
     cookieStore.set(SESSION_COOKIE_NAME, result.token, sessionCookieOptions);
+    if (result.contactContinuity) {
+      const continuityToken = createContactContinuityToken({
+        sourceContactId: result.contactContinuity.sourceContactId,
+        emailHash: result.contactContinuity.emailHash,
+        childSessionHash: hashSessionToken(result.token),
+        issuedAt: new Date(),
+      });
+      cookieStore.set(
+        CONTACT_CONTINUITY_COOKIE_NAME,
+        continuityToken,
+        contactContinuityCookieOptions,
+      );
+    }
 
     if (result.mode === 'reuse') {
       return Response.json({
