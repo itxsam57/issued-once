@@ -26,7 +26,7 @@ describe('PublicInterviewExperience repeat ordering', () => {
           stage: 'CHECKOUT_STARTED',
           initialPosition: 7,
           interviewComplete: true,
-          questions: [],
+          questions: QUESTIONS,
         });
       }
       if (path === '/api/experience/repeat') {
@@ -71,7 +71,7 @@ describe('PublicInterviewExperience repeat ordering', () => {
           stage: 'CHECKOUT_STARTED',
           initialPosition: 7,
           interviewComplete: true,
-          questions: [],
+          questions: QUESTIONS,
         });
       }
       if (path === '/api/experience/repeat') {
