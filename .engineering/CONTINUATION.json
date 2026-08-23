@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "project": "ISSUED ONCE",
+  "updatedAt": "2026-08-23T16:41:00+05:00",
+  "sourceOfTruth": {
+    "repository": "itxsam57/issued-once",
+    "branch": "feat/mystery-foundation",
+    "pullRequest": 3,
+    "pullRequestState": "DRAFT",
+    "lastFullyDeployedApplicationHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
+    "canonicalCodeHeadPendingDeployment": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
+    "workflowRepairPullRequest": 11,
+    "toteRepairPullRequest": 12,
+    "toteRepairHead": "7a1962a2d46335bb0fa517623fd01312770dc366",
+    "toteRepairMergeHead": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
+    "productionMigrationHead": "0028_design_controls.sql",
+    "nextRepositoryMigration": "0029_creator_referrals.sql"
+  },
+  "continuationGovernor": {
+    "state": "WAIT_EXTERNAL",
+    "decision": "TOTE_PRODUCTION_FIX_MERGED_AWAITING_VERCEL_DEPLOYMENT_AND_LIVE_REPROOF",
+    "allowedStopStates": [
+      "OWNER_REQUIRED",
+      "BLOCKED",
+      "WAIT_EXTERNAL",
+      "LOOP_DETECTED",
+      "COMPLETE"
+    ],
+    "stopReason": "Owner production testing exposed a Tote-only PostgreSQL deserialization defect. PR 12 fixed the exact root cause and is merged into canonical with full pre-merge CI and Browser QA green, and canonical CI is green. The required canonical live production matrix ran before the new canonical Vercel deployment because Vercel rejected commit 33cc9119 with its free-tier build-rate limit. The live matrix therefore hit the prior deployment: Tee M/Bone and Hat OS/Bone passed, while Tote OS reproduced the old 500. Do not call the Tote production path fixed until Vercel deploys the canonical repair and the live Tee/Hat/Tote matrix is rerun successfully."
+  },
+  "engineeringFactory": {
+    "mode": "REPO_LOCAL_PROTOCOL",
+    "internalWorkStatus": "TOTE_ROOT_CAUSE_FIXED_MERGED_WAITING_EXTERNAL_DEPLOYMENT",
+    "rules": [
+      "Treat feat/mystery-foundation as canonical until final release promotion",
+      "Use TDD RED before behavior changes",
+      "Require fresh CI, build, browser, production and database evidence before success claims",
+      "Preview-only product matrix evidence is insufficient for production physical-gate claims",
+      "Canonical live smoke must exercise Tee, Hat and Tote through object, size and base APIs",
+      "Browser navigation is never payment proof",
+      "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
+      "Never apply production database migrations without exact owner approval",
+      "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is applied and verified",
+      "Keep Printful production confirmation disabled until its independent owner release gate",
+      "Do not create real charges solely for QA; use non-payment test paths"
+    ]
+  },
+  "workflowAuditRepair": {
+    "status": "MERGED_DEPLOYED_CANONICAL_VERIFIED",
+    "pullRequest": 11,
+    "mergeHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
+    "canonicalCi": 1237,
+    "canonicalBrowserQa": 1152
+  },
+  "toteProductionRepair": {
+    "status": "MERGED_CI_VERIFIED_DEPLOYMENT_BLOCKED",
+    "ownerObservedSymptom": "TOTE reached OS size confirmation then displayed The next step could not be saved.",
+    "productionRootCause": "PostgresPhysicalSelectionRepository accepted tee, hoodie and hat when deserializing persisted physical selections but omitted the canonical tote ObjectType. A valid persisted tote/io-tote row was therefore rejected on the following size request as Stored physical object is invalid.",
+    "productionChange": "Add tote to the persisted physical-object validator; no schema, payment, manufacturing or catalog redesign required.",
+    "tdd": {
+      "redCommit": "8b652cfdec85d81dfbd5a34b0a4227b4d7e9418b",
+      "redCiRun": 1238,
+      "redResult": "1_FAILED_482_PASSED_EXPECTED_STORED_PHYSICAL_OBJECT_IS_INVALID",
+      "greenRepairHead": "7a1962a2d46335bb0fa517623fd01312770dc366",
+      "preMergeCiRun": 1242,
+      "preMergeCiResult": "PASS_UNIT_TYPECHECK_LINT_BUILD",
+      "preMergeBrowserQaRun": 1154,
+      "preMergeBrowserQaResult": "PASS"
+    },
+    "merge": {
+      "pullRequest": 12,
+      "canonicalMergeHead": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
+      "canonicalCiRun": 1243,
+      "canonicalCiResult": "PASS"
+    },
+    "testGapClosed": {
+      "oldGap": "Tee/Hat/Tote matrix used preview repository while canonical live production smoke exercised Tee only.",
+      "newGate": "Canonical live production smoke independently requires successful /api/experience/object, /api/experience/size and /api/experience/base for Tee M/Bone, Hat OS/Bone and Tote OS/Bone before passing."
+    },
+    "canonicalLiveAttempt": {
+      "browserQaRun": 1155,
+      "result": "FAIL_EXPECTED_OLD_DEPLOYMENT",
+      "tee": "PASS_M_BONE_COMMITMENT_READY",
+      "hat": "PASS_OS_BONE_COMMITMENT_READY",
+      "tote": "OLD_DEPLOYMENT_SIZE_HTTP_500_OBJECT_SELECTED",
+      "deploymentEvidence": "GitHub combined status for 33cc9119 reports Vercel=failure with build-rate-limit target; PR3 Vercel Ready comment remained on the previous 2026-08-23T10:54Z deployment during the 11:39Z live run."
+    },
+    "ownerOriginalToteSession": {
+      "preserved": true,
+      "stage": "OBJECT_SELECTED",
+      "object": "tote",
+      "productSlug": "io-tote",
+      "sizeCode": null,
+      "expiresAt": "2026-09-22T11:17:39.197Z",
+      "retryInstructionAfterDeployment": "Use the existing browser session and press CONFIRM SIZE again; questionnaire restart should not be required."
+    }
+  },
+  "productionDatabase": {
+    "projectId": "autumn-butterfly-25489215",
+    "databaseName": "neondb",
+    "branchId": "br-dawn-cloud-axm880q9",
+    "manufacturingJobCount": 0,
+    "manufacturingProviderEventCount": 0,
+    "referralCreatorsTablePresent": false,
+    "referralConversionsTablePresent": false,
+    "checkoutQuoteReferralCreatorColumnPresent": false,
+    "migration0029Applied": false
+  },
+  "safetyGates": {
+    "realQaPayment": "NOT_PERFORMED",
+    "printfulProductionConfirmation": "DISABLED",
+    "migration0029": "NOT_APPLIED",
+    "referralSigningKeyRollout": "NOT_PERFORMED"
+  },
+  "nextActions": [
+    "SYSTEM: when Vercel build-rate capacity is available, verify the latest feat/mystery-foundation deployment includes the Tote repair",
+    "SYSTEM: rerun canonical Browser QA 1155 failed job or equivalent against the newly deployed issuedonce.shop",
+    "SYSTEM: require LIVE_PRODUCTION_TEE_PHYSICAL_GATE_PASS, LIVE_PRODUCTION_HAT_PHYSICAL_GATE_PASS and LIVE_PRODUCTION_TOTE_PHYSICAL_GATE_PASS with HTTP 200 for object/size/base",
+    "SYSTEM: verify the newest production Tote smoke row reaches COMMITMENT_READY with size OS and a locked base color",
+    "SYSTEM: re-read manufacturing/referral invariants and keep them unchanged",
+    "OWNER: after live proof passes, retry CONFIRM SIZE in the existing Tote browser session; no questionnaire restart should be needed",
+    "OWNER/SYSTEM: only after this repair is live-proven return to the separate design-provider, Printful draft, referral migration and final-release gates"
+  ],
+  "nextOwnerAction": "NONE_UNTIL_VERCEL_DEPLOYS_REPAIR; EXISTING_TOTE_SESSION_CAN_RETRY_AFTER_LIVE_PROOF"
+}

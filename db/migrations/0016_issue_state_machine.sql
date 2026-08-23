@@ -1,0 +1,55 @@
+BEGIN;
+
+CREATE OR REPLACE FUNCTION enforce_issue_status_transition()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.status = OLD.status THEN
+    RETURN NEW;
+  END IF;
+
+  IF OLD.status = 'RECEIVED' AND NEW.status IN ('BEING_INTERPRETED','EXCEPTION','CANCELED') THEN
+    RETURN NEW;
+  END IF;
+
+  IF OLD.status = 'BEING_INTERPRETED' AND NEW.status IN ('DESIGN_REVIEW','EXCEPTION','CANCELED') THEN
+    RETURN NEW;
+  END IF;
+
+  IF OLD.status = 'DESIGN_REVIEW' AND NEW.status IN ('DESIGN_APPROVED','EXCEPTION','CANCELED') THEN
+    RETURN NEW;
+  END IF;
+
+  IF OLD.status = 'DESIGN_APPROVED' AND NEW.status IN ('MANUFACTURING_DRAFT','EXCEPTION','CANCELED') THEN
+    RETURN NEW;
+  END IF;
+
+  IF OLD.status = 'MANUFACTURING_DRAFT' AND NEW.status IN ('IN_PRODUCTION','EXCEPTION','CANCELED') THEN
+    RETURN NEW;
+  END IF;
+
+  IF OLD.status = 'IN_PRODUCTION' AND NEW.status IN ('IN_TRANSIT','EXCEPTION','CANCELED') THEN
+    RETURN NEW;
+  END IF;
+
+  IF OLD.status = 'IN_TRANSIT' AND NEW.status IN ('DELIVERED','EXCEPTION','CANCELED') THEN
+    RETURN NEW;
+  END IF;
+
+  IF OLD.status = 'EXCEPTION' AND NEW.status = 'CANCELED' THEN
+    RETURN NEW;
+  END IF;
+
+  RAISE EXCEPTION 'invalid Issue status transition: % -> %', OLD.status, NEW.status
+    USING ERRCODE = '55000';
+END;
+$$;
+
+DROP TRIGGER IF EXISTS issues_status_state_machine ON issues;
+CREATE TRIGGER issues_status_state_machine
+BEFORE UPDATE OF status ON issues
+FOR EACH ROW
+EXECUTE FUNCTION enforce_issue_status_transition();
+
+COMMIT;

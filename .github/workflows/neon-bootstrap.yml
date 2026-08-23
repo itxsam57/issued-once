@@ -1,0 +1,56 @@
+name: Neon Bootstrap Transport
+
+on:
+  push:
+    branches:
+      - feat/mystery-foundation
+    paths:
+      - 'db/migrations/**'
+      - 'scripts/neon-migration-transport.mjs'
+      - 'scripts/neon-migration-transport.d.mts'
+      - '.github/workflows/neon-bootstrap.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: neon-bootstrap-transport
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/mystery-foundation
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Generate parser-safe bootstrap
+        run: node scripts/neon-migration-transport.mjs db/migrations db/production-bootstrap.sql
+      - name: Verify hosted-Neon transport shape
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile } from 'node:fs/promises';
+          import { splitLikeHostedNeon } from './scripts/neon-migration-transport.mjs';
+          const sql = await readFile('db/production-bootstrap.sql', 'utf8');
+          if (sql.includes('$$')) throw new Error('dollar quote remained in generated transport');
+          if (splitLikeHostedNeon(sql).some((statement) => /^(BEGIN|COMMIT)$/i.test(statement))) {
+            throw new Error('transaction wrapper remained in generated transport');
+          }
+          if (splitLikeHostedNeon(sql).length === 0) throw new Error('generated transport is empty');
+          NODE
+      - name: Commit generated bootstrap
+        run: |
+          if [ -z "$(git status --porcelain -- db/production-bootstrap.sql)" ]; then
+            echo 'Bootstrap already current.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add db/production-bootstrap.sql
+          git commit -m 'chore: generate parser-safe Neon bootstrap'
+          git push origin HEAD:feat/mystery-foundation
