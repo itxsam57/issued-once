@@ -1,4 +1,4 @@
-import { DuplicateMessageError, send } from '@vercel/queue';
+import { createJobQueue } from '@/server/jobs/runtimeJobs';
 
 export const DESIGN_QUEUE_TOPIC = 'issued-once-design';
 export type DesignQueueMode = 'reinterpret' | 'regenerate';
@@ -17,20 +17,12 @@ export async function enqueueDesignIssue(
   const generationKey = options.generationKey ?? 'initial';
   const source = options.source ?? 'AUTOMATIC';
   const feedback = options.feedback?.trim();
-  const message = feedback
+  const payload = feedback
     ? { issueId, mode, generationKey, source, feedback }
     : { issueId, mode, generationKey, source };
-  try {
-    return await send(
-      DESIGN_QUEUE_TOPIC,
-      message,
-      {
-        idempotencyKey: `design:${issueId}:${generationKey}`,
-        retentionSeconds: 7 * 24 * 60 * 60,
-      },
-    );
-  } catch (error) {
-    if (error instanceof DuplicateMessageError) return undefined;
-    throw error;
-  }
+  return createJobQueue().enqueue({
+    topic: DESIGN_QUEUE_TOPIC,
+    payload,
+    idempotencyKey: `design:${issueId}:${generationKey}`,
+  });
 }
