@@ -88,3 +88,25 @@ test('fails closed when Reporter does not confirm the exact original quote', asy
     currency: 'USD',
   })).resolves.toBe(false);
 });
+
+test('explicitly enables Safepay webhooks on every hosted checkout URL', async () => {
+  const fetchImpl = vi.fn()
+    .mockResolvedValueOnce(new Response(JSON.stringify({
+      data: { tracker: { token: 'track_checkout_1' } },
+      status: { errors: [] },
+    }), { status: 200, headers: { 'content-type': 'application/json' } }))
+    .mockResolvedValueOnce(new Response(JSON.stringify({
+      data: 'passport-token',
+      status: { errors: [] },
+    }), { status: 200, headers: { 'content-type': 'application/json' } }));
+
+  const result = await gateway({ fetchImpl: fetchImpl as typeof fetch }).createCheckout({
+    paymentAttemptId: '11111111-1111-4111-8111-111111111111',
+    amountMinor: 3200,
+    currency: 'USD',
+    returnUrl: 'https://issuedonce.shop/payment/return',
+    cancelUrl: 'https://issuedonce.shop/payment/cancel',
+  });
+
+  expect(new URL(result.checkoutUrl).searchParams.get('webhooks')).toBe('true');
+});
