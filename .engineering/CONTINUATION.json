@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-23T19:41:00+05:00",
+  "updatedAt": "2026-08-23T22:30:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -10,7 +10,7 @@
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
     "hostingerReleaseCandidateBranch": "release/hostinger-candidate-20260823",
-    "hostingerReleaseCandidateHead": "44730e01cd85c934266eaa4e11e83c6ad5ef741a",
+    "hostingerReleaseCandidateHead": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
     "lastFullyDeployedApplicationHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
     "canonicalCodeHeadPendingReplacementDeployment": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
     "productionMigrationHead": "0030_background_jobs.sql",
@@ -18,13 +18,13 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "PRODUCTION_0030_APPLIED_HOSTINGER_TEMP_DEPLOYMENT_ACCOUNT_ACTION_REQUIRED",
+    "decision": "HOSTINGER_TEMP_HEALTH_GREEN_LIVE_SMOKE_BLOCKED_MISSING_EXISTING_QUIZ_ENCRYPTION_KEY_V1",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Owner approved and production migration 0030 is now applied and verified. Frozen release candidate 44730e01 remains the deployable application artifact with CI 1319 and Browser QA 1218 green. The Hostinger deployment runbook now records the completed production prerequisite and pins the temporary deployment to release/hostinger-candidate-20260823. The next action requires Hostinger hPanel account authorization of the private GitHub repository; no Hostinger account connector is available in this workspace."
+    "stopReason": "Temporary Hostinger deployment is live on release 929081a8 with database, durable queue and private filesystem storage healthy. Independent GitHub live proof run 32654984170 passed exact release health but failed the first /api/experience/answer request with HTTP 503 Answer persistence is unavailable. Code tracing proves answer persistence requires QUIZ_ENCRYPTION_KEY_V1, and Hostinger does not yet have the existing production key. Owner must copy the existing V1 encryption key from the prior production environment into Hostinger without exposing it in chat; generating a new V1 key is forbidden because existing encrypted answers must remain decryptable."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "HOSTINGER_RELEASE_CANDIDATE_AND_DB_READY_OWNER_HPANEL_ACTION_REQUIRED",
+    "internalWorkStatus": "HOSTINGER_TEMP_RUNTIME_GREEN_OWNER_SECRET_TRANSFER_REQUIRED",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Use TDD RED before behavior changes",
@@ -37,24 +37,29 @@
       "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is separately approved, applied and verified",
       "Keep Printful production confirmation disabled until its independent owner release gate",
       "Do not create real charges solely for QA; use non-payment test paths",
-      "Deploy the frozen Hostinger release-candidate branch rather than a later metadata-only migration-branch commit"
+      "Reuse existing versioned encryption keys during runtime migration; never silently rotate a live key version"
     ]
   },
   "hostingerMigration": {
-    "status": "RELEASE_CANDIDATE_AND_DATABASE_READY_AWAITING_TEMP_HOSTINGER_DEPLOYMENT",
+    "status": "TEMP_RUNTIME_HEALTH_GREEN_LIVE_CUSTOMER_SMOKE_BLOCKED_ON_EXISTING_ENCRYPTION_SECRET",
     "pullRequest": 13,
     "migrationBranch": "infra/hostinger-migration-20260823",
     "releaseCandidateBranch": "release/hostinger-candidate-20260823",
-    "applicationHead": "44730e01cd85c934266eaa4e11e83c6ad5ef741a",
+    "applicationHead": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
+    "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
     "verification": {
-      "ciRun": 1319,
-      "ciResult": "PASS_FROZEN_INSTALL_UNIT_TYPECHECK_LINT_BUILD",
-      "browserQaRun": 1218,
+      "ciRun": 1329,
+      "ciResult": "PASS_PNPM_11_23_FROZEN_INSTALL_UNIT_TYPECHECK_LINT_BUILD",
+      "browserQaRun": 1228,
       "browserQaResult": "PASS",
+      "runtimeHealth": "PASS_HOSTINGER_EXACT_SHA_DATABASE_QUEUE_STORAGE_ALL_TRUE",
+      "runtimeHealthReleaseId": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
+      "liveProofRunId": 32654984170,
+      "liveProofHealthStep": "PASS",
+      "liveProofPhysicalStep": "FAIL_FIRST_ANSWER_HTTP_503_ANSWER_PERSISTENCE_UNAVAILABLE",
+      "liveProofRootCause": "QUIZ_ENCRYPTION_KEY_V1 is absent from Hostinger runtime",
       "lockfileCommitted": true,
-      "productionRuntimeVercelPackageCoupling": false,
-      "openReviewThreads": 0,
-      "submittedReviews": 0
+      "productionRuntimeVercelPackageCoupling": false
     },
     "backgroundJobsMigration": {
       "file": "db/migrations/0030_background_jobs.sql",
@@ -68,11 +73,13 @@
       "runbook": "docs/operations/hostinger-deployment.md",
       "temporaryHostingerDeploymentRequired": true,
       "requiredHealth": "HTTP_200_HOSTINGER_EXACT_SHA_DATABASE_QUEUE_STORAGE_ALL_TRUE",
+      "healthStatus": "PASSED",
       "requiredPhysicalMatrix": [
         "TEE_M_BONE_OBJECT_SIZE_BASE_HTTP_200",
         "CAP_OS_BONE_OBJECT_SIZE_BASE_HTTP_200",
         "TOTE_OS_BONE_OBJECT_SIZE_BASE_HTTP_200"
       ],
+      "physicalMatrixStatus": "BLOCKED_BEFORE_FIRST_OBJECT_SELECTION_ON_MISSING_QUIZ_ENCRYPTION_KEY_V1",
       "realOtpBoundary": "TEE_ONLY",
       "productionDomainCutoverAllowed": false
     }
@@ -115,13 +122,11 @@
     "productionDomainCutover": "NOT_PERFORMED"
   },
   "nextActions": [
-    "OWNER: in Hostinger hPanel authorize GitHub access to private repository itxsam57/issued-once and create a temporary Node.js web app using branch release/hostinger-candidate-20260823",
-    "OWNER/SYSTEM: configure Node 22, pnpm, frozen install, build/start commands and required runtime variables without exposing secret values",
-    "SYSTEM: verify temporary deployment /api/health/release returns runtimeProvider hostinger, exact release 44730e01, databaseReady true, queueReady true and storageReady true",
-    "SYSTEM: run Live Release QA against the temporary Hostinger URL requiring exact SHA health and Tee/Cap/Tote physical gates",
-    "SYSTEM: verify production Neon read-only after temporary smoke and keep manufacturing/referral safety invariants unchanged",
-    "SYSTEM: only after temporary proof, cut issuedonce.shop to Hostinger and repeat exact health, live product matrix and read-only Neon corroboration",
-    "OWNER: only after custom-domain live proof, retry the preserved Tote session"
+    "OWNER: copy the existing production QUIZ_ENCRYPTION_KEY_V1 value from the prior Vercel production environment into Hostinger Environment variables; do not generate a replacement and do not paste the value into chat",
+    "OWNER: save Hostinger environment variables and redeploy release/hostinger-candidate-20260823",
+    "SYSTEM: rerun exact live release proof against the temporary Hostinger URL and continue root-cause debugging only if another boundary fails",
+    "SYSTEM: after Tee/Cap/Tote pass, verify production Neon read-only and keep manufacturing/referral safety invariants unchanged",
+    "SYSTEM: only after temporary proof, cut issuedonce.shop to Hostinger and repeat exact health, live product matrix and read-only Neon corroboration"
   ],
-  "nextOwnerAction": "HOSTINGER_HPANEL_AUTHORIZE_PRIVATE_GITHUB_REPO_AND_CREATE_TEMP_NODE_APP_FROM_release/hostinger-candidate-20260823"
+  "nextOwnerAction": "COPY_EXISTING_PRODUCTION_QUIZ_ENCRYPTION_KEY_V1_TO_HOSTINGER_AND_REDEPLOY"
 }
