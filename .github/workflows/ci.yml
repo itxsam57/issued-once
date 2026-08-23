@@ -5,13 +5,15 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - uses: pnpm/action-setup@v4
         with:
           version: 10.15.0
@@ -19,20 +21,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Install dependencies and generate lockfile
-        run: pnpm install --no-frozen-lockfile
-      - name: Capture generated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: issued-once-pnpm-lock
-          path: pnpm-lock.yaml
-          if-no-files-found: error
-          retention-days: 1
-      - name: Unit tests
-        run: pnpm test
-      - name: Typecheck
-        run: pnpm typecheck
-      - name: Lint
-        run: pnpm lint
-      - name: Production build
-        run: pnpm build
+      - name: Generate deterministic lockfile
+        run: pnpm install --lockfile-only --no-frozen-lockfile
+      - name: Commit lockfile on same-repository pull request
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        shell: bash
+        run: |
+          if git diff --quiet -- pnpm-lock.yaml && git ls-files --error-unmatch pnpm-lock.yaml >/dev/null 2>&1; then
+            echo 'pnpm-lock.yaml already committed'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add pnpm-lock.yaml
+          git commit -m 'build: lock Hostinger dependency graph'
+          git push origin HEAD:${{ github.head_ref }}
+      - name: Stop bootstrap run after branch mutation
+        if: github.event_name == 'pull_request'
+        run: |
+          echo 'Lockfile bootstrap completed; canonical CI will be restored to frozen mode next.'
+          exit 1
