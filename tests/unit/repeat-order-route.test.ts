@@ -1,14 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { hashSessionToken } from '@/server/http/sessionToken';
 
-const { cookiesMock, createRepeatOrderServiceMock } = vi.hoisted(() => ({
+const { cookiesMock, createRepeatOrderServiceMock, createContactContinuityTokenMock } = vi.hoisted(() => ({
   cookiesMock: vi.fn(),
   createRepeatOrderServiceMock: vi.fn(),
+  createContactContinuityTokenMock: vi.fn().mockReturnValue('signed-continuity-token'),
 }));
 
 vi.mock('next/headers', () => ({ cookies: cookiesMock }));
 vi.mock('@/server/experience/runtimeRepeatOrders', () => ({
   createRepeatOrderService: createRepeatOrderServiceMock,
   RepeatOrderRuntimeUnavailableError: class RepeatOrderRuntimeUnavailableError extends Error {},
+}));
+vi.mock('@/server/contact/contactContinuity', () => ({
+  createContactContinuityToken: createContactContinuityTokenMock,
 }));
 
 import { POST } from '@/app/api/experience/repeat/route';
@@ -47,6 +52,7 @@ function request(body: unknown) {
 describe('POST /api/experience/repeat', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    createContactContinuityTokenMock.mockReturnValue('signed-continuity-token');
   });
 
   it('rejects invalid and extra fields', async () => {
@@ -62,7 +68,7 @@ describe('POST /api/experience/repeat', () => {
     expect(response.status).toBe(401);
   });
 
-  it('rotates the cookie and opens form selection when reuse is the resolved winner', async () => {
+  it('rotates session and issues signed continuity only when the source has verified contact', async () => {
     const { set } = cookieHarness('source-token');
     createRepeatOrderServiceMock.mockReturnValue({
       choose: vi.fn().mockResolvedValue({
@@ -71,48 +77,61 @@ describe('POST /api/experience/repeat', () => {
         stage: 'PROFILE_COMPLETE',
         experienceId: 'child-exp',
         questions: safeQuestions,
+        contactContinuity: { sourceContactId: 'source-contact', emailHash: 'a'.repeat(64) },
       }),
     });
 
     const response = await POST(request({ choice: 'reuse' }));
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
-      entryMode: 'form',
-      stage: 'PROFILE_COMPLETE',
-      initialPosition: 7,
-      interviewComplete: true,
-      questions: [],
+    expect(createContactContinuityTokenMock).toHaveBeenCalledWith({
+      sourceContactId: 'source-contact',
+      emailHash: 'a'.repeat(64),
+      childSessionHash: hashSessionToken('child-token'),
+      issuedAt: expect.any(Date),
     });
     expect(set).toHaveBeenCalledWith('__Host-io_session', 'child-token', expect.objectContaining({
       httpOnly: true, secure: true, sameSite: 'lax', path: '/',
     }));
+    expect(set).toHaveBeenCalledWith('__Host-io_contact_continuity', 'signed-continuity-token', expect.objectContaining({
+      httpOnly: true, secure: true, sameSite: 'lax', path: '/',
+    }));
+    expect(await response.json()).toEqual({
+      entryMode: 'form', stage: 'PROFILE_COMPLETE', initialPosition: 7, interviewComplete: true, questions: [],
+    });
+  });
+
+  it('does not issue continuity proof when the source has no verified contact', async () => {
+    const { set } = cookieHarness('source-token');
+    createRepeatOrderServiceMock.mockReturnValue({
+      choose: vi.fn().mockResolvedValue({
+        token: 'child-token', mode: 'reuse', stage: 'PROFILE_COMPLETE', experienceId: 'child-exp', questions: safeQuestions,
+      }),
+    });
+
+    const response = await POST(request({ choice: 'reuse' }));
+    expect(response.status).toBe(200);
+    expect(createContactContinuityTokenMock).not.toHaveBeenCalled();
+    expect(set).not.toHaveBeenCalledWith('__Host-io_contact_continuity', expect.anything(), expect.anything());
   });
 
   it('returns seven safe fresh questions and starts at the resolved stage', async () => {
     const { set } = cookieHarness('source-token');
     createRepeatOrderServiceMock.mockReturnValue({
       choose: vi.fn().mockResolvedValue({
-        token: 'fresh-child-token',
-        mode: 'fresh',
-        stage: 'QUESTION_1',
-        experienceId: 'fresh-exp',
-        questions: safeQuestions,
+        token: 'fresh-child-token', mode: 'fresh', stage: 'QUESTION_1', experienceId: 'fresh-exp', questions: safeQuestions,
       }),
     });
 
     const response = await POST(request({ choice: 'fresh' }));
     const payload = await response.json();
-
     expect(response.status).toBe(200);
     expect(payload.entryMode).toBe('interview');
     expect(payload.stage).toBe('QUESTION_1');
     expect(payload.initialPosition).toBe(1);
     expect(payload.interviewComplete).toBe(false);
     expect(payload.questions).toHaveLength(7);
-    expect(payload.questions[0]).toEqual({
-      id: 'q1', prompt: 'Fresh culture prompt', kind: 'text', optional: false,
-    });
+    expect(payload.questions[0]).toEqual({ id: 'q1', prompt: 'Fresh culture prompt', kind: 'text', optional: false });
     expect(payload.questions[0]).not.toHaveProperty('questionId');
     expect(payload.questions[0]).not.toHaveProperty('experienceId');
     expect(set).toHaveBeenCalled();
@@ -122,14 +141,9 @@ describe('POST /api/experience/repeat', () => {
     cookieHarness('source-token');
     createRepeatOrderServiceMock.mockReturnValue({
       choose: vi.fn().mockResolvedValue({
-        token: 'winner-token',
-        mode: 'reuse',
-        stage: 'PROFILE_COMPLETE',
-        experienceId: 'winner-exp',
-        questions: safeQuestions,
+        token: 'winner-token', mode: 'reuse', stage: 'PROFILE_COMPLETE', experienceId: 'winner-exp', questions: safeQuestions,
       }),
     });
-
     const response = await POST(request({ choice: 'fresh' }));
     expect((await response.json()).entryMode).toBe('form');
   });
@@ -137,14 +151,10 @@ describe('POST /api/experience/repeat', () => {
   it('maps runtime configuration and lifecycle failures without exposing internals', async () => {
     cookieHarness('source-token');
     const runtimeErrorClass = (await import('@/server/experience/runtimeRepeatOrders')).RepeatOrderRuntimeUnavailableError;
-    createRepeatOrderServiceMock.mockImplementationOnce(() => {
-      throw new runtimeErrorClass();
-    });
+    createRepeatOrderServiceMock.mockImplementationOnce(() => { throw new runtimeErrorClass(); });
     expect((await POST(request({ choice: 'reuse' }))).status).toBe(503);
 
-    createRepeatOrderServiceMock.mockReturnValueOnce({
-      choose: vi.fn().mockRejectedValue(new Error('Repeat order is not unlocked')),
-    });
+    createRepeatOrderServiceMock.mockReturnValueOnce({ choose: vi.fn().mockRejectedValue(new Error('Repeat order is not unlocked')) });
     expect((await POST(request({ choice: 'reuse' }))).status).toBe(409);
   });
 });
