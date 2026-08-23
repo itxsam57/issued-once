@@ -29,6 +29,7 @@ class MemoryContactRepository implements ContactRepository {
   async recordFailedAttempt(_challengeId: string, _attemptsRemaining: number) {}
   async verifyContact(_input: { challengeId: string; contact: VerifiedContactRecord }) { return false; }
   async findVerifiedByExperienceId(experienceId: string) { return this.contact?.experienceId === experienceId ? this.contact : null; }
+  async copyVerifiedContact() { return false; }
 }
 
 class MemoryShippingRepository implements ShippingRepository {
