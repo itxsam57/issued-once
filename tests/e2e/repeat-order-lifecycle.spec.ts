@@ -67,6 +67,22 @@ async function installDeliveryStubs(page: Page) {
   });
 }
 
+async function installPreviewPaymentCapture(page: Page): Promise<PreviewPaymentPayload[]> {
+  const payments: PreviewPaymentPayload[] = [];
+
+  await page.route('**/api/payments/create', async (route) => {
+    const response = await route.fetch();
+    expect(response.status()).toBe(200);
+    const json = await response.json() as PreviewPaymentPayload;
+    expect(json.checkoutUrl).toBe('/begin?payment=preview');
+    expect(json.paymentAttemptId).toMatch(/^preview:/);
+    payments.push(json);
+    await route.fulfill({ response, json });
+  });
+
+  return payments;
+}
+
 async function answerSevenAssignedQuestions(page: Page) {
   for (let position = 1; position <= 7; position += 1) {
     await expect(page.getByText(`${String(position).padStart(2, '0')} / 07`)).toBeVisible();
@@ -123,23 +139,17 @@ async function reachCommitment(page: Page) {
   await expect(page.getByRole('button', { name: 'ISSUE MINE' })).toBeVisible();
 }
 
-async function previewCheckout(page: Page): Promise<string> {
-  let payment: PreviewPaymentPayload | null = null;
-
-  await page.route('**/api/payments/create', async (route) => {
-    const response = await route.fetch();
-    expect(response.status()).toBe(200);
-    const json = await response.json() as PreviewPaymentPayload;
-    expect(json.checkoutUrl).toBe('/begin?payment=preview');
-    expect(json.paymentAttemptId).toMatch(/^preview:/);
-    payment = json;
-    await route.fulfill({ response, json });
-  }, { times: 1 });
-
+async function previewCheckout(
+  page: Page,
+  payments: PreviewPaymentPayload[],
+  expectedCount: number,
+): Promise<string> {
   const repeatScreenPromise = page.waitForURL(/\/begin\?payment=preview$/);
   await page.getByRole('button', { name: 'ISSUE MINE' }).click();
   await repeatScreenPromise;
+  await expect.poll(() => payments.length).toBe(expectedCount);
 
+  const payment = payments[expectedCount - 1];
   if (!payment) throw new Error('Preview payment response was not captured');
 
   await expect(page.getByRole('heading', { name: 'MAKE ANOTHER ONE?' })).toBeVisible();
@@ -155,6 +165,7 @@ test.describe('repeat-order lifecycle', () => {
 
   test('three successive orders remain isolated across reuse and fresh-answer paths', async ({ page }, testInfo) => {
     await installDeliveryStubs(page);
+    const previewPayments = await installPreviewPaymentCapture(page);
 
     const firstStartPromise = page.waitForResponse((response) =>
       response.url().endsWith('/api/experience/start') &&
@@ -172,7 +183,7 @@ test.describe('repeat-order lifecycle', () => {
     await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
     await expect(page.getByRole('heading', { name: 'Pick the shape your issue lives on.' })).toBeVisible();
     await reachCommitment(page);
-    const firstPaymentId = await previewCheckout(page);
+    const firstPaymentId = await previewCheckout(page, previewPayments, 1);
     await capture(page, `16-repeat-choice-first-${testInfo.project.name}`);
 
     const reuseResponsePromise = page.waitForResponse((response) =>
@@ -190,7 +201,7 @@ test.describe('repeat-order lifecycle', () => {
     await expect(page.getByRole('heading', { name: 'Pick the shape your issue lives on.' })).toBeVisible();
     await expect(page.getByText('01 / 07')).toHaveCount(0);
     await reachCommitment(page);
-    const secondPaymentId = await previewCheckout(page);
+    const secondPaymentId = await previewCheckout(page, previewPayments, 2);
     await capture(page, `17-repeat-choice-second-${testInfo.project.name}`);
 
     const freshResponsePromise = page.waitForResponse((response) =>
@@ -214,7 +225,7 @@ test.describe('repeat-order lifecycle', () => {
     await page.getByRole('button', { name: 'UNLOCK FORM' }).click();
     await expect(page.getByRole('heading', { name: 'Pick the shape your issue lives on.' })).toBeVisible();
     await reachCommitment(page);
-    const thirdPaymentId = await previewCheckout(page);
+    const thirdPaymentId = await previewCheckout(page, previewPayments, 3);
 
     expect(new Set([firstPaymentId, secondPaymentId, thirdPaymentId]).size).toBe(3);
     await capture(page, `19-repeat-choice-third-${testInfo.project.name}`);
