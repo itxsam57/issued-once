@@ -6,9 +6,9 @@ if (!baseUrl) throw new Error('LIVE_PRODUCTION_URL is required');
 
 const testEmail = 'webrefreshlab@gmail.com';
 const PHYSICAL_MATRIX = [
-  { key: 'tee', radio: 'TEE', size: /^Medium/, color: 'Bone', requestOtp: true },
-  { key: 'hat', radio: 'CAP', size: /^One size/, color: 'Bone', requestOtp: false },
-  { key: 'tote', radio: 'TOTE', size: /^One size/, color: 'Bone', requestOtp: false },
+  { key: 'tee', radio: 'TEE', size: 'M', color: 'Bone', requestOtp: true },
+  { key: 'hat', radio: 'CAP', size: 'OS', color: 'Bone', requestOtp: false },
+  { key: 'tote', radio: 'TOTE', size: 'OS', color: 'Bone', requestOtp: false },
 ];
 
 function matchesPost(response, path) {
@@ -87,7 +87,7 @@ async function exercisePhysicalGate(browser, item) {
     );
 
     await page.getByRole('heading', { name: 'Pick your size.' }).waitFor({ timeout: 10_000 });
-    await page.getByRole('radio', { name: item.size }).check();
+    await page.getByRole('radio', { name: item.size, exact: true }).check();
     await requirePost(page, '/api/experience/size', () =>
       page.getByRole('button', { name: 'CONFIRM SIZE' }).click(),
     );
