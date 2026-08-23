@@ -15,7 +15,8 @@ export type ReadinessCheck = {
 type Dependencies = {
   env?: NodeJS.ProcessEnv;
   databasePing: () => Promise<boolean>;
-  blobPing: () => Promise<boolean>;
+  storagePing: () => Promise<boolean>;
+  queuePing: () => Promise<boolean>;
   fetchImpl?: typeof fetch;
 };
 
@@ -36,6 +37,18 @@ function isValidHexSecret(value: string | undefined) {
   const secret = value?.trim() ?? '';
   if (!/^[0-9a-f]+$/i.test(secret) || secret.length % 2 !== 0) return false;
   return Buffer.from(secret, 'hex').length > 0;
+}
+
+function hasSafeSecret(value: string | undefined) {
+  return (value?.trim().length ?? 0) >= 24;
+}
+
+function hasHttpsOrigin(value: string | undefined) {
+  try {
+    return new URL(value?.trim() ?? '').protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 function safeFetchError(response: Response) {
@@ -59,11 +72,13 @@ export class ReadinessService {
   }> {
     const checks: ReadinessCheck[] = [];
 
+    let databaseReady = false;
     if (!this.env.DATABASE_URL?.trim()) {
       checks.push({ key: 'database', label: 'Neon database', state: 'missing', detail: 'DATABASE_URL is not configured.' });
     } else {
       try {
-        checks.push(await this.dependencies.databasePing()
+        databaseReady = await this.dependencies.databasePing();
+        checks.push(databaseReady
           ? { key: 'database', label: 'Neon database', state: 'ready', detail: 'Read-only database ping succeeded.' }
           : { key: 'database', label: 'Neon database', state: 'blocked', detail: 'Database ping failed.' });
       } catch {
@@ -177,15 +192,19 @@ export class ReadinessService {
       }
     }
 
-    if (!this.env.BLOB_READ_WRITE_TOKEN?.trim()) {
-      checks.push({ key: 'blob', label: 'Private artwork storage', state: 'missing', detail: 'BLOB_READ_WRITE_TOKEN is not configured.' });
+    const storageConfigured = present(this.env, 'ARTWORK_STORAGE_DIR', 'ARTWORK_SIGNING_KEY', 'APP_ORIGIN');
+    const storageConfigSafe = hasSafeSecret(this.env.ARTWORK_SIGNING_KEY) && hasHttpsOrigin(this.env.APP_ORIGIN);
+    if (!storageConfigured) {
+      checks.push({ key: 'storage', label: 'Private artwork storage', state: 'missing', detail: 'Private artwork directory, signing key, and HTTPS application origin are required.' });
+    } else if (!storageConfigSafe) {
+      checks.push({ key: 'storage', label: 'Private artwork storage', state: 'blocked', detail: 'Private artwork signing or application-origin configuration is unsafe.' });
     } else {
       try {
-        checks.push(await this.dependencies.blobPing()
-          ? { key: 'blob', label: 'Private artwork storage', state: 'ready', detail: 'Private Blob signing check succeeded.' }
-          : { key: 'blob', label: 'Private artwork storage', state: 'blocked', detail: 'Private Blob signing check failed.' });
+        checks.push(await this.dependencies.storagePing()
+          ? { key: 'storage', label: 'Private artwork storage', state: 'ready', detail: 'Private filesystem write/read boundary is available.' }
+          : { key: 'storage', label: 'Private artwork storage', state: 'blocked', detail: 'Private filesystem boundary is unavailable.' });
       } catch {
-        checks.push({ key: 'blob', label: 'Private artwork storage', state: 'blocked', detail: 'Private Blob signing check failed.' });
+        checks.push({ key: 'storage', label: 'Private artwork storage', state: 'blocked', detail: 'Private filesystem boundary is unavailable.' });
       }
     }
 
@@ -227,12 +246,19 @@ export class ReadinessService {
       }
     }
 
-    checks.push({
-      key: 'queues',
-      label: 'Durable queues',
-      state: 'configured',
-      detail: 'Design and notification consumers are declared in deployment config; deployed-account registration must still be observed.',
-    });
+    if (!hasSafeSecret(this.env.CRON_SECRET)) {
+      checks.push({ key: 'queues', label: 'Durable jobs', state: 'missing', detail: 'A protected cron secret is required to drain durable background jobs.' });
+    } else if (!databaseReady) {
+      checks.push({ key: 'queues', label: 'Durable jobs', state: 'blocked', detail: 'Durable jobs require a healthy database.' });
+    } else {
+      try {
+        checks.push(await this.dependencies.queuePing()
+          ? { key: 'queues', label: 'Durable jobs', state: 'ready', detail: 'Postgres background-job schema is present and the protected drain is configured.' }
+          : { key: 'queues', label: 'Durable jobs', state: 'blocked', detail: 'Postgres background-job schema is unavailable.' });
+      } catch {
+        checks.push({ key: 'queues', label: 'Durable jobs', state: 'blocked', detail: 'Postgres background-job schema is unavailable.' });
+      }
+    }
 
     checks.push(this.env.PRINTFUL_ALLOW_CONFIRM === 'true'
       ? { key: 'factory-confirm', label: 'Factory charge switch', state: 'armed', detail: 'PRINTFUL_ALLOW_CONFIRM is armed. Keep this deliberate and temporary.' }
@@ -248,15 +274,16 @@ export class ReadinessService {
       safepayEnvironment === 'sandbox' &&
       state('resend') === 'configured' &&
       state('openai') === 'ready' &&
-      state('blob') === 'ready' &&
+      state('storage') === 'ready' &&
       state('printful') === 'ready' &&
+      state('queues') === 'ready' &&
       state('factory-confirm') === 'safe';
 
     return {
       checkedAt: new Date().toISOString(),
       checks,
       readyForSandbox,
-      // Production still requires observed signed payment/email/queue/factory proofs and an owner launch decision.
+      // Production still requires observed signed payment/email/job/factory proofs and an owner launch decision.
       readyForProduction: false,
     };
   }
