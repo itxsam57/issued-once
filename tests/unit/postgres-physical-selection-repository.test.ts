@@ -40,6 +40,24 @@ describe('PostgresPhysicalSelectionRepository', () => {
     expect(sql.query).toHaveBeenCalledWith(expect.stringContaining('FROM experience_physical_selection'), ['exp-1']);
   });
 
+  test('reads a persisted tote so the OS size gate can continue', async () => {
+    const sql = {
+      query: vi.fn().mockResolvedValue([{
+        experience_id: 'exp-tote', object_type: 'tote', product_slug: 'io-tote', size_code: null,
+        color_code: null, color_label: null, color_swatch: null, variant_id: null,
+        updated_at: new Date('2026-08-23T11:18:18.357Z'),
+      }]),
+    };
+    const repository = new PostgresPhysicalSelectionRepository(sql);
+
+    await expect(repository.findByExperienceId('exp-tote')).resolves.toMatchObject({
+      experienceId: 'exp-tote',
+      object: 'tote',
+      productSlug: 'io-tote',
+      sizeCode: null,
+    });
+  });
+
   test('persists size and advances OBJECT_SELECTED atomically', async () => {
     const sql = { query: vi.fn().mockResolvedValue([{ experience_id: 'exp-1' }]) };
     const repository = new PostgresPhysicalSelectionRepository(sql);
