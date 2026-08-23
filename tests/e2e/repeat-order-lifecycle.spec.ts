@@ -17,6 +17,11 @@ type BootstrapPayload = {
   questions: BootstrapQuestion[];
 };
 
+type PreviewPaymentPayload = {
+  checkoutUrl: string;
+  paymentAttemptId: string;
+};
+
 async function capture(page: Page, name: string) {
   await mkdir('artifacts/visual', { recursive: true });
   await page.screenshot({ path: `artifacts/visual/${name}.png`, fullPage: true });
@@ -119,24 +124,24 @@ async function reachCommitment(page: Page) {
 }
 
 async function previewCheckout(page: Page): Promise<string> {
-  const paymentResponsePromise = page.waitForResponse((response) =>
-    response.url().endsWith('/api/payments/create') &&
-    response.request().method() === 'POST',
-  );
+  let payment: PreviewPaymentPayload | null = null;
+
+  await page.route('**/api/payments/create', async (route) => {
+    const response = await route.fetch();
+    expect(response.status()).toBe(200);
+    const json = await response.json() as PreviewPaymentPayload;
+    expect(json.checkoutUrl).toBe('/begin?payment=preview');
+    expect(json.paymentAttemptId).toMatch(/^preview:/);
+    payment = json;
+    await route.fulfill({ response, json });
+  }, { times: 1 });
+
   const repeatScreenPromise = page.waitForURL(/\/begin\?payment=preview$/);
-
   await page.getByRole('button', { name: 'ISSUE MINE' }).click();
-
-  const paymentResponse = await paymentResponsePromise;
-  expect(paymentResponse.status()).toBe(200);
-  const payment = await paymentResponse.json() as {
-    checkoutUrl: string;
-    paymentAttemptId: string;
-  };
-  expect(payment.checkoutUrl).toBe('/begin?payment=preview');
-  expect(payment.paymentAttemptId).toMatch(/^preview:/);
-
   await repeatScreenPromise;
+
+  if (!payment) throw new Error('Preview payment response was not captured');
+
   await expect(page.getByRole('heading', { name: 'MAKE ANOTHER ONE?' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'KEEP PREVIOUS ANSWERS' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'ANSWER AGAIN' })).toBeVisible();
