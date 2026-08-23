@@ -125,7 +125,7 @@ test('physical selection and delivery route failures stay visible and retryable'
   await page.getByRole('button', { name: 'LOCK FORM' }).click();
   await expect(page.getByRole('heading', { name: 'Pick your size.' })).toBeVisible();
 
-  await page.getByRole('radio', { name: 'M', exact: true }).check();
+  await page.getByRole('radio', { name: /^Medium/ }).check();
   await page.getByRole('button', { name: 'CONFIRM SIZE' }).click();
   await expect(page.getByRole('alert')).toBeVisible();
   await expect(page.getByRole('button', { name: 'CONFIRM SIZE' })).toBeEnabled();
