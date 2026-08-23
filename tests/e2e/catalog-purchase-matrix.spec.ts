@@ -6,12 +6,13 @@ type MatrixObject = {
   radio: 'TEE' | 'CAP' | 'TOTE';
   size: RegExp;
   color: 'Bone';
+  price: '$32.00' | '$34.00' | '$36.00';
 };
 
 const MATRIX: MatrixObject[] = [
-  { key: 'tee', radio: 'TEE', size: /^Medium/, color: 'Bone' },
-  { key: 'hat', radio: 'CAP', size: /^One size/, color: 'Bone' },
-  { key: 'tote', radio: 'TOTE', size: /^One size/, color: 'Bone' },
+  { key: 'tee', radio: 'TEE', size: /^Medium/, color: 'Bone', price: '$32.00' },
+  { key: 'hat', radio: 'CAP', size: /^One size/, color: 'Bone', price: '$34.00' },
+  { key: 'tote', radio: 'TOTE', size: /^One size/, color: 'Bone', price: '$36.00' },
 ];
 
 async function answerText(page: Page, value: string) {
@@ -68,7 +69,7 @@ async function finishPreviewPurchase(page: Page, item: MatrixObject) {
   await page.getByLabel('Phone').fill('+923001234567');
   await page.getByRole('button', { name: 'USE THIS ADDRESS' }).click();
 
-  await expect(page.getByText('$54.00')).toBeVisible();
+  await expect(page.getByText(item.price)).toBeVisible();
   await expect(page.getByText('Everything else stays unknown until it arrives.')).toBeVisible();
   await page.getByRole('button', { name: 'ISSUE MINE' }).click();
   await expect(page.getByRole('heading', { name: 'PREVIEW COMPLETE.' })).toBeVisible();
