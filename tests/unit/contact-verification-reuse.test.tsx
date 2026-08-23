@@ -71,7 +71,7 @@ describe('repeat contact verification UI', () => {
 
     expect(calls.onCheckEmail).toHaveBeenCalledWith('sam@example.com');
     expect(calls.onRequestOtp).toHaveBeenCalledWith('sam@example.com');
-    expect(screen.getByText(/request 6C6BA8D3/i)).toBeInTheDocument();
+    expect(screen.getByText((_, node) => node?.textContent === 'Request 6C6BA8D3')).toBeInTheDocument();
     expect(screen.getByLabelText('Verification code')).toBeInTheDocument();
   });
 
