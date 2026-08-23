@@ -40,6 +40,12 @@ type ExperiencePhase =
   | 'shipping'
   | 'commitment';
 
+type OtpRequest = {
+  challengeId: string;
+  retryAfterSeconds: number;
+  requestTag?: string;
+};
+
 type MysteryExperienceProps = {
   questions?: readonly QuestionDefinition[];
   initialQuestionPosition?: number;
@@ -57,7 +63,9 @@ type MysteryExperienceProps = {
     selection: LockedVariant,
   ) => Promise<CommitmentQuote | void> | CommitmentQuote | void;
   getCommitmentQuote?: (selection: LockedVariant) => Promise<CommitmentQuote | null>;
-  onRequestOtp?: (email: string) => Promise<{ challengeId: string; retryAfterSeconds: number }>;
+  onCheckEmail?: (email: string) => Promise<{ alreadyVerified: boolean }>;
+  onReuseVerified?: (email: string) => Promise<{ verified: true }>;
+  onRequestOtp?: (email: string) => Promise<OtpRequest>;
   onVerifyOtp?: (challengeId: string, code: string) => Promise<{ verified: true }>;
   onShippingSubmitted?: (address: ShippingAddress) => Promise<void>;
   onApplyReferral?: (
@@ -80,6 +88,8 @@ export function MysteryExperience({
   baseColorCatalog,
   onBaseColorConfirmed,
   getCommitmentQuote,
+  onCheckEmail,
+  onReuseVerified,
   onRequestOtp,
   onVerifyOtp,
   onShippingSubmitted,
@@ -181,6 +191,8 @@ export function MysteryExperience({
   if (phase === 'contact' && onRequestOtp && onVerifyOtp) {
     return (
       <ContactVerification
+        onCheckEmail={onCheckEmail}
+        onReuseVerified={onReuseVerified}
         onRequestOtp={onRequestOtp}
         onVerifyOtp={onVerifyOtp}
         onComplete={() => setPhase('shipping')}
