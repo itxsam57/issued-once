@@ -44,7 +44,7 @@ export class PostgresRepeatOrderRepository implements RepeatOrderRepository {
             AND (
               SELECT count(*) FROM experience_question_set_items WHERE experience_id = $1
             ) = 7 AS ok
-        ), inserted AS (
+        ), upserted AS (
           INSERT INTO experiences (
             id,
             public_session_hash,
@@ -64,18 +64,20 @@ export class PostgresRepeatOrderRepository implements RepeatOrderRepository {
             $6
           FROM source_valid
           WHERE $4 = 'fresh' OR ok
-          ON CONFLICT (public_session_hash) DO NOTHING
-          RETURNING id, stage, hook_id
-        ), reuse_inserted AS (
-          SELECT id
-          FROM inserted
+          ON CONFLICT (public_session_hash) DO UPDATE
+          SET public_session_hash = experiences.public_session_hash
+          RETURNING id, stage, hook_id, (xmax = 0) AS created
+        ), reuse_child AS (
+          SELECT id, created
+          FROM upserted
           WHERE hook_id = 'repeat:reuse'
         ), copied_set AS (
           INSERT INTO experience_question_sets (experience_id, created_at)
           SELECT child.id, $5
-          FROM reuse_inserted child
+          FROM reuse_child child
           JOIN experience_question_sets source
             ON source.experience_id = $1
+          ON CONFLICT (experience_id) DO NOTHING
           RETURNING experience_id
         ), copied_questions AS (
           INSERT INTO experience_question_set_items (
@@ -91,7 +93,7 @@ export class PostgresRepeatOrderRepository implements RepeatOrderRepository {
             choices_snapshot
           )
           SELECT
-            child.experience_id,
+            child.id,
             source.ordinal,
             source.slot,
             source.question_id,
@@ -101,9 +103,10 @@ export class PostgresRepeatOrderRepository implements RepeatOrderRepository {
             source.kind,
             source.optional,
             source.choices_snapshot
-          FROM copied_set child
+          FROM reuse_child child
           JOIN experience_question_set_items source
             ON source.experience_id = $1
+          ON CONFLICT (experience_id, ordinal) DO NOTHING
           RETURNING ordinal
         ), copied_answers AS (
           INSERT INTO experience_answers (
@@ -125,41 +128,33 @@ export class PostgresRepeatOrderRepository implements RepeatOrderRepository {
             source.auth_tag,
             source.ciphertext,
             source.answered_at
-          FROM reuse_inserted child
+          FROM reuse_child child
           JOIN experience_answers source
             ON source.experience_id = $1
+          ON CONFLICT (experience_id, question_id) DO NOTHING
           RETURNING question_id
-        ), resolved AS (
-          SELECT id, stage, hook_id, true AS created
-          FROM inserted
-          UNION ALL
-          SELECT id, stage, hook_id, false AS created
-          FROM experiences
-          WHERE public_session_hash = $3
-            AND NOT EXISTS (SELECT 1 FROM inserted)
-          LIMIT 1
         )
         SELECT
-          resolved.id AS experience_id,
-          resolved.stage,
-          resolved.hook_id,
-          resolved.created,
+          upserted.id AS experience_id,
+          upserted.stage,
+          upserted.hook_id,
+          upserted.created,
           CASE
-            WHEN resolved.created AND resolved.hook_id = 'repeat:reuse'
+            WHEN upserted.created AND upserted.hook_id = 'repeat:reuse'
               THEN (SELECT count(*) FROM copied_answers)
             ELSE 0
           END AS answer_count,
           CASE
-            WHEN resolved.created AND resolved.hook_id = 'repeat:reuse'
+            WHEN upserted.created AND upserted.hook_id = 'repeat:reuse'
               THEN (SELECT count(*) FROM copied_questions)
             ELSE 0
           END AS question_count,
           CASE
-            WHEN resolved.created AND resolved.hook_id = 'repeat:reuse'
+            WHEN upserted.created AND upserted.hook_id = 'repeat:reuse'
               THEN (SELECT count(*) FROM copied_set)
             ELSE 0
           END AS set_count
-        FROM resolved
+        FROM upserted
       `,
       [
         input.sourceExperienceId,
