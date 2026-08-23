@@ -25,9 +25,10 @@ describe('BEGIN route deployment mode', () => {
   test('Vercel production keeps the real public experience', async () => {
     vi.stubEnv('VERCEL_ENV', 'production');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      stage: 'INTERVIEW',
-      initialPosition: 0,
+      stage: 'QUESTION_1',
+      initialPosition: 1,
       interviewComplete: false,
+      entryMode: 'interview',
       questions: QUESTIONS,
     }), {
       status: 200,

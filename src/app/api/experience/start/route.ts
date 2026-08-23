@@ -24,6 +24,7 @@ export async function POST() {
       stage: bootstrap.stage,
       initialPosition: bootstrap.initialPosition,
       interviewComplete: bootstrap.interviewComplete,
+      entryMode: bootstrap.entryMode,
       questions: bootstrap.questions,
     });
   } catch (error) {

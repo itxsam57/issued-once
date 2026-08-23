@@ -15,17 +15,26 @@ const POSITION_BY_STAGE: Partial<Record<ExperienceStage, number>> = {
   QUESTION_7: 7,
 };
 
+export type InterviewEntryMode = 'interview' | 'profile' | 'repeat-choice';
+
 export type InterviewBootstrap = {
   token: string;
   stage: ExperienceStage;
   initialPosition: number;
   interviewComplete: boolean;
+  entryMode: InterviewEntryMode;
   questions: readonly QuestionDefinition[];
 };
 
 type QuestionAssigner = {
   assign(experienceId: string): Promise<readonly AssignedQuestionRecord[]>;
 };
+
+function entryModeFor(stage: ExperienceStage): InterviewEntryMode {
+  if (stage === 'CHECKOUT_STARTED') return 'repeat-choice';
+  if (POSITION_BY_STAGE[stage]) return 'interview';
+  return 'profile';
+}
 
 export class InterviewBootstrapService {
   constructor(
@@ -43,6 +52,7 @@ export class InterviewBootstrapService {
           stage: existing.stage,
           initialPosition: POSITION_BY_STAGE[existing.stage] ?? 7,
           interviewComplete: !POSITION_BY_STAGE[existing.stage],
+          entryMode: entryModeFor(existing.stage),
           questions: toInterviewQuestions(assignment),
         };
       }
@@ -58,6 +68,7 @@ export class InterviewBootstrapService {
       stage: started.stage,
       initialPosition: 1,
       interviewComplete: false,
+      entryMode: 'interview',
       questions: toInterviewQuestions(assignment),
     };
   }
