@@ -34,6 +34,12 @@ type BootstrapPayload = {
   questions: QuestionDefinition[];
 };
 
+type ContactFailurePayload = {
+  error?: string;
+  code?: string;
+  attemptsRemaining?: number;
+};
+
 async function postJson<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(path, {
     method: 'POST',
@@ -47,6 +53,30 @@ async function postJson<T>(path: string, body?: unknown): Promise<T> {
   }
 
   return (await response.json()) as T;
+}
+
+async function postContactJson<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(path, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => null) as ContactFailurePayload | T | null;
+  if (!response.ok) {
+    const failure = (payload ?? {}) as ContactFailurePayload;
+    throw Object.assign(
+      new Error(typeof failure.error === 'string' ? failure.error : 'Contact verification failed.'),
+      {
+        ...(typeof failure.code === 'string' ? { code: failure.code } : {}),
+        ...(typeof failure.attemptsRemaining === 'number'
+          ? { attemptsRemaining: failure.attemptsRemaining }
+          : {}),
+      },
+    );
+  }
+  if (payload === null) throw new Error('Contact verification response is invalid.');
+  return payload as T;
 }
 
 function validateBootstrap(payload: BootstrapPayload): BootstrapPayload {
@@ -87,15 +117,24 @@ async function confirmBase(selection: LockedVariant): Promise<CommitmentQuote> {
   });
 }
 
+async function checkEmail(email: string) {
+  return postContactJson<{ alreadyVerified: boolean }>('/api/contact/check-email', { email });
+}
+
+async function reuseVerified(email: string) {
+  return postContactJson<{ verified: true }>('/api/contact/reuse-verified', { email });
+}
+
 async function requestOtp(email: string) {
-  return postJson<{ challengeId: string; retryAfterSeconds: number }>(
-    '/api/contact/request-otp',
-    { email },
-  );
+  return postContactJson<{
+    challengeId: string;
+    retryAfterSeconds: number;
+    requestTag?: string;
+  }>('/api/contact/request-otp', { email });
 }
 
 async function verifyOtp(challengeId: string, code: string) {
-  return postJson<{ verified: true }>('/api/contact/verify-otp', {
+  return postContactJson<{ verified: true }>('/api/contact/verify-otp', {
     challengeId,
     code,
   });
@@ -186,6 +225,8 @@ export function PublicInterviewExperience() {
       onObjectSelected={selectObject}
       onSizeConfirmed={confirmSize}
       onBaseColorConfirmed={confirmBase}
+      onCheckEmail={checkEmail}
+      onReuseVerified={reuseVerified}
       onRequestOtp={requestOtp}
       onVerifyOtp={verifyOtp}
       onShippingSubmitted={saveShipping}
