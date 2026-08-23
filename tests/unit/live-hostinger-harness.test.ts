@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 const workflowPath = '.github/workflows/live-release-qa.yml';
 const releaseProbePath = 'tests/e2e/live-release-health.mjs';
 
-test('manual live release QA accepts any deployment URL and proves health before the physical matrix', () => {
+test('manual live release QA accepts any deployment URL and proves exact health before the physical matrix', () => {
   expect(existsSync(workflowPath)).toBe(true);
   expect(existsSync(releaseProbePath)).toBe(true);
   if (!existsSync(workflowPath) || !existsSync(releaseProbePath)) return;
@@ -14,7 +14,9 @@ test('manual live release QA accepts any deployment URL and proves health before
   const physicalProbe = readFileSync('tests/e2e/live-production-smoke.mjs', 'utf8');
 
   expect(workflow).toContain('deployment_url:');
+  expect(workflow).toContain('expected_release:');
   expect(workflow).toContain("LIVE_PRODUCTION_URL: ${{ inputs.deployment_url }}");
+  expect(workflow).toContain("EXPECTED_RELEASE_ID: ${{ inputs.expected_release }}");
   expect(workflow).toContain('node tests/e2e/live-release-health.mjs');
   expect(workflow).toContain('node tests/e2e/live-production-smoke.mjs');
   expect(workflow.indexOf('node tests/e2e/live-release-health.mjs')).toBeLessThan(
@@ -26,7 +28,9 @@ test('manual live release QA accepts any deployment URL and proves health before
   for (const field of ['runtimeProvider', 'releaseId', 'version', 'databaseReady', 'queueReady', 'storageReady']) {
     expect(releaseProbe).toContain(field);
   }
+  expect(releaseProbe).toContain('EXPECTED_RELEASE_ID');
   expect(releaseProbe).toContain("runtimeProvider !== 'hostinger'");
+  expect(releaseProbe).toContain('releaseId !== expectedReleaseId');
   expect(releaseProbe).toContain('databaseReady !== true');
   expect(releaseProbe).toContain('queueReady !== true');
   expect(releaseProbe).toContain('storageReady !== true');
