@@ -18,6 +18,12 @@ describe('live Vercel preview harness', () => {
     expect(liveProbe).toContain("'x-vercel-set-bypass-cookie': 'true'");
   });
 
+  it('targets the explicitly supplied repair-branch preview instead of a hard-coded base preview', () => {
+    expect(workflow).toContain('preview_url:');
+    expect(workflow).toContain("PREVIEW_URL: ${{ inputs.preview_url }}");
+    expect(workflow).not.toContain('PREVIEW_URL: https://issued-once-git-feat-mystery-foundation-samx4.vercel.app');
+  });
+
   it('tracks the preview-specific physical and delivery contract', () => {
     expect(previewExperience).toContain("{ code: 'M', label: 'Medium'");
     expect(previewExperience).toContain('amountMinor: 5400');
