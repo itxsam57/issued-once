@@ -1,7 +1,9 @@
 import { execFileSync } from 'node:child_process';
 
+type ReleaseEnvironment = Readonly<Record<string, string | undefined>>;
+
 export function resolveBuildReleaseId(
-  env: NodeJS.ProcessEnv = process.env,
+  env: ReleaseEnvironment = process.env,
   readGitSha: () => string = () => execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }),
 ): string {
   const explicit = env.RELEASE_ID?.trim() || env.GITHUB_SHA?.trim();
