@@ -8,6 +8,8 @@ import type { AssignedQuestionRecord, QuestionSetRepository } from './QuestionSe
 
 const SLOTS: readonly QuestionId[] = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7'];
 
+type ExcludedByFamily = Readonly<Partial<Record<QuestionFamily, string>>>;
+
 function selectWeighted(
   candidates: readonly VaultQuestionDefinition[],
   random: () => number,
@@ -43,11 +45,38 @@ export class QuestionSelectionService {
   ) {}
 
   async assign(experienceId: string): Promise<readonly AssignedQuestionRecord[]> {
+    return this.assignWithExclusions(experienceId, {});
+  }
+
+  async assignExcluding(
+    experienceId: string,
+    excludedByFamily: ExcludedByFamily,
+  ): Promise<readonly AssignedQuestionRecord[]> {
+    return this.assignWithExclusions(experienceId, excludedByFamily);
+  }
+
+  private async assignWithExclusions(
+    experienceId: string,
+    excludedByFamily: ExcludedByFamily,
+  ): Promise<readonly AssignedQuestionRecord[]> {
     const existing = await this.repository.findByExperienceId(experienceId);
     if (existing) return existing;
 
     const questions = REQUIRED_QUESTION_FAMILIES.map((family, index) => {
-      const selected = selectWeighted(candidatesFor(this.vault, family), this.random);
+      const excludedId = excludedByFamily[family];
+      const familyCandidates = candidatesFor(this.vault, family);
+      const candidates = excludedId
+        ? familyCandidates.filter((question) => question.id !== excludedId)
+        : familyCandidates;
+
+      if (
+        excludedId &&
+        !candidates.some((question) => question.active && question.weight > 0)
+      ) {
+        throw new Error('Question family has no active alternate prompts');
+      }
+
+      const selected = selectWeighted(candidates, this.random);
       return {
         slot: SLOTS[index],
         ordinal: index + 1,
