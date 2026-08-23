@@ -18,8 +18,6 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0",
-    "@vercel/blob": "^2.7.0",
-    "@vercel/queue": "^0.4.0",
     "next": "16.2.11",
     "openai": "^7.4.0",
     "react": "19.2.7",
