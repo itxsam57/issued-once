@@ -1,4 +1,7 @@
-import { QUESTION_VAULT } from '@/domain/questions/QuestionVault';
+import {
+  QUESTION_VAULT,
+  type QuestionFamily,
+} from '@/domain/questions/QuestionVault';
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { PreviewQuestionSetRepository } from '@/server/preview/PreviewQuestionSetRepository';
 import { PostgresLiveQuestionSelectionService } from './PostgresLiveQuestionSelectionService';
@@ -13,8 +16,12 @@ export class QuestionAssignmentUnavailableError extends Error {
   }
 }
 
-type QuestionAssigner = {
+export type QuestionAssigner = {
   assign(experienceId: string): Promise<readonly AssignedQuestionRecord[]>;
+  assignExcluding(
+    experienceId: string,
+    excludedByFamily: Readonly<Partial<Record<QuestionFamily, string>>>,
+  ): Promise<readonly AssignedQuestionRecord[]>;
 };
 
 export function getQuestionSelectionService(): QuestionAssigner {
@@ -29,5 +36,9 @@ export function getQuestionSelectionService(): QuestionAssigner {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new QuestionAssignmentUnavailableError();
   const sql = createNeonSqlExecutor(databaseUrl);
-  return new PostgresLiveQuestionSelectionService(sql, new PostgresQuestionSetRepository(sql), QUESTION_VAULT);
+  return new PostgresLiveQuestionSelectionService(
+    sql,
+    new PostgresQuestionSetRepository(sql),
+    QUESTION_VAULT,
+  );
 }
