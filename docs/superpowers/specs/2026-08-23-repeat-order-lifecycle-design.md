@@ -22,15 +22,30 @@ Each order must have independent mutable state. Starting a second order must nev
 
 ## Design Decision
 
-Use a fresh `Experience`/order snapshot for every new purchase cycle while carrying forward the previously completed interview profile.
+Use a fresh `Experience`/order snapshot after a terminal checkout while carrying forward the previously completed interview profile.
 
 Do **not** reset an old `Experience` row back to `PROFILE_COMPLETE`. That would change state under an already-created quote/payment and make order history unsafe.
 
 Do **not** introduce the full permanent customer-profile/order schema in this repair. That is the eventual clean model, but it would require a new production migration and is intentionally outside this incident because production migration `0029_creator_referrals.sql` remains separately owner-gated.
 
-Instead, when bootstrap detects a session whose existing `Experience` is already in an order-progress stage (`OBJECT_SELECTED`, `SIZE_CONFIRMED`, `COMMITMENT_READY`, or `CHECKOUT_STARTED`), it creates a new `Experience` row for the next order at `PROFILE_COMPLETE`, copies the completed seven encrypted answers into the new experience without decrypting them, assigns the same question/profile semantics, rotates the browser session cookie to the new experience, and returns bootstrap state that opens the physical-form path immediately.
+When bootstrap detects that the browser session references an `Experience` at `CHECKOUT_STARTED`, it derives a deterministic next-order session token from the current secret session token using a domain-separated one-way hash, then asks a dedicated repeat-order repository to atomically create-or-recover the next order snapshot.
 
-The previous `Experience` remains immutable for its prior order/payment lifecycle.
+The new `Experience` starts at `PROFILE_COMPLETE`. The repository copies:
+
+- all seven encrypted answer payloads without decrypting them;
+- the exact seven assigned question-set snapshots (question/version/family/prompt/kind/options) so copied answers retain their original meaning.
+
+The browser cookie rotates to the derived next-order token. Bootstrap marks this as repeat-order entry, and the client opens directly at physical form selection instead of showing the completed-interview threshold again.
+
+The previous `Experience` remains immutable for its prior quote/payment/Issue lifecycle.
+
+## Why `CHECKOUT_STARTED` Is the Repeat Boundary
+
+Only a terminal checkout starts a new order automatically.
+
+`PROFILE_COMPLETE`, `OBJECT_SELECTED`, `SIZE_CONFIRMED`, and `COMMITMENT_READY` are still the current in-progress order and must not be silently abandoned merely because the browser refreshes. General mid-order resume UX can be hardened separately; this repair does not turn ordinary refreshes into accidental new orders.
+
+The reported lockout occurs because `CHECKOUT_STARTED` is terminal for the old order but bootstrap incorrectly tries to reuse it for new shopping.
 
 ## Lifecycle
 
@@ -46,39 +61,53 @@ The previous `Experience` remains immutable for its prior order/payment lifecycl
 
 ### Repeat purchase
 
-1. Buyer visits `/begin` or returns from/leaves the payment page and later re-enters the shopping flow.
-2. `/api/experience/start` sees the current session points to an already-started order stage.
-3. Server creates a new `Experience` row with a new session token and `PROFILE_COMPLETE` stage.
-4. Server copies the prior completed encrypted answers to the new experience without exposing plaintext.
-5. Browser session cookie rotates to the new order.
-6. UI treats the interview as complete and lets the buyer unlock/select a physical form immediately.
-7. New object/size/base/contact/shipping/quote/payment records attach only to the new experience.
-8. This can repeat indefinitely.
+1. Buyer visits `/begin` after beginning or completing the prior Safepay checkout.
+2. `/api/experience/start` sees the current session references `CHECKOUT_STARTED`.
+3. Server deterministically derives the next-order session token from the current secret token.
+4. In one idempotent persistence operation, server creates-or-recovers a new `Experience` at `PROFILE_COMPLETE`, copies the seven encrypted answers, and copies the exact question-set assignment snapshots.
+5. Browser session cookie rotates to the new order token.
+6. Bootstrap identifies repeat-order entry.
+7. UI opens directly at `FORM / CURRENT ISSUE` without asking the seven questions again and without trapping the buyer on `WE HAVE ENOUGH.`.
+8. New object/size/base/contact/shipping/quote/payment records attach only to the new experience.
+9. After that order reaches `CHECKOUT_STARTED`, the same process can derive order 3, order 4, and so on indefinitely.
+
+## Idempotency and Concurrency
+
+The existing production schema already provides the constraints required to avoid a migration:
+
+- `experiences.public_session_hash` is unique;
+- `experience_answers` is unique by `(experience_id, question_id)`;
+- question-set records are unique by experience and their slot/ordinal relationships.
+
+The next token is deterministic for a given current secret token. Concurrent `/api/experience/start` requests therefore target the same next public-session hash.
+
+A dedicated `RepeatOrderRepository` will perform the create/recover + encrypted-answer copy + question-set copy as one database operation/transaction using existing uniqueness constraints. Simultaneous starts converge on the same child experience rather than creating orphan order rows.
+
+The derived token remains high-entropy because its input is the existing 256-bit random secret session token. Only hashes of session tokens are persisted. Knowing a stored session hash does not reveal the current or next browser token.
 
 ## Privacy and Data Boundaries
 
 - Private interview plaintext is never read merely to start another order.
-- Reuse happens by copying already-encrypted stored payloads.
+- Reuse copies already-encrypted payload fields verbatim.
+- Exact question assignment snapshots are copied with the answers so semantic pairing cannot drift.
 - Prior payment attempts remain attached to the prior experience.
 - Prior Issues remain attached to the prior payment attempt.
-- New contact/shipping/quote/payment state is isolated to the new experience unless a separate future customer-profile feature deliberately introduces reusable address/contact records.
+- New contact/shipping/quote/payment state is isolated to the new experience.
+- Contact verification and shipping are collected again for the new order in this repair; automatic address/contact reuse is a separate customer-profile feature.
 - No raw answers, email addresses, shipping addresses, tokens, or payment secrets are emitted to logs or browser bootstrap payloads.
 
-## Concurrency and Idempotency
+## API and Client Contract
 
-Repeat-order bootstrap must be safe under refreshes/double requests.
+`/api/experience/start` continues to return the assigned questions and progression data but adds an explicit safe entry indicator for the client, such as `entryMode: 'interview' | 'profile' | 'repeat-order'`.
 
-The server should avoid creating multiple active replacement experiences from concurrent `/api/experience/start` calls. The implementation must use a repository-level or deterministic transition/clone primitive that makes "derive next order from this completed source experience" idempotent for the browser-session handoff.
+For repeat-order bootstrap:
 
-If the currently referenced experience is still `QUESTION_1` through `PROFILE_COMPLETE`, bootstrap continues/reuses it normally. Only an experience that has already entered order-specific mutable stages triggers a fresh order snapshot.
+- `stage` is `PROFILE_COMPLETE` for the new order;
+- `interviewComplete` is true;
+- `entryMode` is `repeat-order`;
+- no private answer payloads are returned.
 
-## UI Behavior
-
-- A first-time customer still sees the seven-question interview.
-- A returning/repeat customer with a completed profile should not be visually presented as blocked by `WE HAVE ENOUGH.` with no next action.
-- They should be able to proceed to `FORM / CURRENT ISSUE` and choose a new form.
-- Choosing a cap after a tee order must work.
-- The customer can still deliberately start over with a new profile in a future feature; that is not required for this repair.
+`PublicInterviewExperience` passes the entry mode into `MysteryExperience`. `MysteryExperience` initializes repeat-order entry directly at the `form` phase. First-time interview completion keeps the existing artistic `WE HAVE ENOUGH.` threshold before form unlock.
 
 ## Dummy Payment Test Strategy
 
@@ -86,41 +115,46 @@ Testing must prove the lifecycle, not merely mock the final button.
 
 ### Server/unit/integration regression
 
-Create a fake payment gateway and persistent in-memory/repository fixture that exercises real domain transitions:
+Use a fake payment gateway and repository fixtures that exercise actual domain transitions:
 
-1. Complete one seven-question profile.
-2. Select tee, size, base, contact, shipping, quote.
-3. Start dummy checkout and record a first payment attempt.
-4. Bootstrap again with the same browser/customer context.
-5. Assert a distinct second experience/order snapshot is returned at `PROFILE_COMPLETE`.
-6. Assert the seven encrypted answer records are present for the new experience without plaintext exposure.
-7. Assert the first experience remains `CHECKOUT_STARTED` and its payment attempt is unchanged.
-8. Select a different form (cap/hat where catalog allows), complete its configuration, and start a second dummy checkout.
-9. Assert the two payment attempts have distinct IDs and distinct experience IDs.
-10. Assert no manufacturing job is created by the test.
+1. Complete one seven-question profile with a fixed assigned question set.
+2. Select tee, size, base, contact, shipping, and quote.
+3. Start dummy checkout and record a first payment attempt; first experience becomes `CHECKOUT_STARTED`.
+4. Bootstrap twice concurrently with the same original session token.
+5. Assert both calls resolve to the same derived next-order token/experience.
+6. Assert the second experience is distinct from the first and is at `PROFILE_COMPLETE`.
+7. Assert exactly seven encrypted answer rows were copied without decrypting them.
+8. Assert the exact seven question assignment snapshots were copied unchanged.
+9. Assert the first experience remains `CHECKOUT_STARTED` and its payment attempt is unchanged.
+10. Select a different form (prefer hat/cap where catalog allows), complete its size/base/contact/shipping/quote path, and start a second dummy checkout.
+11. Assert the two payment attempts have distinct IDs and distinct experience IDs.
+12. Assert no manufacturing job is created by the test.
 
 ### Browser/Playwright regression
 
 Run desktop Chrome and mobile Chromium:
 
 1. Complete first customer flow through tee checkout using intercepted/dummy Safepay.
-2. Simulate leaving/returning from checkout and re-entering `/begin`.
-3. Verify repeat customer skips repeated question entry and can unlock form selection.
-4. Choose a different product (prefer hat/cap), proceed through available fit/base path, and reach a second dummy checkout.
-5. Capture screenshots/artifacts of repeat-order product selection and second commitment/checkout state.
-6. Assert no browser-visible state from the first order prevents the second.
+2. Simulate leaving/returning from checkout and re-enter `/begin` with the same browser context.
+3. Verify the seven-question interview is not shown again.
+4. Verify the repeat buyer lands directly on `FORM / CURRENT ISSUE` rather than being trapped on `WE HAVE ENOUGH.`.
+5. Choose a different product (prefer hat/cap), proceed through available fit/base/contact/shipping path, and reach a second dummy checkout.
+6. Assert the second checkout uses a different quote/payment identity.
+7. Capture screenshots/artifacts of repeat-order product selection and second commitment/checkout state.
+8. Assert no browser-visible state from the first order prevents the second.
 
 ### Release verification
 
 Before merge and after canonical merge:
 
-- full unit/integration suite
-- typecheck
-- lint
-- production build
-- Vercel preview/deployment status
-- Browser QA desktop/mobile
-- live production smoke that does not create a real charge
+- targeted RED/GREEN repeat-order tests;
+- full unit/integration suite;
+- typecheck;
+- lint;
+- production build;
+- Vercel preview/deployment status;
+- Browser QA desktop/mobile;
+- live production smoke that does not create a real charge.
 
 ## Payment Safety
 
@@ -130,9 +164,11 @@ Real Safepay checkout behavior, `webhooks=true`, signed webhook verification, Re
 
 ## Database/Migration Boundary
 
-This repair should reuse the existing schema if an idempotent clone/derive operation can be implemented safely with current tables and constraints.
+Schema inspection confirms the current uniqueness constraints are sufficient for deterministic, idempotent repeat-order derivation. No new production migration is required for this repair.
 
-If investigation during implementation proves the current schema cannot make repeat-order bootstrap concurrency-safe without a schema change, implementation must stop and upgrade the change to a separately owner-approved migration design. It must not silently consume or modify migration `0029_creator_referrals.sql`.
+Migration `0029_creator_referrals.sql` remains untouched and separately owner-gated.
+
+If implementation evidence contradicts this assumption, work must stop and escalate rather than silently changing production schema.
 
 ## Non-Goals
 
@@ -142,13 +178,16 @@ If investigation during implementation proves the current schema cannot make rep
 - No referral migration rollout.
 - No Printful production confirmation.
 - No real-money payment solely for testing.
+- No silent creation of a new order from ordinary mid-order refreshes before checkout.
 
 ## Success Criteria
 
 - Same customer/browser can place order 1, order 2, order 3, and beyond.
-- Existing seven-question profile is reused by default.
+- Existing seven-question profile and exact assigned-question semantics are reused by default.
 - Every order has independent experience/order state and payment attempt.
-- Back/return from payment can never permanently lock future purchases.
-- A tee purchase followed by a cap/hat purchase reaches a second dummy checkout in automated browser tests.
+- Back/return from a terminal payment checkout can never permanently lock future purchases.
+- Repeat-order entry goes directly to physical form selection.
+- A tee purchase followed by a cap/hat purchase reaches a second dummy checkout in automated browser tests on desktop and mobile.
+- Concurrent repeat-order bootstrap calls converge on one new experience.
 - First order remains unchanged after second order begins.
-- No new production migration is applied as part of this fix unless separately approved after an explicit architecture escalation.
+- No new production migration is applied as part of this fix.
