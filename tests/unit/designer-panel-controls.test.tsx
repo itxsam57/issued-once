@@ -78,7 +78,7 @@ test('Designer exposes complete global/per-Issue policy, readiness, private reve
   render(<DesignerPanel />);
 
   expect(await screen.findByText('GLOBAL DESIGN MODE')).toBeInTheDocument();
-  expect(screen.getByRole('combobox', { name: /global design mode/i })).toHaveValue('HYBRID');
+  expect(await screen.findByRole('combobox', { name: /global design mode/i })).toHaveValue('HYBRID');
   expect(screen.getByRole('combobox', { name: /manual upload approval/i })).toBeInTheDocument();
   expect(screen.getByRole('combobox', { name: /answer reveal default/i })).toBeInTheDocument();
   expect(screen.getByRole('combobox', { name: /factory confirmation policy/i })).toBeInTheDocument();
