@@ -5,7 +5,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const runtimeProvider = process.env.RUNTIME_PROVIDER?.trim() || 'unknown';
-  const releaseId = process.env.RELEASE_ID?.trim() || process.env.GITHUB_SHA?.trim() || 'unknown';
+  const releaseId = process.env.ISSUED_ONCE_RELEASE_ID?.trim()
+    || process.env.RELEASE_ID?.trim()
+    || process.env.GITHUB_SHA?.trim()
+    || 'unknown';
   const version = process.env.APP_VERSION?.trim() || '0.1.0';
 
   let databaseReady = false;
