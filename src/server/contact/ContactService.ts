@@ -101,6 +101,7 @@ export class ContactService {
       continuity = verifyContactContinuityToken(
         input.continuityToken,
         experience.publicSessionHash,
+        this.now(),
       );
     } catch {
       return { alreadyVerified: false };
@@ -129,6 +130,7 @@ export class ContactService {
       continuity = verifyContactContinuityToken(
         input.continuityToken,
         experience.publicSessionHash,
+        this.now(),
       );
     } catch {
       throw new Error('Verified email reuse is not available');
