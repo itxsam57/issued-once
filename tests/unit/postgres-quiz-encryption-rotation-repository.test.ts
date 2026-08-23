@@ -13,7 +13,7 @@ const storedRow = {
 
 const source = {
   experienceId: 'exp-1',
-  questionId: 'q1',
+  questionId: 'q1' as const,
   payloadVersion: 1 as const,
   keyVersion: 'v1' as const,
   iv: 'old-iv',
