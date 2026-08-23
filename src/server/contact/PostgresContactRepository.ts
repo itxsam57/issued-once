@@ -220,4 +220,49 @@ export class PostgresContactRepository implements ContactRepository {
     );
     return rows[0] ? contactFromRow(rows[0]) : null;
   }
+
+  async copyVerifiedContact(input: {
+    sourceContactId: string;
+    targetExperienceId: string;
+    expectedEmailHash: string;
+    newContactId: string;
+    now: Date;
+  }): Promise<boolean> {
+    const rows = await this.sql.query<BoolRow>(
+      `WITH copied AS (
+         INSERT INTO verified_contacts (
+           id, experience_id, email_hash,
+           payload_version, key_version, iv, auth_tag, ciphertext,
+           verified_at, updated_at
+         )
+         SELECT
+           $4, $2, source.email_hash,
+           source.payload_version, source.key_version, source.iv, source.auth_tag, source.ciphertext,
+           source.verified_at, $5
+         FROM verified_contacts AS source
+         WHERE source.id = $1
+           AND source.email_hash = $3
+         ON CONFLICT (experience_id) DO UPDATE
+         SET email_hash = EXCLUDED.email_hash,
+             payload_version = EXCLUDED.payload_version,
+             key_version = EXCLUDED.key_version,
+             iv = EXCLUDED.iv,
+             auth_tag = EXCLUDED.auth_tag,
+             ciphertext = EXCLUDED.ciphertext,
+             verified_at = EXCLUDED.verified_at,
+             updated_at = EXCLUDED.updated_at
+         WHERE verified_contacts.email_hash = EXCLUDED.email_hash
+         RETURNING id
+       )
+       SELECT EXISTS (SELECT 1 FROM copied) AS ok`,
+      [
+        input.sourceContactId,
+        input.targetExperienceId,
+        input.expectedEmailHash,
+        input.newContactId,
+        input.now,
+      ],
+    );
+    return rows[0]?.ok === true;
+  }
 }
