@@ -31,7 +31,11 @@ test('manual live release QA accepts any deployment URL and proves health before
   expect(releaseProbe).toContain('queueReady !== true');
   expect(releaseProbe).toContain('storageReady !== true');
 
-  expect(physicalProbe).toContain('LIVE_PRODUCTION_TEE_PHYSICAL_GATE_PASS');
-  expect(physicalProbe).toContain('LIVE_PRODUCTION_HAT_PHYSICAL_GATE_PASS');
-  expect(physicalProbe).toContain('LIVE_PRODUCTION_TOTE_PHYSICAL_GATE_PASS');
+  expect(physicalProbe).toContain("{ key: 'tee', radio: 'TEE', size: 'M'");
+  expect(physicalProbe).toContain("{ key: 'hat', radio: 'CAP', size: 'OS'");
+  expect(physicalProbe).toContain("{ key: 'tote', radio: 'TOTE', size: 'OS'");
+  expect(physicalProbe).toContain('LIVE_PRODUCTION_${item.key.toUpperCase()}_PHYSICAL_GATE_PASS');
+  expect(physicalProbe).toContain("'/api/experience/object'");
+  expect(physicalProbe).toContain("'/api/experience/size'");
+  expect(physicalProbe).toContain("'/api/experience/base'");
 });
