@@ -35,11 +35,11 @@ Do **not** introduce a full permanent account/customer-profile schema in this re
 
 When bootstrap detects that the browser session references an `Experience` at `CHECKOUT_STARTED`, it does **not** immediately clone the old profile and does **not** start a new random interview. Instead it returns a repeat-order entry state that presents the two customer choices.
 
-The choice then creates or recovers exactly one next-order `Experience` using deterministic, idempotent session derivation from the current secret session token plus a choice-specific namespace.
+The choice then creates or recovers exactly one next-order `Experience`. Both choices target the **same deterministic next-order session identity**, derived from the current secret session token using a domain-separated one-way derivation. This is deliberate: if two different choice requests race, the first committed child wins and every later/racing request must recover that same child rather than creating a second order.
 
 ### KEEP PREVIOUS ANSWERS
 
-The next order starts at `PROFILE_COMPLETE`.
+If reuse wins creation, the next order starts at `PROFILE_COMPLETE`.
 
 The persistence operation copies:
 
@@ -50,11 +50,11 @@ The browser cookie rotates to the next-order token. The UI proceeds directly to 
 
 ### ANSWER AGAIN
 
-The next order starts at `QUESTION_1` with no copied answer rows.
+If fresh interview wins creation, the next order starts at `QUESTION_1` with no copied answer rows.
 
 The new experience receives a fresh seven-question assignment through the existing question-selection system. Those answers belong only to this new order.
 
-The browser cookie rotates to the new-order token and the UI starts the interview normally.
+The browser cookie rotates to the same deterministic next-order token and the UI starts the interview normally.
 
 The previous `Experience` remains immutable for its prior quote/payment/Issue lifecycle in either path.
 
@@ -89,21 +89,21 @@ The reported lockout occurs because `CHECKOUT_STARTED` is terminal for the old o
 ### Repeat purchase — KEEP PREVIOUS ANSWERS
 
 1. Customer chooses `KEEP PREVIOUS ANSWERS`.
-2. Server deterministically derives the reuse-path next-order token from the current secret token.
-3. In one idempotent persistence operation, server creates-or-recovers a new `Experience` at `PROFILE_COMPLETE`, copies the seven encrypted answers, and copies the exact question-set assignment snapshots.
-4. Browser session cookie rotates to the new order token.
-5. UI opens directly at `FORM / CURRENT ISSUE`.
-6. New object/size/base/contact/shipping/quote/payment records attach only to the new experience.
+2. Server deterministically derives the single next-order token from the current secret token.
+3. If no child exists yet, one idempotent persistence operation creates the new `Experience` at `PROFILE_COMPLETE`, copies the seven encrypted answers, and copies the exact question-set assignment snapshots.
+4. If a child already exists because another request won the race, server recovers that child and returns its actual chosen path instead of creating another order.
+5. Browser session cookie rotates to the new order token.
+6. If reuse was the winning path, UI opens directly at `FORM / CURRENT ISSUE`.
 
 ### Repeat purchase — ANSWER AGAIN
 
 1. Customer chooses `ANSWER AGAIN`.
-2. Server deterministically derives the fresh-interview next-order token from the current secret token using a different namespace from the reuse path.
-3. Server creates-or-recovers a new `Experience` at `QUESTION_1` with no copied answers.
+2. Server derives the same deterministic next-order token.
+3. If no child exists yet, server creates the new `Experience` at `QUESTION_1` with no copied answers.
 4. A fresh seven-question assignment is created through the existing assignment service.
-5. Browser session cookie rotates to the new order token.
-6. UI begins the seven-question interview.
-7. After completion, that order proceeds through product selection and checkout normally.
+5. If a child already exists because another request won the race, server recovers that child and returns its actual chosen path instead of creating another order.
+6. Browser session cookie rotates to the new order token.
+7. If fresh interview was the winning path, UI begins the seven-question interview.
 
 ### Unlimited repetition
 
@@ -126,13 +126,13 @@ The existing production schema already provides the constraints required to avoi
 - `experience_answers` is unique by `(experience_id, question_id)`;
 - question-set records are unique by experience and their slot/ordinal relationships.
 
-The next token is deterministic for a given terminal source token and profile choice. Concurrent requests for the **same choice** therefore target the same next public-session hash and converge on one child experience.
+There is one deterministic next token for each terminal source session, independent of whether the user chose reuse or fresh interview. All repeat-order creation requests from the same terminal source therefore target the same next public-session hash.
 
-The two choices use different derivation namespaces, so reuse and fresh-interview requests can never accidentally resolve to the same child experience.
+A dedicated repeat-order service/repository uses the unique public-session hash as the race arbiter. The first transaction that creates the child establishes the chosen profile mode. Any same-choice or opposite-choice racing request that loses insertion must recover the already-created child and report its actual mode. It must not create a second child, alter the winning child’s profile mode, or rotate the browser cookie to anything else.
 
-The profile-choice endpoint must tolerate accidental double-clicks. Once one choice successfully rotates the browser cookie, later stale requests against the old terminal token must not mutate the selected child or overwrite the cookie with an incompatible path.
+For a reuse winner, child creation + encrypted-answer copy + exact question-set copy must be atomic. A recovered reuse child can therefore never be observed with only part of its seven-profile snapshot.
 
-A dedicated repeat-order service/repository will perform child creation and, for reuse, encrypted-answer + question-set copy as one database operation/transaction using existing uniqueness constraints.
+For a fresh-interview winner, child creation establishes `QUESTION_1`; fresh question assignment then uses the existing idempotent assignment repository for that child. A recovered fresh child uses the stored assignment rather than generating another one.
 
 The derived token remains high-entropy because its input is the existing 256-bit random secret session token. Only hashes of session tokens are persisted. Knowing a stored session hash does not reveal the current or next browser token.
 
@@ -160,18 +160,20 @@ For `repeat-choice`, no child order is created and no private answer payloads ar
 
 Add a dedicated repeat-order choice action/endpoint that accepts only an enum such as `reuse` or `fresh`.
 
-### Reuse response
+The response reports the **actual resolved child mode**, not merely the request, so racing opposite choices cannot confuse the client.
+
+### Resolved reuse response
 
 - new order `stage` is `PROFILE_COMPLETE`;
 - `interviewComplete` is true;
-- new order entry mode routes directly to physical form selection;
+- resolved entry mode routes directly to physical form selection;
 - no private answer payloads are returned.
 
-### Fresh response
+### Resolved fresh response
 
 - new order `stage` is `QUESTION_1`;
 - `interviewComplete` is false;
-- a fresh question assignment is returned/bootstrapped;
+- a fresh/stored question assignment is returned;
 - no old answer payloads are returned.
 
 `PublicInterviewExperience` passes entry mode into `MysteryExperience`.
@@ -217,7 +219,8 @@ Use fake payment and repository fixtures that exercise actual domain transitions
 13. Complete the seven new answers, configure another product, and start dummy checkout/payment attempt 3.
 14. Assert payment attempts 1, 2, and 3 have distinct IDs and distinct experience IDs.
 15. Assert experiences 1 and 2 remain unchanged after experience 3 begins.
-16. Assert no manufacturing job is created by the test.
+16. Add an opposite-choice concurrency test from a terminal fixture: fire `reuse` and `fresh` simultaneously, assert exactly one child exists, both responses resolve to that same child/token and actual winning mode, and the losing request cannot alter it.
+17. Assert no manufacturing job is created by the test.
 
 ### Browser/Playwright regression
 
@@ -300,6 +303,6 @@ If implementation evidence contradicts this assumption, work must stop and escal
 - Every order has independent experience/order state and payment attempt.
 - Back/return from a terminal payment checkout can never permanently lock future purchases.
 - Order 1 tee → order 2 keep answers + cap → order 3 answer again + another product reaches three separate dummy checkouts in automated browser tests on desktop and mobile.
-- Concurrent same-choice repeat-order requests converge on one new experience.
+- Concurrent same-choice and opposite-choice repeat-order requests converge on exactly one new experience.
 - Earlier orders remain unchanged after later orders begin.
 - No new production migration is applied as part of this fix.
