@@ -5,6 +5,7 @@ import {
   createPaymentService,
   PaymentRuntimeUnavailableError,
 } from '@/server/payments/runtimePayments';
+import { PreviewPaymentStartService } from '@/server/preview/PreviewPaymentStartService';
 
 const schema = z.object({
   quoteId: z.string().trim().min(1).max(200),
@@ -23,6 +24,14 @@ export async function POST(request: Request) {
   }
 
   try {
+    if (process.env.ENABLE_VISUAL_PREVIEW === '1') {
+      const result = await new PreviewPaymentStartService().start({
+        sessionToken,
+        quoteId: parsed.data.quoteId,
+      });
+      return Response.json(result);
+    }
+
     const origin = new URL(request.url).origin;
     const result = await createPaymentService().start({
       sessionToken,
