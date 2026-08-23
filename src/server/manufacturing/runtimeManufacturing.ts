@@ -1,4 +1,4 @@
-import { VercelBlobArtworkAccess } from '@/server/design/VercelBlobArtworkAccess';
+import { SignedArtworkAccess } from '@/server/design/SignedArtworkAccess';
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { createReferralConversionService } from '@/server/referrals/runtimeReferrals';
 import { ManufacturingEventService } from './ManufacturingEventService';
@@ -24,7 +24,6 @@ function env(name: string): string {
 
 export function createManufacturingService(): ManufacturingService {
   const sql = createNeonSqlExecutor(env('DATABASE_URL'));
-  const blobToken = env('BLOB_READ_WRITE_TOKEN');
   return new ManufacturingService(
     new PostgresManufacturingRepository(sql),
     new PrintfulGateway({
@@ -32,7 +31,7 @@ export function createManufacturingService(): ManufacturingService {
       storeId: process.env.PRINTFUL_STORE_ID?.trim() || undefined,
     }),
     new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON')),
-    new VercelBlobArtworkAccess(blobToken),
+    new SignedArtworkAccess(env('ARTWORK_SIGNING_KEY'), env('APP_ORIGIN')),
   );
 }
 
