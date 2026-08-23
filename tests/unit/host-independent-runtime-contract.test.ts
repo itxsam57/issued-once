@@ -61,6 +61,7 @@ test('readiness reports private filesystem storage and durable Postgres jobs wit
     env,
     databasePing: vi.fn(async () => true),
     storagePing: vi.fn(async () => true),
+    queuePing: vi.fn(async () => true),
     fetchImpl: vi.fn(async (url: string) => {
       if (url.startsWith('https://api.openai.com/')) return new Response('{}', { status: 200 });
       if (url === 'https://api.printful.com/stores') return new Response(JSON.stringify({ result: [] }), { status: 200 });
