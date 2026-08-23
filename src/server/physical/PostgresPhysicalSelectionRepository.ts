@@ -1,12 +1,12 @@
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type {
   BaseSelectionRepository,
+  BaseSelectionTransition,
   ObjectSelectionTransition,
   PhysicalSelectionRecord,
   PhysicalSelectionRepository,
   SizeSelectionRepository,
   SizeSelectionTransition,
-  BaseSelectionTransition,
 } from './PhysicalSelectionRepository';
 
 type TransitionRow = {
