@@ -1,8 +1,8 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { DesignService } from './DesignService';
+import { FilesystemArtworkStorage } from './FilesystemArtworkStorage';
 import { OpenAIDesignGateway } from './OpenAIDesignGateway';
 import { PostgresDesignRepository } from './PostgresDesignRepository';
-import { VercelBlobArtworkStorage } from './VercelBlobArtworkStorage';
 
 export class DesignRuntimeUnavailableError extends Error {
   constructor(message = 'Design runtime is not configured') {
@@ -26,6 +26,6 @@ export function createDesignService(): DesignService {
       interpretationModel: process.env.OPENAI_DESIGN_MODEL,
       imageModel: process.env.OPENAI_IMAGE_MODEL,
     }),
-    new VercelBlobArtworkStorage(env('BLOB_READ_WRITE_TOKEN')),
+    new FilesystemArtworkStorage(env('ARTWORK_STORAGE_DIR')),
   );
 }
