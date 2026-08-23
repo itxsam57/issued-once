@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { ResendOtpDeliveryGateway } from '@/server/contact/ResendOtpDeliveryGateway';
 
-test('sends an idempotent minimal otp email through the verified ISSUED ONCE sender', async () => {
+test('sends an idempotent minimal otp email through the verified ISSUED ONCE sender with request tag', async () => {
   const fetchImpl = vi.fn(async () => new Response(JSON.stringify({ id: 'email-123' }), {
     status: 200,
     headers: { 'content-type': 'application/json' },
@@ -15,7 +15,7 @@ test('sends an idempotent minimal otp email through the verified ISSUED ONCE sen
   const result = await gateway.sendOtp({
     email: 'sam@example.com',
     code: '123456',
-    challengeId: 'challenge-1',
+    challengeId: '6c6ba8d3-1111-2222-3333-444444444444',
   });
 
   expect(result.providerMessageId).toBe('email-123');
@@ -25,8 +25,11 @@ test('sends an idempotent minimal otp email through the verified ISSUED ONCE sen
   expect(init.method).toBe('POST');
   expect(init.headers).toMatchObject({
     Authorization: 'Bearer re_test',
-    'Idempotency-Key': 'issued-once/otp/challenge-1',
+    'Idempotency-Key': 'issued-once/otp/6c6ba8d3-1111-2222-3333-444444444444',
   });
-  expect(String(init.body)).toContain('123456');
+  const body = JSON.parse(String(init.body)) as { subject: string; text: string };
+  expect(body.subject).toBe('Your ISSUED ONCE code · 6C6BA8D3');
+  expect(body.text).toContain('123456');
+  expect(body.text).toContain('Request 6C6BA8D3');
   expect(String(init.body)).not.toContain('Printful');
 });
