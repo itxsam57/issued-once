@@ -1,24 +1,25 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-23T16:41:00+05:00",
+  "updatedAt": "2026-08-23T19:16:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
-    "branch": "feat/mystery-foundation",
-    "pullRequest": 3,
-    "pullRequestState": "DRAFT",
+    "canonicalBranch": "feat/mystery-foundation",
+    "canonicalPullRequest": 3,
+    "canonicalPullRequestState": "DRAFT",
+    "activeMigrationBranch": "infra/hostinger-migration-20260823",
+    "activeMigrationPullRequest": 13,
+    "hostingerReleaseCandidateBranch": "release/hostinger-candidate-20260823",
+    "hostingerReleaseCandidateHead": "44730e01cd85c934266eaa4e11e83c6ad5ef741a",
     "lastFullyDeployedApplicationHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
-    "canonicalCodeHeadPendingDeployment": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
-    "workflowRepairPullRequest": 11,
-    "toteRepairPullRequest": 12,
-    "toteRepairHead": "7a1962a2d46335bb0fa517623fd01312770dc366",
-    "toteRepairMergeHead": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
+    "canonicalCodeHeadPendingReplacementDeployment": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
     "productionMigrationHead": "0028_design_controls.sql",
-    "nextRepositoryMigration": "0029_creator_referrals.sql"
+    "preparedHostingerMigration": "0030_background_jobs.sql",
+    "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
-    "state": "WAIT_EXTERNAL",
-    "decision": "TOTE_PRODUCTION_FIX_MERGED_AWAITING_VERCEL_DEPLOYMENT_AND_LIVE_REPROOF",
+    "state": "OWNER_REQUIRED",
+    "decision": "HOSTINGER_RELEASE_CANDIDATE_PROVEN_AWAITING_PRODUCTION_0030_APPROVAL",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -26,100 +27,125 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "Owner production testing exposed a Tote-only PostgreSQL deserialization defect. PR 12 fixed the exact root cause and is merged into canonical with full pre-merge CI and Browser QA green, and canonical CI is green. The required canonical live production matrix ran before the new canonical Vercel deployment because Vercel rejected commit 33cc9119 with its free-tier build-rate limit. The live matrix therefore hit the prior deployment: Tee M/Bone and Hat OS/Bone passed, while Tote OS reproduced the old 500. Do not call the Tote production path fixed until Vercel deploys the canonical repair and the live Tee/Hat/Tote matrix is rerun successfully."
+    "stopReason": "All currently executable repository work for the Hostinger runtime candidate is proven. Release candidate 44730e01 passed frozen-install CI 1319 including unit, typecheck, lint and production build, and Browser QA 1218. Migration 0030 was verified on isolated Neon branches and is now prepared as managed migration ac06c578-5607-460b-8550-5b3fc30c6742. The next step changes the production database and therefore requires exact owner approval before execution."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "TOTE_ROOT_CAUSE_FIXED_MERGED_WAITING_EXTERNAL_DEPLOYMENT",
+    "internalWorkStatus": "HOSTINGER_RELEASE_CANDIDATE_FROZEN_OWNER_DB_APPROVAL_REQUIRED",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Use TDD RED before behavior changes",
-      "Require fresh CI, build, browser, production and database evidence before success claims",
+      "Require fresh CI, build, browser, release-health, live-product and database evidence before success claims",
       "Preview-only product matrix evidence is insufficient for production physical-gate claims",
-      "Canonical live smoke must exercise Tee, Hat and Tote through object, size and base APIs",
+      "Live release smoke must exercise Tee, Cap and Tote through object, size and base APIs",
       "Browser navigation is never payment proof",
       "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
       "Never apply production database migrations without exact owner approval",
-      "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is applied and verified",
+      "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is separately approved, applied and verified",
       "Keep Printful production confirmation disabled until its independent owner release gate",
-      "Do not create real charges solely for QA; use non-payment test paths"
+      "Do not create real charges solely for QA; use non-payment test paths",
+      "Deploy the frozen Hostinger release-candidate branch rather than a later metadata-only migration-branch commit"
     ]
   },
-  "workflowAuditRepair": {
-    "status": "MERGED_DEPLOYED_CANONICAL_VERIFIED",
-    "pullRequest": 11,
-    "mergeHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
-    "canonicalCi": 1237,
-    "canonicalBrowserQa": 1152
+  "hostingerMigration": {
+    "status": "RELEASE_CANDIDATE_PROVEN_AWAITING_OWNER_DB_APPROVAL",
+    "pullRequest": 13,
+    "migrationBranch": "infra/hostinger-migration-20260823",
+    "releaseCandidateBranch": "release/hostinger-candidate-20260823",
+    "applicationHead": "44730e01cd85c934266eaa4e11e83c6ad5ef741a",
+    "runtimeChanges": [
+      "Vercel Queue production runtime replaced by durable Postgres background jobs",
+      "Vercel Blob production runtime replaced by private filesystem artwork storage behind existing storage/access abstractions",
+      "Owner Designer and manufacturing artwork reads use signed application URLs for fs:// private locators",
+      "Protected Hostinger cron drain handles design and notification jobs",
+      "Release health proves Hostinger provider, exact release identity, database, queue schema and storage read/write",
+      "Live Release QA requires exact release SHA before Tee/Cap/Tote physical-gate smoke runs",
+      "pnpm-lock.yaml is committed and CI, Browser QA and Live Release QA use frozen installs"
+    ],
+    "verification": {
+      "ciRun": 1319,
+      "ciResult": "PASS_FROZEN_INSTALL_UNIT_TYPECHECK_LINT_BUILD",
+      "browserQaRun": 1218,
+      "browserQaResult": "PASS",
+      "lockfileCommitted": true,
+      "productionRuntimeVercelPackageCoupling": false,
+      "openReviewThreads": 0,
+      "submittedReviews": 0
+    },
+    "storageHealthConcurrencyRepair": {
+      "redCommit": "35ca2f59c23b50baa087b8dafa2f28190a21da7e",
+      "redCiRun": 1318,
+      "redResult": "1_FAILED_515_PASSED_EEXIST_FIXED_HEALTH_PROBE_COLLISION",
+      "greenCommit": "44730e01cd85c934266eaa4e11e83c6ad5ef741a",
+      "greenCiRun": 1319,
+      "greenBrowserQaRun": 1218,
+      "fix": "Each storage health request uses its own random private probe path and removes only its own probe."
+    },
+    "backgroundJobsMigration": {
+      "file": "db/migrations/0030_background_jobs.sql",
+      "managedMigrationId": "ac06c578-5607-460b-8550-5b3fc30c6742",
+      "managedTemporaryBranchName": "mcp-migration-2026-08-23T14-14-11",
+      "managedTemporaryBranchId": "br-polished-poetry-ax22k0ae",
+      "parentProductionBranchId": "br-dawn-cloud-axm880q9",
+      "temporaryVerification": "PASS_BACKGROUND_JOBS_TABLE_DUE_INDEX_LEASE_STATE_CONSTRAINT_EMPTY_QUEUE",
+      "productionStatus": "NOT_APPLIED_OWNER_APPROVAL_REQUIRED"
+    },
+    "deploymentGate": {
+      "runbook": "docs/operations/hostinger-deployment.md",
+      "temporaryHostingerDeploymentRequired": true,
+      "requiredHealth": "HTTP_200_HOSTINGER_EXACT_SHA_DATABASE_QUEUE_STORAGE_ALL_TRUE",
+      "requiredPhysicalMatrix": [
+        "TEE_M_BONE_OBJECT_SIZE_BASE_HTTP_200",
+        "CAP_OS_BONE_OBJECT_SIZE_BASE_HTTP_200",
+        "TOTE_OS_BONE_OBJECT_SIZE_BASE_HTTP_200"
+      ],
+      "realOtpBoundary": "TEE_ONLY",
+      "productionDomainCutoverAllowed": false
+    }
   },
   "toteProductionRepair": {
-    "status": "MERGED_CI_VERIFIED_DEPLOYMENT_BLOCKED",
-    "ownerObservedSymptom": "TOTE reached OS size confirmation then displayed The next step could not be saved.",
-    "productionRootCause": "PostgresPhysicalSelectionRepository accepted tee, hoodie and hat when deserializing persisted physical selections but omitted the canonical tote ObjectType. A valid persisted tote/io-tote row was therefore rejected on the following size request as Stored physical object is invalid.",
-    "productionChange": "Add tote to the persisted physical-object validator; no schema, payment, manufacturing or catalog redesign required.",
-    "tdd": {
-      "redCommit": "8b652cfdec85d81dfbd5a34b0a4227b4d7e9418b",
-      "redCiRun": 1238,
-      "redResult": "1_FAILED_482_PASSED_EXPECTED_STORED_PHYSICAL_OBJECT_IS_INVALID",
-      "greenRepairHead": "7a1962a2d46335bb0fa517623fd01312770dc366",
-      "preMergeCiRun": 1242,
-      "preMergeCiResult": "PASS_UNIT_TYPECHECK_LINT_BUILD",
-      "preMergeBrowserQaRun": 1154,
-      "preMergeBrowserQaResult": "PASS"
-    },
-    "merge": {
-      "pullRequest": 12,
-      "canonicalMergeHead": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
-      "canonicalCiRun": 1243,
-      "canonicalCiResult": "PASS"
-    },
-    "testGapClosed": {
-      "oldGap": "Tee/Hat/Tote matrix used preview repository while canonical live production smoke exercised Tee only.",
-      "newGate": "Canonical live production smoke independently requires successful /api/experience/object, /api/experience/size and /api/experience/base for Tee M/Bone, Hat OS/Bone and Tote OS/Bone before passing."
-    },
-    "canonicalLiveAttempt": {
-      "browserQaRun": 1155,
-      "result": "FAIL_EXPECTED_OLD_DEPLOYMENT",
-      "tee": "PASS_M_BONE_COMMITMENT_READY",
-      "hat": "PASS_OS_BONE_COMMITMENT_READY",
-      "tote": "OLD_DEPLOYMENT_SIZE_HTTP_500_OBJECT_SELECTED",
-      "deploymentEvidence": "GitHub combined status for 33cc9119 reports Vercel=failure with build-rate-limit target; PR3 Vercel Ready comment remained on the previous 2026-08-23T10:54Z deployment during the 11:39Z live run."
-    },
+    "status": "CODE_FIXED_AWAITING_HOSTINGER_LIVE_REPROOF",
+    "pullRequest": 12,
+    "repairMergeHead": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
+    "rootCause": "Persisted physical-object validator omitted canonical tote ObjectType.",
+    "liveProofRule": "Do not call Tote fixed in production until the Hostinger temporary release and then issuedonce.shop both pass the Tee/Cap/Tote live matrix.",
     "ownerOriginalToteSession": {
       "preserved": true,
       "stage": "OBJECT_SELECTED",
       "object": "tote",
       "productSlug": "io-tote",
       "sizeCode": null,
-      "expiresAt": "2026-09-22T11:17:39.197Z",
-      "retryInstructionAfterDeployment": "Use the existing browser session and press CONFIRM SIZE again; questionnaire restart should not be required."
+      "expiresAt": "2026-09-22T11:17:39.197Z"
     }
   },
   "productionDatabase": {
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
     "branchId": "br-dawn-cloud-axm880q9",
+    "backgroundJobsTablePresent": false,
     "manufacturingJobCount": 0,
     "manufacturingProviderEventCount": 0,
     "referralCreatorsTablePresent": false,
     "referralConversionsTablePresent": false,
     "checkoutQuoteReferralCreatorColumnPresent": false,
-    "migration0029Applied": false
+    "migration0029Applied": false,
+    "migration0030Applied": false
   },
   "safetyGates": {
     "realQaPayment": "NOT_PERFORMED",
     "printfulProductionConfirmation": "DISABLED",
     "migration0029": "NOT_APPLIED",
-    "referralSigningKeyRollout": "NOT_PERFORMED"
+    "referralSigningKeyRollout": "NOT_PERFORMED",
+    "productionDomainCutover": "NOT_PERFORMED"
   },
   "nextActions": [
-    "SYSTEM: when Vercel build-rate capacity is available, verify the latest feat/mystery-foundation deployment includes the Tote repair",
-    "SYSTEM: rerun canonical Browser QA 1155 failed job or equivalent against the newly deployed issuedonce.shop",
-    "SYSTEM: require LIVE_PRODUCTION_TEE_PHYSICAL_GATE_PASS, LIVE_PRODUCTION_HAT_PHYSICAL_GATE_PASS and LIVE_PRODUCTION_TOTE_PHYSICAL_GATE_PASS with HTTP 200 for object/size/base",
-    "SYSTEM: verify the newest production Tote smoke row reaches COMMITMENT_READY with size OS and a locked base color",
-    "SYSTEM: re-read manufacturing/referral invariants and keep them unchanged",
-    "OWNER: after live proof passes, retry CONFIRM SIZE in the existing Tote browser session; no questionnaire restart should be needed",
-    "OWNER/SYSTEM: only after this repair is live-proven return to the separate design-provider, Printful draft, referral migration and final-release gates"
+    "OWNER: explicitly approve applying managed migration ac06c578-5607-460b-8550-5b3fc30c6742 (0030_background_jobs.sql) to production Neon branch br-dawn-cloud-axm880q9",
+    "SYSTEM: after approval, complete the managed migration and verify background_jobs plus due index while re-reading manufacturing/referral safety invariants",
+    "OWNER/SYSTEM: authorize/connect the private GitHub repository in Hostinger hPanel and create a temporary Node.js deployment from release/hostinger-candidate-20260823 at 44730e01",
+    "SYSTEM: configure Hostinger runtime variables without exposing values and keep Blob/Vercel Queue/referral/Printful-confirm switches absent or safe",
+    "SYSTEM: run Live Release QA against the temporary Hostinger URL requiring exact SHA health and Tee/Cap/Tote physical gates",
+    "SYSTEM: only after temporary proof, cut issuedonce.shop to Hostinger and repeat exact health, live product matrix and read-only Neon corroboration",
+    "OWNER: only after custom-domain live proof, retry the preserved Tote session"
   ],
-  "nextOwnerAction": "NONE_UNTIL_VERCEL_DEPLOYS_REPAIR; EXISTING_TOTE_SESSION_CAN_RETRY_AFTER_LIVE_PROOF"
+  "nextOwnerAction": "APPROVE_PRODUCTION_NEON_MIGRATION_0030_MANAGED_ID_ac06c578-5607-460b-8550-5b3fc30c6742"
 }
