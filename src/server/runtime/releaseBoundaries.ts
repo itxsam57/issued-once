@@ -1,0 +1,40 @@
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+export type QueryExecutor = {
+  query<Row extends Record<string, unknown> = Record<string, unknown>>(
+    text: string,
+    params?: readonly unknown[],
+  ): Promise<Row[]>;
+};
+
+export function createStorageReadWritePing(rootValue: string): () => Promise<boolean> {
+  const root = resolve(rootValue);
+  return async () => {
+    const probe = resolve(root, '.issued-once-health-probe');
+    await mkdir(root, { recursive: true, mode: 0o700 });
+    const payload = `issued-once:${process.pid}`;
+    try {
+      await writeFile(probe, payload, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
+      return (await readFile(probe, 'utf8')) === payload;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
+        await unlink(probe).catch(() => undefined);
+        await writeFile(probe, payload, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
+        return (await readFile(probe, 'utf8')) === payload;
+      }
+      return false;
+    } finally {
+      await unlink(probe).catch(() => undefined);
+    }
+  };
+}
+
+export function createQueueSchemaPing(sql: QueryExecutor): () => Promise<boolean> {
+  return async () => {
+    const rows = await sql.query<{ relation_name: string | null }>(
+      "SELECT to_regclass('public.background_jobs')::text AS relation_name",
+    );
+    return rows[0]?.relation_name === 'background_jobs';
+  };
+}
