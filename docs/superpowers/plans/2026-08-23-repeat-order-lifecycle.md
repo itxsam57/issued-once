@@ -32,13 +32,14 @@
 - Create: `src/server/experience/PostgresRepeatOrderRepository.ts`
 - Create: `src/server/experience/RepeatOrderService.ts`
 - Test: `tests/unit/repeat-order-token.test.ts`
+- Test: `tests/unit/postgres-repeat-order-repository.test.ts`
 - Test: `tests/unit/repeat-order-service.test.ts`
 
 **Interfaces:**
 - Produces: `deriveNextOrderSessionToken(currentToken: string): string`
 - Produces: `RepeatOrderMode = 'reuse' | 'fresh'`
 - Produces: `RepeatOrderRepository.resolve(input): Promise<RepeatOrderChild>` where `RepeatOrderChild` includes `{ experienceId, mode, stage, created }`.
-- Produces: `RepeatOrderService.choose(input): Promise<{ token, mode, stage, experienceId }>` for Task 3.
+- Produces: `RepeatOrderService.choose(input): Promise<{ token, mode, stage, experienceId, questions }>` for Task 3.
 
 - [ ] **Step 1: Write failing deterministic-token tests**
 
@@ -115,7 +116,17 @@ export interface RepeatOrderRepository {
 }
 ```
 
-- [ ] **Step 6: Write failing service tests for reuse, fresh, and race recovery**
+- [ ] **Step 6: Write the failing PostgreSQL repository regression**
+
+Create `tests/unit/postgres-repeat-order-repository.test.ts` with a recording `SqlExecutor` fake. Assert the repository sends one SQL statement containing the child `INSERT`, `ON CONFLICT (public_session_hash) DO NOTHING`, answer-copy CTE, question-set-copy CTE, and stored `hook_id` mode. Feed result rows representing both `repeat:reuse` and a conflict-recovered `repeat:fresh` child and assert the returned actual mode/stage/created flag. Also feed a reuse result whose copy counts are not exactly seven/seven and assert the repository throws `Repeat profile copy is incomplete`.
+
+- [ ] **Step 7: Run the PostgreSQL repository test and verify RED**
+
+Run: `pnpm test -- tests/unit/postgres-repeat-order-repository.test.ts`
+
+Expected: FAIL because `PostgresRepeatOrderRepository` does not exist.
+
+- [ ] **Step 8: Write failing service tests for reuse, fresh, and race recovery**
 
 Create `tests/unit/repeat-order-service.test.ts` using small in-memory fakes for `ExperienceRepository`, `RepeatOrderRepository`, and a question assigner. Cover these exact assertions:
 
@@ -150,13 +161,13 @@ it('returns the persisted winning mode when an opposite choice loses the child r
 
 Also assert non-terminal sources are rejected and no new token is returned.
 
-- [ ] **Step 7: Run the service test and verify RED**
+- [ ] **Step 9: Run the service test and verify RED**
 
 Run: `pnpm test -- tests/unit/repeat-order-service.test.ts`
 
 Expected: FAIL because the repository/service do not exist.
 
-- [ ] **Step 8: Implement one-statement PostgreSQL child resolution**
+- [ ] **Step 10: Implement one-statement PostgreSQL child resolution**
 
 Create `src/server/experience/PostgresRepeatOrderRepository.ts` using the existing `SqlExecutor` type. The SQL must:
 
@@ -169,7 +180,7 @@ Create `src/server/experience/PostgresRepeatOrderRepository.ts` using the existi
 
 The repository returns `created: true` only when this statement inserted the child; conflict recovery returns `created: false`.
 
-- [ ] **Step 9: Implement `RepeatOrderService`**
+- [ ] **Step 11: Implement `RepeatOrderService`**
 
 Create `src/server/experience/RepeatOrderService.ts` with dependencies:
 
@@ -190,17 +201,17 @@ type QuestionProfileGateway = {
 3. load the source stored question assignment and require exactly seven items;
 4. derive the deterministic child token/hash and a random child UUID;
 5. call `RepeatOrderRepository.resolve(...)`;
-6. if resolved mode is `reuse`, return immediately without decrypting/copying in application code;
+6. if resolved mode is `reuse`, return immediately without decrypting/copying in application code and return `questions` from the copied/stored child assignment only if needed by the caller;
 7. if resolved mode is `fresh`, build `excludedByFamily` from the source assignment and call `assignExcluding(child.experienceId, excludedByFamily)`; require exactly seven questions and require every family’s returned question ID differs from the excluded ID;
-8. return the actual persisted mode/stage/token/experienceId.
+8. return the actual persisted mode/stage/token/experienceId plus the resolved safe question assignment.
 
-- [ ] **Step 10: Run Task 1 unit tests and verify GREEN**
+- [ ] **Step 12: Run Task 1 unit tests and verify GREEN**
 
-Run: `pnpm test -- tests/unit/repeat-order-token.test.ts tests/unit/repeat-order-service.test.ts`
+Run: `pnpm test -- tests/unit/repeat-order-token.test.ts tests/unit/postgres-repeat-order-repository.test.ts tests/unit/repeat-order-service.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 11: Commit Task 1**
+- [ ] **Step 13: Commit Task 1**
 
 Commit message: `feat: isolate repeat order lifecycle`
 
@@ -240,7 +251,7 @@ Expected: FAIL because `assignExcluding` does not exist.
 
 - [ ] **Step 3: Extend `QuestionSelectionService`**
 
-Refactor selection so existing `assign(experienceId)` remains behavior-compatible and delegates to:
+Refactor selection so existing `assign(experienceId)` remains behavior-compatible and add:
 
 ```ts
 async assignExcluding(
@@ -367,7 +378,7 @@ Validate body with Zod:
 z.object({ choice: z.enum(['reuse', 'fresh']) }).strict()
 ```
 
-Read the existing session cookie, call `choose`, set the returned child token with existing `sessionCookieOptions`, and return the resolved mode as client entry state. For fresh mode, load/return the stored child assignment through `toInterviewQuestions`; for reuse, return `questions: []` because the UI proceeds directly to form.
+Read the existing session cookie, call `choose`, set the returned child token with existing `sessionCookieOptions`, and return the resolved mode as client entry state. For fresh mode, return the safe child question definitions from the service; for reuse, return `questions: []` because the UI proceeds directly to form.
 
 Map lifecycle/state conflicts to 409 and runtime configuration failures to 503. Never log tokens or answer payloads.
 
@@ -389,7 +400,7 @@ Commit message: `feat: expose repeat order choice API`
 - Create: `src/components/experience/RepeatOrderChoice.tsx`
 - Modify: `src/components/experience/MysteryExperience.tsx`
 - Modify: `src/components/experience/PublicInterviewExperience.tsx`
-- Modify: the existing experience stylesheet that defines `.object-selection` / interview screen presentation; keep styling within the current design system rather than introducing a second visual system.
+- Modify: `src/app/globals.css`
 - Test: `tests/unit/repeat-order-choice.test.tsx`
 - Test: `tests/unit/mystery-repeat-flow.test.tsx`
 
@@ -472,9 +483,9 @@ When choice resolves:
 
 No previous order selection is carried into the new order.
 
-- [ ] **Step 8: Apply existing design language to the choice screen**
+- [ ] **Step 8: Style the choice screen in `src/app/globals.css`**
 
-Use the same typography, spacing, border treatment, button behavior, responsive breakpoints, and focus visibility already used by the interview/object selection screens. Add only the selectors required by `RepeatOrderChoice`.
+Use the same typography, spacing, hairlines, signal color, button behavior, responsive breakpoints, and `:focus-visible` treatment already used by `.interview-complete` and `.object-selection`. Add only `.repeat-order-choice` selectors needed by the component; do not add new color tokens or an independent visual system.
 
 - [ ] **Step 9: Run Task 4 tests and verify GREEN**
 
@@ -492,7 +503,7 @@ Commit message: `feat: let repeat buyers choose their profile`
 
 **Files:**
 - Create: `tests/e2e/public-repeat-order.spec.ts`
-- Modify only if required for shared test helpers: `tests/e2e/public-physical-flow.spec.ts`
+- Modify only if a shared helper extraction is required: `tests/e2e/public-physical-flow.spec.ts`
 - No production payment-provider code changes are expected in this task.
 
 **Interfaces:**
@@ -544,7 +555,7 @@ Expected before all prior tasks: FAIL at repeat-order choice/second order.
 
 - [ ] **Step 3: Make only test-harness corrections required to exercise real application behavior**
 
-Use route interception only for OTP, shipping persistence where existing tests already stub it, and dummy payment checkout. Do not intercept `/api/experience/start`, `/api/experience/repeat`, object, size, or base endpoints in a way that bypasses the repeat-order lifecycle under test.
+Use route interception only for OTP and the dummy payment checkout in the same manner as existing tests. Do not intercept `/api/experience/start`, `/api/experience/repeat`, object, size, or base endpoints in a way that bypasses the repeat-order lifecycle under test.
 
 - [ ] **Step 4: Run the new E2E spec and verify GREEN**
 
