@@ -10,6 +10,7 @@ import type {
 } from './CommitmentScreen';
 import { MysteryExperience } from './MysteryExperience';
 import type { ObjectType } from './ObjectSelection';
+import { RepeatOrderChoice, type RepeatOrderMode } from './RepeatOrderChoice';
 import type { SizeOption } from './SizeConfirmation';
 
 type AnswerPayload = {
@@ -23,10 +24,13 @@ type LockedVariant = {
   colorCode: string;
 };
 
+type EntryMode = 'interview' | 'profile' | 'repeat-choice' | 'form';
+
 type BootstrapPayload = {
   stage: string;
   initialPosition: number;
   interviewComplete: boolean;
+  entryMode: EntryMode;
   questions: QuestionDefinition[];
 };
 
@@ -43,6 +47,19 @@ async function postJson<T>(path: string, body?: unknown): Promise<T> {
   }
 
   return (await response.json()) as T;
+}
+
+function validateBootstrap(payload: BootstrapPayload): BootstrapPayload {
+  if (
+    (payload.entryMode === 'interview' || payload.entryMode === 'profile') &&
+    payload.questions.length !== 7
+  ) {
+    throw new Error('Interview assignment is invalid');
+  }
+  if (!['interview', 'profile', 'repeat-choice', 'form'].includes(payload.entryMode)) {
+    throw new Error('Experience entry mode is invalid');
+  }
+  return payload;
 }
 
 async function submitAnswer(payload: AnswerPayload): Promise<void> {
@@ -118,8 +135,7 @@ export function PublicInterviewExperience() {
     void postJson<BootstrapPayload>('/api/experience/start')
       .then((payload) => {
         if (!active) return;
-        if (payload.questions.length !== 7) throw new Error('Interview assignment is invalid');
-        setBootstrap(payload);
+        setBootstrap(validateBootstrap(payload));
       })
       .catch(() => {
         if (active) setBootstrapError(true);
@@ -129,6 +145,13 @@ export function PublicInterviewExperience() {
       active = false;
     };
   }, []);
+
+  async function chooseRepeat(mode: RepeatOrderMode) {
+    const next = validateBootstrap(
+      await postJson<BootstrapPayload>('/api/experience/repeat', { choice: mode }),
+    );
+    setBootstrap(next);
+  }
 
   if (bootstrapError) {
     return (
@@ -149,11 +172,16 @@ export function PublicInterviewExperience() {
     );
   }
 
+  if (bootstrap.entryMode === 'repeat-choice') {
+    return <RepeatOrderChoice onChoose={chooseRepeat} />;
+  }
+
   return (
     <MysteryExperience
       questions={bootstrap.questions}
       initialQuestionPosition={bootstrap.initialPosition}
       interviewInitiallyComplete={bootstrap.interviewComplete}
+      initialPhase={bootstrap.entryMode === 'form' ? 'form' : 'interview'}
       onAnswer={submitAnswer}
       onObjectSelected={selectObject}
       onSizeConfirmed={confirmSize}
