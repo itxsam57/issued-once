@@ -1,4 +1,8 @@
-import type { QuestionFamily, VaultQuestionChoice, VaultQuestionDefinition } from '@/domain/questions/QuestionVault';
+import type {
+  QuestionFamily,
+  VaultQuestionChoice,
+  VaultQuestionDefinition,
+} from '@/domain/questions/QuestionVault';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type { AssignedQuestionRecord, QuestionSetRepository } from './QuestionSetRepository';
 import { QuestionSelectionService } from './QuestionSelectionService';
@@ -15,6 +19,8 @@ type Row = {
   weight: number | string;
 };
 
+type ExcludedByFamily = Readonly<Partial<Record<QuestionFamily, string>>>;
+
 export class PostgresLiveQuestionSelectionService {
   constructor(
     private readonly sql: SqlExecutor,
@@ -28,6 +34,22 @@ export class PostgresLiveQuestionSelectionService {
     const existing = await this.repository.findByExperienceId(experienceId);
     if (existing) return existing;
 
+    const service = await this.createSelectionService();
+    return service.assign(experienceId);
+  }
+
+  async assignExcluding(
+    experienceId: string,
+    excludedByFamily: ExcludedByFamily,
+  ): Promise<readonly AssignedQuestionRecord[]> {
+    const existing = await this.repository.findByExperienceId(experienceId);
+    if (existing) return existing;
+
+    const service = await this.createSelectionService();
+    return service.assignExcluding(experienceId, excludedByFamily);
+  }
+
+  private async createSelectionService(): Promise<QuestionSelectionService> {
     const createdAt = this.now();
     await this.sql.query(
       `INSERT INTO question_definitions (
@@ -38,7 +60,15 @@ export class PostgresLiveQuestionSelectionService {
          "id" text,"version" integer,family text,prompt text,kind text,optional boolean,choices jsonb,weight double precision
        )
        ON CONFLICT (question_id,question_version) DO NOTHING`,
-      [JSON.stringify(this.seedVault.map((question) => ({ ...question, choices: question.choices ?? null }))), createdAt],
+      [
+        JSON.stringify(
+          this.seedVault.map((question) => ({
+            ...question,
+            choices: question.choices ?? null,
+          })),
+        ),
+        createdAt,
+      ],
     );
 
     const rows = await this.sql.query<Row>(
@@ -58,6 +88,12 @@ export class PostgresLiveQuestionSelectionService {
       active: row.active,
       weight: Number(row.weight),
     }));
-    return new QuestionSelectionService(this.repository, vault, this.random, this.now).assign(experienceId);
+
+    return new QuestionSelectionService(
+      this.repository,
+      vault,
+      this.random,
+      this.now,
+    );
   }
 }
