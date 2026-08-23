@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import styles from './owner-os.module.css';
+import { useLiveResource } from './useLiveResource';
 
 type Dashboard = {
   sales: {
@@ -36,30 +36,42 @@ function money(minor: number, currency: string | null) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(minor / 100);
 }
 
+async function fetchDashboard(): Promise<Dashboard> {
+  const response = await fetch('/ops/api/dashboard', {
+    credentials: 'same-origin',
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error('Dashboard unavailable');
+  return response.json() as Promise<Dashboard>;
+}
+
 export function HomePanel() {
-  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: dashboard,
+    error,
+    loading,
+    updatedAt,
+    refresh,
+  } = useLiveResource({ load: fetchDashboard, intervalMs: 10_000 });
 
-  useEffect(() => {
-    let alive = true;
-    fetch('/ops/api/dashboard', { credentials: 'same-origin', cache: 'no-store' })
-      .then(async (response) => {
-        if (!response.ok) throw new Error('Dashboard unavailable');
-        return response.json() as Promise<Dashboard>;
-      })
-      .then((value) => { if (alive) setDashboard(value); })
-      .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Dashboard unavailable'); });
-    return () => { alive = false; };
-  }, []);
-
-  if (error) return <p role="alert">{error}</p>;
+  if (!dashboard && error) return <p role="alert">{error}</p>;
   if (!dashboard) return <p>READING BUSINESS</p>;
 
   const attention = Object.values(dashboard.attention).reduce((sum, value) => sum + value, 0);
   return (
     <div>
-      <p>ISSUED ONCE / LIVE BUSINESS</p>
-      <h1>What requires attention now.</h1>
+      <div>
+        <p>ISSUED ONCE / LIVE BUSINESS</p>
+        <h1>What requires attention now.</h1>
+        <p aria-live="polite">
+          {updatedAt ? `UPDATED ${updatedAt.toLocaleTimeString()}` : 'SYNCING'}
+          {' · '}
+          <button type="button" onClick={() => void refresh()} disabled={loading}>
+            {loading ? 'REFRESHING' : 'REFRESH'}
+          </button>
+        </p>
+      </div>
+      {error ? <p role="alert">{error} · showing the last confirmed snapshot.</p> : null}
       <div className={styles.metricGrid}>
         <article><span>TODAY</span><strong>{dashboard.sales.today.orders}</strong><small>{money(dashboard.sales.today.grossMinor, dashboard.sales.currency)}</small></article>
         <article><span>7 DAYS</span><strong>{dashboard.sales.sevenDays.orders}</strong><small>{money(dashboard.sales.sevenDays.grossMinor, dashboard.sales.currency)}</small></article>
