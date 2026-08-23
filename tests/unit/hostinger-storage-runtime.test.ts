@@ -1,6 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { FilesystemArtworkStorage } from '@/server/design/FilesystemArtworkStorage';
-import { SignedArtworkAccess } from '@/server/design/SignedArtworkAccess';
 
 const originalEnv = { ...process.env };
 
@@ -49,7 +48,12 @@ test('manufacturing runtime signs filesystem artwork through the application ori
   delete process.env.BLOB_READ_WRITE_TOKEN;
 
   const { createManufacturingService } = await import('@/server/manufacturing/runtimeManufacturing');
-  const manufacturing = createManufacturingService() as unknown as { artworkAccess: unknown };
+  const manufacturing = createManufacturingService() as unknown as {
+    artworkAccess: { createReadUrl(canonicalUrl: string, ttlMs: number): Promise<string> };
+  };
 
-  expect(manufacturing.artworkAccess).toBeInstanceOf(SignedArtworkAccess);
+  await expect(manufacturing.artworkAccess.createReadUrl(
+    'fs://issues/issue-1/design/job-1.png',
+    60_000,
+  )).resolves.toMatch(/^https:\/\/issuedonce\.shop\/api\/artwork\//);
 });
