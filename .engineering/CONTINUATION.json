@@ -1,17 +1,13 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-24T14:38:00+05:00",
+  "updatedAt": "2026-08-25T00:31:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
-    "canonicalPullRequestState": "DRAFT",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "activeMigrationHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
-    "currentlyDeployedHostingerBranch": "release/hostinger-candidate-20260823",
-    "currentlyDeployedHostingerHead": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
     "hostingerV2CandidateBranch": "release/hostinger-v2-candidate-20260824",
     "hostingerV2CandidateHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
     "productionMigrationHead": "0032_private_payload_key_v2.sql",
@@ -19,148 +15,72 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "PRODUCTION_0032_APPLIED_VERIFIED_V2_CANDIDATE_FROZEN_HOSTINGER_V2_KEY_REQUIRED",
+    "decision": "HOSTINGER_V2_REDEPLOY_REPORTED_LIVE_HEALTH_RUNTIME_PROVIDER_MISSING",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Owner explicitly approved production migration 0032. Managed migration aa0b9492-3f05-4125-bee8-ee8ad3a6d311 was applied to production branch br-dawn-cloud-axm880q9 and the temporary migration branch was cleaned up. Independent production read-only verification proves all four private-payload constraints accept V1/V2 and are validated, existing V1/V2 row counts are unchanged, manufacturing jobs/events remain 0/0, and referral tables remain absent. A new frozen Hostinger V2 candidate branch release/hostinger-v2-candidate-20260824 now points exactly to verified implementation SHA 3fa3b82e56d604d2d36e6634c88ac98e48920a92. The next step requires owner-controlled Hostinger secret configuration: create a fresh exactly-32-byte base64 QUIZ_ENCRYPTION_KEY_V2 and save it in hPanel without exposing it."
+    "stopReason": "Owner reported the V2 Hostinger key/branch/release configuration and redeploy complete. Fresh Hostinger Temporary Release Proof run #43 checked out the frozen V2 candidate at exact SHA 3fa3b82e56d604d2d36e6634c88ac98e48920a92 and reached the temporary Hostinger URL, but the release-health gate failed because runtimeProvider was 'unknown'. Tee/Cap/Tote was correctly skipped. Hostinger must contain RUNTIME_PROVIDER=hostinger and be redeployed before the live proof can continue."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "PRODUCTION_V2_SCHEMA_GREEN_RELEASE_FROZEN_OWNER_HOSTINGER_SECRET_GATE",
+    "internalWorkStatus": "FROZEN_V2_CANDIDATE_LIVE_REACHED_OWNER_RUNTIME_PROVIDER_ENV_GATE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
-      "Use TDD RED before behavior changes",
-      "Require fresh CI, build, browser, release-health, live-product and database evidence before success claims",
+      "Require fresh CI, browser, release-health, live-product and database evidence before success claims",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, payment secrets or provider secrets",
-      "Historical V1 production data is owner-confirmed dummy test data and does not need V1-to-V2 preservation",
-      "Do not delete/reset dummy production data without a separate explicit owner approval",
-      "New private payload writes use V2; schemas and row models must accept V1/V2 during transition",
-      "Browser navigation is never payment proof",
-      "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is separately approved, applied and verified",
+      "Do not delete/reset dummy production data without separate explicit approval",
+      "Do not apply migration 0029 without separate exact approval",
       "Keep Printful production confirmation disabled",
       "Do not create real charges solely for QA"
     ]
-  },
-  "quizEncryptionV2": {
-    "status": "PRODUCTION_SCHEMA_GREEN_V2_RELEASE_FROZEN_WAITING_HOSTINGER_KEY",
-    "migration0031": {
-      "file": "db/migrations/0031_quiz_encryption_key_v2.sql",
-      "migrationId": "36a667fe-e801-4496-ae67-e9b1719472d2",
-      "productionStatus": "APPLIED_AND_VERIFIED",
-      "v1AnswerRowsAtVerification": 1868,
-      "v2AnswerRowsAtVerification": 0
-    },
-    "dummyDataDecision": {
-      "ownerConfirmedHistoricalOrdersAndQuestionnaireAnswersAreDummy": true,
-      "preservationRequired": false,
-      "deletionAuthorized": false,
-      "readOnlyAudit": {
-        "experiences": 305,
-        "experienceAnswers": 1868,
-        "verifiedContacts": 7,
-        "shippingSnapshots": 7,
-        "checkoutQuotes": 258,
-        "paymentAttempts": 6,
-        "paidStatusAttempts": 4,
-        "issues": 4,
-        "manufacturingJobs": 0,
-        "manufacturingProviderEvents": 0
-      }
-    },
-    "migration0032": {
-      "file": "db/migrations/0032_private_payload_key_v2.sql",
-      "migrationId": "aa0b9492-3f05-4125-bee8-ee8ad3a6d311",
-      "temporaryBranchName": "mcp-migration-2026-08-24T02-14-01",
-      "temporaryBranchId": "br-hidden-glade-axpch1a3",
-      "parentProductionBranchId": "br-dawn-cloud-axm880q9",
-      "temporaryStatus": "APPLIED_AND_VERIFIED_THEN_CLEANED_UP",
-      "productionStatus": "APPLIED_AND_VERIFIED",
-      "tables": ["otp_challenges", "verified_contacts", "shipping_snapshots", "support_requests"],
-      "temporaryVerification": {
-        "allFourConstraintsAllowV1V2": true,
-        "allFourConstraintsValidated": true,
-        "otpV1": 254,
-        "otpV2": 0,
-        "contactsV1": 7,
-        "contactsV2": 0,
-        "shippingV1": 7,
-        "shippingV2": 0,
-        "supportV1": 0,
-        "supportV2": 0,
-        "manufacturingJobs": 0,
-        "manufacturingProviderEvents": 0,
-        "referralSchemaPresent": false
-      },
-      "productionReadOnlyVerificationAfterApply": {
-        "constraintCount": 4,
-        "allFourConstraintsAllowV1V2": true,
-        "allFourConstraintsValidated": true,
-        "otpV1": 254,
-        "otpV2": 0,
-        "contactsV1": 7,
-        "contactsV2": 0,
-        "shippingV1": 7,
-        "shippingV2": 0,
-        "supportV1": 0,
-        "supportV2": 0,
-        "manufacturingJobs": 0,
-        "manufacturingProviderEvents": 0,
-        "referralCreatorsPresent": false,
-        "referralConversionsPresent": false
-      }
-    },
-    "implementationVerification": {
-      "head": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
-      "ciRun": 1368,
-      "ciResult": "PASS_UNIT_TYPECHECK_LINT_BUILD",
-      "browserQaRun": 1267,
-      "browserQaResult": "PASS",
-      "migration0032TddRed": "CI_1363_ONLY_NEW_MISSING_0032_CONTRACT_FAILED_536_EXISTING_TESTS_PASSED",
-      "frozenReleaseBranch": "release/hostinger-v2-candidate-20260824",
-      "frozenReleaseHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
-      "frozenReleaseIdentityVerified": true
-    }
-  },
-  "hostingerMigration": {
-    "status": "V2_CANDIDATE_FROZEN_OWNER_SECRET_CONFIGURATION_REQUIRED",
-    "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
-    "currentlyDeployedHead": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
-    "currentReleaseHealth": "PASS_EXACT_OLD_SHA_DATABASE_QUEUE_STORAGE",
-    "currentLiveAnswerStatus": "EXPECTED_FAIL_OLD_RELEASE_HAS_NO_V2_WRITER_KEY",
-    "nextCandidateBranch": "release/hostinger-v2-candidate-20260824",
-    "nextCandidateHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
-    "productionDomainCutoverAllowed": false
   },
   "productionDatabase": {
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
     "branchId": "br-dawn-cloud-axm880q9",
+    "migration0030Applied": true,
+    "migration0031Applied": true,
+    "migration0032Applied": true,
+    "migration0032Verified": true,
     "manufacturingJobCount": 0,
     "manufacturingProviderEventCount": 0,
     "referralCreatorsTablePresent": false,
-    "referralConversionsTablePresent": false,
-    "migration0029Applied": false,
-    "migration0030Applied": true,
-    "migration0031Applied": true,
-    "migration0032Applied": true
+    "referralConversionsTablePresent": false
+  },
+  "hostingerMigration": {
+    "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
+    "candidateBranch": "release/hostinger-v2-candidate-20260824",
+    "candidateHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
+    "proofWorkflowCommit": "81d74786852f01e401c0d7fa17424762a02e8259",
+    "proofWorkflowRun": 43,
+    "proofWorkflowRunId": 32768514642,
+    "releaseHealth": "FAIL_RUNTIME_PROVIDER_UNKNOWN",
+    "physicalMatrix": "SKIPPED_RELEASE_HEALTH_GATE",
+    "productionDomainCutoverAllowed": false
+  },
+  "verification": {
+    "candidateCI": 1368,
+    "candidateCIResult": "PASS",
+    "candidateBrowserQA": 1267,
+    "candidateBrowserQAResult": "PASS",
+    "freshProofCI": 1372,
+    "freshProofBrowserQA": 1271,
+    "freshHostingerProof": 43,
+    "freshHostingerProofResult": "FAIL_RUNTIME_PROVIDER_UNKNOWN"
   },
   "safetyGates": {
     "realQaPayment": "NOT_PERFORMED",
     "printfulProductionConfirmation": "DISABLED",
     "migration0029": "NOT_APPLIED",
-    "migration0031": "APPLIED_AND_VERIFIED",
     "migration0032": "APPLIED_AND_VERIFIED",
     "dummyDataReset": "NOT_AUTHORIZED",
-    "referralSigningKeyRollout": "NOT_PERFORMED",
     "productionDomainCutover": "NOT_PERFORMED"
   },
   "nextActions": [
-    "OWNER: generate a fresh exactly-32-byte cryptographically random value, base64 encode it, and save it in Hostinger as QUIZ_ENCRYPTION_KEY_V2 without exposing the value in chat, GitHub, screenshots or logs",
-    "OWNER/SYSTEM: switch the temporary Hostinger app to release/hostinger-v2-candidate-20260824, set RELEASE_ID=3fa3b82e56d604d2d36e6634c88ac98e48920a92, and redeploy",
-    "SYSTEM: prove temporary /api/health/release returns runtimeProvider hostinger, exact release 3fa3b82e56d604d2d36e6634c88ac98e48920a92, databaseReady true, queueReady true and storageReady true",
-    "SYSTEM: run live Tee/Cap/Tote physical gates on the temporary Hostinger URL without a real payment or Printful confirmation",
-    "SYSTEM+OWNER: satisfy any remaining Hostinger runtime secrets one at a time as their boundaries are reached, then prove OTP/contact/shipping, signed artwork and durable job drain/cron",
-    "SYSTEM+OWNER: only after temporary proof, cut issuedonce.shop to Hostinger and repeat exact health, Tee/Cap/Tote and Neon safety proof",
-    "OWNER OPTIONAL LATER: explicitly authorize a clean reset of historical dummy production data if desired; do not delete it by inference"
+    "OWNER: in Hostinger environment variables add or correct RUNTIME_PROVIDER=hostinger for the temporary Node.js app; do not change the V2 key value",
+    "OWNER: save and redeploy the temporary app",
+    "SYSTEM: rerun the exact Hostinger release-health proof and require runtimeProvider hostinger, exact release SHA, databaseReady, queueReady and storageReady",
+    "SYSTEM: only after health passes, run Tee/Cap/Tote physical gates and Neon read-only corroboration",
+    "SYSTEM+OWNER: continue remaining OTP/contact/artwork/cron gates one at a time",
+    "SYSTEM+OWNER: only after temporary proof, cut issuedonce.shop to Hostinger and repeat the full proof"
   ],
-  "nextOwnerAction": "HOSTINGER_CONFIGURE_QUIZ_ENCRYPTION_KEY_V2"
+  "nextOwnerAction": "HOSTINGER_SET_RUNTIME_PROVIDER_HOSTINGER_AND_REDEPLOY"
 }
