@@ -11,7 +11,7 @@ type ChallengeRow = {
   experience_id: string;
   email_hash: string;
   email_payload_version: 1;
-  email_key_version: 'v1';
+  email_key_version: EncryptedPayload['keyVersion'];
   email_iv: string;
   email_auth_tag: string;
   email_ciphertext: string;
@@ -29,7 +29,7 @@ type ContactRow = {
   experience_id: string;
   email_hash: string;
   payload_version: 1;
-  key_version: 'v1';
+  key_version: EncryptedPayload['keyVersion'];
   iv: string;
   auth_tag: string;
   ciphertext: string;
@@ -221,6 +221,17 @@ export class PostgresContactRepository implements ContactRepository {
     return rows[0] ? contactFromRow(rows[0]) : null;
   }
 
+  async findVerifiedById(contactId: string) {
+    const rows = await this.sql.query<ContactRow>(
+      `SELECT id, experience_id, email_hash, payload_version, key_version, iv, auth_tag, ciphertext, verified_at
+       FROM verified_contacts
+       WHERE id = $1
+       LIMIT 1`,
+      [contactId],
+    );
+    return rows[0] ? contactFromRow(rows[0]) : null;
+  }
+
   async copyVerifiedContact(input: {
     sourceContactId: string;
     targetExperienceId: string;
@@ -229,19 +240,20 @@ export class PostgresContactRepository implements ContactRepository {
     now: Date;
   }): Promise<boolean> {
     const rows = await this.sql.query<BoolRow>(
-      `WITH copied AS (
+      `WITH source AS (
+         SELECT email_hash, payload_version, key_version, iv, auth_tag, ciphertext
+         FROM verified_contacts
+         WHERE id = $1
+           AND email_hash = $3
+         LIMIT 1
+       ), upserted AS (
          INSERT INTO verified_contacts (
            id, experience_id, email_hash,
            payload_version, key_version, iv, auth_tag, ciphertext,
            verified_at, updated_at
          )
-         SELECT
-           $4, $2, source.email_hash,
-           source.payload_version, source.key_version, source.iv, source.auth_tag, source.ciphertext,
-           source.verified_at, $5
-         FROM verified_contacts AS source
-         WHERE source.id = $1
-           AND source.email_hash = $3
+         SELECT $4,$2,email_hash,payload_version,key_version,iv,auth_tag,ciphertext,$5,$5
+         FROM source
          ON CONFLICT (experience_id) DO UPDATE
          SET email_hash = EXCLUDED.email_hash,
              payload_version = EXCLUDED.payload_version,
@@ -251,10 +263,9 @@ export class PostgresContactRepository implements ContactRepository {
              ciphertext = EXCLUDED.ciphertext,
              verified_at = EXCLUDED.verified_at,
              updated_at = EXCLUDED.updated_at
-         WHERE verified_contacts.email_hash = EXCLUDED.email_hash
          RETURNING id
        )
-       SELECT EXISTS (SELECT 1 FROM copied) AS ok`,
+       SELECT EXISTS (SELECT 1 FROM upserted) AS ok`,
       [
         input.sourceContactId,
         input.targetExperienceId,
