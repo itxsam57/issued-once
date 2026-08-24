@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-25T00:43:00+05:00",
+  "updatedAt": "2026-08-25T01:00:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -15,17 +15,18 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "HOSTINGER_BRANCH_SWITCH_RESET_ENVIRONMENT_DATABASE_URL_MISSING",
+    "decision": "HOSTINGER_V2_HEALTH_GREEN_TEE_GREEN_CONTACT_OTP_RUNTIME_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Owner reported that changing the Hostinger deployment branch removed the previously configured environment-variable set. After RUNTIME_PROVIDER=hostinger was added and the app redeployed, a fresh rerun of Hostinger Temporary Release Proof #43 passed runtimeProvider and exact RELEASE_ID validation, then failed at databaseReady=false. This proves the selected V2 branch/SHA is correct and the current blocker is missing deployment configuration, beginning with DATABASE_URL. Neon read-only verification shows zero V2-encrypted rows across experience_answers, otp_challenges, verified_contacts, shipping_snapshots and support_requests, so a lost QUIZ_ENCRYPTION_KEY_V2 may be safely regenerated before any successful V2 write."
+    "stopReason": "Owner restored the minimum Hostinger environment set and redeployed. Hostinger Temporary Release Proof #43 rerun now passes exact release health for runtimeProvider=hostinger, release 3fa3b82e56d604d2d36e6634c88ac98e48920a92, database, durable queue and private storage. The live customer flow persisted all seven questionnaire answers with HTTP 200 and passed Tee M Bone object/size/base. The next request, /api/contact/request-otp, returned HTTP 503 because contact verification is not configured. Code inspection proves the contact runtime requires RESEND_API_KEY, RESEND_FROM_EMAIL and a valid 32-byte base64 IDENTITY_HMAC_KEY. Neon corroboration after the Tee proof shows seven V2 experience-answer rows now exist, so the current QUIZ_ENCRYPTION_KEY_V2 must not be regenerated or replaced."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V2_RELEASE_IDENTITY_PROVEN_HOSTINGER_ENVIRONMENT_RESTORE_OWNER_GATE",
+    "internalWorkStatus": "V2_HEALTH_GREEN_TEE_GREEN_OWNER_CONTACT_RUNTIME_GATE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, browser, release-health, live-product and database evidence before success claims",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets",
+      "Do not regenerate or replace QUIZ_ENCRYPTION_KEY_V2 now that V2 rows exist",
       "Do not delete/reset dummy production data without separate explicit approval",
       "Do not apply migration 0029 without separate exact approval",
       "Keep Printful production confirmation disabled",
@@ -41,7 +42,7 @@
     "migration0032Applied": true,
     "migration0032Verified": true,
     "v2EncryptedRows": {
-      "experienceAnswers": 0,
+      "experienceAnswers": 7,
       "otpChallenges": 0,
       "verifiedContacts": 0,
       "shippingSnapshots": 0,
@@ -56,24 +57,16 @@
     "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
     "candidateBranch": "release/hostinger-v2-candidate-20260824",
     "candidateHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
-    "releaseIdentity": "PASS_RUNTIME_PROVIDER_AND_EXACT_RELEASE_ID",
-    "releaseHealth": "FAIL_DATABASE_READY_FALSE_AFTER_ENV_RESET",
-    "physicalMatrix": "SKIPPED_RELEASE_HEALTH_GATE",
-    "knownCurrentEnvironment": {
-      "RUNTIME_PROVIDER": "hostinger",
-      "RELEASE_ID": "PROVEN_CORRECT_BY_HEALTH_GATE",
-      "DATABASE_URL": "MISSING_OR_UNAVAILABLE",
-      "otherPriorVariables": "OWNER_REPORTS_DISAPPEARED_AFTER_BRANCH_SWITCH"
-    },
-    "minimumRestoreBeforeNextProof": [
-      "NODE_ENV=production",
-      "RUNTIME_PROVIDER=hostinger",
-      "RELEASE_ID=3fa3b82e56d604d2d36e6634c88ac98e48920a92",
-      "APP_VERSION=0.1.0",
-      "APP_ORIGIN=https://lightgray-coyote-141764.hostingersite.com",
-      "ARTWORK_STORAGE_DIR=/home/u639555688/issued-once-private-artwork",
-      "DATABASE_URL=<owner retrieves production Neon connection string without exposing it>",
-      "QUIZ_ENCRYPTION_KEY_V2=<same saved value or fresh exactly-32-byte base64 value if lost>"
+    "releaseHealth": "PASS_HOSTINGER_EXACT_SHA_DATABASE_QUEUE_STORAGE",
+    "questionnairePersistence": "PASS_7_OF_7_HTTP_200_V2",
+    "teePhysicalGate": "PASS_M_BONE",
+    "capPhysicalGate": "NOT_REACHED_BECAUSE_OTP_BOUNDARY_RUNS_AFTER_TEE",
+    "totePhysicalGate": "NOT_REACHED_BECAUSE_OTP_BOUNDARY_RUNS_AFTER_TEE",
+    "contactOtpBoundary": "FAIL_HTTP_503_CONTACT_RUNTIME_UNAVAILABLE",
+    "contactRuntimeRequiredEnvironment": [
+      "RESEND_API_KEY=<owner-controlled sending key>",
+      "RESEND_FROM_EMAIL=<verified Resend sender>",
+      "IDENTITY_HMAC_KEY=<exactly-32-byte random value encoded as base64>"
     ],
     "productionDomainCutoverAllowed": false
   },
@@ -85,7 +78,8 @@
     "freshBrowserQA": 1271,
     "freshBrowserQAResult": "PASS",
     "freshHostingerProof": 43,
-    "freshHostingerProofRerunResult": "FAIL_DATABASE_READY_FALSE_AFTER_RUNTIME_PROVIDER_FIXED",
+    "freshHostingerProofResult": "HEALTH_PASS_TEE_PASS_OTP_503",
+    "freshHostingerProofArtifactId": 9536293323,
     "previewPaymentFixtureRegression": {
       "rootCause": "hard-coded quote expiry 2026-08-24T04:00:00Z became stale",
       "redEvidence": "CI_1372_3_FAILURES_534_PASS",
@@ -103,15 +97,15 @@
     "productionDomainCutover": "NOT_PERFORMED"
   },
   "nextActions": [
-    "OWNER: do not change the Hostinger branch again; restore the minimum environment set listed in hostingerMigration.minimumRestoreBeforeNextProof",
-    "OWNER: retrieve DATABASE_URL directly from Neon or another owner-controlled secret store; never paste it into chat or GitHub",
-    "OWNER: re-add QUIZ_ENCRYPTION_KEY_V2; if the prior value is lost, generate a fresh exactly-32-byte base64 key because current Neon V2 row count is zero",
-    "OWNER: save and redeploy the temporary Hostinger app",
-    "SYSTEM: rerun exact release-health proof and require runtimeProvider hostinger, exact release SHA, databaseReady, queueReady and storageReady",
-    "SYSTEM: only after health passes, run Tee/Cap/Tote physical gates and Neon read-only corroboration",
-    "SYSTEM: verify fresh CI after the stale preview-payment test-fixture correction",
-    "SYSTEM+OWNER: continue remaining OTP/contact/artwork/cron secrets only when their boundaries are reached",
-    "SYSTEM+OWNER: only after temporary proof, cut issuedonce.shop to Hostinger and repeat the full proof"
+    "OWNER: preserve the current QUIZ_ENCRYPTION_KEY_V2 exactly; seven V2 answer rows now depend on it",
+    "OWNER: configure RESEND_API_KEY and RESEND_FROM_EMAIL in Hostinger; prefer a sending-only Resend API key and a verified issuedonce.shop sender",
+    "OWNER: configure a fresh exactly-32-byte base64 IDENTITY_HMAC_KEY in Hostinger; historical contact hashes are owner-confirmed dummy data and do not require continuity",
+    "OWNER: save and redeploy without changing the Hostinger branch",
+    "SYSTEM: rerun Hostinger live proof; require health green, OTP request success, then complete Cap OS Bone and Tote OS Bone physical gates",
+    "SYSTEM: independently corroborate V2 OTP/contact/shipping rows plus manufacturing/referral safety after live proof",
+    "SYSTEM: verify fresh CI after stale preview-payment test-fixture correction",
+    "SYSTEM+OWNER: continue artwork signing and durable cron/job-drain gates one at a time",
+    "SYSTEM+OWNER: only after temporary proof is fully green, cut issuedonce.shop to Hostinger and repeat the complete proof"
   ],
-  "nextOwnerAction": "HOSTINGER_RESTORE_MINIMUM_ENVIRONMENT_SET_AND_REDEPLOY"
+  "nextOwnerAction": "HOSTINGER_CONFIGURE_RESEND_AND_IDENTITY_HMAC_AND_REDEPLOY"
 }
