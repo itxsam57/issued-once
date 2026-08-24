@@ -26,12 +26,14 @@ function request(token?: string, body?: unknown) {
 
 afterEach(() => {
   delete process.env.VERCEL_ENV;
+  delete process.env.RUNTIME_PROVIDER;
+  delete process.env.QUIZ_KEY_ROTATION_HOSTINGER_BRIDGE;
   delete process.env.QUIZ_KEY_ROTATION_TOKEN;
   vi.clearAllMocks();
 });
 
 describe('POST /api/internal/quiz-encryption/rotate', () => {
-  test('does not expose the rotation endpoint outside Vercel production', async () => {
+  test('does not expose the rotation endpoint outside an explicitly allowed bridge runtime', async () => {
     process.env.VERCEL_ENV = 'preview';
     process.env.QUIZ_KEY_ROTATION_TOKEN = TOKEN;
 
@@ -39,6 +41,32 @@ describe('POST /api/internal/quiz-encryption/rotate', () => {
 
     expect(response.status).toBe(404);
     expect(createQuizEncryptionRotationService).not.toHaveBeenCalled();
+  });
+
+  test('does not expose the route on Hostinger unless the one-time bridge flag is enabled', async () => {
+    process.env.RUNTIME_PROVIDER = 'hostinger';
+    process.env.QUIZ_KEY_ROTATION_TOKEN = TOKEN;
+
+    const response = await POST(request(TOKEN));
+
+    expect(response.status).toBe(404);
+    expect(createQuizEncryptionRotationService).not.toHaveBeenCalled();
+  });
+
+  test('allows one bounded batch on Hostinger only with the explicit one-time bridge flag and token', async () => {
+    process.env.RUNTIME_PROVIDER = 'hostinger';
+    process.env.QUIZ_KEY_ROTATION_HOSTINGER_BRIDGE = 'enabled';
+    process.env.QUIZ_KEY_ROTATION_TOKEN = TOKEN;
+    createQuizEncryptionRotationService.mockReturnValue({ migrateBatch });
+    migrateBatch.mockResolvedValue({ scanned: 100, migrated: 100, skipped: 0, failed: 0, remaining: 1768 });
+
+    const response = await POST(request(TOKEN, { limit: 100 }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(migrateBatch).toHaveBeenCalledWith(100);
+    expect(payload).toEqual({ scanned: 100, migrated: 100, skipped: 0, failed: 0, remaining: 1768 });
+    expect(Object.keys(payload).sort()).toEqual(['failed', 'migrated', 'remaining', 'scanned', 'skipped']);
   });
 
   test('fails closed when the dedicated rotation token is not safely configured', async () => {
