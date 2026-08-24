@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-25T00:31:00+05:00",
+  "updatedAt": "2026-08-25T00:43:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -15,17 +15,17 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "HOSTINGER_V2_REDEPLOY_REPORTED_LIVE_HEALTH_RUNTIME_PROVIDER_MISSING",
+    "decision": "HOSTINGER_BRANCH_SWITCH_RESET_ENVIRONMENT_DATABASE_URL_MISSING",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Owner reported the V2 Hostinger key/branch/release configuration and redeploy complete. Fresh Hostinger Temporary Release Proof run #43 checked out the frozen V2 candidate at exact SHA 3fa3b82e56d604d2d36e6634c88ac98e48920a92 and reached the temporary Hostinger URL, but the release-health gate failed because runtimeProvider was 'unknown'. Tee/Cap/Tote was correctly skipped. Hostinger must contain RUNTIME_PROVIDER=hostinger and be redeployed before the live proof can continue."
+    "stopReason": "Owner reported that changing the Hostinger deployment branch removed the previously configured environment-variable set. After RUNTIME_PROVIDER=hostinger was added and the app redeployed, a fresh rerun of Hostinger Temporary Release Proof #43 passed runtimeProvider and exact RELEASE_ID validation, then failed at databaseReady=false. This proves the selected V2 branch/SHA is correct and the current blocker is missing deployment configuration, beginning with DATABASE_URL. Neon read-only verification shows zero V2-encrypted rows across experience_answers, otp_challenges, verified_contacts, shipping_snapshots and support_requests, so a lost QUIZ_ENCRYPTION_KEY_V2 may be safely regenerated before any successful V2 write."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "FROZEN_V2_CANDIDATE_LIVE_REACHED_OWNER_RUNTIME_PROVIDER_ENV_GATE",
+    "internalWorkStatus": "V2_RELEASE_IDENTITY_PROVEN_HOSTINGER_ENVIRONMENT_RESTORE_OWNER_GATE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, browser, release-health, live-product and database evidence before success claims",
-      "Never expose encryption keys, OTPs, sessions, raw answers, addresses, payment secrets or provider secrets",
+      "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets",
       "Do not delete/reset dummy production data without separate explicit approval",
       "Do not apply migration 0029 without separate exact approval",
       "Keep Printful production confirmation disabled",
@@ -40,6 +40,13 @@
     "migration0031Applied": true,
     "migration0032Applied": true,
     "migration0032Verified": true,
+    "v2EncryptedRows": {
+      "experienceAnswers": 0,
+      "otpChallenges": 0,
+      "verifiedContacts": 0,
+      "shippingSnapshots": 0,
+      "supportRequests": 0
+    },
     "manufacturingJobCount": 0,
     "manufacturingProviderEventCount": 0,
     "referralCreatorsTablePresent": false,
@@ -49,11 +56,25 @@
     "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
     "candidateBranch": "release/hostinger-v2-candidate-20260824",
     "candidateHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
-    "proofWorkflowCommit": "81d74786852f01e401c0d7fa17424762a02e8259",
-    "proofWorkflowRun": 43,
-    "proofWorkflowRunId": 32768514642,
-    "releaseHealth": "FAIL_RUNTIME_PROVIDER_UNKNOWN",
+    "releaseIdentity": "PASS_RUNTIME_PROVIDER_AND_EXACT_RELEASE_ID",
+    "releaseHealth": "FAIL_DATABASE_READY_FALSE_AFTER_ENV_RESET",
     "physicalMatrix": "SKIPPED_RELEASE_HEALTH_GATE",
+    "knownCurrentEnvironment": {
+      "RUNTIME_PROVIDER": "hostinger",
+      "RELEASE_ID": "PROVEN_CORRECT_BY_HEALTH_GATE",
+      "DATABASE_URL": "MISSING_OR_UNAVAILABLE",
+      "otherPriorVariables": "OWNER_REPORTS_DISAPPEARED_AFTER_BRANCH_SWITCH"
+    },
+    "minimumRestoreBeforeNextProof": [
+      "NODE_ENV=production",
+      "RUNTIME_PROVIDER=hostinger",
+      "RELEASE_ID=3fa3b82e56d604d2d36e6634c88ac98e48920a92",
+      "APP_VERSION=0.1.0",
+      "APP_ORIGIN=https://lightgray-coyote-141764.hostingersite.com",
+      "ARTWORK_STORAGE_DIR=/home/u639555688/issued-once-private-artwork",
+      "DATABASE_URL=<owner retrieves production Neon connection string without exposing it>",
+      "QUIZ_ENCRYPTION_KEY_V2=<same saved value or fresh exactly-32-byte base64 value if lost>"
+    ],
     "productionDomainCutoverAllowed": false
   },
   "verification": {
@@ -61,10 +82,17 @@
     "candidateCIResult": "PASS",
     "candidateBrowserQA": 1267,
     "candidateBrowserQAResult": "PASS",
-    "freshProofCI": 1372,
-    "freshProofBrowserQA": 1271,
+    "freshBrowserQA": 1271,
+    "freshBrowserQAResult": "PASS",
     "freshHostingerProof": 43,
-    "freshHostingerProofResult": "FAIL_RUNTIME_PROVIDER_UNKNOWN"
+    "freshHostingerProofRerunResult": "FAIL_DATABASE_READY_FALSE_AFTER_RUNTIME_PROVIDER_FIXED",
+    "previewPaymentFixtureRegression": {
+      "rootCause": "hard-coded quote expiry 2026-08-24T04:00:00Z became stale",
+      "redEvidence": "CI_1372_3_FAILURES_534_PASS",
+      "testOnlyFixCommits": ["3428e6c15ba85a2e6ecc448adfabeac7889c776c", "9035d239ef1e05cd13ee926ccb84aebb1b8d7dd2"],
+      "productionCodeChanged": false,
+      "freshCI": "PENDING"
+    }
   },
   "safetyGates": {
     "realQaPayment": "NOT_PERFORMED",
@@ -75,12 +103,15 @@
     "productionDomainCutover": "NOT_PERFORMED"
   },
   "nextActions": [
-    "OWNER: in Hostinger environment variables add or correct RUNTIME_PROVIDER=hostinger for the temporary Node.js app; do not change the V2 key value",
-    "OWNER: save and redeploy the temporary app",
-    "SYSTEM: rerun the exact Hostinger release-health proof and require runtimeProvider hostinger, exact release SHA, databaseReady, queueReady and storageReady",
+    "OWNER: do not change the Hostinger branch again; restore the minimum environment set listed in hostingerMigration.minimumRestoreBeforeNextProof",
+    "OWNER: retrieve DATABASE_URL directly from Neon or another owner-controlled secret store; never paste it into chat or GitHub",
+    "OWNER: re-add QUIZ_ENCRYPTION_KEY_V2; if the prior value is lost, generate a fresh exactly-32-byte base64 key because current Neon V2 row count is zero",
+    "OWNER: save and redeploy the temporary Hostinger app",
+    "SYSTEM: rerun exact release-health proof and require runtimeProvider hostinger, exact release SHA, databaseReady, queueReady and storageReady",
     "SYSTEM: only after health passes, run Tee/Cap/Tote physical gates and Neon read-only corroboration",
-    "SYSTEM+OWNER: continue remaining OTP/contact/artwork/cron gates one at a time",
+    "SYSTEM: verify fresh CI after the stale preview-payment test-fixture correction",
+    "SYSTEM+OWNER: continue remaining OTP/contact/artwork/cron secrets only when their boundaries are reached",
     "SYSTEM+OWNER: only after temporary proof, cut issuedonce.shop to Hostinger and repeat the full proof"
   ],
-  "nextOwnerAction": "HOSTINGER_SET_RUNTIME_PROVIDER_HOSTINGER_AND_REDEPLOY"
+  "nextOwnerAction": "HOSTINGER_RESTORE_MINIMUM_ENVIRONMENT_SET_AND_REDEPLOY"
 }
