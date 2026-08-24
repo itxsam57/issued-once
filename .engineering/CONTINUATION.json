@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-24T05:59:00+05:00",
+  "updatedAt": "2026-08-24T06:12:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -9,95 +9,93 @@
     "canonicalPullRequestState": "DRAFT",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "migrationImplementationHead": "328011839ec79b18e8c016ca5fb4bba124b45eca",
-    "migrationStagingHead": "4c806ce353bdc24ffa5139a7d72b4c479d62e9aa",
-    "migrationDocumentationHeadBeforeGovernor": "a7587a5b02f174cc9ccd8313ac0c7b375a666866",
-    "vercelBridgeReleaseBranch": "release/quiz-v2-bridge-20260824",
-    "vercelBridgeReleaseHead": "4c806ce353bdc24ffa5139a7d72b4c479d62e9aa",
-    "hostingerReleaseCandidateBranch": "release/hostinger-candidate-20260823",
-    "hostingerReleaseCandidateHead": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
+    "hostingerV2BridgeImplementationHead": "974506b7aa041c025b609d765f943cbc61bcff4a",
+    "hostingerV2BridgeReleaseBranch": "release/hostinger-v2-bridge-20260824",
+    "hostingerV2BridgeReleaseHead": "974506b7aa041c025b609d765f943cbc61bcff4a",
+    "currentlyDeployedHostingerBranch": "release/hostinger-candidate-20260823",
+    "currentlyDeployedHostingerHead": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
     "productionMigrationHead": "0031_quiz_encryption_key_v2.sql",
     "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "PRODUCTION_0031_GREEN_SHARED_V2_SECRET_AND_VERCEL_ROTATION_CONFIG_REQUIRED",
+    "decision": "HOSTINGER_V2_BRIDGE_GREEN_OWNER_V1_V2_SECRET_CONFIGURATION_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Owner approved production migration 0031. Managed migration 36a667fe-e801-4496-ae67-e9b1719472d2 was applied to production Neon branch br-dawn-cloud-axm880q9 and the temporary branch was deleted. Independent production verification shows the validated V1/V2 constraint, 1,868 V1 rows, 0 V2 rows, 0 unexpected versions, referral tables absent and manufacturing 0/0. The next safe operation requires owner-controlled secret configuration: one new 32-byte base64 V2 key must be set identically in Vercel production and Hostinger, while the existing Vercel V1 key is preserved, and a separate temporary rotation token must be configured in Vercel production. The connected Vercel integration currently lists no ISSUED ONCE project and Hostinger has no connected account tool, so this cannot be completed autonomously without owner account interaction."
+    "stopReason": "Production 0031 is applied and verified. A Vercel deployment is currently blocked by the free-plan daily deployment cap, so the migration was redesigned and TDD-verified to use Hostinger itself as the one-time V1-to-V2 rotation bridge behind an explicit temporary enable flag and the existing dedicated bearer token. Exact code head 974506b7 passed CI #1358 and Browser QA #1257. A frozen release/hostinger-v2-bridge-20260824 branch now points to that SHA. The next safe step requires owner-controlled secrets: copy the existing valid production QUIZ_ENCRYPTION_KEY_V1 from Vercel into Hostinger unchanged, then create/configure a new V2 key and temporary rotation token in Hostinger. No account connector can read or safely transfer those secret values."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "PRODUCTION_0031_APPLIED_V2_BRIDGE_FROZEN_OWNER_SECRET_CONFIG_GATE",
+    "internalWorkStatus": "HOSTINGER_ROTATION_BRIDGE_VERIFIED_OWNER_SECRET_TRANSFER_GATE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Use TDD RED before behavior changes",
       "Require fresh CI, build, browser, release-health, live-product and database evidence before success claims",
-      "Preview-only product matrix evidence is insufficient for production physical-gate claims",
-      "Live release smoke must exercise Tee, Cap and Tote through object, size and base APIs",
+      "Never expose questionnaire keys, rotation tokens, OTPs, sessions, raw answers, addresses, payment secrets or provider secrets",
+      "Never replace QUIZ_ENCRYPTION_KEY_V1; copy the existing valid value unchanged when a second runtime must read V1 data",
+      "New questionnaire writes use V2 on the compatible Hostinger release",
+      "Do not start V1-to-V2 row rotation until Hostinger has passed final-domain live proof; after rotation begins, the old V1-only Vercel release is no longer a safe rollback target",
+      "Hostinger rotation endpoint is enabled only when RUNTIME_PROVIDER=hostinger AND QUIZ_KEY_ROTATION_HOSTINGER_BRIDGE=enabled and a valid dedicated token is supplied",
+      "Stop rotation immediately on any failed row and retain V1",
       "Browser navigation is never payment proof",
-      "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
-      "Never replace or expose QUIZ_ENCRYPTION_KEY_V1",
-      "New questionnaire writes use V2 only on the compatible bridge release; V1 remains decrypt-only until independent production V1 count is zero",
-      "Stop V1-to-V2 rotation immediately on any failed row and retain V1",
       "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is separately approved, applied and verified",
-      "Keep Printful production confirmation disabled until its independent owner release gate",
-      "Do not create real charges solely for QA; use non-payment test paths"
+      "Keep Printful production confirmation disabled",
+      "Do not create real charges solely for QA"
     ]
   },
   "quizEncryptionV2Migration": {
-    "status": "PRODUCTION_SCHEMA_APPLIED_BRIDGE_READY_WAITING_SHARED_SECRET_CONFIG",
-    "implementationHead": "328011839ec79b18e8c016ca5fb4bba124b45eca",
-    "frozenBridgeBranch": "release/quiz-v2-bridge-20260824",
-    "frozenBridgeHead": "4c806ce353bdc24ffa5139a7d72b4c479d62e9aa",
-    "implementationVerification": {
-      "ciRun": 1354,
-      "ciResult": "PASS_FROZEN_INSTALL_ALL_UNIT_TYPECHECK_LINT_BUILD",
-      "browserQaRun": 1253,
-      "browserQaResult": "PASS",
-      "v2Writer": true,
-      "v1V2Reader": true,
-      "boundedRotationService": true,
-      "compareAndSwapWrites": true,
-      "vercelProductionOnlyRotationRoute": true,
-      "aggregateOnlyRotationResponse": true
-    },
+    "status": "PRODUCTION_SCHEMA_GREEN_HOSTINGER_ONE_TIME_ROTATION_BRIDGE_GREEN_WAITING_SECRETS",
     "managedMigration0031": {
       "file": "db/migrations/0031_quiz_encryption_key_v2.sql",
       "migrationId": "36a667fe-e801-4496-ae67-e9b1719472d2",
-      "databaseName": "neondb",
       "projectId": "autumn-butterfly-25489215",
-      "parentProductionBranchId": "br-dawn-cloud-axm880q9",
-      "temporaryBranchId": "br-sweet-bread-axagx9qp",
-      "temporaryBranchDeleted": true,
+      "databaseName": "neondb",
+      "productionBranchId": "br-dawn-cloud-axm880q9",
       "productionStatus": "APPLIED_AND_VERIFIED",
-      "productionVerification": {
-        "constraintAllowsV1V2": true,
-        "constraintValidated": true,
-        "v1CountAtVerification": 1868,
-        "v2CountAtVerification": 0,
-        "unexpectedKeyVersionCount": 0,
-        "referralCreatorsTablePresent": false,
-        "referralConversionsTablePresent": false,
-        "manufacturingJobCount": 0,
-        "manufacturingProviderEventCount": 0
-      }
+      "v1CountAtVerification": 1868,
+      "v2CountAtVerification": 0,
+      "unexpectedKeyVersionCount": 0,
+      "constraintValidated": true,
+      "referralCreatorsTablePresent": false,
+      "referralConversionsTablePresent": false,
+      "manufacturingJobCount": 0,
+      "manufacturingProviderEventCount": 0
+    },
+    "hostingerBridge": {
+      "implementationHead": "974506b7aa041c025b609d765f943cbc61bcff4a",
+      "releaseBranch": "release/hostinger-v2-bridge-20260824",
+      "releaseHead": "974506b7aa041c025b609d765f943cbc61bcff4a",
+      "tddRedCommit": "2c666fb00b7e467c95e05a735f9b977939aa8040",
+      "tddRedEvidence": "CI_1357_ONE_EXPECTED_FAILURE_537_EXISTING_TESTS_PASS_HOSTINGER_BRIDGE_EXPECTED_200_RECEIVED_404",
+      "ciRun": 1358,
+      "ciResult": "PASS_FROZEN_INSTALL_ALL_UNIT_TYPECHECK_LINT_BUILD",
+      "browserQaRun": 1257,
+      "browserQaResult": "PASS",
+      "runtimeGate": "VERCEL_PRODUCTION_OR_EXPLICIT_HOSTINGER_BRIDGE",
+      "hostingerEnableCondition": "RUNTIME_PROVIDER_HOSTINGER_AND_QUIZ_KEY_ROTATION_HOSTINGER_BRIDGE_ENABLED",
+      "dedicatedTokenStillRequired": true,
+      "aggregateOnlyResponse": true,
+      "maxBatch": 250
     }
   },
   "hostingerMigration": {
-    "status": "TEMP_RUNTIME_HEALTH_GREEN_WAITING_FOR_V2_ROTATION_BEFORE_COMPATIBLE_PROMOTION",
-    "pullRequest": 13,
+    "status": "OLD_TEMP_RUNTIME_HEALTHY_FOR_INFRA_BUT_ANSWER_PERSISTENCE_BLOCKED_UNTIL_VALID_V1_TRANSFER",
     "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
     "currentlyDeployedBranch": "release/hostinger-candidate-20260823",
-    "currentlyDeployedApplicationHead": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
-    "currentRuntimeHealth": "PASS_HOSTINGER_EXACT_SHA_DATABASE_QUEUE_STORAGE_ALL_TRUE",
-    "promotionRule": "Do not move the Hostinger release branch to V2-compatible code until the Hostinger V2 key is configured and production V1 rotation is independently verified at zero.",
-    "requiredPhysicalMatrix": [
-      "TEE_M_BONE_OBJECT_SIZE_BASE_HTTP_200",
-      "CAP_OS_BONE_OBJECT_SIZE_BASE_HTTP_200",
-      "TOTE_OS_BONE_OBJECT_SIZE_BASE_HTTP_200"
-    ],
-    "physicalMatrixStatus": "PENDING_COMPATIBLE_RELEASE",
+    "currentlyDeployedHead": "929081a8c08b0836ec74037cbb0a7aa59ec88640",
+    "currentReleaseHealth": "PASS_EXACT_SHA_DATABASE_QUEUE_STORAGE",
+    "currentLiveAnswerStatus": "FAIL_HTTP_503_ANSWER_PERSISTENCE_UNAVAILABLE_MISSING_VALID_V1_KEY",
+    "nextCandidateBranch": "release/hostinger-v2-bridge-20260824",
+    "nextCandidateHead": "974506b7aa041c025b609d765f943cbc61bcff4a",
+    "promotionRule": "Do not switch Hostinger to the V2 candidate until the existing V1 key, new V2 key, temporary rotation token and Hostinger bridge enable flag are safely configured.",
+    "rotationRule": "Do not invoke rotation on the temporary domain or before issuedonce.shop has passed final-domain Hostinger proof.",
     "productionDomainCutoverAllowed": false
+  },
+  "externalConstraints": {
+    "vercelProjectMetadata": "samx4/issued-once / prj_MaeVfrw3RdaEeZ68epzhp8pMMP4c",
+    "vercelConnectorDirectProjectAccess": "404_NOT_ACCESSIBLE",
+    "vercelDeploymentCap": "FREE_PLAN_MORE_THAN_100_DEPLOYMENTS_TRY_AGAIN_IN_24_HOURS",
+    "vercelDependencyForMigration": "REMOVED_BY_HOSTINGER_BRIDGE_STRATEGY",
+    "hostingerConnectedAccountTool": false
   },
   "productionDatabase": {
     "projectId": "autumn-butterfly-25489215",
@@ -109,9 +107,7 @@
     "referralConversionsTablePresent": false,
     "migration0029Applied": false,
     "migration0030Applied": true,
-    "migration0031Applied": true,
-    "quizV1CountAt0031Verification": 1868,
-    "quizV2CountAt0031Verification": 0
+    "migration0031Applied": true
   },
   "safetyGates": {
     "realQaPayment": "NOT_PERFORMED",
@@ -119,20 +115,17 @@
     "migration0029": "NOT_APPLIED",
     "migration0031": "APPLIED_AND_VERIFIED",
     "referralSigningKeyRollout": "NOT_PERFORMED",
-    "productionDomainCutover": "NOT_PERFORMED"
-  },
-  "externalToolState": {
-    "vercelTeam": "SAMX / samx4 / team_iG5Amx3WwHQ3Te5KGbmIOiqs",
-    "vercelProjectsVisibleToConnector": 0,
-    "hostingerConnectedAccountTool": false
+    "productionDomainCutover": "NOT_PERFORMED",
+    "quizRotation": "NOT_STARTED"
   },
   "nextActions": [
-    "OWNER: generate one 32-byte random base64 QUIZ_ENCRYPTION_KEY_V2 and set the same exact value in Vercel production and the Hostinger temporary app without exposing it in chat",
-    "OWNER: preserve existing Vercel QUIZ_ENCRYPTION_KEY_V1 unchanged and configure a separate temporary QUIZ_KEY_ROTATION_TOKEN of at least 32 high-entropy characters in Vercel production only",
-    "SYSTEM: deploy release/quiz-v2-bridge-20260824 at exact SHA 4c806ce353bdc24ffa5139a7d72b4c479d62e9aa to Vercel production after owner confirms the secrets are saved",
-    "SYSTEM: rotate bounded batches until endpoint remaining=0, stopping immediately on any failed row, then independently verify Neon V1=0 and safety invariants",
-    "SYSTEM: promote V2-compatible release to temporary Hostinger only after rotation zero proof, then prove exact health and Tee/Cap/Tote without real payment or Printful confirmation",
-    "SYSTEM: prove durable Hostinger cron, cut issuedonce.shop only after temporary proof, repeat final-domain health/matrix/Neon proof, then retire the Vercel bridge"
+    "OWNER: copy the exact existing production QUIZ_ENCRYPTION_KEY_V1 from Vercel into the Hostinger temporary app without changing or exposing it",
+    "OWNER: generate a new exactly-32-byte base64 QUIZ_ENCRYPTION_KEY_V2 locally and add it to Hostinger",
+    "OWNER: generate a separate high-entropy QUIZ_KEY_ROTATION_TOKEN of at least 32 characters and add it to Hostinger; set QUIZ_KEY_ROTATION_HOSTINGER_BRIDGE=enabled",
+    "SYSTEM: after secrets are saved, switch Hostinger app branch to release/hostinger-v2-bridge-20260824, set RELEASE_ID to 974506b7aa041c025b609d765f943cbc61bcff4a, redeploy and prove exact temporary-domain health plus Tee/Cap/Tote",
+    "SYSTEM+OWNER: prove durable job drain/cron, then cut issuedonce.shop to the already-proven Hostinger release and repeat final-domain health, Tee/Cap/Tote and Neon safety proof",
+    "SYSTEM: only after final-domain proof, run bounded V1-to-V2 rotation from Hostinger until remaining=0, stop on any failure, independently verify Neon V1=0, then disable/remove the bridge flag and rotation token",
+    "SYSTEM: retire Vercel only after zero-V1 proof, bridge disablement, durable jobs and final-domain safety proof; then advance PR #13 toward merge while keeping PR #3 independently gated"
   ],
-  "nextOwnerAction": "CONFIGURE_SHARED_QUIZ_ENCRYPTION_KEY_V2_IN_VERCEL_AND_HOSTINGER_AND_TEMP_ROTATION_TOKEN_IN_VERCEL"
+  "nextOwnerAction": "COPY_EXISTING_PRODUCTION_QUIZ_ENCRYPTION_KEY_V1_FROM_VERCEL_TO_HOSTINGER_UNCHANGED"
 }
