@@ -16,12 +16,12 @@ jobs:
     timeout-minutes: 15
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
-      EXPECTED_RELEASE_ID: 929081a8c08b0836ec74037cbb0a7aa59ec88640
+      EXPECTED_RELEASE_ID: 3fa3b82e56d604d2d36e6634c88ac98e48920a92
     steps:
-      - name: Checkout frozen Hostinger candidate
+      - name: Checkout frozen Hostinger V2 candidate
         uses: actions/checkout@v4
         with:
-          ref: release/hostinger-candidate-20260823
+          ref: release/hostinger-v2-candidate-20260824
       - uses: pnpm/action-setup@v4
         with:
           version: 11.23.0
