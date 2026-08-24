@@ -8,8 +8,16 @@ const requestSchema = z
   })
   .strict();
 
+function isRotationBridgeRuntimeEnabled() {
+  return (
+    process.env.VERCEL_ENV === 'production' ||
+    (process.env.RUNTIME_PROVIDER === 'hostinger' &&
+      process.env.QUIZ_KEY_ROTATION_HOSTINGER_BRIDGE === 'enabled')
+  );
+}
+
 export async function POST(request: Request) {
-  if (process.env.VERCEL_ENV !== 'production') {
+  if (!isRotationBridgeRuntimeEnabled()) {
     return Response.json({ error: 'Not found' }, { status: 404 });
   }
 
