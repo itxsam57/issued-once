@@ -1,194 +1,202 @@
 # ISSUED ONCE — Hostinger Deployment Runbook
 
 Date: 2026-08-24
-Status: production `0031` is applied and verified. The migration no longer depends on a new Vercel deployment; the one-time V1→V2 rotation can run from Hostinger behind an explicit bridge flag after Hostinger is proven on the final domain.
+Status: permanent V2 private-payload architecture is staged. Production `0031` is applied; `0032` is verified on a temporary Neon branch and requires separate production approval. Historical production orders/questionnaire records were confirmed by the owner to be dummy test data, so Vercel/V1 preservation is no longer required.
 
 ## Immutable safety rules
 
-- Never expose `QUIZ_ENCRYPTION_KEY_V1`, `QUIZ_ENCRYPTION_KEY_V2`, `QUIZ_KEY_ROTATION_TOKEN`, OTPs, sessions, customer answers, addresses, or provider secrets.
-- Never generate a replacement V1 key. Copy the existing valid V1 key unchanged from Vercel to Hostinger.
-- `QUIZ_KEY_ROTATION_HOSTINGER_BRIDGE=enabled` is temporary and must be removed/disabled after V1 reaches independently verified zero.
+- Never expose encryption keys, OTPs, sessions, raw answers, addresses, payment secrets or provider secrets.
+- Do not delete historical dummy data merely because it is disposable; deletion/reset needs separate explicit owner approval.
 - Migration `0029_creator_referrals.sql` remains forbidden without its own exact owner approval.
-- Keep `PRINTFUL_ALLOW_CONFIRM` off. Do not make a real Safepay QA charge.
-- Keep artwork outside `public_html` and the redeployed Node directory.
-- Do not rotate V1 rows before Hostinger has passed final-domain live proof; after rotation begins, the old V1-only Vercel runtime is no longer a safe rollback target.
+- Keep Printful production confirmation disabled and do not make a real Safepay QA charge.
+- Keep canonical artwork outside `public_html` and the Hostinger Node deployment directory.
+- Prove the temporary Hostinger domain before connecting `issuedonce.shop`.
 
-## 1. Current production database
-
-Neon project `autumn-butterfly-25489215`, database `neondb`, production branch `br-dawn-cloud-axm880q9`.
-
-Applied and verified:
-
-- `0030_background_jobs.sql` — migration `ac06c578-5607-460b-8550-5b3fc30c6742`
-- `0031_quiz_encryption_key_v2.sql` — migration `36a667fe-e801-4496-ae67-e9b1719472d2`
-
-Post-0031 verification:
-
-- key-version constraint accepts V1/V2 and is validated
-- V1 rows: 1,868 at verification time
-- V2 rows: 0 at verification time
-- unexpected versions: 0
-- referral creator/conversion tables absent
-- manufacturing jobs/events: 0/0
-
-Counts may change until cutover, so use fresh counts before and after rotation.
-
-## 2. Current Hostinger runtime
+## 1. Current Hostinger runtime
 
 Temporary URL:
 
 `https://lightgray-coyote-141764.hostingersite.com`
 
-Currently deployed old candidate:
+Currently deployed candidate:
 
 - branch `release/hostinger-candidate-20260823`
 - SHA `929081a8c08b0836ec74037cbb0a7aa59ec88640`
-- health has previously passed exact SHA + database + queue + storage
-- live answer persistence currently fails because this runtime does not have the valid V1 questionnaire key
+- `/api/health/release` previously proved exact SHA, database, durable queue and private filesystem storage all healthy
+- private artwork root: `/home/u639555688/issued-once-private-artwork`
 
-Do not treat that failure as a code regression. The old candidate remains in place until the required secrets are safely configured.
+The old candidate still fails questionnaire answer persistence because it predates the permanent V2 writer/key rollout. That is expected and is not a new infrastructure regression.
 
-## 3. V2-compatible Hostinger bridge candidate
+## 2. Production database state
 
-Frozen branch:
+Neon:
 
-`release/hostinger-v2-bridge-20260824`
+- project `autumn-butterfly-25489215`
+- database `neondb`
+- production branch `br-dawn-cloud-axm880q9`
 
-Exact SHA:
+Applied and verified:
 
-`974506b7aa041c025b609d765f943cbc61bcff4a`
+- `0030_background_jobs.sql` — `ac06c578-5607-460b-8550-5b3fc30c6742`
+- `0031_quiz_encryption_key_v2.sql` — `36a667fe-e801-4496-ae67-e9b1719472d2`
 
-Exact-sha verification:
+Still forbidden/unapplied:
 
-- CI #1358: PASS — frozen install, all unit tests, typecheck, lint, production build
-- Browser QA #1257: PASS
+- `0029_creator_referrals.sql`
 
-Capabilities:
+Manufacturing jobs/events remain `0/0`; referral creator/conversion tables remain absent.
 
-- reads V1 and V2 encrypted questionnaire answers
-- new questionnaire writes use V2
-- bounded idempotent V1→V2 rotation with compare-and-swap writes
-- batch size 1..250
-- aggregate-only response
-- Vercel-production fallback remains available
-- Hostinger rotation is unavailable unless BOTH `RUNTIME_PROVIDER=hostinger` and `QUIZ_KEY_ROTATION_HOSTINGER_BRIDGE=enabled`
-- valid dedicated `QUIZ_KEY_ROTATION_TOKEN` is still required
+## 3. Historical V1 data decision
 
-## 4. Owner secret preparation before deploying the V2 candidate
+The owner confirmed the historical questionnaire/order records are dummy testing data and the questionnaire answers were not meaningful production answers. Therefore:
 
-Hostinger must have all of these before switching branches:
+- V1→V2 preservation is not required.
+- A new Vercel deployment is not required for migration.
+- The temporary Vercel/Hostinger rotation bridge is not part of the deployment plan.
+- Existing V1 dummy rows may remain in the database until a separately approved cleanup/reset.
+- New production data must use the permanent V2 key.
 
-1. Existing production `QUIZ_ENCRYPTION_KEY_V1`, copied exactly from Vercel. Do not modify or regenerate it.
-2. New `QUIZ_ENCRYPTION_KEY_V2`: exactly 32 cryptographically random bytes, base64 encoded.
-3. New `QUIZ_KEY_ROTATION_TOKEN`: high-entropy and at least 32 characters.
-4. `QUIZ_KEY_ROTATION_HOSTINGER_BRIDGE=enabled`.
+Read-only audit at the strategy change:
 
-The V2 key and rotation token are Hostinger-only for this migration path. A new Vercel deployment is not required.
+- experiences: 305
+- questionnaire answers: 1,868
+- verified contacts: 7
+- shipping snapshots: 7
+- checkout quotes: 258
+- payment attempts: 6
+- attempts marked `PAID`: 4
+- issues: 4
+- manufacturing jobs/events: 0/0
 
-Do not paste any secret into chat, GitHub, screenshots, or logs.
+The `PAID` markers are part of the owner-confirmed dummy/test state. They must still not be deleted without a separate reset approval.
 
-## 5. Deploy and prove the temporary Hostinger V2 candidate
+## 4. Permanent V2 writer
 
-Only after section 4 is complete:
+`src/server/crypto/privatePayload.ts` now:
 
-1. Point the Hostinger Node app to `release/hostinger-v2-bridge-20260824`.
-2. Set `RELEASE_ID=974506b7aa041c025b609d765f943cbc61bcff4a`.
-3. Keep `APP_ORIGIN=https://lightgray-coyote-141764.hostingersite.com`.
-4. Redeploy.
-5. Require `/api/health/release` HTTP 200 with exact release SHA, `databaseReady=true`, `queueReady=true`, `storageReady=true`.
-6. Run the Tee/Cap/Tote live matrix on the temporary domain.
+- writes new private payloads with `QUIZ_ENCRYPTION_KEY_V2`
+- requires that V2 key to base64-decode to exactly 32 bytes
+- retains V1/V2 read support during transition
 
-Required matrix:
+The shared private-payload writer is used beyond questionnaire answers. New V2 writes can reach:
 
-- Tee → M → Bone → object/size/base HTTP 200 → real OTP request boundary
-- Cap → OS → Bone → object/size/base HTTP 200
-- Tote → OS → Bone → object/size/base HTTP 200
+- `experience_answers`
+- `otp_challenges`
+- `verified_contacts`
+- `shipping_snapshots`
+- `support_requests`
 
-No real payment and no Printful confirmation.
+`0031` already made `experience_answers` V2-compatible. A schema audit found the other four tables still constrained to V1 only, which is why `0032` is required before deploying the V2 writer.
 
-Do not invoke the rotation endpoint yet.
+## 5. `0032_private_payload_key_v2.sql` — staged and temporary-branch verified
 
-## 6. Prove durable jobs on temporary Hostinger
+Implementation branch head verified before this runbook update:
 
-Private artwork root remains:
+`3fa3b82e56d604d2d36e6634c88ac98e48920a92`
+
+Code evidence:
+
+- CI #1368: PASS — unit tests, typecheck, lint, production build
+- Browser QA #1267: PASS
+- TDD RED: CI #1363 passed 536 existing tests and failed only because `0032_private_payload_key_v2.sql` did not yet exist
+- Postgres contact/shipping/support row models now accept V1 or V2 without changing their persistence behavior
+
+Managed Neon temporary proof:
+
+- migration ID `aa0b9492-3f05-4125-bee8-ee8ad3a6d311`
+- temporary branch `mcp-migration-2026-08-24T02-14-01`
+- temporary branch ID `br-hidden-glade-axpch1a3`
+- parent production branch `br-dawn-cloud-axm880q9`
+
+Verified on the temporary branch:
+
+- OTP challenge key-version constraint accepts V1/V2 and is validated
+- verified-contact key-version constraint accepts V1/V2 and is validated
+- shipping-snapshot key-version constraint accepts V1/V2 and is validated
+- support-request key-version constraint accepts V1/V2 and is validated
+- copied rows remained unchanged: OTP V1 254 / V2 0; contacts V1 7 / V2 0; shipping V1 7 / V2 0; support V1 0 / V2 0
+- manufacturing remains 0/0
+- referral schema remains absent
+
+A separate read-only production query proved all four production constraints are still V1-only. Production `0032` has not been applied.
+
+## 6. Current exact owner gate
+
+Production mutation requires explicit approval of only:
+
+`db/migrations/0032_private_payload_key_v2.sql`
+
+Managed migration:
+
+`aa0b9492-3f05-4125-bee8-ee8ad3a6d311`
+
+This approval does not authorize migration 0029, dummy-data deletion, payment, Printful confirmation or domain cutover.
+
+## 7. After production `0032` approval
+
+1. Complete the managed migration against production.
+2. Independently verify all four constraints accept V1/V2 and remain validated.
+3. Confirm manufacturing remains 0/0 and referrals remain absent.
+4. Generate one fresh `QUIZ_ENCRYPTION_KEY_V2`: exactly 32 cryptographically random bytes, base64 encoded.
+5. Add that value to Hostinger without exposing it in chat, GitHub, screenshots or logs.
+6. Vercel V1 transfer is not required because historical V1 records are disposable test data.
+7. Freeze a new Hostinger release candidate from the verified migration branch and set `RELEASE_ID` to the exact candidate SHA.
+8. Redeploy the temporary Hostinger app.
+
+## 8. Temporary Hostinger proof
+
+Require exact `/api/health/release` HTTP 200 with:
+
+- `runtimeProvider=hostinger`
+- exact candidate SHA
+- database ready
+- durable queue ready
+- private storage ready
+
+Then run the live physical matrix without a real payment or Printful confirmation:
+
+- Tee → M → Bone → questionnaire/object/size/base HTTP 200; proceed to real OTP boundary only when explicitly testing contact
+- Cap → OS → Bone → questionnaire/object/size/base HTTP 200
+- Tote → OS → Bone → questionnaire/object/size/base HTTP 200
+
+If the flow reaches contact configuration, required runtime values include `IDENTITY_HMAC_KEY`, `RESEND_API_KEY` and `RESEND_FROM_EMAIL`. Configure owner-controlled secrets one at a time and never paste values into chat.
+
+## 9. Private artwork and durable jobs
+
+Before domain cutover also require:
+
+- `ARTWORK_SIGNING_KEY` configured
+- signed artwork route proof
+- `CRON_SECRET` configured
+- protected `/api/internal/jobs/drain` proof
+- Hostinger cron configured without putting a secret in a public URL query or file
+
+Private artwork remains at:
 
 `/home/u639555688/issued-once-private-artwork`
 
-Require the protected `/api/internal/jobs/drain` endpoint to work with `CRON_SECRET`, then configure Hostinger cron without exposing the secret in a public file or URL query parameter.
+## 10. Production domain cutover
 
-## 7. Cut `issuedonce.shop` to the already-proven Hostinger release
-
-Only after temporary health, Tee/Cap/Tote and durable-job proof pass:
+Only after the temporary Hostinger proof is green:
 
 1. Connect `issuedonce.shop` to the proved Hostinger app.
 2. Set `APP_ORIGIN=https://issuedonce.shop`.
-3. Update cron URL to the final domain.
-4. Redeploy if Hostinger requires it for environment changes.
-5. Require final-domain `/api/health/release` with exact SHA `974506b7aa041c025b609d765f943cbc61bcff4a`.
-6. Repeat Tee/Cap/Tote live proof on `issuedonce.shop`.
-7. Verify Neon read-only: physical selections persist correctly, Tote uses `OS`, manufacturing remains 0/0, referrals remain absent.
+3. Update cron to the final domain.
+4. Redeploy/restart if required.
+5. Repeat exact release health on the final domain.
+6. Repeat Tee/Cap/Tote live proof.
+7. Re-run Neon read-only safety corroboration: newest physical selections persisted correctly, Tote size `OS`, manufacturing 0/0, referrals absent.
 
-At this point Hostinger is the proven production writer and has both V1 and V2 keys, so it can safely read old answers while all new answers are written as V2.
+Only after the second proof may PR #13 become eligible to merge into `feat/mystery-foundation`. PR #3 remains a separate final-release audit gate.
 
-## 8. Rotate V1 → V2 only after final-domain Hostinger proof
+## 11. Optional dummy-data cleanup
 
-Protected route:
+Historical V1/test orders may be removed later only after an explicit owner reset approval. Before deletion:
 
-`POST /api/internal/quiz-encryption/rotate`
+- enumerate all dependent test-state tables
+- prove manufacturing remains empty
+- preserve schema/configuration rows that are not customer test data
+- test the reset on a temporary Neon branch first
+- apply only after separate approval
 
-Run bounded batches, normally 100 and never above 250.
-
-Response fields are limited to:
-
-- `scanned`
-- `migrated`
-- `skipped`
-- `failed`
-- `remaining`
-
-Rules:
-
-- stop immediately if `failed > 0`
-- CAS skips may be retried
-- continue until endpoint says `remaining=0`
-- independently query Neon after the last batch
-
-Required database proof:
-
-- V1 count exactly 0
-- unexpected key-version count 0
-- V2 count equals the full current questionnaire-answer population
-- manufacturing remains 0/0
-- referral migration 0029 remains absent
-
-## 9. Disable the one-time bridge
-
-Immediately after independent V1=0 proof:
-
-- remove/disable `QUIZ_KEY_ROTATION_HOSTINGER_BRIDGE`
-- remove `QUIZ_KEY_ROTATION_TOKEN`
-- redeploy/restart if needed
-- verify the rotation route returns 404 without the bridge flag
-- V1 key may be retired only after a final read-path audit confirms no remaining V1 dependency
-
-## 10. Retire Vercel
-
-Vercel remains untouched as the old rollback path until Hostinger final-domain proof is green. Once V1 rotation begins, do not roll traffic back to the V1-only Vercel release.
-
-After Hostinger final proof + V1=0 + bridge disablement + durable jobs + safety checks, Vercel can be retired from serving `issuedonce.shop`.
-
-## 11. Merge gates
-
-PR #13 stays draft until:
-
-- final-domain Hostinger exact-sha health passes
-- Tee/Cap/Tote final-domain matrix passes
-- durable jobs/cron pass
-- V1 count is exactly 0 after rotation
-- one-time rotation bridge is disabled
-- manufacturing remains unconfirmed/uncharged
-- referral migration/signing remains disabled
-
-Only then may PR #13 become eligible to merge into `feat/mystery-foundation`.
-
-PR #3 remains a separate final-release audit gate and must not be merged merely because the Hostinger migration succeeds.
+Dummy-data cleanup is not required to prove the new Hostinger customer flow.
