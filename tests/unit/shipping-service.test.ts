@@ -9,6 +9,7 @@ import { hashSessionToken } from '@/server/http/sessionToken';
 import type {
   ContactRepository,
   OtpChallengeRecord,
+  OtpRateLimitReservation,
   VerifiedContactRecord,
 } from '@/server/contact/ContactRepository';
 import type { EncryptedPayload } from '@/server/crypto/privatePayload';
@@ -30,6 +31,7 @@ class MemoryExperienceRepository implements ExperienceRepository {
 class MemoryContactRepository implements ContactRepository {
   constructor(public contact: VerifiedContactRecord | null) {}
   async findRecentChallenge(_experienceId: string, _emailHash: string) { return null; }
+  async reserveOtpRateLimit(_input: OtpRateLimitReservation) { return true; }
   async createChallenge(_record: OtpChallengeRecord) {}
   async findChallenge(_challengeId: string) { return null; }
   async recordFailedAttempt(_challengeId: string, _attemptsRemaining: number) {}
