@@ -28,8 +28,8 @@ export type OtpRateLimitReservation = {
   subjectKind: OtpRateLimitSubject;
   subjectHash: string;
   now: Date;
-  shortResetAt: Date;
-  longResetAt: Date;
+  shortWindowCutoff: Date;
+  longWindowCutoff: Date;
   shortLimit: number;
   longLimit: number;
 };
