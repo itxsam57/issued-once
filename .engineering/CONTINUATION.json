@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-25T15:01:00+05:00",
+  "updatedAt": "2026-08-25T14:56:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -15,19 +15,20 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "HOSTINGER_V2_HEALTH_AND_TEE_CAP_TOTE_GREEN_REAL_OTP_ACCEPTED_GMAIL_SPAM_MANUAL_VERIFICATION_REQUIRED",
+    "decision": "TEMPMAIL_ORG_BROWSER_AUTOMATION_BLOCKED_BY_CLOUDFLARE_DATACENTER_POLICY",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "After owner configured RESEND_API_KEY, RESEND_FROM_EMAIL and IDENTITY_HMAC_KEY and redeployed, Hostinger Temporary Release Proof #48 rerun passed exact release health and the complete Tee M Bone, Cap OS Bone and Tote OS Bone physical matrix. The real OTP request returned HTTP 200 and created one V2 OTP challenge in Neon. Connected Gmail independently confirms the OTP email arrived, but Gmail classified it as SPAM. No OTP value was exposed. A user-entered OTP verification on the temporary site is now required before shipping can be proven. Deliverability must also be improved before final production release; Resend documents SPF/DKIM as enforced for verified sending domains, DMARC as recommended, and Deliverability Insights as the place to inspect message-specific issues."
+    "stopReason": "The exact Temp-Mail.org website was integrated into a Playwright Chromium proof harness and attempted twice from GitHub Actions. In both attempts the frozen Hostinger V2 candidate still passed exact release health and Tee/Cap/Tote. The second Temp-Mail attempt captured visual evidence showing Temp-Mail.org Cloudflare blocking the GitHub-hosted datacenter runner before a disposable mailbox is generated. This is an external network-policy blocker, not an ISSUED ONCE, Resend, selector or release regression. No Cloudflare bypass or evasion was attempted. Exact Temp-Mail automation now requires the provider-supported API path or a self-hosted/local browser network path."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V2_TEMP_HEALTH_PHYSICAL_MATRIX_GREEN_OWNER_MANUAL_OTP_AND_DELIVERABILITY_GATE",
+    "internalWorkStatus": "V2_TEMP_CORE_GREEN_TEMPMAIL_EXTERNAL_BROWSER_BLOCK_OWNER_PATH_SELECTION",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, browser, release-health, live-product and database evidence before success claims",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets",
       "Do not regenerate or replace QUIZ_ENCRYPTION_KEY_V2 now that V2 rows exist",
       "Do not rotate IDENTITY_HMAC_KEY after verified-contact continuity is established without an explicit rotation plan",
+      "Do not bypass or evade Temp-Mail.org Cloudflare controls",
       "Do not delete/reset dummy production data without separate explicit approval",
       "Do not apply migration 0029 without separate exact approval",
       "Keep Printful production confirmation disabled",
@@ -43,8 +44,8 @@
     "migration0032Applied": true,
     "migration0032Verified": true,
     "v2EncryptedRows": {
-      "experienceAnswers": 35,
-      "otpChallenges": 1,
+      "experienceAnswers": 119,
+      "otpChallenges": 5,
       "verifiedContacts": 0,
       "shippingSnapshots": 0,
       "supportRequests": 0
@@ -64,30 +65,48 @@
     "totePhysicalGate": "PASS_OS_BONE",
     "contactOtpBoundary": "PASS_HTTP_200_RESEND_ACCEPTED",
     "otpInboxDelivery": "DELIVERED_TO_CONNECTED_GMAIL_SPAM",
-    "manualOtpVerification": "OWNER_REQUIRED",
+    "verifiedContactGate": "NOT_YET_PROVEN",
     "shippingGate": "BLOCKED_UNTIL_VERIFIED_CONTACT",
     "productionDomainCutoverAllowed": false
+  },
+  "tempMailAutomation": {
+    "provider": "temp-mail.org",
+    "harnessPath": "tests/e2e/live-otp-tempmail.mjs",
+    "harnessFirstCommit": "27f816a77a27b2dc6be842bd825d98cd30349145",
+    "workflowIntegrationCommit": "e5c43cdea3b48d460bc1f40839e92986c9f85efe",
+    "clipboardHardeningCommit": "a09c13a099c7f3f02bc22777b52228fc5a4fc4c2",
+    "siteBrowserAttempt1": "FAIL_MAILBOX_NOT_EXPOSED",
+    "siteBrowserAttempt2": "FAIL_CLOUDFLARE_BLOCK_CONFIRMED_VISUALLY",
+    "exactCause": "Temp-Mail.org Cloudflare blocks the GitHub-hosted datacenter runner before mailbox generation",
+    "cloudflareBypassAttempted": false,
+    "officialApiAutomation": "SUPPORTED_BY_PROVIDER_VIA_RAPIDAPI",
+    "nextSupportedPaths": [
+      "OWNER_CONFIGURE_TEMPMAIL_OFFICIAL_API_CREDENTIAL_AS_SECRET",
+      "USE_SELF_HOSTED_OR_LOCAL_BROWSER_NETWORK_PATH",
+      "OWNER_AUTHORIZE_ALTERNATE_DISPOSABLE_MAIL_PROVIDER"
+    ]
   },
   "verification": {
     "candidateCI": 1368,
     "candidateCIResult": "PASS",
     "candidateBrowserQA": 1267,
     "candidateBrowserQAResult": "PASS",
-    "freshCI": 1377,
+    "freshCI": 1381,
     "freshCIResult": "PASS",
-    "freshBrowserQA": 1276,
+    "freshBrowserQA": 1280,
     "freshBrowserQAResult": "PASS",
-    "hostingerProofRun": 48,
-    "hostingerProofRunId": 32771646987,
-    "hostingerProofRerunJobId": 97760704382,
-    "hostingerProofResult": "PASS_HEALTH_TEE_CAP_TOTE_REAL_OTP_REQUEST",
-    "hostingerProofArtifactId": 9558149062,
+    "hostingerProofRun": 52,
+    "hostingerProofRunId": 32839835423,
+    "hostingerProofJobId": 97776667015,
+    "hostingerCoreProofResult": "PASS_HEALTH_TEE_CAP_TOTE_REAL_OTP_REQUEST",
+    "tempMailStepResult": "FAIL_EXTERNAL_CLOUDFLARE_BLOCK",
+    "hostingerProofArtifactId": 9560101376,
     "previewPaymentFixtureRegression": {
       "rootCause": "hard-coded quote expiry 2026-08-24T04:00:00Z became stale",
       "redEvidence": "CI_1372_3_FAILURES_534_PASS",
       "testOnlyFixCommits": ["3428e6c15ba85a2e6ecc448adfabeac7889c776c", "9035d239ef1e05cd13ee926ccb84aebb1b8d7dd2"],
       "productionCodeChanged": false,
-      "freshCI": "PASS_1377"
+      "freshCI": "PASS_1381"
     }
   },
   "emailDeliverability": {
@@ -96,10 +115,10 @@
     "resendApiAcceptance": "PASS",
     "gmailPlacement": "SPAM",
     "requiredBeforeFinalRelease": [
-      "Inspect the successful Resend email Deliverability Insights for any Needs attention findings",
-      "Confirm sending-domain SPF and DKIM remain verified",
+      "Inspect Resend Deliverability Insights for the successful Gmail message",
+      "Confirm SPF and DKIM remain verified",
       "Confirm an appropriate DMARC record exists and is valid",
-      "Repeat real Gmail delivery after remediation and require acceptable inbox placement/reputation evidence"
+      "Repeat real Gmail delivery after remediation and require acceptable placement evidence"
     ]
   },
   "safetyGates": {
@@ -112,12 +131,12 @@
   },
   "nextActions": [
     "OWNER: keep all current Hostinger secrets unchanged, especially QUIZ_ENCRYPTION_KEY_V2 and IDENTITY_HMAC_KEY",
-    "OWNER: on the temporary Hostinger site complete a fresh customer flow through contact verification; request a new OTP and enter it directly on the site without sharing the code in chat",
-    "OWNER: if Gmail places the fresh OTP in Spam, mark that message Not spam for the owner test but do not treat this as the production deliverability fix",
-    "SYSTEM: after owner reports OTP verification complete, corroborate verified_contacts V2 in Neon and continue the shipping persistence gate",
-    "OWNER+SYSTEM: inspect Resend Deliverability Insights and DNS authentication before final domain cutover; Gmail spam placement is an open release issue",
-    "SYSTEM+OWNER: continue artwork signing and protected cron/job-drain gates one at a time after shipping",
+    "OWNER: choose an allowed end-to-end OTP automation path: exact Temp-Mail official API, self-hosted/local browser, or an alternate disposable-mail provider",
+    "SYSTEM: if exact Temp-Mail API is selected, integrate its provider-supported API into the proof harness while keeping generated addresses and OTPs out of logs",
+    "SYSTEM: after automated OTP verification succeeds, corroborate verified_contacts V2 and continue through shipping persistence",
+    "OWNER+SYSTEM: resolve Gmail spam placement before final domain cutover",
+    "SYSTEM+OWNER: continue artwork signing and protected cron/job-drain gates after shipping",
     "SYSTEM+OWNER: only after temporary proof and deliverability are fully green, cut issuedonce.shop to Hostinger and repeat the complete proof"
   ],
-  "nextOwnerAction": "TEMP_SITE_COMPLETE_FRESH_OTP_VERIFICATION_WITHOUT_SHARING_CODE"
+  "nextOwnerAction": "CHOOSE_TEMPMAIL_OFFICIAL_API_OR_ANOTHER_SUPPORTED_AUTOMATION_PATH"
 }
