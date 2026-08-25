@@ -1,38 +1,40 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-25T14:56:00+05:00",
+  "updatedAt": "2026-08-25T16:55:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
+    "currentEngineeringHead": "a888c1ab63fb7f4af4632610243be6d7597ac57b",
     "hostingerV2CandidateBranch": "release/hostinger-v2-candidate-20260824",
     "hostingerV2CandidateHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
     "productionMigrationHead": "0032_private_payload_key_v2.sql",
     "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "decision": "TEMPMAIL_ORG_BROWSER_AUTOMATION_BLOCKED_BY_CLOUDFLARE_DATACENTER_POLICY",
+    "state": "CONTINUE_AUTONOMOUSLY",
+    "decision": "OTP_OWNER_TEST_SEPARATED_CONTINUE_NON_OTP_LIVE_AUDIT",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The exact Temp-Mail.org website was integrated into a Playwright Chromium proof harness and attempted twice from GitHub Actions. In both attempts the frozen Hostinger V2 candidate still passed exact release health and Tee/Cap/Tote. The second Temp-Mail attempt captured visual evidence showing Temp-Mail.org Cloudflare blocking the GitHub-hosted datacenter runner before a disposable mailbox is generated. This is an external network-policy blocker, not an ISSUED ONCE, Resend, selector or release regression. No Cloudflare bypass or evasion was attempted. Exact Temp-Mail automation now requires the provider-supported API path or a self-hosted/local browser network path."
+    "stopReason": null
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V2_TEMP_CORE_GREEN_TEMPMAIL_EXTERNAL_BROWSER_BLOCK_OWNER_PATH_SELECTION",
+    "internalWorkStatus": "CRON_PROXY_FIX_IN_VERIFICATION_NON_OTP_RELEASE_AUDIT_CONTINUES",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, browser, release-health, live-product and database evidence before success claims",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets",
       "Do not regenerate or replace QUIZ_ENCRYPTION_KEY_V2 now that V2 rows exist",
-      "Do not rotate IDENTITY_HMAC_KEY after verified-contact continuity is established without an explicit rotation plan",
-      "Do not bypass or evade Temp-Mail.org Cloudflare controls",
+      "Do not rotate IDENTITY_HMAC_KEY without an explicit rotation plan",
+      "OTP code entry is owner-managed for this audit; do not block unrelated testing on it",
       "Do not delete/reset dummy production data without separate explicit approval",
       "Do not apply migration 0029 without separate exact approval",
       "Keep Printful production confirmation disabled",
-      "Do not create real charges solely for QA"
+      "Do not create real charges solely for QA",
+      "Do not mutate the frozen Hostinger V2 candidate; create a new frozen candidate after verified production-code changes"
     ]
   },
   "productionDatabase": {
@@ -43,83 +45,99 @@
     "migration0031Applied": true,
     "migration0032Applied": true,
     "migration0032Verified": true,
-    "v2EncryptedRows": {
+    "lastKnownV2EncryptedRows": {
       "experienceAnswers": 119,
       "otpChallenges": 5,
       "verifiedContacts": 0,
       "shippingSnapshots": 0,
       "supportRequests": 0
     },
-    "manufacturingJobCount": 0,
-    "manufacturingProviderEventCount": 0,
+    "lastKnownManufacturingJobCount": 0,
+    "lastKnownManufacturingProviderEventCount": 0,
     "referralCreatorsTablePresent": false,
     "referralConversionsTablePresent": false
   },
   "hostingerMigration": {
     "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
-    "candidateBranch": "release/hostinger-v2-candidate-20260824",
-    "candidateHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
+    "deployedCandidateBranch": "release/hostinger-v2-candidate-20260824",
+    "deployedCandidateHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
+    "hostingerProofRun": 54,
+    "hostingerProofRunId": 32843557101,
+    "hostingerProofJobId": 97788133405,
     "releaseHealth": "PASS_HOSTINGER_EXACT_SHA_DATABASE_QUEUE_STORAGE",
     "teePhysicalGate": "PASS_M_BONE",
     "capPhysicalGate": "PASS_OS_BONE",
     "totePhysicalGate": "PASS_OS_BONE",
-    "contactOtpBoundary": "PASS_HTTP_200_RESEND_ACCEPTED",
-    "otpInboxDelivery": "DELIVERED_TO_CONNECTED_GMAIL_SPAM",
-    "verifiedContactGate": "NOT_YET_PROVEN",
-    "shippingGate": "BLOCKED_UNTIL_VERIFIED_CONTACT",
+    "contactOtpBoundary": "PASS_HTTP_200_REAL_RESEND_REQUEST",
+    "verifiedContactGate": "OWNER_MANAGED_NOT_BLOCKING_OTHER_AUDIT",
     "productionDomainCutoverAllowed": false
   },
-  "tempMailAutomation": {
-    "provider": "temp-mail.org",
-    "harnessPath": "tests/e2e/live-otp-tempmail.mjs",
-    "harnessFirstCommit": "27f816a77a27b2dc6be842bd825d98cd30349145",
-    "workflowIntegrationCommit": "e5c43cdea3b48d460bc1f40839e92986c9f85efe",
-    "clipboardHardeningCommit": "a09c13a099c7f3f02bc22777b52228fc5a4fc4c2",
-    "siteBrowserAttempt1": "FAIL_MAILBOX_NOT_EXPOSED",
-    "siteBrowserAttempt2": "FAIL_CLOUDFLARE_BLOCK_CONFIRMED_VISUALLY",
-    "exactCause": "Temp-Mail.org Cloudflare blocks the GitHub-hosted datacenter runner before mailbox generation",
-    "cloudflareBypassAttempted": false,
-    "officialApiAutomation": "SUPPORTED_BY_PROVIDER_VIA_RAPIDAPI",
-    "nextSupportedPaths": [
-      "OWNER_CONFIGURE_TEMPMAIL_OFFICIAL_API_CREDENTIAL_AS_SECRET",
-      "USE_SELF_HOSTED_OR_LOCAL_BROWSER_NETWORK_PATH",
-      "OWNER_AUTHORIZE_ALTERNATE_DISPOSABLE_MAIL_PROVIDER"
-    ]
+  "emailDeliverability": {
+    "mailbox": "connected webrefresh Gmail",
+    "sendingDomain": "otp.issuedonce.shop",
+    "sender": "code@otp.issuedonce.shop",
+    "exactProofMessageTimeUtc": "2026-08-25T11:41:38Z",
+    "exactProofRequestTag": "2B92A2F2",
+    "resendApiAcceptance": "PASS",
+    "gmailReceipt": "PASS",
+    "gmailPlacement": "SPAM",
+    "spf": "PASS",
+    "dkimIssuedOnceDomain": "PASS",
+    "dkimAmazonSes": "PASS",
+    "dmarcInObservedAuthenticationResults": "NOT_PRESENT_IN_GMAIL_HEADER",
+    "note": "Earlier fresh OTP messages reached Inbox; repeated automated near-identical QA traffic later moved to Spam, so transport/authentication is proven but final ordinary-user placement is not yet proven."
+  },
+  "liveBoundaryAudit": {
+    "workflow": "Hostinger Live Boundary Audit",
+    "redRunNumber": 3,
+    "redRunId": 32844511406,
+    "redJobId": 97791095964,
+    "publicPages": "PASS",
+    "releaseHealth": "PASS",
+    "anonymousIssueStatusPrivacy": "PASS",
+    "invalidArtworkToken": "PASS_401",
+    "ownerDashboardAnonymous": "PASS_401",
+    "shippingBeforeVerifiedContact": "PASS_409",
+    "supportInvalidPayload": "PASS_400",
+    "legacyFourthwall": "PASS_410",
+    "referralsDisabled": "PASS_503_EXPECTED_UNAPPROVED_0029",
+    "findings": {
+      "hostingerCronDrain": "FAIL_410_PROXY_SWALLOWED_ACTIVE_ROUTE",
+      "ownerOpsSession": "503_INTERNAL_OPERATIONS_RUNTIME_NOT_CONFIGURED",
+      "safepayWebhook": "503_PAYMENT_RUNTIME_NOT_CONFIGURED",
+      "printfulWebhook": "503_MANUFACTURING_WEBHOOK_RUNTIME_NOT_CONFIGURED",
+      "paymentCreate": "503_PAYMENT_RUNTIME_NOT_CONFIGURED"
+    }
+  },
+  "cronProxyRegression": {
+    "rootCause": "src/proxy.ts decommissioned every /api/internal/* path, including the new active /api/internal/jobs/drain Hostinger cron route",
+    "redCommit": "bbb14c722f99713eceea75049e1fc1980908a674",
+    "redCI": 1388,
+    "redEvidence": "537 tests passed; only proxy-decommission cron reachability test failed with expected 200, received 410",
+    "fixCommit": "a888c1ab63fb7f4af4632610243be6d7597ac57b",
+    "fixScope": "single exact exception for /api/internal/jobs/drain; all legacy internal design/manufacturing surfaces remain 410",
+    "freshVerification": "IN_PROGRESS"
+  },
+  "runtimeConfigurationFindings": {
+    "internalOperationsToken": "MISSING_OR_UNAVAILABLE_ON_HOSTINGER",
+    "safepayRuntime": "MISSING_OR_UNAVAILABLE_ON_HOSTINGER",
+    "printfulWebhookRuntime": "MISSING_OR_UNAVAILABLE_ON_HOSTINGER",
+    "referralRuntime": "INTENTIONALLY_DISABLED",
+    "note": "These are current live configuration blockers after the Hostinger branch/environment reset; no secret values were read or exposed."
   },
   "verification": {
     "candidateCI": 1368,
     "candidateCIResult": "PASS",
     "candidateBrowserQA": 1267,
     "candidateBrowserQAResult": "PASS",
-    "freshCI": 1381,
-    "freshCIResult": "PASS",
-    "freshBrowserQA": 1280,
-    "freshBrowserQAResult": "PASS",
-    "hostingerProofRun": 52,
-    "hostingerProofRunId": 32839835423,
-    "hostingerProofJobId": 97776667015,
-    "hostingerCoreProofResult": "PASS_HEALTH_TEE_CAP_TOTE_REAL_OTP_REQUEST",
-    "tempMailStepResult": "FAIL_EXTERNAL_CLOUDFLARE_BLOCK",
-    "hostingerProofArtifactId": 9560101376,
-    "previewPaymentFixtureRegression": {
-      "rootCause": "hard-coded quote expiry 2026-08-24T04:00:00Z became stale",
-      "redEvidence": "CI_1372_3_FAILURES_534_PASS",
-      "testOnlyFixCommits": ["3428e6c15ba85a2e6ecc448adfabeac7889c776c", "9035d239ef1e05cd13ee926ccb84aebb1b8d7dd2"],
-      "productionCodeChanged": false,
-      "freshCI": "PASS_1381"
-    }
-  },
-  "emailDeliverability": {
-    "sendingDomain": "otp.issuedonce.shop",
-    "sender": "code@otp.issuedonce.shop",
-    "resendApiAcceptance": "PASS",
-    "gmailPlacement": "SPAM",
-    "requiredBeforeFinalRelease": [
-      "Inspect Resend Deliverability Insights for the successful Gmail message",
-      "Confirm SPF and DKIM remain verified",
-      "Confirm an appropriate DMARC record exists and is valid",
-      "Repeat real Gmail delivery after remediation and require acceptable placement evidence"
-    ]
+    "freshPreCronFixCI": 1382,
+    "freshPreCronFixCIResult": "PASS_537_TESTS_TYPECHECK_LINT_BUILD",
+    "freshPreCronFixBrowserQA": 1281,
+    "freshPreCronFixBrowserQAResult": "PASS_38_DESKTOP_MOBILE_E2E",
+    "cronFixCI": 1389,
+    "cronFixCIResult": "IN_PROGRESS",
+    "cronFixBrowserQA": 1288,
+    "cronFixBrowserQAResult": "IN_PROGRESS"
   },
   "safetyGates": {
     "realQaPayment": "NOT_PERFORMED",
@@ -130,13 +148,13 @@
     "productionDomainCutover": "NOT_PERFORMED"
   },
   "nextActions": [
-    "OWNER: keep all current Hostinger secrets unchanged, especially QUIZ_ENCRYPTION_KEY_V2 and IDENTITY_HMAC_KEY",
-    "OWNER: choose an allowed end-to-end OTP automation path: exact Temp-Mail official API, self-hosted/local browser, or an alternate disposable-mail provider",
-    "SYSTEM: if exact Temp-Mail API is selected, integrate its provider-supported API into the proof harness while keeping generated addresses and OTPs out of logs",
-    "SYSTEM: after automated OTP verification succeeds, corroborate verified_contacts V2 and continue through shipping persistence",
-    "OWNER+SYSTEM: resolve Gmail spam placement before final domain cutover",
-    "SYSTEM+OWNER: continue artwork signing and protected cron/job-drain gates after shipping",
-    "SYSTEM+OWNER: only after temporary proof and deliverability are fully green, cut issuedonce.shop to Hostinger and repeat the complete proof"
+    "SYSTEM: require fresh green CI for cron proxy fix",
+    "SYSTEM: after green, freeze a new Hostinger candidate rather than mutating release/hostinger-v2-candidate-20260824",
+    "SYSTEM: continue non-destructive live security/API/UI audit independent of OTP entry",
+    "SYSTEM: inspect current production Neon invariants read-only after live test writes",
+    "OWNER+SYSTEM: restore owner-ops, Safepay and Printful runtime secrets in Hostinger when their live gates are ready; never paste values into chat",
+    "OWNER: handle OTP code-entry test separately as requested",
+    "SYSTEM+OWNER: only after temporary runtime, payment/webhook, durable-job and deliverability gates are green, cut issuedonce.shop to Hostinger and repeat full proof"
   ],
-  "nextOwnerAction": "CHOOSE_TEMPMAIL_OFFICIAL_API_OR_ANOTHER_SUPPORTED_AUTOMATION_PATH"
+  "nextOwnerAction": null
 }
