@@ -38,6 +38,7 @@ type ContactRow = {
 };
 
 type BoolRow = { ok: boolean };
+type CountRow = { deleted_count: number | string };
 
 const date = (value: Date | string) => value instanceof Date ? value : new Date(value);
 
@@ -147,6 +148,28 @@ export class PostgresContactRepository implements ContactRepository {
       ],
     );
     return rows[0]?.ok === true;
+  }
+
+  async pruneOtpRateLimits(input: { olderThan: Date; limit: number }): Promise<number> {
+    const rows = await this.sql.query<CountRow>(
+      `WITH stale AS (
+         SELECT subject_kind, subject_hash
+         FROM otp_rate_limits
+         WHERE updated_at < $1
+         ORDER BY updated_at ASC
+         LIMIT $2
+       ), deleted AS (
+         DELETE FROM otp_rate_limits AS rate
+         USING stale
+         WHERE rate.subject_kind = stale.subject_kind
+           AND rate.subject_hash = stale.subject_hash
+         RETURNING 1
+       )
+       SELECT COUNT(*)::int AS deleted_count
+       FROM deleted`,
+      [input.olderThan, input.limit],
+    );
+    return Number(rows[0]?.deleted_count ?? 0);
   }
 
   async createChallenge(record: OtpChallengeRecord): Promise<void> {
