@@ -18,10 +18,10 @@ jobs:
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
     steps:
-      - name: Checkout frozen Hostinger V2 candidate
+      - name: Checkout frozen Hostinger V3 candidate
         uses: actions/checkout@v4
         with:
-          ref: release/hostinger-v2-candidate-20260824
+          ref: release/hostinger-v3-candidate-20260825
       - uses: pnpm/action-setup@v4
         with:
           version: 11.23.0
