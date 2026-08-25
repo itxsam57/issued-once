@@ -1,39 +1,39 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-25T17:05:00+05:00",
+  "updatedAt": "2026-08-25T19:11:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "engineeringHeadBeforeGovernorUpdate": "a5c3edc848de984102180a40a795b6c82f51a82d",
-    "deployedCandidateBranch": "release/hostinger-v2-candidate-20260824",
-    "deployedCandidateHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
-    "nextFrozenCandidateBranch": "release/hostinger-v3-candidate-20260825",
-    "nextFrozenCandidateHead": "a888c1ab63fb7f4af4632610243be6d7597ac57b",
+    "engineeringHeadBeforeGovernorUpdate": "df13a171919e7223a0d76d9e4633950ccf2adc25",
+    "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
+    "frozenReleaseCandidateBranch": "release/hostinger-v5-candidate-20260825",
+    "frozenReleaseCandidateHead": "df13a171919e7223a0d76d9e4633950ccf2adc25",
     "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "DEPLOY_FROZEN_HOSTINGER_V3_CANDIDATE",
+    "decision": "V5_CORE_GREEN_REMAINING_HOSTINGER_CONFIGURATION_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "All autonomous code, browser, mailbox and read-only database work reachable before deployment is complete. V3 is frozen and verified, and both live workflows are now pinned to V3. Hostinger still serves V2, so exact release proof correctly fails until the owner changes the Hostinger deployment branch and RELEASE_ID."
+    "stopReason": "Exact V5 release health and Tee/Cap/Tote/real-OTP smoke are green. Remaining live red gates trace to missing owner-controlled Hostinger environment configuration and truthful merchant disclosure values; autonomous code/database/browser work continues wherever those values are not required."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V3_FROZEN_VERIFIED_AWAITING_HOSTINGER_REDEPLOY",
+    "internalWorkStatus": "V5_EXACT_RELEASE_GREEN_CONFIGURATION_BOUNDARIES_ISOLATED",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, browser, release-health, live-product and database evidence before success claims",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets",
+      "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan",
       "OTP code entry is owner-managed and does not block unrelated engineering",
-      "Do not mutate frozen V2 or V3 release branches",
+      "Do not mutate frozen release candidate branches",
       "Do not apply migration 0029 or configure referral attribution signing",
       "Keep Printful production confirmation disabled",
       "Do not create real charges solely for QA",
-      "Do not cut issuedonce.shop until all temporary-host gates are green"
+      "Do not cut issuedonce.shop until all temporary-host gates and email deliverability are green"
     ]
   },
   "productionDatabase": {
@@ -44,8 +44,8 @@
     "migration0031Applied": true,
     "migration0032AppliedAndVerified": true,
     "latestReadOnlyProof": {
-      "experienceAnswersV2": 329,
-      "otpChallengesV2": 15,
+      "experienceAnswersV2": 413,
+      "otpChallengesV2": 19,
       "verifiedContactsV2": 0,
       "shippingSnapshotsV2": 0,
       "supportRequestsV2": 0,
@@ -53,66 +53,51 @@
       "manufacturingJobs": 0,
       "manufacturingProviderEvents": 0,
       "paymentAttempts": 6,
-      "newestPaidAttemptAt": "2026-08-23T11:16:18.667Z",
       "referralCreatorsPresent": false,
       "referralConversionsPresent": false
     },
-    "qaSafetyConclusion": "2026-08-25 live QA created encrypted answers and OTP challenges only; it created no payment attempt, verified contact, shipping snapshot, support request, background job, manufacturing job/event or referral table."
+    "qaSafetyConclusion": "Fresh V5 automated live QA created only expected encrypted questionnaire answers and OTP challenges. It created no verified contact, shipping snapshot, support request, background job, payment attempt, manufacturing job/event or referral table."
   },
-  "hostingerCoreProof": {
+  "hostingerV5Proof": {
     "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
-    "lastGreenRunNumber": 54,
-    "lastGreenRunId": 32843557101,
-    "lastGreenJobId": 97788133405,
-    "release": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
-    "result": "PASS_EXACT_RELEASE_DATABASE_QUEUE_STORAGE_TEE_HAT_TOTE_REAL_OTP_REQUEST",
+    "release": "df13a171919e7223a0d76d9e4633950ccf2adc25",
+    "tempProofRunNumber": 75,
+    "tempProofRunId": 32854863228,
+    "tempProofJobId": 97824246027,
+    "artifactId": 9565803339,
+    "artifactSha256": "e2cf859617365eb098fdd8d2aec92b4a3014bcedb8db4c8c33e3e99b5a10e447",
+    "result": "PASS_EXACT_RELEASE_DATABASE_QUEUE_STORAGE_TEE_CAP_TOTE_REAL_OTP_REQUEST",
     "realQaPayment": false
   },
+  "verifiedEngineeringGates": {
+    "ciRunNumber": 1413,
+    "ciRunId": 32854400067,
+    "ciResult": "PASS",
+    "browserQaRunNumber": 1312,
+    "browserQaRunId": 32854400101,
+    "browserQaResult": "PASS",
+    "releaseIdentity": "PASS_ACTUAL_GIT_HEAD_OVERRIDES_STALE_MANUAL_RELEASE_ID",
+    "sameBranchHostingerAutoDeploy": "PASS_ENVIRONMENT_PRESERVED"
+  },
   "emailDeliverability": {
-    "mailbox": "webrefreshlab connected Gmail",
-    "exactLiveRequestTimeUtc": "2026-08-25T11:41:38Z",
     "resendTransport": "PASS",
     "gmailReceipt": "PASS",
-    "gmailPlacement": "SPAM",
+    "gmailPlacement": "SPAM_ON_REPEATED_AUTOMATED_QA",
     "spf": "PASS",
-    "dkimIssuedOnce": "PASS",
-    "dkimAmazonSes": "PASS",
-    "dmarcObservedInGmailAuthResults": false,
-    "note": "Earlier OTP QA reached Inbox; later rapid near-identical automated OTP requests were classified as Spam. Final normal-user Inbox placement remains unproven."
-  },
-  "cronProxyRegression": {
-    "rootCause": "Legacy proxy blocked all /api/internal/* paths including the active Hostinger /api/internal/jobs/drain route",
-    "redCommit": "bbb14c722f99713eceea75049e1fc1980908a674",
-    "redCI": 1388,
-    "redEvidence": "537 tests passed; one cron proxy test failed because expected reachable route received 410",
-    "fixCommit": "a888c1ab63fb7f4af4632610243be6d7597ac57b",
-    "fixScope": "one exact proxy exception for /api/internal/jobs/drain; deprecated internal design/manufacturing/rotation routes remain 410",
-    "greenCI": 1389,
-    "greenBrowserQA": 1288,
-    "verification": "PASS"
-  },
-  "nextFrozenCandidate": {
-    "branch": "release/hostinger-v3-candidate-20260825",
-    "sha": "a888c1ab63fb7f4af4632610243be6d7597ac57b",
-    "branchIdentity": "PASS_IDENTICAL_TO_SHA",
-    "productionDiffFromV2": "ONLY_SRC_PROXY_CRON_EXCEPTION",
-    "postFreezeEngineeringChanges": "TESTS_WORKFLOWS_GOVERNOR_ONLY"
-  },
-  "v3LiveGate": {
-    "tempProofRunNumber": 66,
-    "tempProofRunId": 32845466031,
-    "tempProofJobId": 97794017578,
-    "result": "EXPECTED_FAIL_DEPLOYED_RELEASE_ID_IS_STILL_V2",
-    "expectedReleaseId": "a888c1ab63fb7f4af4632610243be6d7597ac57b",
-    "observedReleaseId": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
-    "boundaryAuditRunNumber": 10,
-    "boundaryAuditRunId": 32845466073,
-    "boundaryAuditJobId": 97794017802
+    "dkim": "PASS",
+    "dmarcFinalProof": false,
+    "releaseQualityStatus": "OPEN"
   },
   "liveBoundaryFindings": {
+    "boundaryAuditRunNumber": 20,
+    "boundaryAuditRunId": 32854863133,
+    "boundaryAuditJobId": 97824245534,
+    "supportProofRunNumber": 8,
+    "supportProofRunId": 32854863125,
+    "supportProofJobId": 97824245946,
     "passes": [
-      "public home/terms/returns/store-info/contact HTTP reachability",
-      "release health endpoint",
+      "home/terms/returns/store-info/contact HTTP reachability",
+      "release health exact V5",
       "anonymous issue-status privacy",
       "invalid artwork token denial",
       "anonymous Owner OS dashboard denial",
@@ -122,22 +107,60 @@
       "shipping locked before verified contact",
       "referrals intentionally unavailable"
     ],
-    "ownerConfigurationGates": [
+    "remainingFailures": [
+      "public merchant disclosure incomplete",
+      "public support address absent",
+      "/api/ops/session returns 503 until INTERNAL_OPERATIONS_TOKEN exists",
+      "/api/internal/jobs/drain returns 503 until CRON_SECRET exists",
+      "/api/webhooks/safepay returns 503 until Safepay runtime credentials exist",
+      "/api/webhooks/printful returns 503 until Printful webhook credentials exist",
+      "/api/payments/create returns 503 until Safepay runtime credentials exist",
+      "support live proof returns 503 until SUPPORT_INBOX_EMAIL exists"
+    ]
+  },
+  "hostingerConfiguration": {
+    "location": "Website Dashboard -> Settings & Redeploy -> Environment variables (or Deployments -> Settings and redeploy)",
+    "ownerGeneratedSecrets": [
+      "INTERNAL_OPERATIONS_TOKEN (minimum 24 characters; use high-entropy random value)",
+      "CRON_SECRET (minimum 24 characters; use high-entropy random value)",
+      "ARTWORK_SIGNING_KEY (minimum 24 characters; use high-entropy random value)"
+    ],
+    "ownerProviderCredentials": [
+      "OPENAI_API_KEY",
+      "SAFEPAY_API_KEY",
+      "SAFEPAY_API_SECRET",
+      "SAFEPAY_WEBHOOK_SECRET",
+      "PRINTFUL_API_TOKEN",
+      "PRINTFUL_WEBHOOK_PUBLIC_KEY",
+      "PRINTFUL_WEBHOOK_SECRET_HEX"
+    ],
+    "ownerConfigurationValues": [
+      "SUPPORT_INBOX_EMAIL",
       "MERCHANT_PUBLIC_NAME",
       "MERCHANT_SUPPORT_EMAIL",
       "MERCHANT_PUBLIC_LOCATION",
-      "INTERNAL_OPERATIONS_TOKEN",
-      "CRON_SECRET",
-      "Safepay runtime/webhook credentials",
-      "Printful webhook/manufacturing credentials"
+      "SAFEPAY_ENVIRONMENT=production at launch",
+      "PRINTFUL_VARIANT_MAP_JSON",
+      "PRINTFUL_STORE_ID optional",
+      "MERCHANT_SUPPORT_PHONE optional",
+      "MERCHANT_LEGAL_ENTITY optional",
+      "SUPPORT_REPLY_TO optional"
     ],
-    "notes": [
-      "Public merchant disclosure page currently renders its not-configured notice",
-      "Public contact page currently renders its no-support-address notice",
-      "Owner ops route returns 503 because its runtime token is unavailable",
-      "Safepay payment/webhook routes return 503 because payment runtime is unavailable",
-      "Printful webhook returns 503 because manufacturing webhook runtime is unavailable",
-      "Current V2 deployment still returns 410 for cron; V3 code fix must be deployed before CRON_SECRET can be tested"
+    "preserveExisting": [
+      "DATABASE_URL",
+      "QUIZ_ENCRYPTION_KEY_V2",
+      "IDENTITY_HMAC_KEY",
+      "RESEND_API_KEY",
+      "RESEND_FROM_EMAIL",
+      "APP_ORIGIN",
+      "ARTWORK_STORAGE_DIR",
+      "NODE_ENV",
+      "RUNTIME_PROVIDER"
+    ],
+    "forbidden": [
+      "REFERRAL_ATTRIBUTION_SIGNING_KEY",
+      "any migration 0029 activation",
+      "Printful production confirmation during QA"
     ]
   },
   "safetyGates": {
@@ -146,16 +169,19 @@
     "migration0029": "NOT_APPLIED",
     "dummyDataReset": "NOT_AUTHORIZED",
     "productionDomainCutover": "NOT_PERFORMED",
-    "pullRequest13": "DRAFT_UNMERGED"
+    "pullRequest13": "DRAFT_UNMERGED",
+    "pullRequest3": "SEPARATE_FINAL_AUDIT_GATE"
   },
   "nextActions": [
-    "OWNER: in Hostinger Settings & Redeploy, preserve/review the existing environment variables before changing source branch",
-    "OWNER: deploy release/hostinger-v3-candidate-20260825 and set RELEASE_ID=a888c1ab63fb7f4af4632610243be6d7597ac57b",
-    "SYSTEM: immediately rerun exact V3 release proof and non-OTP boundary audit after redeploy",
-    "SYSTEM+OWNER: restore only the remaining evidence-required merchant/owner-ops/cron/Safepay/Printful configuration directly in Hostinger, never in chat",
-    "OWNER: handle OTP code entry separately as requested",
-    "SYSTEM: repeat Neon safety proof after all temporary-host gates",
-    "SYSTEM+OWNER: only then authorize issuedonce.shop cutover and repeat complete proof"
+    "SYSTEM: continue non-owner code, browser, UI/UX and database verification",
+    "OWNER: add the required Hostinger environment values directly in hPanel without sharing secret values in chat",
+    "SYSTEM: after each Hostinger redeploy rerun exact V5 release proof, live boundary audit, support proof and Neon safety corroboration",
+    "OWNER+SYSTEM: complete manual OTP verification and shipping persistence proof when convenient, without sharing OTP or address in chat",
+    "SYSTEM: prove design generation/queue/artwork access once OPENAI_API_KEY and ARTWORK_SIGNING_KEY are configured",
+    "SYSTEM: prove Safepay guards without making a real QA charge",
+    "SYSTEM: prove Printful webhook/manufacturing guards while keeping production confirmation disabled",
+    "SYSTEM+OWNER: remediate Gmail Spam placement and prove final deliverability",
+    "SYSTEM+OWNER: only after all temporary-host gates are green request separate issuedonce.shop cutover approval and repeat complete proof"
   ],
-  "nextOwnerAction": "HOSTINGER_DEPLOY_V3_WITH_RELEASE_ID_PRESERVING_EXISTING_ENVIRONMENT"
+  "nextOwnerAction": "HOSTINGER_ADD_REQUIRED_ENVIRONMENT_VALUES_DIRECTLY_WITHOUT_SHARING_SECRETS"
 }
