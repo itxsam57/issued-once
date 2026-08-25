@@ -1,0 +1,57 @@
+name: Live V7 Security Header Audit
+
+on:
+  push:
+    branches:
+      - audit/live-v7-security-headers-20260825
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-live-headers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
+      EXPECTED_RELEASE_ID: cd9cd9909f12e2d6ad864f7a5fcd9144185351ee
+      LIVE_RELEASE_HEALTH_ATTEMPTS: '3'
+      LIVE_RELEASE_HEALTH_DELAY_MS: '1000'
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+      - name: Confirm exact deployed V7 release
+        run: node tests/e2e/live-release-health.mjs
+      - name: Verify security headers on real Hostinger response
+        run: |
+          node <<'NODE'
+          const baseUrl = process.env.LIVE_PRODUCTION_URL.replace(/\/$/, '');
+          const expected = {
+            'strict-transport-security': 'max-age=31536000; includeSubDomains',
+            'x-content-type-options': 'nosniff',
+            'x-frame-options': 'DENY',
+            'referrer-policy': 'strict-origin-when-cross-origin',
+            'permissions-policy': 'camera=(), microphone=(), geolocation=()',
+          };
+
+          const response = await fetch(`${baseUrl}/`, {
+            headers: { accept: 'text/html' },
+            redirect: 'error',
+            signal: AbortSignal.timeout(10_000),
+          });
+          if (!response.ok) throw new Error(`home returned HTTP ${response.status}`);
+
+          for (const [name, value] of Object.entries(expected)) {
+            const actual = response.headers.get(name);
+            if (actual !== value) {
+              throw new Error(`${name} mismatch`);
+            }
+          }
+
+          if (response.headers.has('x-powered-by')) {
+            throw new Error('x-powered-by must remain disabled');
+          }
+
+          console.log(`LIVE_SECURITY_HEADERS_PASS release=${process.env.EXPECTED_RELEASE_ID} verified=${Object.keys(expected).length} poweredBy=absent`);
+          NODE
