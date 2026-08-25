@@ -1,11 +1,10 @@
 name: Hostinger Temporary Release Proof
 
 on:
-  pull_request:
+  workflow_dispatch:
+  push:
     branches:
-      - feat/mystery-foundation
-    paths:
-      - '.github/workflows/hostinger-temp-proof.yml'
+      - release/hostinger-v2-candidate-20260824
 
 permissions:
   contents: read
