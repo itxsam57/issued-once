@@ -3,16 +3,27 @@ import { expect, test } from 'vitest';
 import { resolveBuildReleaseId } from '@/server/runtime/releaseInfo';
 
 const sha = '8a58a0e30fd7c9cc231b4335ebb25261bdd318c0';
+const staleSha = '1111111111111111111111111111111111111111';
 
-test('release identity prefers an explicit frozen release id', () => {
+test('release identity prefers the checked-out git commit over a stale configured release id', () => {
   expect(resolveBuildReleaseId(
-    { RELEASE_ID: `  ${sha}  ` },
-    () => 'should-not-run',
+    { RELEASE_ID: staleSha },
+    () => `${sha}\n`,
   )).toBe(sha);
 });
 
-test('release identity falls back to the checked-out git commit', () => {
-  expect(resolveBuildReleaseId({}, () => `${sha}\n`)).toBe(sha);
+test('release identity falls back to GitHub SHA when git metadata is unavailable', () => {
+  expect(resolveBuildReleaseId(
+    { GITHUB_SHA: `  ${sha}  ` },
+    () => { throw new Error('git unavailable'); },
+  )).toBe(sha);
+});
+
+test('release identity falls back to configured release id when git and GitHub SHA are unavailable', () => {
+  expect(resolveBuildReleaseId(
+    { RELEASE_ID: `  ${sha}  ` },
+    () => { throw new Error('git unavailable'); },
+  )).toBe(sha);
 });
 
 test('release identity fails the build closed when neither configured nor discoverable', () => {
