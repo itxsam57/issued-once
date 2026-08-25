@@ -16,7 +16,7 @@ jobs:
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
       EXPECTED_RELEASE_ID: f818c1b5574289b2bc635305dfa1bd9a431529fc
-      LIVE_RELEASE_HEALTH_ATTEMPTS: '3'
+      LIVE_RELEASE_HEALTH_ATTEMPTS: '10'
       LIVE_RELEASE_HEALTH_DELAY_MS: '1000'
     steps:
       - name: Checkout audit branch
