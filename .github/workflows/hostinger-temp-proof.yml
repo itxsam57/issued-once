@@ -15,12 +15,12 @@ jobs:
     timeout-minutes: 20
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
-      EXPECTED_RELEASE_ID: a888c1ab63fb7f4af4632610243be6d7597ac57b
+      EXPECTED_RELEASE_ID: ${{ github.sha }}
     steps:
-      - name: Checkout frozen Hostinger V3 candidate
+      - name: Checkout pushed Hostinger candidate
         uses: actions/checkout@v4
         with:
-          ref: release/hostinger-v3-candidate-20260825
+          ref: ${{ github.sha }}
       - uses: pnpm/action-setup@v4
         with:
           version: 11.23.0
@@ -32,7 +32,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Chromium
         run: pnpm exec playwright install chromium
-      - name: Prove release identity and runtime boundaries
+      - name: Wait for exact release identity and runtime readiness
         run: node tests/e2e/live-release-health.mjs
       - name: Prove Tee Cap Tote physical gates and real mailbox request
         run: node tests/e2e/live-production-smoke.mjs
