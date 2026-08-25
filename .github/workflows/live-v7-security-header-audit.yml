@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Confirm exact deployed V7 release
         run: node tests/e2e/live-release-health.mjs
-      - name: Verify security headers on real Hostinger response
+      - name: Inspect and verify security headers on real Hostinger response
         run: |
           node <<'NODE'
           const baseUrl = process.env.LIVE_PRODUCTION_URL.replace(/\/$/, '');
@@ -42,16 +42,17 @@ jobs:
           });
           if (!response.ok) throw new Error(`home returned HTTP ${response.status}`);
 
-          for (const [name, value] of Object.entries(expected)) {
-            const actual = response.headers.get(name);
-            if (actual !== value) {
-              throw new Error(`${name} mismatch`);
-            }
+          const observed = {};
+          for (const name of Object.keys(expected)) {
+            observed[name] = response.headers.get(name);
+            console.log(`LIVE_HEADER ${name}=${observed[name] ?? 'missing'}`);
           }
+          console.log(`LIVE_HEADER x-powered-by=${response.headers.has('x-powered-by') ? 'present' : 'absent'}`);
 
-          if (response.headers.has('x-powered-by')) {
-            throw new Error('x-powered-by must remain disabled');
+          for (const [name, value] of Object.entries(expected)) {
+            if (observed[name] !== value) throw new Error(`${name} mismatch`);
           }
+          if (response.headers.has('x-powered-by')) throw new Error('x-powered-by must remain disabled');
 
           console.log(`LIVE_SECURITY_HEADERS_PASS release=${process.env.EXPECTED_RELEASE_ID} verified=${Object.keys(expected).length} poweredBy=absent`);
           NODE
