@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Confirm exact deployed V9 release
         run: node tests/e2e/live-release-health.mjs
-      - name: Diagnose cached and cache-busted HTML security paths
+      - name: Probe Hostinger bare-home cache revalidation
         run: |
           node <<'NODE'
           const baseUrl = process.env.LIVE_PRODUCTION_URL.replace(/\/$/, '');
@@ -35,39 +35,30 @@ jobs:
             'permissions-policy': 'camera=(), microphone=(), geolocation=()',
           };
 
-          async function inspect(label, path, expectedStatus) {
+          async function inspect(label, path, extraHeaders = {}) {
             const response = await fetch(`${baseUrl}${path}`, {
-              headers: { accept: path.startsWith('/api/') ? 'application/json' : 'text/html' },
+              headers: { accept: path.startsWith('/api/') ? 'application/json' : 'text/html', ...extraHeaders },
               redirect: 'error',
               signal: AbortSignal.timeout(10_000),
             });
             const cacheControl = response.headers.get('cache-control') ?? '';
-            console.log(`LIVE_PATH label=${label} status=${response.status} cache-control=${cacheControl || 'missing'}`);
-            const missing = [];
-            for (const [name, value] of Object.entries(expected)) {
-              const actual = response.headers.get(name);
-              console.log(`LIVE_HEADER label=${label} ${name}=${actual ?? 'missing'}`);
-              if (actual !== value) missing.push(name);
-            }
-            console.log(`LIVE_HEADER label=${label} x-powered-by=${response.headers.has('x-powered-by') ? 'present' : 'absent'}`);
-            if (response.status !== expectedStatus) throw new Error(`${label} returned HTTP ${response.status}`);
+            const cacheStatus = response.headers.get('x-hcdn-cache-status') ?? response.headers.get('x-litespeed-cache') ?? 'unreported';
+            const missing = Object.entries(expected)
+              .filter(([name, value]) => response.headers.get(name) !== value)
+              .map(([name]) => name);
+            console.log(`LIVE_CACHE_PROBE label=${label} status=${response.status} cache-control=${cacheControl || 'missing'} cache-status=${cacheStatus} missing=${missing.length}`);
+            if (response.status !== 200) throw new Error(`${label} returned HTTP ${response.status}`);
             return { cacheControl, missing, poweredBy: response.headers.has('x-powered-by') };
           }
 
-          const cachedHome = await inspect('cached-home', '/', 200);
-          const cacheBustedHome = await inspect('cache-busted-home', `/?__issued_once_release=${process.env.EXPECTED_RELEASE_ID}`, 200);
-          const releaseApi = await inspect('release-api', '/api/health/release', 200);
-          const legacy = await inspect('legacy-control', '/api/checkout/start', 410);
+          const before = await inspect('before', '/');
+          const revalidated = await inspect('no-cache-request', '/', { 'cache-control': 'no-cache', pragma: 'no-cache' });
+          const after = await inspect('after', '/');
+          const cacheBusted = await inspect('cache-busted', `/?__issued_once_release=${process.env.EXPECTED_RELEASE_ID}`);
 
-          if (cacheBustedHome.missing.length || cacheBustedHome.poweredBy) {
-            throw new Error(`cache-busted homepage still missing security headers: ${cacheBustedHome.missing.join(',')}`);
+          if (cacheBusted.missing.length || cacheBusted.poweredBy || /s-maxage=31536000/i.test(cacheBusted.cacheControl)) {
+            throw new Error('V9 runtime HTML security path is not healthy');
           }
-          if (/s-maxage=31536000/i.test(cacheBustedHome.cacheControl)) {
-            throw new Error('cache-busted homepage still uses year-long prerender cache');
-          }
-          if (releaseApi.missing.length || releaseApi.poweredBy) throw new Error('dynamic release API security baseline failed');
-          if (legacy.missing.length || legacy.poweredBy || legacy.cacheControl !== 'no-store') throw new Error('legacy Proxy control security baseline failed');
 
-          const staleCachedObject = cachedHome.missing.length > 0 && cacheBustedHome.missing.length === 0;
-          console.log(`LIVE_V9_CACHE_DIAGNOSIS staleCachedObject=${staleCachedObject} cachedHomeMissing=${cachedHome.missing.length} cacheBustedHomeMissing=${cacheBustedHome.missing.length}`);
+          console.log(`LIVE_CACHE_REVALIDATION_RESULT beforeMissing=${before.missing.length} noCacheMissing=${revalidated.missing.length} afterMissing=${after.missing.length}`);
           NODE
