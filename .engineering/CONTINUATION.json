@@ -1,36 +1,38 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-25T21:30:00+05:00",
+  "updatedAt": "2026-08-25T22:55:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "engineeringHeadBeforeGovernorUpdate": "153f77cff43c4fddd4f114b3f88b7d61ee98455f",
+    "engineeringHeadBeforeGovernorUpdate": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-    "liveFrozenReleaseCandidateBranch": "release/hostinger-v7-candidate-20260825",
-    "liveFrozenReleaseCandidateHead": "cd9cd9909f12e2d6ad864f7a5fcd9144185351ee",
-    "headerFixBranch": "fix/hostinger-security-headers-v8-20260825",
+    "liveHeaderCandidateBranch": "release/hostinger-v9-candidate-20260825",
+    "liveHeaderCandidateHead": "f818c1b5574289b2bc635305dfa1bd9a431529fc",
+    "liveCombinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
+    "liveCombinedCandidateHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
+    "headerAuditBranch": "audit/live-v7-security-headers-20260825",
     "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
-    "state": "IN_PROGRESS",
-    "decision": "V7_LIVE_GREEN_OTP_0033_TECHNICALLY_GREEN_HOSTINGER_HEADER_FIX_IN_PROGRESS",
+    "state": "OWNER_REQUIRED",
+    "decision": "V10_LIMITER_MIGRATION_LIVE_GREEN_HOSTINGER_BARE_HOME_STALE_CACHE_PURGE_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": null
+    "stopReason": "Migration 0033 and exact V10 runtime are live and verified. The corrected HTML runtime emits all required security headers, but Hostinger still serves a pre-fix cached bare-home object as x-hcdn-cache-status=HIT with s-maxage=31536000. Standard no-cache revalidation is ignored. Hostinger Cache Manager/CDN purge is the remaining owner-controlled boundary for bare /."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V7_LIVE_BASELINE_PRESERVED_0033_READY_FOR_OWNER_APPROVAL_V8_HEADER_TDD_ACTIVE",
+    "internalWorkStatus": "V10_EXACT_RELEASE_GREEN_DB_LIMITER_LIVE_RUNTIME_HEADERS_GREEN_STALE_HOSTINGER_CACHE_OWNER_BOUNDARY",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, Browser QA, exact release health, live-product and database evidence before success claims",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets",
       "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan",
       "Do not mutate frozen release candidate branches",
-      "Do not deploy migration-0033-dependent code until migration 0033 is explicitly approved and applied",
+      "Migration 0033 is approved, applied and live; preserve its schema and hashed-only privacy contract",
       "Do not apply migration 0029 or configure referral attribution signing",
       "Keep Printful production confirmation disabled",
       "Do not create real charges solely for QA",
@@ -44,11 +46,11 @@
     "migration0030Applied": true,
     "migration0031Applied": true,
     "migration0032AppliedAndVerified": true,
-    "migration0033Applied": false,
+    "migration0033AppliedAndVerified": true,
     "migration0029Applied": false,
-    "latestKnownReadOnlyProof": {
-      "experienceAnswersV2": 434,
-      "otpChallengesV2": 20,
+    "latestReadOnlyProof": {
+      "experienceAnswersV2": 518,
+      "otpChallengesV2": 24,
       "verifiedContactsV2": 0,
       "shippingSnapshotsV2": 0,
       "supportRequestsV2": 0,
@@ -56,54 +58,63 @@
       "manufacturingJobs": 0,
       "manufacturingProviderEvents": 0,
       "paymentAttempts": 6,
+      "otpRateLimitsTotal": 3,
+      "otpRateLimitKinds": {
+        "email": 1,
+        "experience": 1,
+        "ip": 1
+      },
       "referralCreatorsPresent": false,
-      "referralConversionsPresent": false,
-      "otpRateLimitsTablePresent": false
+      "referralConversionsPresent": false
     },
-    "qaSafetyConclusion": "Live QA has created only expected encrypted questionnaire answers and OTP challenges. No verified contact, shipping, support, background job, manufacturing job/event or referral rollout has been created. Production does not yet contain migration 0033."
+    "qaSafetyConclusion": "Exact V10 live QA created expected encrypted questionnaire/OTP evidence and exactly one hashed limiter row for each email, experience and IP subject. It created no V2 verified contact, shipping snapshot, support request, background job, manufacturing job/event, new payment attempt or referral rollout."
   },
   "migration0033": {
     "file": "db/migrations/0033_otp_rate_limits.sql",
     "purpose": "Atomic cross-experience OTP abuse control by HMAC email, experience and identifiable IP subjects",
-    "productionStatus": "NOT_APPLIED_OWNER_APPROVAL_REQUIRED",
-    "temporaryBranchId": "br-spring-art-axivp6k1",
-    "atomicReservationProof": "PASS_FIRST_THREE_RESERVED_FOURTH_REFUSED_AT_LIMIT_STORED_COUNT_REMAINS_THREE_WINDOW_ROLLOVER_PASS",
+    "productionStatus": "APPLIED_VERIFIED_AND_USED_BY_LIVE_V10",
+    "schemaProof": "PASS_TABLE_PRIMARY_KEY_AND_UPDATED_AT_INDEX_PRESENT_INITIAL_ROW_COUNT_ZERO",
+    "privacy": "HMAC hashes only; no plaintext email or IP stored in limiter table",
+    "liveRuntimeProof": "PASS_V10_REAL_OTP_REQUEST_CREATED_THREE_ROWS_EMAIL_EXPERIENCE_IP_ALL_SHORT_COUNT_1_LONG_COUNT_1",
     "retention": {
       "retentionHours": 48,
       "cleanupBatchLimit": 5000,
       "trigger": "authorized internal job drain after normal bounded job processing",
-      "privacy": "HMAC hashes only; no plaintext email or IP",
       "isolatedPostgresProof": "PASS_TWO_OLDEST_STALE_ROWS_DELETED_WITH_LIMIT_TWO_NEWER_STALE_AND_CURRENT_ROWS_PRESERVED_SYNTHETIC_ROWS_REMOVED_AFTER_PROOF"
     },
-    "verifiedEngineeringHead": "153f77cff43c4fddd4f114b3f88b7d61ee98455f",
-    "ciRunId": 32871636188,
+    "combinedEngineeringHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
+    "ciRunId": 32879540422,
     "ciResult": "PASS_UNIT_TYPECHECK_LINT_BUILD",
-    "browserQaRunId": 32871636256,
+    "browserQaRunId": 32879540360,
     "browserQaResult": "PASS"
   },
-  "hostingerV7Proof": {
+  "hostingerV10Proof": {
     "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
-    "release": "cd9cd9909f12e2d6ad864f7a5fcd9144185351ee",
-    "tempProofRunId": 32869402819,
-    "result": "PASS_EXACT_RELEASE_DATABASE_QUEUE_STORAGE_TEE_CAP_TOTE_REAL_OTP_REQUEST",
-    "sameBranchAutoDeploy": "PASS_ENVIRONMENT_PRESERVED",
+    "release": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
+    "frozenCandidateBranch": "release/hostinger-v10-candidate-20260825",
+    "tempProofRunNumber": 80,
+    "tempProofRunId": 32880597994,
+    "result": "PASS_EXACT_RELEASE_TEE_CAP_TOTE_REAL_OTP_REQUEST_ARTIFACT_UPLOAD",
+    "databaseLimiterProof": "PASS_THREE_HASHED_SUBJECT_ROWS_AFTER_REAL_OTP_SMOKE",
     "realQaPayment": false
   },
   "securityHeaders": {
-    "nextConfigBaseline": [
+    "required": [
       "Strict-Transport-Security: max-age=31536000; includeSubDomains",
       "X-Content-Type-Options: nosniff",
       "X-Frame-Options: DENY",
       "Referrer-Policy: strict-origin-when-cross-origin",
       "Permissions-Policy: camera=(), microphone=(), geolocation=()"
     ],
-    "configUnitTest": "PASS",
-    "liveAuditBranch": "audit/live-v7-security-headers-20260825",
-    "liveAuditFinding": "FAIL_NEXT_CONFIG_HEADERS_ALL_MISSING_ON_PUBLIC_HOSTINGER_HOME",
-    "liveReleaseIdentityDuringAudit": "PASS_EXACT_V7",
-    "liveProxyControl": "PASS_EXISTING_DECOMMISSIONED_410_RETAINS_CACHE_CONTROL_NO_STORE",
-    "rootCauseDirection": "Hostinger managed path preserves Proxy-set response headers but does not expose the next.config custom-header baseline on the public response",
-    "nextFix": "TDD header-only V8 using the existing Next.js Proxy for response security headers; keep migration-0033 code out of this release"
+    "runtimeImplementation": "Next.js Proxy applies baseline to normal/API/legacy responses; root layout is force-dynamic so fresh HTML traverses the secure runtime path; immutable Next assets remain outside Proxy matcher",
+    "engineeringProof": "PASS_UNIT_TYPECHECK_LINT_BUILD_BROWSER",
+    "liveDynamicApi": "PASS_ALL_FIVE_HEADERS_X_POWERED_BY_ABSENT",
+    "liveLegacy410": "PASS_ALL_FIVE_HEADERS_CACHE_CONTROL_NO_STORE_X_POWERED_BY_ABSENT",
+    "liveCacheBustedHome": "PASS_ALL_FIVE_HEADERS_PRIVATE_NO_CACHE_NO_STORE_X_POWERED_BY_ABSENT",
+    "bareHomeCurrent": "STALE_HOSTINGER_HCDN_CACHE_HIT_S_MAXAGE_31536000_MISSING_FIVE_HEADERS",
+    "cacheDiagnosis": "PASS_STALE_CACHED_OBJECT_CONFIRMED: cache-busted V9 HTML is DYNAMIC and correct while bare / remains HIT from pre-fix object",
+    "httpRevalidationAttempt": "NO_EFFECT: Cache-Control no-cache and Pragma no-cache still returned HIT with five headers missing",
+    "ownerBoundary": "HOSTINGER_CLEAR_CACHE_AND_IF_CDN_ENABLED_FLUSH_CDN_CACHE_THEN_RERUN_STRICT_BARE_HOME_AUDIT"
   },
   "emailDeliverability": {
     "resendTransport": "PASS",
@@ -115,14 +126,12 @@
     "releaseQualityStatus": "OPEN"
   },
   "hostingerConfiguration": {
-    "location": "Website Dashboard -> Settings & Redeploy -> Environment variables (or Deployments -> Settings and redeploy)",
-    "batch1Pending": [
-      "SUPPORT_INBOX_EMAIL",
-      "INTERNAL_OPERATIONS_TOKEN (minimum 24 characters; high entropy)",
-      "CRON_SECRET (different, minimum 24 characters; high entropy)",
-      "ARTWORK_SIGNING_KEY (different, minimum 24 characters; high entropy)"
+    "ownerGeneratedSecretsPending": [
+      "INTERNAL_OPERATIONS_TOKEN",
+      "CRON_SECRET",
+      "ARTWORK_SIGNING_KEY"
     ],
-    "laterProviderCredentials": [
+    "ownerProviderCredentialsPending": [
       "OPENAI_API_KEY",
       "SAFEPAY_API_KEY",
       "SAFEPAY_API_SECRET",
@@ -131,7 +140,8 @@
       "PRINTFUL_WEBHOOK_PUBLIC_KEY",
       "PRINTFUL_WEBHOOK_SECRET_HEX"
     ],
-    "laterMerchantValues": [
+    "ownerConfigurationValuesPending": [
+      "SUPPORT_INBOX_EMAIL",
       "MERCHANT_PUBLIC_NAME",
       "MERCHANT_SUPPORT_EMAIL",
       "MERCHANT_PUBLIC_LOCATION",
@@ -163,24 +173,23 @@
     "realQaPayment": "NOT_PERFORMED",
     "printfulProductionConfirmation": "DISABLED",
     "migration0029": "NOT_APPLIED",
-    "migration0033": "NOT_APPLIED_PENDING_EXPLICIT_OWNER_APPROVAL",
+    "migration0033": "APPLIED_AND_LIVE",
     "dummyDataReset": "NOT_AUTHORIZED",
     "productionDomainCutover": "NOT_PERFORMED",
     "pullRequest13": "DRAFT_UNMERGED",
     "pullRequest3": "SEPARATE_FINAL_AUDIT_GATE"
   },
   "nextActions": [
-    "SYSTEM: complete TDD and external Hostinger proof for header-only V8 without including migration-0033-dependent code",
-    "SYSTEM: preserve live V7 until V8 is independently green and exact live proof passes",
-    "OWNER: when requested, explicitly approve production migration 0033 before any limiter-dependent release is deployed",
-    "OWNER: add Batch 1 Hostinger environment values directly in hPanel without sharing secret values in chat",
-    "SYSTEM: after each Hostinger redeploy rerun exact release proof, live boundary audit and Neon safety corroboration",
-    "OWNER+SYSTEM: complete manual OTP verification and shipping persistence proof when convenient without sharing OTP or address",
+    "OWNER: clear Hostinger website/server cache for the temporary Node app; if Hostinger CDN is enabled also flush CDN cache",
+    "SYSTEM: immediately rerun strict bare-home security-header audit after cache purge and require x-hcdn-cache-status not to serve the pre-fix object",
+    "SYSTEM: rerun exact V10 release proof and Neon safety corroboration after cache purge",
+    "OWNER: add remaining Hostinger environment/configuration values directly in hPanel without sharing secrets in chat",
+    "OWNER+SYSTEM: complete verified-contact and shipping persistence proof without sharing OTP or address in chat",
     "SYSTEM: prove design generation/queue/artwork access once OPENAI_API_KEY and ARTWORK_SIGNING_KEY are configured",
     "SYSTEM: prove Safepay guards without making a real QA charge",
     "SYSTEM: prove Printful webhook/manufacturing guards while keeping production confirmation disabled",
     "SYSTEM+OWNER: remediate Gmail Spam placement and prove final deliverability",
     "SYSTEM+OWNER: only after all temporary-host gates are green request separate issuedonce.shop cutover approval and repeat complete proof"
   ],
-  "nextOwnerAction": "PENDING: HOSTINGER_BATCH_1_AND_SEPARATE_APPROVAL_FOR_PRODUCTION_MIGRATION_0033_WHEN_REQUESTED"
+  "nextOwnerAction": "HOSTINGER_CLEAR_SITE_CACHE_AND_FLUSH_CDN_CACHE_IF_ENABLED"
 }
