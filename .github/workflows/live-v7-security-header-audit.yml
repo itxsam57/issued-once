@@ -1,4 +1,4 @@
-name: Live V7 Security Header Audit
+name: Live V8 Security Header Audit
 
 on:
   push:
@@ -15,15 +15,15 @@ jobs:
     timeout-minutes: 5
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
-      EXPECTED_RELEASE_ID: cd9cd9909f12e2d6ad864f7a5fcd9144185351ee
+      EXPECTED_RELEASE_ID: 08e991b585b41dc126f9ff3d7ff79ef1daf1580d
       LIVE_RELEASE_HEALTH_ATTEMPTS: '3'
       LIVE_RELEASE_HEALTH_DELAY_MS: '1000'
     steps:
       - name: Checkout audit branch
         uses: actions/checkout@v4
-      - name: Confirm exact deployed V7 release
+      - name: Confirm exact deployed V8 release
         run: node tests/e2e/live-release-health.mjs
-      - name: Inspect Hostinger response-header behavior
+      - name: Verify Hostinger security headers
         run: |
           node <<'NODE'
           const baseUrl = process.env.LIVE_PRODUCTION_URL.replace(/\/$/, '');
@@ -41,28 +41,26 @@ jobs:
           });
           console.log(`LIVE_PROXY_CONTROL status=${legacy.status} cache-control=${legacy.headers.get('cache-control') ?? 'missing'}`);
           if (legacy.status !== 410) throw new Error(`legacy control returned HTTP ${legacy.status}`);
+          if (legacy.headers.get('cache-control') !== 'no-store') throw new Error('legacy no-store header missing');
 
-          const response = await fetch(`${baseUrl}/`, {
-            headers: { accept: 'text/html' },
-            redirect: 'error',
-            signal: AbortSignal.timeout(10_000),
-          });
-          if (!response.ok) throw new Error(`home returned HTTP ${response.status}`);
-
-          const observed = {};
-          for (const name of Object.keys(expected)) {
-            observed[name] = response.headers.get(name);
-            console.log(`LIVE_HEADER ${name}=${observed[name] ?? 'missing'}`);
+          for (const path of ['/', '/api/health/release']) {
+            const response = await fetch(`${baseUrl}${path === '/' ? '/' : path}`, {
+              headers: { accept: path === '/' ? 'text/html' : 'application/json' },
+              redirect: 'error',
+              signal: AbortSignal.timeout(10_000),
+            });
+            if (!response.ok) throw new Error(`${path} returned HTTP ${response.status}`);
+            for (const [name, value] of Object.entries(expected)) {
+              const actual = response.headers.get(name);
+              console.log(`LIVE_HEADER path=${path} ${name}=${actual ?? 'missing'}`);
+              if (actual !== value) throw new Error(`${name} mismatch on ${path}`);
+            }
+            if (response.headers.has('x-powered-by')) throw new Error(`x-powered-by present on ${path}`);
           }
-          console.log(`LIVE_HEADER x-powered-by=${response.headers.has('x-powered-by') ? 'present' : 'absent'}`);
 
-          if (legacy.headers.get('cache-control') !== 'no-store') {
-            throw new Error('proxy-set cache-control did not survive Hostinger');
-          }
           for (const [name, value] of Object.entries(expected)) {
-            if (observed[name] !== value) throw new Error(`${name} mismatch`);
+            if (legacy.headers.get(name) !== value) throw new Error(`${name} mismatch on legacy response`);
           }
-          if (response.headers.has('x-powered-by')) throw new Error('x-powered-by must remain disabled');
 
-          console.log(`LIVE_SECURITY_HEADERS_PASS release=${process.env.EXPECTED_RELEASE_ID} verified=${Object.keys(expected).length} poweredBy=absent`);
+          console.log(`LIVE_SECURITY_HEADERS_PASS release=${process.env.EXPECTED_RELEASE_ID} normalPaths=2 legacyControl=pass poweredBy=absent`);
           NODE
