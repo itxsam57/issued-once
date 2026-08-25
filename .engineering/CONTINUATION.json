@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-25T01:00:00+05:00",
+  "updatedAt": "2026-08-25T15:01:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -15,18 +15,19 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "HOSTINGER_V2_HEALTH_GREEN_TEE_GREEN_CONTACT_OTP_RUNTIME_REQUIRED",
+    "decision": "HOSTINGER_V2_HEALTH_AND_TEE_CAP_TOTE_GREEN_REAL_OTP_ACCEPTED_GMAIL_SPAM_MANUAL_VERIFICATION_REQUIRED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Owner restored the minimum Hostinger environment set and redeployed. Hostinger Temporary Release Proof #43 rerun now passes exact release health for runtimeProvider=hostinger, release 3fa3b82e56d604d2d36e6634c88ac98e48920a92, database, durable queue and private storage. The live customer flow persisted all seven questionnaire answers with HTTP 200 and passed Tee M Bone object/size/base. The next request, /api/contact/request-otp, returned HTTP 503 because contact verification is not configured. Code inspection proves the contact runtime requires RESEND_API_KEY, RESEND_FROM_EMAIL and a valid 32-byte base64 IDENTITY_HMAC_KEY. Neon corroboration after the Tee proof shows seven V2 experience-answer rows now exist, so the current QUIZ_ENCRYPTION_KEY_V2 must not be regenerated or replaced."
+    "stopReason": "After owner configured RESEND_API_KEY, RESEND_FROM_EMAIL and IDENTITY_HMAC_KEY and redeployed, Hostinger Temporary Release Proof #48 rerun passed exact release health and the complete Tee M Bone, Cap OS Bone and Tote OS Bone physical matrix. The real OTP request returned HTTP 200 and created one V2 OTP challenge in Neon. Connected Gmail independently confirms the OTP email arrived, but Gmail classified it as SPAM. No OTP value was exposed. A user-entered OTP verification on the temporary site is now required before shipping can be proven. Deliverability must also be improved before final production release; Resend documents SPF/DKIM as enforced for verified sending domains, DMARC as recommended, and Deliverability Insights as the place to inspect message-specific issues."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V2_HEALTH_GREEN_TEE_GREEN_OWNER_CONTACT_RUNTIME_GATE",
+    "internalWorkStatus": "V2_TEMP_HEALTH_PHYSICAL_MATRIX_GREEN_OWNER_MANUAL_OTP_AND_DELIVERABILITY_GATE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, browser, release-health, live-product and database evidence before success claims",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets",
       "Do not regenerate or replace QUIZ_ENCRYPTION_KEY_V2 now that V2 rows exist",
+      "Do not rotate IDENTITY_HMAC_KEY after verified-contact continuity is established without an explicit rotation plan",
       "Do not delete/reset dummy production data without separate explicit approval",
       "Do not apply migration 0029 without separate exact approval",
       "Keep Printful production confirmation disabled",
@@ -42,8 +43,8 @@
     "migration0032Applied": true,
     "migration0032Verified": true,
     "v2EncryptedRows": {
-      "experienceAnswers": 7,
-      "otpChallenges": 0,
+      "experienceAnswers": 35,
+      "otpChallenges": 1,
       "verifiedContacts": 0,
       "shippingSnapshots": 0,
       "supportRequests": 0
@@ -58,16 +59,13 @@
     "candidateBranch": "release/hostinger-v2-candidate-20260824",
     "candidateHead": "3fa3b82e56d604d2d36e6634c88ac98e48920a92",
     "releaseHealth": "PASS_HOSTINGER_EXACT_SHA_DATABASE_QUEUE_STORAGE",
-    "questionnairePersistence": "PASS_7_OF_7_HTTP_200_V2",
     "teePhysicalGate": "PASS_M_BONE",
-    "capPhysicalGate": "NOT_REACHED_BECAUSE_OTP_BOUNDARY_RUNS_AFTER_TEE",
-    "totePhysicalGate": "NOT_REACHED_BECAUSE_OTP_BOUNDARY_RUNS_AFTER_TEE",
-    "contactOtpBoundary": "FAIL_HTTP_503_CONTACT_RUNTIME_UNAVAILABLE",
-    "contactRuntimeRequiredEnvironment": [
-      "RESEND_API_KEY=<owner-controlled sending key>",
-      "RESEND_FROM_EMAIL=<verified Resend sender>",
-      "IDENTITY_HMAC_KEY=<exactly-32-byte random value encoded as base64>"
-    ],
+    "capPhysicalGate": "PASS_OS_BONE",
+    "totePhysicalGate": "PASS_OS_BONE",
+    "contactOtpBoundary": "PASS_HTTP_200_RESEND_ACCEPTED",
+    "otpInboxDelivery": "DELIVERED_TO_CONNECTED_GMAIL_SPAM",
+    "manualOtpVerification": "OWNER_REQUIRED",
+    "shippingGate": "BLOCKED_UNTIL_VERIFIED_CONTACT",
     "productionDomainCutoverAllowed": false
   },
   "verification": {
@@ -75,18 +73,34 @@
     "candidateCIResult": "PASS",
     "candidateBrowserQA": 1267,
     "candidateBrowserQAResult": "PASS",
-    "freshBrowserQA": 1271,
+    "freshCI": 1377,
+    "freshCIResult": "PASS",
+    "freshBrowserQA": 1276,
     "freshBrowserQAResult": "PASS",
-    "freshHostingerProof": 43,
-    "freshHostingerProofResult": "HEALTH_PASS_TEE_PASS_OTP_503",
-    "freshHostingerProofArtifactId": 9536293323,
+    "hostingerProofRun": 48,
+    "hostingerProofRunId": 32771646987,
+    "hostingerProofRerunJobId": 97760704382,
+    "hostingerProofResult": "PASS_HEALTH_TEE_CAP_TOTE_REAL_OTP_REQUEST",
+    "hostingerProofArtifactId": 9558149062,
     "previewPaymentFixtureRegression": {
       "rootCause": "hard-coded quote expiry 2026-08-24T04:00:00Z became stale",
       "redEvidence": "CI_1372_3_FAILURES_534_PASS",
       "testOnlyFixCommits": ["3428e6c15ba85a2e6ecc448adfabeac7889c776c", "9035d239ef1e05cd13ee926ccb84aebb1b8d7dd2"],
       "productionCodeChanged": false,
-      "freshCI": "PENDING"
+      "freshCI": "PASS_1377"
     }
+  },
+  "emailDeliverability": {
+    "sendingDomain": "otp.issuedonce.shop",
+    "sender": "code@otp.issuedonce.shop",
+    "resendApiAcceptance": "PASS",
+    "gmailPlacement": "SPAM",
+    "requiredBeforeFinalRelease": [
+      "Inspect the successful Resend email Deliverability Insights for any Needs attention findings",
+      "Confirm sending-domain SPF and DKIM remain verified",
+      "Confirm an appropriate DMARC record exists and is valid",
+      "Repeat real Gmail delivery after remediation and require acceptable inbox placement/reputation evidence"
+    ]
   },
   "safetyGates": {
     "realQaPayment": "NOT_PERFORMED",
@@ -97,15 +111,13 @@
     "productionDomainCutover": "NOT_PERFORMED"
   },
   "nextActions": [
-    "OWNER: preserve the current QUIZ_ENCRYPTION_KEY_V2 exactly; seven V2 answer rows now depend on it",
-    "OWNER: configure RESEND_API_KEY and RESEND_FROM_EMAIL in Hostinger; prefer a sending-only Resend API key and a verified issuedonce.shop sender",
-    "OWNER: configure a fresh exactly-32-byte base64 IDENTITY_HMAC_KEY in Hostinger; historical contact hashes are owner-confirmed dummy data and do not require continuity",
-    "OWNER: save and redeploy without changing the Hostinger branch",
-    "SYSTEM: rerun Hostinger live proof; require health green, OTP request success, then complete Cap OS Bone and Tote OS Bone physical gates",
-    "SYSTEM: independently corroborate V2 OTP/contact/shipping rows plus manufacturing/referral safety after live proof",
-    "SYSTEM: verify fresh CI after stale preview-payment test-fixture correction",
-    "SYSTEM+OWNER: continue artwork signing and durable cron/job-drain gates one at a time",
-    "SYSTEM+OWNER: only after temporary proof is fully green, cut issuedonce.shop to Hostinger and repeat the complete proof"
+    "OWNER: keep all current Hostinger secrets unchanged, especially QUIZ_ENCRYPTION_KEY_V2 and IDENTITY_HMAC_KEY",
+    "OWNER: on the temporary Hostinger site complete a fresh customer flow through contact verification; request a new OTP and enter it directly on the site without sharing the code in chat",
+    "OWNER: if Gmail places the fresh OTP in Spam, mark that message Not spam for the owner test but do not treat this as the production deliverability fix",
+    "SYSTEM: after owner reports OTP verification complete, corroborate verified_contacts V2 in Neon and continue the shipping persistence gate",
+    "OWNER+SYSTEM: inspect Resend Deliverability Insights and DNS authentication before final domain cutover; Gmail spam placement is an open release issue",
+    "SYSTEM+OWNER: continue artwork signing and protected cron/job-drain gates one at a time after shipping",
+    "SYSTEM+OWNER: only after temporary proof and deliverability are fully green, cut issuedonce.shop to Hostinger and repeat the complete proof"
   ],
-  "nextOwnerAction": "HOSTINGER_CONFIGURE_RESEND_AND_IDENTITY_HMAC_AND_REDEPLOY"
+  "nextOwnerAction": "TEMP_SITE_COMPLETE_FRESH_OTP_VERIFICATION_WITHOUT_SHARING_CODE"
 }
