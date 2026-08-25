@@ -18,6 +18,10 @@ import type { OtpDeliveryGateway } from './OtpDeliveryGateway';
 const OTP_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_ATTEMPTS = 5;
+const OTP_IP_SHORT_WINDOW_MS = 10 * 60 * 1000;
+const OTP_IP_LONG_WINDOW_MS = 60 * 60 * 1000;
+const OTP_IP_SHORT_LIMIT = 10;
+const OTP_IP_LONG_LIMIT = 30;
 
 export type OtpVerificationErrorCode =
   | 'WRONG_CODE'
@@ -28,7 +32,7 @@ export type OtpVerificationErrorCode =
 
 export class OtpVerificationError extends Error {
   constructor(
-    message: string,
+    message = 'OTP verification failed',
     readonly code: OtpVerificationErrorCode,
     readonly attemptsRemaining?: number,
   ) {
@@ -172,6 +176,20 @@ export class ContactService {
       throw new Error(`Wait ${seconds} seconds before requesting another code`);
     }
 
+    const ipHash = privacyLookupHash('ip', input.ipKey || 'unknown');
+    const ipSlotReserved = await this.contacts.reserveOtpRateLimit({
+      subjectKind: 'ip',
+      subjectHash: ipHash,
+      now,
+      shortWindowCutoff: new Date(now.getTime() - OTP_IP_SHORT_WINDOW_MS),
+      longWindowCutoff: new Date(now.getTime() - OTP_IP_LONG_WINDOW_MS),
+      shortLimit: OTP_IP_SHORT_LIMIT,
+      longLimit: OTP_IP_LONG_LIMIT,
+    });
+    if (!ipSlotReserved) {
+      throw new Error('Wait before requesting another code because the request rate is too high');
+    }
+
     const challengeId = randomUUID();
     const code = this.generateCode();
     if (!/^\d{6}$/.test(code)) throw new Error('OTP generator returned an invalid code');
@@ -181,7 +199,7 @@ export class ContactService {
       experienceId: experience.id,
       emailHash,
       encryptedEmail: await encryptPrivatePayload({ email }),
-      ipHash: privacyLookupHash('ip', input.ipKey || 'unknown'),
+      ipHash,
       codeHash: keyedDigest(`otp:${challengeId}:${emailHash}:${code}`),
       expiresAt: new Date(now.getTime() + OTP_TTL_MS),
       resendAvailableAt: new Date(now.getTime() + RESEND_COOLDOWN_MS),
