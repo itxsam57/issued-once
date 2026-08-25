@@ -6,6 +6,7 @@ on:
       - feat/mystery-foundation
     paths:
       - '.github/workflows/hostinger-temp-proof.yml'
+      - 'tests/e2e/live-otp-tempmail.mjs'
 
 permissions:
   contents: read
@@ -13,7 +14,7 @@ permissions:
 jobs:
   prove-hostinger-temp:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
       EXPECTED_RELEASE_ID: 3fa3b82e56d604d2d36e6634c88ac98e48920a92
@@ -37,6 +38,13 @@ jobs:
         run: node tests/e2e/live-release-health.mjs
       - name: Prove Tee Cap Tote physical gates
         run: node tests/e2e/live-production-smoke.mjs
+      - name: Checkout engineering proof harness
+        uses: actions/checkout@v4
+        with:
+          ref: infra/hostinger-migration-20260823
+          path: engineering-harness
+      - name: Prove OTP end to end with Temp-Mail.org
+        run: node engineering-harness/tests/e2e/live-otp-tempmail.mjs
       - name: Upload live proof evidence
         if: always()
         uses: actions/upload-artifact@v4
