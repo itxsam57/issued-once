@@ -26,6 +26,7 @@ class MemoryExperienceRepository implements ExperienceRepository {
 class MemoryContactRepository implements ContactRepository {
   challenge: OtpChallengeRecord | null = null;
   contact: VerifiedContactRecord | null = null;
+  ipChallengeCounts = { shortWindow: 0, longWindow: 0 };
 
   async findRecentChallenge(experienceId: string, emailHash: string) {
     if (
@@ -34,6 +35,10 @@ class MemoryContactRepository implements ContactRepository {
       !this.challenge.consumedAt
     ) return this.challenge;
     return null;
+  }
+
+  async getRecentIpChallengeCounts() {
+    return this.ipChallengeCounts;
   }
 
   async createChallenge(record: OtpChallengeRecord) {
@@ -174,4 +179,18 @@ test('enforces resend cooldown, expiry, and a bounded wrong-code attempt budget'
     challengeId: expiring.challengeId,
     code: '123456',
   })).rejects.toThrow(/expired/i);
+});
+
+test('blocks cross-experience OTP mail bursts by hashed IP before creating or sending another challenge', async () => {
+  const { service, contacts, delivery } = createService();
+  contacts.ipChallengeCounts = { shortWindow: 20, longWindow: 20 };
+
+  await expect(service.requestOtp({
+    experienceToken: token,
+    email: 'fresh@example.com',
+    ipKey: 'shared-source-a',
+  })).rejects.toThrow(/wait|resend|rate/i);
+
+  expect(contacts.challenge).toBeNull();
+  expect(delivery.sent).toHaveLength(0);
 });
