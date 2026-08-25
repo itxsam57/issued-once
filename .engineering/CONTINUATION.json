@@ -1,35 +1,36 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-25T19:11:00+05:00",
+  "updatedAt": "2026-08-25T21:30:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "engineeringHeadBeforeGovernorUpdate": "df13a171919e7223a0d76d9e4633950ccf2adc25",
+    "engineeringHeadBeforeGovernorUpdate": "153f77cff43c4fddd4f114b3f88b7d61ee98455f",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-    "frozenReleaseCandidateBranch": "release/hostinger-v5-candidate-20260825",
-    "frozenReleaseCandidateHead": "df13a171919e7223a0d76d9e4633950ccf2adc25",
+    "liveFrozenReleaseCandidateBranch": "release/hostinger-v7-candidate-20260825",
+    "liveFrozenReleaseCandidateHead": "cd9cd9909f12e2d6ad864f7a5fcd9144185351ee",
+    "headerFixBranch": "fix/hostinger-security-headers-v8-20260825",
     "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "decision": "V5_CORE_GREEN_REMAINING_HOSTINGER_CONFIGURATION_REQUIRED",
+    "state": "IN_PROGRESS",
+    "decision": "V7_LIVE_GREEN_OTP_0033_TECHNICALLY_GREEN_HOSTINGER_HEADER_FIX_IN_PROGRESS",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Exact V5 release health and Tee/Cap/Tote/real-OTP smoke are green. Remaining live red gates trace to missing owner-controlled Hostinger environment configuration and truthful merchant disclosure values; autonomous code/database/browser work continues wherever those values are not required."
+    "stopReason": null
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V5_EXACT_RELEASE_GREEN_CONFIGURATION_BOUNDARIES_ISOLATED",
+    "internalWorkStatus": "V7_LIVE_BASELINE_PRESERVED_0033_READY_FOR_OWNER_APPROVAL_V8_HEADER_TDD_ACTIVE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
-      "Require fresh CI, browser, release-health, live-product and database evidence before success claims",
+      "Require fresh CI, Browser QA, exact release health, live-product and database evidence before success claims",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets",
       "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan",
-      "OTP code entry is owner-managed and does not block unrelated engineering",
       "Do not mutate frozen release candidate branches",
+      "Do not deploy migration-0033-dependent code until migration 0033 is explicitly approved and applied",
       "Do not apply migration 0029 or configure referral attribution signing",
       "Keep Printful production confirmation disabled",
       "Do not create real charges solely for QA",
@@ -43,9 +44,11 @@
     "migration0030Applied": true,
     "migration0031Applied": true,
     "migration0032AppliedAndVerified": true,
-    "latestReadOnlyProof": {
-      "experienceAnswersV2": 413,
-      "otpChallengesV2": 19,
+    "migration0033Applied": false,
+    "migration0029Applied": false,
+    "latestKnownReadOnlyProof": {
+      "experienceAnswersV2": 434,
+      "otpChallengesV2": 20,
       "verifiedContactsV2": 0,
       "shippingSnapshotsV2": 0,
       "supportRequestsV2": 0,
@@ -54,30 +57,53 @@
       "manufacturingProviderEvents": 0,
       "paymentAttempts": 6,
       "referralCreatorsPresent": false,
-      "referralConversionsPresent": false
+      "referralConversionsPresent": false,
+      "otpRateLimitsTablePresent": false
     },
-    "qaSafetyConclusion": "Fresh V5 automated live QA created only expected encrypted questionnaire answers and OTP challenges. It created no verified contact, shipping snapshot, support request, background job, payment attempt, manufacturing job/event or referral table."
+    "qaSafetyConclusion": "Live QA has created only expected encrypted questionnaire answers and OTP challenges. No verified contact, shipping, support, background job, manufacturing job/event or referral rollout has been created. Production does not yet contain migration 0033."
   },
-  "hostingerV5Proof": {
+  "migration0033": {
+    "file": "db/migrations/0033_otp_rate_limits.sql",
+    "purpose": "Atomic cross-experience OTP abuse control by HMAC email, experience and identifiable IP subjects",
+    "productionStatus": "NOT_APPLIED_OWNER_APPROVAL_REQUIRED",
+    "temporaryBranchId": "br-spring-art-axivp6k1",
+    "atomicReservationProof": "PASS_FIRST_THREE_RESERVED_FOURTH_REFUSED_AT_LIMIT_STORED_COUNT_REMAINS_THREE_WINDOW_ROLLOVER_PASS",
+    "retention": {
+      "retentionHours": 48,
+      "cleanupBatchLimit": 5000,
+      "trigger": "authorized internal job drain after normal bounded job processing",
+      "privacy": "HMAC hashes only; no plaintext email or IP",
+      "isolatedPostgresProof": "PASS_TWO_OLDEST_STALE_ROWS_DELETED_WITH_LIMIT_TWO_NEWER_STALE_AND_CURRENT_ROWS_PRESERVED_SYNTHETIC_ROWS_REMOVED_AFTER_PROOF"
+    },
+    "verifiedEngineeringHead": "153f77cff43c4fddd4f114b3f88b7d61ee98455f",
+    "ciRunId": 32871636188,
+    "ciResult": "PASS_UNIT_TYPECHECK_LINT_BUILD",
+    "browserQaRunId": 32871636256,
+    "browserQaResult": "PASS"
+  },
+  "hostingerV7Proof": {
     "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
-    "release": "df13a171919e7223a0d76d9e4633950ccf2adc25",
-    "tempProofRunNumber": 75,
-    "tempProofRunId": 32854863228,
-    "tempProofJobId": 97824246027,
-    "artifactId": 9565803339,
-    "artifactSha256": "e2cf859617365eb098fdd8d2aec92b4a3014bcedb8db4c8c33e3e99b5a10e447",
+    "release": "cd9cd9909f12e2d6ad864f7a5fcd9144185351ee",
+    "tempProofRunId": 32869402819,
     "result": "PASS_EXACT_RELEASE_DATABASE_QUEUE_STORAGE_TEE_CAP_TOTE_REAL_OTP_REQUEST",
+    "sameBranchAutoDeploy": "PASS_ENVIRONMENT_PRESERVED",
     "realQaPayment": false
   },
-  "verifiedEngineeringGates": {
-    "ciRunNumber": 1413,
-    "ciRunId": 32854400067,
-    "ciResult": "PASS",
-    "browserQaRunNumber": 1312,
-    "browserQaRunId": 32854400101,
-    "browserQaResult": "PASS",
-    "releaseIdentity": "PASS_ACTUAL_GIT_HEAD_OVERRIDES_STALE_MANUAL_RELEASE_ID",
-    "sameBranchHostingerAutoDeploy": "PASS_ENVIRONMENT_PRESERVED"
+  "securityHeaders": {
+    "nextConfigBaseline": [
+      "Strict-Transport-Security: max-age=31536000; includeSubDomains",
+      "X-Content-Type-Options: nosniff",
+      "X-Frame-Options: DENY",
+      "Referrer-Policy: strict-origin-when-cross-origin",
+      "Permissions-Policy: camera=(), microphone=(), geolocation=()"
+    ],
+    "configUnitTest": "PASS",
+    "liveAuditBranch": "audit/live-v7-security-headers-20260825",
+    "liveAuditFinding": "FAIL_NEXT_CONFIG_HEADERS_ALL_MISSING_ON_PUBLIC_HOSTINGER_HOME",
+    "liveReleaseIdentityDuringAudit": "PASS_EXACT_V7",
+    "liveProxyControl": "PASS_EXISTING_DECOMMISSIONED_410_RETAINS_CACHE_CONTROL_NO_STORE",
+    "rootCauseDirection": "Hostinger managed path preserves Proxy-set response headers but does not expose the next.config custom-header baseline on the public response",
+    "nextFix": "TDD header-only V8 using the existing Next.js Proxy for response security headers; keep migration-0033 code out of this release"
   },
   "emailDeliverability": {
     "resendTransport": "PASS",
@@ -88,44 +114,15 @@
     "dmarcFinalProof": false,
     "releaseQualityStatus": "OPEN"
   },
-  "liveBoundaryFindings": {
-    "boundaryAuditRunNumber": 20,
-    "boundaryAuditRunId": 32854863133,
-    "boundaryAuditJobId": 97824245534,
-    "supportProofRunNumber": 8,
-    "supportProofRunId": 32854863125,
-    "supportProofJobId": 97824245946,
-    "passes": [
-      "home/terms/returns/store-info/contact HTTP reachability",
-      "release health exact V5",
-      "anonymous issue-status privacy",
-      "invalid artwork token denial",
-      "anonymous Owner OS dashboard denial",
-      "legacy internal design/manufacturing/rotation 410",
-      "legacy Fourthwall 410",
-      "invalid support payload rejection",
-      "shipping locked before verified contact",
-      "referrals intentionally unavailable"
-    ],
-    "remainingFailures": [
-      "public merchant disclosure incomplete",
-      "public support address absent",
-      "/api/ops/session returns 503 until INTERNAL_OPERATIONS_TOKEN exists",
-      "/api/internal/jobs/drain returns 503 until CRON_SECRET exists",
-      "/api/webhooks/safepay returns 503 until Safepay runtime credentials exist",
-      "/api/webhooks/printful returns 503 until Printful webhook credentials exist",
-      "/api/payments/create returns 503 until Safepay runtime credentials exist",
-      "support live proof returns 503 until SUPPORT_INBOX_EMAIL exists"
-    ]
-  },
   "hostingerConfiguration": {
     "location": "Website Dashboard -> Settings & Redeploy -> Environment variables (or Deployments -> Settings and redeploy)",
-    "ownerGeneratedSecrets": [
-      "INTERNAL_OPERATIONS_TOKEN (minimum 24 characters; use high-entropy random value)",
-      "CRON_SECRET (minimum 24 characters; use high-entropy random value)",
-      "ARTWORK_SIGNING_KEY (minimum 24 characters; use high-entropy random value)"
+    "batch1Pending": [
+      "SUPPORT_INBOX_EMAIL",
+      "INTERNAL_OPERATIONS_TOKEN (minimum 24 characters; high entropy)",
+      "CRON_SECRET (different, minimum 24 characters; high entropy)",
+      "ARTWORK_SIGNING_KEY (different, minimum 24 characters; high entropy)"
     ],
-    "ownerProviderCredentials": [
+    "laterProviderCredentials": [
       "OPENAI_API_KEY",
       "SAFEPAY_API_KEY",
       "SAFEPAY_API_SECRET",
@@ -134,8 +131,7 @@
       "PRINTFUL_WEBHOOK_PUBLIC_KEY",
       "PRINTFUL_WEBHOOK_SECRET_HEX"
     ],
-    "ownerConfigurationValues": [
-      "SUPPORT_INBOX_EMAIL",
+    "laterMerchantValues": [
       "MERCHANT_PUBLIC_NAME",
       "MERCHANT_SUPPORT_EMAIL",
       "MERCHANT_PUBLIC_LOCATION",
@@ -167,21 +163,24 @@
     "realQaPayment": "NOT_PERFORMED",
     "printfulProductionConfirmation": "DISABLED",
     "migration0029": "NOT_APPLIED",
+    "migration0033": "NOT_APPLIED_PENDING_EXPLICIT_OWNER_APPROVAL",
     "dummyDataReset": "NOT_AUTHORIZED",
     "productionDomainCutover": "NOT_PERFORMED",
     "pullRequest13": "DRAFT_UNMERGED",
     "pullRequest3": "SEPARATE_FINAL_AUDIT_GATE"
   },
   "nextActions": [
-    "SYSTEM: continue non-owner code, browser, UI/UX and database verification",
-    "OWNER: add the required Hostinger environment values directly in hPanel without sharing secret values in chat",
-    "SYSTEM: after each Hostinger redeploy rerun exact V5 release proof, live boundary audit, support proof and Neon safety corroboration",
-    "OWNER+SYSTEM: complete manual OTP verification and shipping persistence proof when convenient, without sharing OTP or address in chat",
+    "SYSTEM: complete TDD and external Hostinger proof for header-only V8 without including migration-0033-dependent code",
+    "SYSTEM: preserve live V7 until V8 is independently green and exact live proof passes",
+    "OWNER: when requested, explicitly approve production migration 0033 before any limiter-dependent release is deployed",
+    "OWNER: add Batch 1 Hostinger environment values directly in hPanel without sharing secret values in chat",
+    "SYSTEM: after each Hostinger redeploy rerun exact release proof, live boundary audit and Neon safety corroboration",
+    "OWNER+SYSTEM: complete manual OTP verification and shipping persistence proof when convenient without sharing OTP or address",
     "SYSTEM: prove design generation/queue/artwork access once OPENAI_API_KEY and ARTWORK_SIGNING_KEY are configured",
     "SYSTEM: prove Safepay guards without making a real QA charge",
     "SYSTEM: prove Printful webhook/manufacturing guards while keeping production confirmation disabled",
     "SYSTEM+OWNER: remediate Gmail Spam placement and prove final deliverability",
     "SYSTEM+OWNER: only after all temporary-host gates are green request separate issuedonce.shop cutover approval and repeat complete proof"
   ],
-  "nextOwnerAction": "HOSTINGER_ADD_REQUIRED_ENVIRONMENT_VALUES_DIRECTLY_WITHOUT_SHARING_SECRETS"
+  "nextOwnerAction": "PENDING: HOSTINGER_BATCH_1_AND_SEPARATE_APPROVAL_FOR_PRODUCTION_MIGRATION_0033_WHEN_REQUESTED"
 }
