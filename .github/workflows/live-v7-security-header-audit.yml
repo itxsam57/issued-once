@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Confirm exact deployed V7 release
         run: node tests/e2e/live-release-health.mjs
-      - name: Inspect and verify security headers on real Hostinger response
+      - name: Inspect Hostinger response-header behavior
         run: |
           node <<'NODE'
           const baseUrl = process.env.LIVE_PRODUCTION_URL.replace(/\/$/, '');
@@ -34,6 +34,13 @@ jobs:
             'referrer-policy': 'strict-origin-when-cross-origin',
             'permissions-policy': 'camera=(), microphone=(), geolocation=()',
           };
+
+          const legacy = await fetch(`${baseUrl}/api/checkout/start`, {
+            redirect: 'error',
+            signal: AbortSignal.timeout(10_000),
+          });
+          console.log(`LIVE_PROXY_CONTROL status=${legacy.status} cache-control=${legacy.headers.get('cache-control') ?? 'missing'}`);
+          if (legacy.status !== 410) throw new Error(`legacy control returned HTTP ${legacy.status}`);
 
           const response = await fetch(`${baseUrl}/`, {
             headers: { accept: 'text/html' },
@@ -49,6 +56,9 @@ jobs:
           }
           console.log(`LIVE_HEADER x-powered-by=${response.headers.has('x-powered-by') ? 'present' : 'absent'}`);
 
+          if (legacy.headers.get('cache-control') !== 'no-store') {
+            throw new Error('proxy-set cache-control did not survive Hostinger');
+          }
           for (const [name, value] of Object.entries(expected)) {
             if (observed[name] !== value) throw new Error(`${name} mismatch`);
           }
