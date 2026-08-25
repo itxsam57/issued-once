@@ -1,4 +1,5 @@
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
+import { cleanupOtpRateLimits } from '@/server/contact/runtimeContact';
 import { createIssuedOnceJobProcessor } from '@/server/jobs/runtimeJobs';
 
 const JOB_TOPICS = ['issued-once-design', 'issued-once-notifications'] as const;
@@ -33,7 +34,8 @@ export async function POST(request: Request) {
       workerId: `hostinger-cron-${process.pid}-${randomUUID()}`,
       limit: JOB_BATCH_LIMIT,
     });
-    return Response.json(result);
+    const otpRateLimitsPruned = await cleanupOtpRateLimits();
+    return Response.json({ ...result, otpRateLimitsPruned });
   } catch (error) {
     console.error('Background job drain failed', error);
     return Response.json({ error: 'Background job drain failed' }, { status: 500 });
