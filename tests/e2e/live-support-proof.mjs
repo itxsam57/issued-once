@@ -20,25 +20,21 @@ try {
       throw new Error(`/api/issue/status returned ${statusResponse.status()}`);
     }
     const statusPayload = await statusResponse.json();
-    if (statusPayload?.found !== true || typeof statusPayload?.issueCode !== 'string') {
-      throw new Error('live Issue session was not established');
+    if (statusPayload?.found !== false) {
+      throw new Error('pre-order experience unexpectedly exposed a paid Issue');
     }
 
     const supportResponse = await context.request.post(`${baseUrl}/api/support`, {
       headers: { 'content-type': 'application/json' },
       data: {
-        message: 'Automated Hostinger live support verification. No customer data.',
+        message: 'Automated Hostinger pre-order support boundary verification. No customer data.',
       },
     });
-    if (supportResponse.status() !== 200) {
-      throw new Error(`/api/support returned ${supportResponse.status()}`);
-    }
-    const supportPayload = await supportResponse.json();
-    if (supportPayload?.received !== true || supportPayload?.issueCode !== statusPayload.issueCode) {
-      throw new Error('support response was not attached to the current Issue');
+    if (supportResponse.status() !== 409) {
+      throw new Error(`/api/support returned ${supportResponse.status()}; expected 409 before a paid Issue exists`);
     }
 
-    console.log('LIVE_SUPPORT_SESSION_AND_PERSISTENCE_REQUEST_PASS');
+    console.log('LIVE_PREORDER_SUPPORT_FAIL_CLOSED_PASS');
   } finally {
     await context.close();
   }
