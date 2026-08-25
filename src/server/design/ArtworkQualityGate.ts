@@ -17,20 +17,31 @@ const MIN_DIMENSIONS: Record<string, { width: number; height: number }> = {
   hat: { width: 1024, height: 1024 },
 };
 
+function validatePrivateArtworkLocator(candidate: ArtworkReviewCandidate): string {
+  const value = candidate.artworkUrl;
+  if (!value) throw new Error('Artwork URL is missing');
+
+  const url = new URL(value);
+  if (url.protocol === 'fs:') {
+    const expected = `fs://issues/${candidate.issueId}/design/${candidate.designJobId}.png`;
+    if (value !== expected) throw new Error('Production artwork must use the canonical private filesystem locator');
+    return 'storage:private-filesystem';
+  }
+
+  if (url.protocol !== 'https:') throw new Error('Artwork URL must use HTTPS or the private filesystem locator');
+  if (!url.hostname.endsWith('.private.blob.vercel-storage.com')) {
+    throw new Error('Production artwork must use private storage');
+  }
+  return 'storage:private-blob';
+}
+
 export class ArtworkQualityGate {
   validate(candidate: ArtworkReviewCandidate): { ok: true; checks: readonly string[] } {
     const checks: string[] = [];
     if (candidate.state !== 'REVIEW') throw new Error('Artwork must be in review before approval');
     checks.push('state:review');
 
-    if (!candidate.artworkUrl) throw new Error('Artwork URL is missing');
-    const url = new URL(candidate.artworkUrl);
-    if (url.protocol !== 'https:') throw new Error('Artwork URL must use HTTPS');
-    checks.push('url:https');
-    if (!url.hostname.endsWith('.private.blob.vercel-storage.com')) {
-      throw new Error('Production artwork must use private Blob storage');
-    }
-    checks.push('storage:private');
+    checks.push(validatePrivateArtworkLocator(candidate));
 
     if (candidate.artworkMimeType !== 'image/png') throw new Error('Production artwork must be PNG');
     checks.push('mime:png');
