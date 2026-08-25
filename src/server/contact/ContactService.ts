@@ -11,6 +11,8 @@ import { verifyContactContinuityToken } from './contactContinuity';
 import type {
   ContactRepository,
   OtpChallengeRecord,
+  OtpRateLimitReservation,
+  OtpRateLimitSubject,
   VerifiedContactRecord,
 } from './ContactRepository';
 import type { OtpDeliveryGateway } from './OtpDeliveryGateway';
@@ -18,10 +20,14 @@ import type { OtpDeliveryGateway } from './OtpDeliveryGateway';
 const OTP_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_ATTEMPTS = 5;
-const OTP_IP_SHORT_WINDOW_MS = 10 * 60 * 1000;
-const OTP_IP_LONG_WINDOW_MS = 60 * 60 * 1000;
-const OTP_IP_SHORT_LIMIT = 10;
-const OTP_IP_LONG_LIMIT = 30;
+const RATE_SHORT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LONG_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+const OTP_RATE_LIMITS: Record<OtpRateLimitSubject, { short: number; long: number }> = {
+  email: { short: 3, long: 10 },
+  experience: { short: 5, long: 20 },
+  ip: { short: 60, long: 500 },
+};
 
 export type OtpVerificationErrorCode =
   | 'WRONG_CODE'
@@ -90,6 +96,23 @@ export class ContactService {
     const experience = await this.experiences.findBySessionHash(hashSessionToken(token));
     if (!experience) throw new Error('Experience not found');
     return experience;
+  }
+
+  private rateReservation(
+    subjectKind: OtpRateLimitSubject,
+    subjectHash: string,
+    now: Date,
+  ): OtpRateLimitReservation {
+    const limits = OTP_RATE_LIMITS[subjectKind];
+    return {
+      subjectKind,
+      subjectHash,
+      now,
+      shortWindowCutoff: new Date(now.getTime() - RATE_SHORT_WINDOW_MS),
+      longWindowCutoff: new Date(now.getTime() - RATE_LONG_WINDOW_MS),
+      shortLimit: limits.short,
+      longLimit: limits.long,
+    };
   }
 
   async checkContinuity(input: {
@@ -176,18 +199,21 @@ export class ContactService {
       throw new Error(`Wait ${seconds} seconds before requesting another code`);
     }
 
-    const ipHash = privacyLookupHash('ip', input.ipKey || 'unknown');
-    const ipSlotReserved = await this.contacts.reserveOtpRateLimit({
-      subjectKind: 'ip',
-      subjectHash: ipHash,
-      now,
-      shortWindowCutoff: new Date(now.getTime() - OTP_IP_SHORT_WINDOW_MS),
-      longWindowCutoff: new Date(now.getTime() - OTP_IP_LONG_WINDOW_MS),
-      shortLimit: OTP_IP_SHORT_LIMIT,
-      longLimit: OTP_IP_LONG_LIMIT,
-    });
-    if (!ipSlotReserved) {
-      throw new Error('Wait before requesting another code because the request rate is too high');
+    const ipKey = input.ipKey.trim() || 'unknown';
+    const ipHash = privacyLookupHash('ip', ipKey);
+    const reservations: OtpRateLimitReservation[] = [
+      this.rateReservation('email', emailHash, now),
+      this.rateReservation('experience', privacyLookupHash('experience', experience.id), now),
+    ];
+    if (ipKey !== 'unknown') {
+      reservations.push(this.rateReservation('ip', ipHash, now));
+    }
+
+    const allowed = await Promise.all(
+      reservations.map((reservation) => this.contacts.reserveOtpRateLimit(reservation)),
+    );
+    if (allowed.some((value) => !value)) {
+      throw new Error('OTP request rate limit reached; wait before requesting another code');
     }
 
     const challengeId = randomUUID();
