@@ -1,4 +1,4 @@
-name: Live V8 Security Header Audit
+name: Live V9 Security Header Audit
 
 on:
   push:
@@ -15,15 +15,15 @@ jobs:
     timeout-minutes: 5
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
-      EXPECTED_RELEASE_ID: 08e991b585b41dc126f9ff3d7ff79ef1daf1580d
+      EXPECTED_RELEASE_ID: f818c1b5574289b2bc635305dfa1bd9a431529fc
       LIVE_RELEASE_HEALTH_ATTEMPTS: '3'
       LIVE_RELEASE_HEALTH_DELAY_MS: '1000'
     steps:
       - name: Checkout audit branch
         uses: actions/checkout@v4
-      - name: Confirm exact deployed V8 release
+      - name: Confirm exact deployed V9 release
         run: node tests/e2e/live-release-health.mjs
-      - name: Diagnose Hostinger security-header paths
+      - name: Verify Hostinger security-header paths
         run: |
           node <<'NODE'
           const baseUrl = process.env.LIVE_PRODUCTION_URL.replace(/\/$/, '');
@@ -37,7 +37,7 @@ jobs:
           const failures = [];
 
           const targets = [
-            { path: '/', accept: 'text/html', expectStatus: 200 },
+            { path: '/', accept: 'text/html', expectStatus: 200, forbidYearPrerenderCache: true },
             { path: '/api/health/release', accept: 'application/json', expectStatus: 200 },
             { path: '/api/checkout/start', accept: 'application/json', expectStatus: 410, expectNoStore: true },
           ];
@@ -48,9 +48,11 @@ jobs:
               redirect: 'error',
               signal: AbortSignal.timeout(10_000),
             });
-            console.log(`LIVE_PATH path=${target.path} status=${response.status} cache-control=${response.headers.get('cache-control') ?? 'missing'}`);
+            const cacheControl = response.headers.get('cache-control') ?? '';
+            console.log(`LIVE_PATH path=${target.path} status=${response.status} cache-control=${cacheControl || 'missing'}`);
             if (response.status !== target.expectStatus) failures.push(`${target.path}:status`);
-            if (target.expectNoStore && response.headers.get('cache-control') !== 'no-store') failures.push(`${target.path}:no-store`);
+            if (target.expectNoStore && cacheControl !== 'no-store') failures.push(`${target.path}:no-store`);
+            if (target.forbidYearPrerenderCache && /s-maxage=31536000/i.test(cacheControl)) failures.push(`${target.path}:year-prerender-cache`);
 
             for (const [name, value] of Object.entries(expected)) {
               const actual = response.headers.get(name);
