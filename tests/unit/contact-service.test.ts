@@ -4,6 +4,8 @@ import { ContactService } from '@/server/contact/ContactService';
 import type {
   ContactRepository,
   OtpChallengeRecord,
+  OtpRateLimitReservation,
+  OtpRateLimitSubject,
   VerifiedContactRecord,
 } from '@/server/contact/ContactRepository';
 import type { OtpDeliveryGateway } from '@/server/contact/OtpDeliveryGateway';
@@ -26,7 +28,12 @@ class MemoryExperienceRepository implements ExperienceRepository {
 class MemoryContactRepository implements ContactRepository {
   challenge: OtpChallengeRecord | null = null;
   contact: VerifiedContactRecord | null = null;
-  ipChallengeCounts = { shortWindow: 0, longWindow: 0 };
+  rateLimitAllowed: Record<OtpRateLimitSubject, boolean> = {
+    email: true,
+    experience: true,
+    ip: true,
+  };
+  rateLimitReservations: OtpRateLimitReservation[] = [];
 
   async findRecentChallenge(experienceId: string, emailHash: string) {
     if (
@@ -37,8 +44,9 @@ class MemoryContactRepository implements ContactRepository {
     return null;
   }
 
-  async getRecentIpChallengeCounts() {
-    return this.ipChallengeCounts;
+  async reserveOtpRateLimit(input: OtpRateLimitReservation) {
+    this.rateLimitReservations.push(structuredClone(input));
+    return this.rateLimitAllowed[input.subjectKind];
   }
 
   async createChallenge(record: OtpChallengeRecord) {
@@ -121,6 +129,13 @@ test('stores only a keyed OTP digest and encrypted contact data, then verifies o
   ]);
   expect(JSON.stringify(contacts.challenge)).not.toContain('123456');
   expect(JSON.stringify(contacts.challenge)).not.toContain('sam@example.com');
+  expect(contacts.rateLimitReservations.map((reservation) => reservation.subjectKind)).toEqual([
+    'email',
+    'experience',
+    'ip',
+  ]);
+  expect(JSON.stringify(contacts.rateLimitReservations)).not.toContain('sam@example.com');
+  expect(JSON.stringify(contacts.rateLimitReservations)).not.toContain('browser-a');
 
   const result = await service.verifyOtp({
     experienceToken: token,
@@ -140,19 +155,31 @@ test('stores only a keyed OTP digest and encrypted contact data, then verifies o
   })).rejects.toThrow(/used|challenge/i);
 });
 
-test('enforces resend cooldown, expiry, and a bounded wrong-code attempt budget', async () => {
-  const { service } = createService();
-  const requested = await service.requestOtp({
+test('enforces resend cooldown before consuming another global quota reservation', async () => {
+  const { service, contacts } = createService();
+  await service.requestOtp({
     experienceToken: token,
     email: 'sam@example.com',
     ipKey: 'browser-a',
   });
+  const reservationsAfterFirstSend = contacts.rateLimitReservations.length;
 
   await expect(service.requestOtp({
     experienceToken: token,
     email: 'sam@example.com',
     ipKey: 'browser-a',
   })).rejects.toThrow(/wait|resend/i);
+
+  expect(contacts.rateLimitReservations).toHaveLength(reservationsAfterFirstSend);
+});
+
+test('enforces expiry and a bounded wrong-code attempt budget', async () => {
+  const { service } = createService();
+  const requested = await service.requestOtp({
+    experienceToken: token,
+    email: 'sam@example.com',
+    ipKey: 'browser-a',
+  });
 
   for (let i = 0; i < 5; i += 1) {
     await expect(service.verifyOtp({
@@ -183,7 +210,7 @@ test('enforces resend cooldown, expiry, and a bounded wrong-code attempt budget'
 
 test('blocks cross-experience OTP mail bursts by hashed IP before creating or sending another challenge', async () => {
   const { service, contacts, delivery } = createService();
-  contacts.ipChallengeCounts = { shortWindow: 20, longWindow: 20 };
+  contacts.rateLimitAllowed.ip = false;
 
   await expect(service.requestOtp({
     experienceToken: token,
@@ -193,4 +220,35 @@ test('blocks cross-experience OTP mail bursts by hashed IP before creating or se
 
   expect(contacts.challenge).toBeNull();
   expect(delivery.sent).toHaveLength(0);
+});
+
+test('blocks repeated mail to the same hashed email even when the network quota allows it', async () => {
+  const { service, contacts, delivery } = createService();
+  contacts.rateLimitAllowed.email = false;
+
+  await expect(service.requestOtp({
+    experienceToken: token,
+    email: 'victim@example.com',
+    ipKey: 'browser-b',
+  })).rejects.toThrow(/wait|resend|rate/i);
+
+  expect(contacts.challenge).toBeNull();
+  expect(delivery.sent).toHaveLength(0);
+});
+
+test('skips the global IP reservation when the proxy cannot identify a client but still enforces email and experience quotas', async () => {
+  const { service, contacts, delivery } = createService();
+  contacts.rateLimitAllowed.ip = false;
+
+  await service.requestOtp({
+    experienceToken: token,
+    email: 'sam@example.com',
+    ipKey: 'unknown',
+  });
+
+  expect(contacts.rateLimitReservations.map((reservation) => reservation.subjectKind)).toEqual([
+    'email',
+    'experience',
+  ]);
+  expect(delivery.sent).toHaveLength(1);
 });
