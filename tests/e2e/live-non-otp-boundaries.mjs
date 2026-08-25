@@ -90,8 +90,13 @@ try {
       data: { token: 'live-boundary-audit-invalid-owner-token' },
     });
 
+    await checkStatus(anonymous, '/api/internal/jobs/drain', [401], {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      data: {},
+    });
+
     for (const path of [
-      '/api/internal/jobs/drain',
       '/api/internal/design/approve',
       '/api/internal/manufacturing/create-draft',
       '/api/internal/manufacturing/confirm',
