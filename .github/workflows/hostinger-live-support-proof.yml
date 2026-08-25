@@ -1,0 +1,37 @@
+name: Hostinger Live Support Proof
+
+on:
+  pull_request:
+    branches:
+      - feat/mystery-foundation
+    paths:
+      - '.github/workflows/hostinger-live-support-proof.yml'
+      - 'tests/e2e/live-support-proof.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  prove-live-support:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
+    steps:
+      - name: Checkout engineering proof harness
+        uses: actions/checkout@v4
+        with:
+          ref: infra/hostinger-migration-20260823
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.23.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install chromium
+      - name: Prove live Issue session and support persistence request
+        run: node tests/e2e/live-support-proof.mjs
