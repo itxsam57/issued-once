@@ -20,7 +20,7 @@ const ENV_KEYS = [
 const saved = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
 
 beforeEach(() => {
-  process.env.DATABASE_URL = 'postgresql://example.invalid/test';
+  process.env.DATABASE_URL = 'postgresql://user:pass@ep-test-000000.us-east-2.aws.neon.tech/neondb?sslmode=require';
   process.env.PRINTFUL_WEBHOOK_PUBLIC_KEY = 'test-public-key';
   process.env.PRINTFUL_WEBHOOK_SECRET_HEX = '00'.repeat(32);
   referralRuntime.enabled.mockReset().mockReturnValue(false);
