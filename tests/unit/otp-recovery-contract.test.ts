@@ -3,6 +3,7 @@ import { ContactService } from '@/server/contact/ContactService';
 import type {
   ContactRepository,
   OtpChallengeRecord,
+  OtpRateLimitReservation,
   VerifiedContactRecord,
 } from '@/server/contact/ContactRepository';
 import type { OtpDeliveryGateway } from '@/server/contact/OtpDeliveryGateway';
@@ -35,6 +36,7 @@ class MemoryContactRepository implements ContactRepository {
       ? this.challenge
       : null;
   }
+  async reserveOtpRateLimit(_input: OtpRateLimitReservation) { return true; }
   async createChallenge(record: OtpChallengeRecord) { this.challenge = structuredClone(record); }
   async findChallenge(id: string) { return this.challenge?.id === id ? this.challenge : null; }
   async recordFailedAttempt(id: string, attemptsRemaining: number) {
