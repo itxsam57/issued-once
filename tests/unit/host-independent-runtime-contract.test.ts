@@ -33,6 +33,12 @@ test('production runtime has no Vercel package or source coupling', () => {
   expect(coupled).toEqual([]);
 });
 
+test('Hostinger design dispatch does not require the retired Vercel Blob token', () => {
+  const source = readFileSync(join(process.cwd(), 'src/server/design/designDispatch.ts'), 'utf8');
+  expect(source).not.toContain('BLOB_READ_WRITE_TOKEN');
+  expect(source).toContain('OPENAI_API_KEY');
+});
+
 test('readiness reports private filesystem storage and durable Postgres jobs without Blob configuration', async () => {
   const env: NodeJS.ProcessEnv = {
     NODE_ENV: 'test',
