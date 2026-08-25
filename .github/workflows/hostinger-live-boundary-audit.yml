@@ -15,11 +15,12 @@ jobs:
     timeout-minutes: 15
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
+      EXPECTED_RELEASE_ID: ${{ github.sha }}
     steps:
-      - name: Checkout frozen Hostinger V3 candidate
+      - name: Checkout pushed Hostinger candidate
         uses: actions/checkout@v4
         with:
-          ref: release/hostinger-v3-candidate-20260825
+          ref: ${{ github.sha }}
       - uses: pnpm/action-setup@v4
         with:
           version: 11.23.0
@@ -31,10 +32,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Chromium
         run: pnpm exec playwright install chromium
-      - name: Checkout engineering audit harness
-        uses: actions/checkout@v4
-        with:
-          ref: infra/hostinger-migration-20260823
-          path: engineering-audit
+      - name: Wait for exact pushed release
+        run: node tests/e2e/live-release-health.mjs
       - name: Run non-OTP live boundary audit
-        run: node engineering-audit/tests/e2e/live-non-otp-boundaries.mjs
+        run: node tests/e2e/live-non-otp-boundaries.mjs
