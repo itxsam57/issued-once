@@ -8,6 +8,11 @@ import './commitment-stage.css';
 
 export const metadata: Metadata = PUBLIC_METADATA;
 
+// Hostinger's managed prerender cache can serve static HTML before Next.js Proxy
+// response headers are applied. Keep HTML routes server-rendered so the security
+// header baseline is emitted consistently; immutable Next assets remain cached.
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
