@@ -1,12 +1,10 @@
 name: Hostinger Live Boundary Audit
 
 on:
-  pull_request:
+  workflow_dispatch:
+  push:
     branches:
-      - feat/mystery-foundation
-    paths:
-      - '.github/workflows/hostinger-live-boundary-audit.yml'
-      - 'tests/e2e/live-non-otp-boundaries.mjs'
+      - release/hostinger-v2-candidate-20260824
 
 permissions:
   contents: read
