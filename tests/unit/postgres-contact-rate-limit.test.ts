@@ -59,4 +59,21 @@ describe('PostgresContactRepository OTP rate-limit reservation', () => {
 
     await expect(repository.reserveOtpRateLimit(reservation)).resolves.toBe(false);
   });
+
+  test('prunes only stale limiter rows in an oldest-first bounded batch', async () => {
+    const sql = new CapturingSql([{ deleted_count: 17 }]);
+    const repository = new PostgresContactRepository(sql);
+    const olderThan = new Date('2026-08-23T15:00:00.000Z');
+
+    await expect(repository.pruneOtpRateLimits({ olderThan, limit: 5000 })).resolves.toBe(17);
+    expect(sql.calls).toHaveLength(1);
+
+    const [{ text, params }] = sql.calls;
+    expect(text).toMatch(/DELETE\s+FROM\s+otp_rate_limits/i);
+    expect(text).toMatch(/updated_at\s*<\s*\$1/i);
+    expect(text).toMatch(/ORDER\s+BY\s+updated_at\s+ASC/i);
+    expect(text).toMatch(/LIMIT\s+\$2/i);
+    expect(text).toMatch(/COUNT\s*\(\s*\*\s*\)/i);
+    expect(params).toEqual([olderThan, 5000]);
+  });
 });
