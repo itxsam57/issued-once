@@ -46,24 +46,24 @@ async function checkStatus(context, path, expected, init) {
   return result;
 }
 
-async function checkFailClosed(context, path, init) {
-  const result = await fetchText(context, path, init);
-  if (result.status >= 400 && result.status < 600) {
-    console.log(`LIVE_FAIL_CLOSED_PASS path=${path} status=${result.status}`);
-  } else {
-    failures.push(`${path} unexpectedly returned ${result.status}`);
-    console.log(`LIVE_FAIL_CLOSED_MISMATCH path=${path} status=${result.status}`);
-  }
-  return result;
-}
-
 const browser = await chromium.launch();
 try {
   const anonymous = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   try {
-    for (const path of ['/', '/terms', '/returns', '/store-info', '/contact']) {
+    for (const path of ['/', '/terms', '/returns']) {
       await checkStatus(anonymous, path, [200]);
     }
+
+    const storeInfo = await checkStatus(anonymous, '/store-info', [200]);
+    check(
+      !storeInfo.text.includes('Public merchant disclosure is not fully configured'),
+      'public merchant disclosure is not fully configured',
+    );
+    const contactPage = await checkStatus(anonymous, '/contact', [200]);
+    check(
+      !contactPage.text.includes('The public support address is not configured yet'),
+      'public support address is not configured',
+    );
 
     const health = await checkStatus(anonymous, '/api/health/release', [200]);
     try {
