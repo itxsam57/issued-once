@@ -6,6 +6,7 @@ const LEGACY_EXACT_PATHS = new Set([
 ]);
 
 function isDecommissioned(pathname: string) {
+  if (pathname === '/api/internal/jobs/drain') return false;
   return LEGACY_EXACT_PATHS.has(pathname) || pathname.startsWith('/api/internal/');
 }
 
