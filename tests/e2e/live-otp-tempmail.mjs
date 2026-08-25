@@ -5,6 +5,7 @@ const baseUrl = process.env.LIVE_PRODUCTION_URL?.replace(/\/$/, '');
 if (!baseUrl) throw new Error('LIVE_PRODUCTION_URL is required');
 
 const tempMailUrl = 'https://temp-mail.org/en/';
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function matchesPost(response, path) {
   try {
@@ -91,22 +92,57 @@ async function dismissTempMailConsent(page) {
   }
 }
 
+async function addressFromDom(page) {
+  const values = await page.locator('input, textarea, [contenteditable="true"]').evaluateAll((elements) =>
+    elements.map((element) => {
+      if ('value' in element) return String(element.value ?? '').trim();
+      return String(element.textContent ?? '').trim();
+    }),
+  ).catch(() => []);
+  for (const value of values) {
+    if (EMAIL_PATTERN.test(value)) return value;
+  }
+
+  const bodyText = await page.locator('body').innerText().catch(() => '');
+  const bodyAddress = bodyText.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
+  return bodyAddress && EMAIL_PATTERN.test(bodyAddress) ? bodyAddress : null;
+}
+
+async function addressFromClipboard(page) {
+  const copyCandidates = [
+    page.getByRole('button', { name: /^Copy$/i }).first(),
+    page.getByText(/^Copy$/i).first(),
+  ];
+  for (const candidate of copyCandidates) {
+    if (!(await candidate.isVisible().catch(() => false))) continue;
+    await candidate.click().catch(() => {});
+    const clipboard = await page.evaluate(async () => navigator.clipboard.readText()).catch(() => '');
+    const value = String(clipboard ?? '').trim();
+    if (EMAIL_PATTERN.test(value)) return value;
+  }
+  return null;
+}
+
 async function readGeneratedTempAddress(page) {
   await page.goto(tempMailUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await dismissTempMailConsent(page);
 
-  const deadline = Date.now() + 30_000;
+  const deadline = Date.now() + 45_000;
   while (Date.now() < deadline) {
-    const address = await page.locator('input').evaluateAll((inputs) => {
-      for (const input of inputs) {
-        const value = 'value' in input ? String(input.value ?? '').trim() : '';
-        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return value;
-      }
-      return null;
-    }).catch(() => null);
-    if (address) return address;
+    const clipboardAddress = await addressFromClipboard(page);
+    if (clipboardAddress) return clipboardAddress;
+
+    const domAddress = await addressFromDom(page);
+    if (domAddress) return domAddress;
+
     await page.waitForTimeout(1000);
   }
+
+  await mkdir('artifacts/visual', { recursive: true });
+  await page.screenshot({
+    path: 'artifacts/visual/tempmail-address-unavailable.png',
+    fullPage: true,
+  }).catch(() => {});
   throw new Error('Temp-Mail did not expose a generated mailbox address');
 }
 
@@ -122,10 +158,19 @@ async function readOtpFromTempMail(page) {
       if (code) return code;
     }
 
-    const refresh = page.getByText(/^Refresh$/i).first();
-    if (await refresh.isVisible().catch(() => false)) {
-      await refresh.click().catch(() => {});
-    } else {
+    const refreshCandidates = [
+      page.getByRole('button', { name: /^Refresh$/i }).first(),
+      page.getByText(/^Refresh$/i).first(),
+    ];
+    let refreshed = false;
+    for (const refresh of refreshCandidates) {
+      if (await refresh.isVisible().catch(() => false)) {
+        await refresh.click().catch(() => {});
+        refreshed = true;
+        break;
+      }
+    }
+    if (!refreshed) {
       await page.reload({ waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => {});
     }
     await page.waitForTimeout(4000);
@@ -138,6 +183,7 @@ try {
   const tempContext = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
     locale: 'en-US',
+    permissions: ['clipboard-read', 'clipboard-write'],
   });
   const appContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   const tempPage = await tempContext.newPage();
