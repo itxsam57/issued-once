@@ -34,12 +34,18 @@ export type OtpRateLimitReservation = {
   longLimit: number;
 };
 
+export type OtpIpChallengeCounts = {
+  shortWindow: number;
+  longWindow: number;
+};
+
 export interface ContactRepository {
   findRecentChallenge(
     experienceId: string,
     emailHash: string,
   ): Promise<OtpChallengeRecord | null>;
-  reserveOtpRateLimit(input: OtpRateLimitReservation): Promise<boolean>;
+  reserveOtpRateLimit?(input: OtpRateLimitReservation): Promise<boolean>;
+  getRecentIpChallengeCounts?(): Promise<OtpIpChallengeCounts>;
   createChallenge(record: OtpChallengeRecord): Promise<void>;
   findChallenge(challengeId: string): Promise<OtpChallengeRecord | null>;
   recordFailedAttempt(challengeId: string, attemptsRemaining: number): Promise<void>;
