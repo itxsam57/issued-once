@@ -3,6 +3,7 @@ import { chromium } from '@playwright/test';
 const baseUrl = process.env.LIVE_PRODUCTION_URL?.replace(/\/$/, '');
 if (!baseUrl) throw new Error('LIVE_PRODUCTION_URL is required');
 
+const failures = [];
 const FORBIDDEN_MARKERS = [
   'DATABASE_URL',
   'QUIZ_ENCRYPTION_KEY',
@@ -10,17 +11,20 @@ const FORBIDDEN_MARKERS = [
   'RESEND_API_KEY',
   'CRON_SECRET',
   'ARTWORK_SIGNING_KEY',
-  'SAFE_PAY_SECRET',
-  'PRINTFUL_TOKEN',
+  'SAFEPAY_API_SECRET',
+  'SAFEPAY_V1_SECRET',
+  'PRINTFUL_API_TOKEN',
+  'OPENAI_API_KEY',
+  'INTERNAL_OPERATIONS_TOKEN',
 ];
 
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
+function check(condition, message) {
+  if (!condition) failures.push(message);
 }
 
 function assertNoSecretMarkers(text, label) {
   for (const marker of FORBIDDEN_MARKERS) {
-    assert(!text.includes(marker), `${label} exposed forbidden marker ${marker}`);
+    check(!text.includes(marker), `${label} exposed forbidden configuration marker ${marker}`);
   }
 }
 
@@ -31,17 +35,25 @@ async function fetchText(context, path, init) {
   return { status: response.status(), text };
 }
 
-async function requireStatus(context, path, expected, init) {
+async function checkStatus(context, path, expected, init) {
   const result = await fetchText(context, path, init);
-  assert(expected.includes(result.status), `${path} returned ${result.status}; expected ${expected.join('/')}`);
-  console.log(`LIVE_BOUNDARY_PASS path=${path} status=${result.status}`);
+  if (expected.includes(result.status)) {
+    console.log(`LIVE_BOUNDARY_PASS path=${path} status=${result.status}`);
+  } else {
+    failures.push(`${path} returned ${result.status}; expected ${expected.join('/')}`);
+    console.log(`LIVE_BOUNDARY_MISMATCH path=${path} status=${result.status} expected=${expected.join('/')}`);
+  }
   return result;
 }
 
-async function requireFailClosed(context, path, init) {
+async function checkFailClosed(context, path, init) {
   const result = await fetchText(context, path, init);
-  assert(result.status >= 400 && result.status < 600, `${path} unexpectedly returned ${result.status}`);
-  console.log(`LIVE_FAIL_CLOSED_PASS path=${path} status=${result.status}`);
+  if (result.status >= 400 && result.status < 600) {
+    console.log(`LIVE_FAIL_CLOSED_PASS path=${path} status=${result.status}`);
+  } else {
+    failures.push(`${path} unexpectedly returned ${result.status}`);
+    console.log(`LIVE_FAIL_CLOSED_MISMATCH path=${path} status=${result.status}`);
+  }
   return result;
 }
 
@@ -50,20 +62,33 @@ try {
   const anonymous = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   try {
     for (const path of ['/', '/terms', '/returns', '/store-info', '/contact']) {
-      await requireStatus(anonymous, path, [200]);
+      await checkStatus(anonymous, path, [200]);
     }
 
-    const health = await requireStatus(anonymous, '/api/health/release', [200]);
-    const healthPayload = JSON.parse(health.text);
-    assert(healthPayload?.ok === true, 'release health payload is not ok');
-    assert(healthPayload?.runtimeProvider === 'hostinger', 'release health runtime provider is not hostinger');
+    const health = await checkStatus(anonymous, '/api/health/release', [200]);
+    try {
+      const healthPayload = JSON.parse(health.text);
+      check(healthPayload?.ok === true, 'release health payload is not ok');
+      check(healthPayload?.runtimeProvider === 'hostinger', 'release health runtime provider is not hostinger');
+    } catch {
+      failures.push('release health payload is not valid JSON');
+    }
 
-    const issueStatus = await requireStatus(anonymous, '/api/issue/status', [200]);
-    const issuePayload = JSON.parse(issueStatus.text);
-    assert(issuePayload?.found === false, 'anonymous issue status unexpectedly found an issue');
+    const issueStatus = await checkStatus(anonymous, '/api/issue/status', [200]);
+    try {
+      const issuePayload = JSON.parse(issueStatus.text);
+      check(issuePayload?.found === false, 'anonymous issue status unexpectedly found an issue');
+    } catch {
+      failures.push('anonymous issue status payload is not valid JSON');
+    }
 
-    await requireStatus(anonymous, '/api/artwork/not-a-valid-signed-token', [401]);
-    await requireStatus(anonymous, '/ops/api/dashboard', [401]);
+    await checkStatus(anonymous, '/api/artwork/not-a-valid-signed-token', [401]);
+    await checkStatus(anonymous, '/ops/api/dashboard', [401]);
+    await checkStatus(anonymous, '/api/ops/session', [401], {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      data: { token: 'live-boundary-audit-invalid-owner-token' },
+    });
 
     for (const path of [
       '/api/internal/jobs/drain',
@@ -72,26 +97,30 @@ try {
       '/api/internal/manufacturing/confirm',
       '/api/internal/quiz-encryption/rotate',
     ]) {
-      await requireFailClosed(anonymous, path, {
+      await checkStatus(anonymous, path, [410], {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         data: {},
       });
     }
 
-    for (const path of [
-      '/api/webhooks/safepay',
-      '/api/webhooks/printful',
-      '/api/webhooks/fourthwall',
-    ]) {
-      await requireFailClosed(anonymous, path, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        data: {},
-      });
-    }
+    await checkStatus(anonymous, '/api/webhooks/safepay', [401], {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      data: {},
+    });
+    await checkStatus(anonymous, '/api/webhooks/printful', [401], {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      data: {},
+    });
+    await checkStatus(anonymous, '/api/webhooks/fourthwall', [410], {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      data: {},
+    });
 
-    await requireStatus(anonymous, '/api/support', [400], {
+    await checkStatus(anonymous, '/api/support', [400], {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       data: {},
@@ -104,10 +133,10 @@ try {
   try {
     const page = await customer.newPage();
     const begin = await page.goto(`${baseUrl}/begin`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
-    assert(begin?.ok(), `/begin returned ${begin?.status() ?? 'NO_RESPONSE'}`);
+    check(Boolean(begin?.ok()), `/begin returned ${begin?.status() ?? 'NO_RESPONSE'}`);
     await page.getByText('01 / 07').waitFor({ timeout: 15_000 });
 
-    await requireStatus(customer, '/api/shipping', [409], {
+    await checkStatus(customer, '/api/shipping', [409], {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       data: {
@@ -122,21 +151,26 @@ try {
       },
     });
 
-    await requireStatus(customer, '/api/payments/create', [409], {
+    await checkStatus(customer, '/api/payments/create', [409], {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       data: { quoteId: 'live-boundary-audit-no-quote' },
     });
 
-    await requireFailClosed(customer, '/api/referrals/apply', {
+    await checkStatus(customer, '/api/referrals/apply', [503], {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       data: { quoteId: 'live-boundary-audit-no-quote', explicitCode: 'AUDIT' },
     });
 
-    console.log('LIVE_NON_OTP_CUSTOMER_GATES_PASS');
+    console.log('LIVE_NON_OTP_CUSTOMER_GATES_COMPLETE');
   } finally {
     await customer.close();
+  }
+
+  if (failures.length > 0) {
+    for (const failure of failures) console.log(`LIVE_BOUNDARY_FINDING ${failure}`);
+    throw new Error(`Live non-OTP boundary audit found ${failures.length} mismatch(es)`);
   }
 
   console.log('LIVE_NON_OTP_BOUNDARY_AUDIT_PASS');
