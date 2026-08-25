@@ -1,17 +1,20 @@
 # ISSUED ONCE — Hostinger Deployment Runbook
 
-Date: 2026-08-24
-Status: production V2-compatible private-payload schema is green. Migration `0032` is applied and independently verified. Frozen candidate `release/hostinger-v2-candidate-20260824` points exactly to verified implementation SHA `3fa3b82e56d604d2d36e6634c88ac98e48920a92`. The current owner gate is Hostinger configuration of a fresh `QUIZ_ENCRYPTION_KEY_V2`.
+Date: 2026-08-25
+Status: temporary Hostinger runtime is serving verified V5 code. Exact-release customer smoke is green; remaining temporary-host gates are owner-controlled runtime configuration, verified-contact/shipping proof, provider integration proof, and email deliverability.
 
 ## Immutable safety rules
 
-- Never expose encryption keys, OTPs, sessions, raw answers, addresses, payment secrets or provider secrets.
-- Do not delete historical dummy data without a separate explicit owner reset approval.
-- Migration `0029_creator_referrals.sql` remains forbidden without its own exact owner approval.
-- Keep Printful production confirmation disabled.
+- Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets, provider secrets or owner-operation tokens.
+- Do not rotate `QUIZ_ENCRYPTION_KEY_V2` or `IDENTITY_HMAC_KEY` without an explicit continuity plan.
+- Do not delete historical dummy data without separate explicit owner reset approval.
+- Migration `0029_creator_referrals.sql` remains forbidden without its own explicit approval.
+- Do not configure `REFERRAL_ATTRIBUTION_SIGNING_KEY` while migration `0029` is absent.
+- Keep Printful production confirmation disabled during QA.
 - Do not make a real Safepay charge solely for QA.
 - Keep canonical artwork outside `public_html` and the Hostinger Node deployment directory.
-- Prove the temporary Hostinger domain before connecting `issuedonce.shop`.
+- Do not connect/cut over `issuedonce.shop` until the temporary Hostinger release gates and deliverability are green and the owner separately approves cutover.
+- Keep PR #13 draft/unmerged until the Hostinger release is proven; PR #3 is a separate final-release audit gate.
 
 ## 1. Current Hostinger runtime
 
@@ -19,16 +22,48 @@ Temporary URL:
 
 `https://lightgray-coyote-141764.hostingersite.com`
 
-Currently deployed old candidate:
+Hostinger is already linked to branch name:
 
-- branch `release/hostinger-candidate-20260823`
-- SHA `929081a8c08b0836ec74037cbb0a7aa59ec88640`
-- `/api/health/release` previously proved exact SHA, database, durable queue and private filesystem storage healthy
+`release/hostinger-v2-candidate-20260824`
+
+That branch name is historical. It is intentionally being fast-forwarded to already-verified candidates so Hostinger can auto-deploy without changing hPanel source settings or resetting environment variables.
+
+Current frozen candidate:
+
+- frozen branch `release/hostinger-v5-candidate-20260825`
+- exact SHA `df13a171919e7223a0d76d9e4633950ccf2adc25`
+- Hostinger-linked branch was fast-forwarded to that SHA
 - private artwork root `/home/u639555688/issued-once-private-artwork`
 
-The old candidate predates the permanent V2 writer/key rollout. Questionnaire persistence on that old release is therefore not release proof for the new architecture.
+The release identity endpoint now prefers the actual checked-out Git commit over a stale manually configured `RELEASE_ID`. This means same-branch Hostinger auto-deploys can prove the real deployed commit without manually editing `RELEASE_ID` on every release.
 
-## 2. Production database state
+Do not mutate the frozen V5 branch itself.
+
+## 2. Fresh V5 evidence
+
+Repository verification for V5 engineering head:
+
+- CI #1413 — PASS: unit tests, typecheck, lint, production build
+- Browser QA #1312 — PASS
+
+Exact Hostinger V5 proof:
+
+- workflow `Hostinger Temporary Release Proof` #75
+- run `32854863228`
+- job `97824246027`
+- exact release `df13a171919e7223a0d76d9e4633950ccf2adc25`
+- release health PASS: Hostinger runtime, database, durable queue and private storage ready
+- Tee physical gate PASS: seven answers + object + size + base
+- Cap/Hat physical gate PASS: seven answers + object + size + base
+- Tote physical gate PASS: seven answers + object + size + base
+- real Resend OTP request returned HTTP 200
+- no real Safepay charge was performed
+- proof artifact ID `9565803339`
+- proof ZIP SHA256 `e2cf859617365eb098fdd8d2aec92b4a3014bcedb8db4c8c33e3e99b5a10e447`
+
+The live release harness is self-pinning and deployment-lag aware. On push it waits until Hostinger serves the exact pushed SHA before running customer/boundary proof, preventing false failures against the previous deployment.
+
+## 3. Production database state
 
 Neon:
 
@@ -38,166 +73,250 @@ Neon:
 
 Applied and independently verified:
 
-- `0030_background_jobs.sql` — `ac06c578-5607-460b-8550-5b3fc30c6742`
-- `0031_quiz_encryption_key_v2.sql` — `36a667fe-e801-4496-ae67-e9b1719472d2`
-- `0032_private_payload_key_v2.sql` — `aa0b9492-3f05-4125-bee8-ee8ad3a6d311`
-
-Production `0032` verification after apply:
-
-- all four private-payload key-version constraints are present and validated
-- OTP challenge constraint accepts V1/V2
-- verified-contact constraint accepts V1/V2
-- shipping-snapshot constraint accepts V1/V2
-- support-request constraint accepts V1/V2
-- existing copied data remains OTP V1 254/V2 0; contacts V1 7/V2 0; shipping V1 7/V2 0; support V1 0/V2 0
-- manufacturing jobs/events remain `0/0`
-- referral creator/conversion tables remain absent
-- temporary migration branch `br-hidden-glade-axpch1a3` was cleaned up after production apply
+- `0030_background_jobs.sql`
+- `0031_quiz_encryption_key_v2.sql`
+- `0032_private_payload_key_v2.sql`
 
 Still forbidden/unapplied:
 
 - `0029_creator_referrals.sql`
 
-## 3. Historical V1 data decision
+Fresh read-only production corroboration after V5 live QA:
 
-The owner confirmed the historical questionnaire/order records are dummy testing data and do not require V1-to-V2 preservation.
+- encrypted questionnaire answers V2: 413
+- OTP challenges V2: 19
+- verified contacts V2: 0
+- shipping snapshots V2: 0
+- support requests V2: 0
+- background jobs: 0
+- manufacturing jobs/events: 0/0
+- payment attempts: 6 total; V5 QA did not create another payment attempt
+- referral creator/conversion tables: absent
 
-Therefore:
+V5 automated QA therefore created only expected encrypted questionnaire/OTP data. It created no verified contact, shipping, support, background job, payment, manufacturing or referral side effect.
 
-- no Vercel V1-key transfer is required
-- no V1-to-V2 row rotation is required for release
-- existing V1 dummy rows may remain until a separately approved cleanup/reset
-- new production private payloads must use V2
+## 4. Existing environment that must be preserved
 
-Dummy-data deletion remains unauthorized.
+Do not replace or regenerate these values while completing the remaining configuration:
 
-## 4. Permanent V2 writer
-
-`src/server/crypto/privatePayload.ts` writes new private payloads with `QUIZ_ENCRYPTION_KEY_V2`, requires the decoded value to be exactly 32 bytes, and retains V1/V2 read support during transition.
-
-The shared writer can reach:
-
-- `experience_answers`
-- `otp_challenges`
-- `verified_contacts`
-- `shipping_snapshots`
-- `support_requests`
-
-Production migrations `0031` and `0032` now make those write paths V2-compatible.
-
-## 5. Frozen Hostinger V2 candidate
-
-Deploy exactly:
-
-- branch `release/hostinger-v2-candidate-20260824`
-- SHA `3fa3b82e56d604d2d36e6634c88ac98e48920a92`
-- `RELEASE_ID=3fa3b82e56d604d2d36e6634c88ac98e48920a92`
-
-Fresh GitHub evidence for that exact SHA:
-
-- CI #1368: PASS — unit tests, typecheck, lint and production build
-- Browser QA #1267: PASS
-- TDD RED: CI #1363 passed 536 existing tests and failed only because the new `0032` contract was not implemented yet
-
-The release branch was independently compared with the implementation SHA and is identical: zero commits ahead/behind.
-
-Do not deploy the obsolete `release/hostinger-v2-bridge-20260824` branch. That branch belongs to the superseded V1-preservation strategy.
-
-## 6. Current exact owner gate — Hostinger V2 key
-
-Create one new cryptographically random 32-byte value and base64-encode it. Save it in Hostinger as:
-
-`QUIZ_ENCRYPTION_KEY_V2`
-
-Never paste the value into chat, GitHub, screenshots, issues or logs.
-
-For the existing Hostinger Node app, use hPanel **Website Dashboard → Settings & Redeploy → Environment variables**. Add `QUIZ_ENCRYPTION_KEY_V2`, then review deployment source/settings.
-
-During the same redeploy configure:
-
-- source branch `release/hostinger-v2-candidate-20260824`
-- `RELEASE_ID=3fa3b82e56d604d2d36e6634c88ac98e48920a92`
-
-Keep the existing production values unchanged unless a later gate explicitly requires a change.
-
-Do not configure `REFERRAL_ATTRIBUTION_SIGNING_KEY` and do not enable Printful confirmation.
-
-## 7. Temporary Hostinger proof
-
-After the V2 candidate redeploy, require exact:
-
-`GET https://lightgray-coyote-141764.hostingersite.com/api/health/release`
-
-Expected:
-
-- HTTP 200
-- `ok=true`
-- `runtimeProvider=hostinger`
-- `releaseId=3fa3b82e56d604d2d36e6634c88ac98e48920a92`
-- `databaseReady=true`
-- `queueReady=true`
-- `storageReady=true`
-
-A Hostinger dashboard status alone is not proof.
-
-Then run the non-payment live matrix:
-
-- Tee → M → Bone
-- Cap → OS → Bone
-- Tote → OS → Bone
-- questionnaire/object/size/base APIs must return HTTP 200 for the applicable flow
-- Tote must persist `OS`
-- real OTP boundary may be exercised when contact flow is explicitly being tested
-
-No real Safepay charge and no Printful production confirmation are authorized by this test.
-
-## 8. Remaining runtime boundaries
-
-As the temporary flow reaches them, configure owner-controlled secrets one at a time without exposing values.
-
-Contact/identity boundary may require:
-
+- `NODE_ENV=production`
+- `RUNTIME_PROVIDER=hostinger`
+- `DATABASE_URL`
+- `QUIZ_ENCRYPTION_KEY_V2`
 - `IDENTITY_HMAC_KEY`
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL`
+- `APP_ORIGIN=https://lightgray-coyote-141764.hostingersite.com`
+- `ARTWORK_STORAGE_DIR=/home/u639555688/issued-once-private-artwork`
 
-Artwork boundary requires:
+A stale manual `RELEASE_ID` is no longer authoritative because actual Git HEAD wins at build time. Do not change it merely to make proof green.
 
-- `ARTWORK_SIGNING_KEY`
-- signed artwork route proof
+## 5. Where owner-controlled values are added
 
-Durable jobs require:
+For the existing Hostinger Node app, use either:
 
-- `CRON_SECRET`
-- successful protected `/api/internal/jobs/drain` proof
-- Hostinger cron configured without placing the secret in a public URL query or repository file
+- hPanel **Website Dashboard → Settings & Redeploy → Environment variables**, or
+- **Deployments → Settings and redeploy → Environment Variables**.
 
-Private artwork remains at:
+Add each variable as a Name/Value pair. Never put a secret in chat, GitHub, screenshots, URLs or repository files. Environment changes require a Hostinger redeploy before live proof is rerun.
 
-`/home/u639555688/issued-once-private-artwork`
+### Batch 1 — local/runtime secrets and support routing
 
-## 9. Production domain cutover
+Add:
 
-Only after the temporary Hostinger proof is fully green:
+- `SUPPORT_INBOX_EMAIL` — real inbox controlled by the owner for support-request delivery
+- `INTERNAL_OPERATIONS_TOKEN` — unique high-entropy random secret, minimum 24 characters
+- `CRON_SECRET` — different high-entropy random secret, minimum 24 characters
+- `ARTWORK_SIGNING_KEY` — third different high-entropy random secret, minimum 24 characters
 
-1. Connect `issuedonce.shop` to the proved Hostinger app.
-2. Set `APP_ORIGIN=https://issuedonce.shop`.
-3. Update cron to the final domain.
-4. Redeploy/restart if required.
-5. Repeat exact release-health proof on `issuedonce.shop`.
-6. Repeat Tee/Cap/Tote live proof.
-7. Re-run Neon read-only safety corroboration: newest physical selections persisted correctly, Tote size is `OS`, manufacturing remains 0/0, referrals remain absent.
+Do not reuse one secret for multiple variables.
 
-Only after this second proof may PR #13 become eligible to merge into `feat/mystery-foundation`. PR #3 remains a separate final-release audit gate.
+After Batch 1 redeploy require fresh proof:
 
-## 10. Optional dummy-data cleanup
+- exact release health still reports V5 or the newly approved exact successor
+- `/api/ops/session` with an invalid token returns 401 instead of 503
+- `/api/internal/jobs/drain` without valid bearer authorization returns 401 instead of 503
+- live support pre-order guard reaches 409 instead of runtime 503
+- invalid signed-artwork access remains denied
+- Neon safety counts remain free of unintended payment/manufacturing/referral writes
 
-Historical V1/test-order cleanup is optional and requires a separate explicit owner approval. Before deletion:
+The actual Hostinger cron must later POST to `/api/internal/jobs/drain` with `Authorization: Bearer <CRON_SECRET>`. Never place the secret in a query string or source file.
+
+### Batch 2 — truthful public merchant disclosure
+
+Required for the public store/contact pages to be release-ready:
+
+- `MERCHANT_PUBLIC_NAME`
+- `MERCHANT_SUPPORT_EMAIL`
+- `MERCHANT_PUBLIC_LOCATION`
+
+Optional when truthful and available:
+
+- `MERCHANT_SUPPORT_PHONE`
+- `MERCHANT_LEGAL_ENTITY`
+- `SUPPORT_REPLY_TO`
+
+Do not invent a legal entity, registration, address, country or phone number. The public values must describe the actual merchant/support route.
+
+### Batch 3 — design generation
+
+Required:
+
+- `OPENAI_API_KEY`
+
+Optional model overrides:
+
+- `OPENAI_DESIGN_MODEL`
+- `OPENAI_IMAGE_MODEL`
+
+V5 design generation uses the Hostinger private filesystem; no Vercel Blob token is required.
+
+After configuration, prove design generation through the durable job path, private artwork persistence, signed read access and owner review controls. Do not bypass the queue or expose private answers/artwork.
+
+### Batch 4 — Safepay
+
+Obtain values from the appropriate Safepay merchant dashboard and add directly in Hostinger:
+
+- `SAFEPAY_API_KEY` — Safepay Public API Key
+- `SAFEPAY_API_SECRET` — Safepay Private API Secret Key
+- `SAFEPAY_WEBHOOK_SECRET` — Safepay endpoint shared secret
+- `SAFEPAY_ENVIRONMENT` — `sandbox` for sandbox proof; `production` only when the real live account/cutover is deliberately enabled
+
+Do not use `SAFEPAY_V1_SECRET` for a new deployment when the current API secret is available.
+
+Before any live customer charge, prove:
+
+- invalid payment request reaches the normal 409 guard instead of runtime 503
+- invalid Safepay webhook reaches 401 authentication guard instead of runtime 503
+- return/cancel URLs use the current HTTPS app origin
+- webhook verification and tracker identity/amount/currency checks remain intact
+
+No real Safepay charge is required solely for QA.
+
+### Batch 5 — Printful
+
+Required for manufacturing draft creation:
+
+- `PRINTFUL_API_TOKEN`
+- `PRINTFUL_VARIANT_MAP_JSON`
+- `ARTWORK_SIGNING_KEY` from Batch 1
+- `APP_ORIGIN`
+
+Optional depending on token type:
+
+- `PRINTFUL_STORE_ID`
+
+Required for Printful webhook-v2 verification:
+
+- `PRINTFUL_WEBHOOK_PUBLIC_KEY`
+- `PRINTFUL_WEBHOOK_SECRET_HEX`
+
+Current code expects Printful webhook-v2 HMAC-SHA256 signing and decodes the returned hexadecimal secret before verification.
+
+Prove draft-safe manufacturing only. Draft creation is separate from confirmation. Keep production confirmation disabled during QA because Printful confirmation submits the order for fulfillment and can charge the store owner.
+
+## 6. Current exact live failures
+
+The exact-V5 live boundary audit reaches the application but still reports these configuration-dependent findings:
+
+1. public merchant disclosure incomplete
+2. public support address absent
+3. `/api/ops/session` returns 503 until `INTERNAL_OPERATIONS_TOKEN` is configured
+4. `/api/internal/jobs/drain` returns 503 until `CRON_SECRET` is configured
+5. `/api/webhooks/safepay` returns 503 until Safepay runtime credentials are configured
+6. `/api/webhooks/printful` returns 503 until Printful webhook credentials are configured
+7. `/api/payments/create` returns 503 until Safepay runtime credentials are configured
+8. the dedicated support proof returns 503 until `SUPPORT_INBOX_EMAIL` is configured
+
+Already-green live boundaries include public page reachability, release health, anonymous issue privacy, invalid artwork denial, anonymous Owner OS dashboard denial, retired internal routes returning 410, retired Fourthwall returning 410, invalid support-payload rejection, shipping locked before verified contact, and referrals intentionally unavailable.
+
+## 7. Owner-managed customer persistence gates
+
+OTP code entry is owner-managed and the code must never be pasted into chat.
+
+To prove verified-contact persistence:
+
+1. On the temporary Hostinger site complete a fresh customer flow to email verification.
+2. Request the code.
+3. Read the code from the mailbox and enter it directly into the website.
+4. Do not share the code in chat.
+5. After the website confirms verification, run a read-only Neon check and require a V2 verified-contact row.
+
+Then prove shipping:
+
+1. Continue the same live session to shipping.
+2. Enter a valid test/shipping address directly into the website, never chat.
+3. Submit/continue.
+4. Run a read-only Neon check and require a V2 shipping snapshot.
+
+## 8. Email deliverability gate
+
+Transport is proven:
+
+- Resend request accepted
+- connected Gmail received the OTP mail
+- SPF passed
+- DKIM passed
+
+Repeated automated QA OTP messages have been classified as Spam by Gmail. Therefore normal-user Inbox placement remains an open release-quality gate.
+
+Before domain cutover:
+
+- inspect Resend deliverability/DNS status
+- establish/verify DMARC for the sending domain as appropriate
+- avoid treating rapid automated QA traffic as representative user traffic
+- perform a fresh normal-user OTP delivery test
+- require acceptable placement/reliability before calling deliverability complete
+
+Marking one message “Not spam” is not sufficient production proof by itself.
+
+## 9. Temporary-host completion matrix
+
+Before requesting canonical-domain cutover approval, require fresh evidence for all of the following:
+
+- exact release identity and Hostinger/database/queue/storage health
+- Tee/Cap/Tote questionnaire and physical gates
+- real OTP request
+- owner-completed OTP verification and V2 verified-contact persistence
+- V2 shipping persistence
+- support runtime and persistence guards
+- owner operations authentication guard
+- protected cron guard and safe zero-work drain proof
+- design generation through durable queue
+- private artwork filesystem persistence and signed access
+- Safepay runtime/webhook guards without a QA charge
+- Printful webhook/manufacturing draft safety without production confirmation
+- truthful public merchant/contact disclosure
+- acceptable email deliverability
+- Neon corroboration showing no unintended payment/manufacturing/referral side effects
+- migration `0029` still absent unless separately approved
+
+## 10. Production domain cutover
+
+Domain cutover requires a separate explicit owner approval after the temporary-host matrix is green.
+
+After approval:
+
+1. connect `issuedonce.shop` to the proved Hostinger app
+2. set `APP_ORIGIN=https://issuedonce.shop`
+3. update Safepay/Printful webhook endpoints and allowed return/cancel routes where required
+4. update Hostinger cron target to the canonical HTTPS domain
+5. redeploy/restart as required
+6. repeat exact release health on `issuedonce.shop`
+7. repeat Tee/Cap/Tote, OTP/contact, shipping, support, artwork/design and guarded provider proofs
+8. repeat Neon read-only safety corroboration
+9. recheck email deliverability on the canonical domain
+
+Only after this second proof may PR #13 become eligible for promotion/merge into `feat/mystery-foundation`. PR #3 remains a separate final-release audit gate.
+
+## 11. Optional dummy-data cleanup
+
+Historical V1/test-order cleanup is optional and requires separate explicit owner approval. It is not required for release proof.
+
+Before any deletion:
 
 - enumerate dependent test-state tables
 - prove manufacturing remains empty
 - preserve schema/configuration rows that are not customer test data
-- test the reset on a temporary Neon branch first
-- apply only after separate approval
-
-Dummy-data cleanup is not required for Hostinger release proof.
+- test reset behavior on a temporary Neon branch first
+- apply to production only after the separate approval
