@@ -6,7 +6,6 @@ on:
       - feat/mystery-foundation
     paths:
       - '.github/workflows/hostinger-temp-proof.yml'
-      - 'tests/e2e/live-otp-tempmail.mjs'
 
 permissions:
   contents: read
@@ -36,15 +35,8 @@ jobs:
         run: pnpm exec playwright install chromium
       - name: Prove release identity and runtime boundaries
         run: node tests/e2e/live-release-health.mjs
-      - name: Prove Tee Cap Tote physical gates
+      - name: Prove Tee Cap Tote physical gates and real mailbox request
         run: node tests/e2e/live-production-smoke.mjs
-      - name: Checkout engineering proof harness
-        uses: actions/checkout@v4
-        with:
-          ref: infra/hostinger-migration-20260823
-          path: engineering-harness
-      - name: Prove OTP end to end with Temp-Mail.org
-        run: node engineering-harness/tests/e2e/live-otp-tempmail.mjs
       - name: Upload live proof evidence
         if: always()
         uses: actions/upload-artifact@v4
