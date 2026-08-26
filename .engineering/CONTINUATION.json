@@ -1,15 +1,18 @@
 {
   "schemaVersion": 1,
-  "version": "1.10.8",
+  "version": "1.10.9",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-26T17:55:00+05:00",
+  "updatedAt": "2026-08-26T18:37:17+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
+    "activeMigrationHeadBeforeThisCheckpoint": "5daf843a49ca941d4a85bc4d2c71dd61d682a16a",
     "engineeringProofBranch": "engineering/live-header-proof-20260826",
+    "engineeringProofPullRequest": 14,
+    "engineeringProofStatus": "MERGED_CLOSED",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
@@ -18,13 +21,13 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "V10_EXACT_LIVE_AUTOMATED_STALE_ROOT_HEADER_GATE_PLUS_FIVE_RUNTIME_CONFIG_FINDINGS",
+    "decision": "V10_EXACT_LIVE_STRICT_HEADER_GATE_INTEGRATED_AWAITING_OWNER_CACHE_PURGE_AND_PROVIDER_CONFIG",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Exact V10 is live. Repository/runtime auth boundaries for operations and cron are healthy. The bare temporary-domain homepage is still a Hostinger cache HIT containing s-maxage and missing the five required security headers; this defect is now enforced by an isolated live GitHub Actions gate. Five truthful launch-configuration findings also remain: merchant disclosure, public support address, Safepay webhook/runtime, Printful webhook/runtime, and Safepay payment runtime. The current hPanel branch selection must not be changed because prior branch changes reset environment variables."
+    "stopReason": "Exact V10 is live. Operations and cron auth boundaries are healthy. The strict bare-home security-header/cache gate is merged and post-merge CI/Browser QA are green, but the temporary-domain homepage remains a Hostinger cache HIT containing s-maxage and missing the five required security headers until the owner clears the hosting/server cache. Five truthful launch-configuration findings also remain: merchant disclosure, public support address, Safepay webhook/runtime, Printful webhook/runtime, and Safepay payment runtime. The current hPanel branch selection must not be changed because prior branch changes reset environment variables."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V10_LIVE_RUNTIME_UNCHANGED_STRICT_HEADER_GATE_VERIFIED_RED_AWAITING_FULL_REPO_PR_GATES_AND_OWNER_CACHE_PURGE",
+    "internalWorkStatus": "V10_RUNTIME_UNCHANGED_STRICT_HEADER_GATE_MERGED_POST_MERGE_CI_BROWSER_GREEN_AWAITING_OWNER_CACHE_PURGE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, Browser QA, exact release health, live-product and database evidence before success claims",
@@ -81,6 +84,23 @@
     "exactReleaseHealth": "PASS_PROVIDER_HOSTINGER_RELEASE_V10",
     "realQaPayment": false
   },
+  "repositoryVerification": {
+    "postMergeHead": "5daf843a49ca941d4a85bc4d2c71dd61d682a16a",
+    "ci": {
+      "runNumber": 1457,
+      "runId": 32971781451,
+      "jobId": 98186971566,
+      "result": "PASS",
+      "steps": ["locked dependency install", "unit tests", "typecheck", "lint", "production build"]
+    },
+    "browserQa": {
+      "runNumber": 1356,
+      "runId": 32971781470,
+      "jobId": 98186972217,
+      "result": "PASS",
+      "steps": ["browser tests", "visual evidence upload"]
+    }
+  },
   "liveBoundaryAudit": {
     "latestRunId": 32961112453,
     "latestJobId": 98154721599,
@@ -106,7 +126,8 @@
     "configuredAuthProof": {
       "INTERNAL_OPERATIONS_TOKEN": "PRESENT_AND_SAFE_LENGTH_PROVEN_BY_INVALID_CREDENTIAL_401",
       "CRON_SECRET": "PRESENT_AND_SAFE_LENGTH_PROVEN_BY_UNAUTHENTICATED_401"
-    }
+    },
+    "artworkSigningKeyProof": "UNPROVEN_INVALID_TOKEN_401_IS_NOT_POSITIVE_CONFIGURATION_PROOF"
   },
   "securityHeaders": {
     "required": [
@@ -122,7 +143,8 @@
       "workflow": ".github/workflows/hostinger-strict-header-audit.yml",
       "probe": "tests/e2e/live-security-headers.mjs",
       "fullBoundaryProbe": "tests/e2e/live-non-otp-boundaries.mjs",
-      "engineeringBranchHead": "ccd5b7b78f19b7b9d037906530424565e2a2f79e",
+      "mergedViaPullRequest": 14,
+      "integrationHead": "5daf843a49ca941d4a85bc4d2c71dd61d682a16a",
       "runId": 32970751752,
       "jobId": 98183661688,
       "syntaxCheck": "PASS_THREE_LIVE_PROOF_SCRIPTS",
@@ -158,6 +180,12 @@
     "optional": ["PRINTFUL_STORE_ID", "MERCHANT_SUPPORT_PHONE", "MERCHANT_LEGAL_ENTITY", "SUPPORT_REPLY_TO"],
     "forbidden": ["REFERRAL_ATTRIBUTION_SIGNING_KEY", "migration 0029 activation", "Printful production confirmation during QA"]
   },
+  "artworkSigningKeyEvidence": {
+    "v10Route": "src/app/api/artwork/[token]/route.ts",
+    "v10AccessClass": "src/server/design/SignedArtworkAccess.ts",
+    "conclusion": "DO_NOT_INFER_CONFIGURED_FROM_INVALID_TOKEN_401",
+    "reason": "The route catches both env/configuration errors and token-verification errors and deliberately returns the same 401 response. Positive proof requires a safe server path that successfully constructs/uses SignedArtworkAccess without exposing the key."
+  },
   "emailDeliverability": {
     "resendTransport": "PASS",
     "gmailReceipt": "PASS",
@@ -174,19 +202,20 @@
     "dummyDataReset": "NOT_AUTHORIZED",
     "productionDomainCutover": "NOT_PERFORMED",
     "pullRequest13": "DRAFT_UNMERGED",
+    "pullRequest14": "MERGED_CLOSED_TEST_ONLY_PROOF_HARNESS",
     "pullRequest3": "SEPARATE_FINAL_AUDIT_GATE"
   },
   "nextActions": [
-    "SYSTEM: trigger full CI and Browser QA for the isolated strict-header harness before promoting it to the migration branch",
-    "SYSTEM: fast-forward the active migration branch only after those repository gates pass; do not modify V10 runtime candidate",
     "OWNER: clear Hostinger hosting/server cache for the current temporary app without changing branch or environment variables",
     "SYSTEM: rerun strict bare-home security-header audit and require green after cache purge",
+    "SYSTEM: rerun exact-release/live boundary/Neon safety proof after cache purge",
     "OWNER: add truthful merchant public name/support email/location",
     "OWNER: complete Safepay runtime/webhook configuration; QA must not create a real charge",
     "OWNER: complete Printful webhook/manufacturing configuration; production confirmation remains disabled",
+    "SYSTEM: positively prove ARTWORK_SIGNING_KEY through a safe successful signing path before marking configured",
     "SYSTEM: rerun live boundary audit and require provider invalid-auth/precondition behavior",
     "SYSTEM+OWNER: prove normal Gmail deliverability and DMARC without exposing OTP",
     "SYSTEM+OWNER: request separate issuedonce.shop cutover approval only after temporary-host gates are green"
   ],
-  "nextOwnerAction": "HOSTINGER_CLEAR_SERVER_CACHE_ONLY_THEN_COMPLETE_TRUTHFUL_PUBLIC_AND_PROVIDER_CONFIG_WITHOUT_BRANCH_CHANGE"
+  "nextOwnerAction": "HOSTINGER_CLEAR_SERVER_CACHE_ONLY_WITHOUT_BRANCH_OR_ENVIRONMENT_CHANGES"
 }
