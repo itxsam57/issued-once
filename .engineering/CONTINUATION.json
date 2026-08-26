@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.13.0",
+  "version": "1.14.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-26T23:45:00+05:00",
+  "updatedAt": "2026-08-27T01:38:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -16,6 +16,9 @@
     "safepayRepairBranch": "engineering/safepay-reporter-v1-20260826",
     "safepayRepairPullRequest": 15,
     "safepayVerifiedCodeHead": "345475345b55d985cc31515e72a2899d8f59b266",
+    "browserQaRepairBranch": "engineering/browser-qa-hostinger-20260827",
+    "browserQaRepairPullRequest": 16,
+    "browserQaRepairVerifiedHead": "c46066a557e6af0eb45967ebe36bf5a42533315b",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
@@ -23,14 +26,14 @@
     "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
-    "state": "BLOCKED",
-    "decision": "SAFEPAY_REPORTER_V1_CODE_VERIFIED_BROWSER_LOCAL_GREEN_LIVE_PREVIEW_GATE_STALE_AFTER_HOSTINGER_MIGRATION",
+    "state": "OWNER_REQUIRED",
+    "decision": "SAFEPAY_REPORTER_V1_CODE_AND_HOSTINGER_BROWSER_GATE_GREEN_AWAITING_PR16_INTEGRATION_DECISION",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Safepay Reporter v1 repair is code-verified on exact code head 345475345b55d985cc31515e72a2899d8f59b266. CI #1465 passed locked install, 195/195 test files, 564/564 tests, typecheck, lint with zero errors and production build. Browser QA #1361 checked out the same exact head and the branch-local Playwright suite passed 38/38 desktop/mobile tests with visual evidence uploaded. The workflow as a whole is red only because its manual live-owner step is still Vercel-preview-specific and requires OWNER PREVIEW / NO PAYMENT, while the supplied Hostinger V10 URL correctly serves the real public journey. That false-red does not indicate a Safepay or exact-branch browser regression. PR 15 remains draft and unmerged until the stale Browser QA live-preview contract is reconciled or explicitly waived as non-applicable for this backend-only repair. Production V10, Hostinger branch selection and production database remain untouched."
+    "stopReason": "Safepay Reporter v1 repair remains code-verified on exact functional head 345475345b55d985cc31515e72a2899d8f59b266: CI #1465 passed locked install, 195/195 test files, 564/564 tests, typecheck, lint with zero errors and production build; Browser QA #1361 checked out that same code head and its exact branch-local Playwright suite passed 38/38. The historical workflow red was isolated to a Vercel-only manual live-preview assumption. Separate Browser QA repair PR 16 is now fully verified at c46066a557e6af0eb45967ebe36bf5a42533315b: CI #1470 passed 195/195 files and 564/564 tests plus typecheck/lint/build, Browser QA #1365 passed 38/38, and manual Browser QA #1366 against https://lightgray-coyote-141764.hostingersite.com passed the Hostinger-aware live smoke for both desktop and mobile. The stale infrastructure block is therefore resolved. PRs 15 and 16 remain draft/unmerged because final branch integration is an owner decision under the finishing-branch protocol. Production V10, Hostinger branch selection and production database remain untouched."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "SAFEPAY_REPORTER_V1_EXACT_CODE_HEAD_CI_GREEN_BROWSER_38_GREEN_INFRASTRUCTURE_FALSE_RED_ISOLATED",
+    "internalWorkStatus": "SAFEPAY_REPORTER_V1_VERIFIED_HOSTINGER_BROWSER_GATE_REPAIRED_FULLY_GREEN_AWAITING_INTEGRATION_DECISION",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, Browser QA, exact release health, live-product and database evidence before success claims",
@@ -42,7 +45,7 @@
       "Do not apply migration 0029 or configure referral attribution signing",
       "Keep Printful production confirmation disabled",
       "Do not create real Safepay charges solely for QA",
-      "Do not merge or deploy PR 15 while the Browser QA manual live-preview contract remains unresolved or explicitly classified non-applicable",
+      "Do not integrate PR 15 ahead of the owner decision for verified Browser QA infrastructure PR 16; after PR 16 integration, re-verify PR 15 against the updated migration base before integration",
       "Do not cut issuedonce.shop until all temporary-host gates and email deliverability are green"
     ]
   },
@@ -123,12 +126,15 @@
       "migrationBaseCi": "PASS CI #1459 run 32980446276 at 52ba4252d69f11e4f797efca6eec9a084c4f34ee",
       "migrationBaseBrowserQa": "PASS Browser QA #1358 run 32980446030 at 52ba4252d69f11e4f797efca6eec9a084c4f34ee",
       "exactCodeHeadCi": "PASS CI #1465 run 32999748983 at 345475345b55d985cc31515e72a2899d8f59b266; 195/195 files; 564/564 tests; typecheck PASS; lint 0 errors; production build PASS",
-      "exactCodeHeadBrowserQa": "PARTIAL_WORKFLOW_RED_BUT_BRANCH_BROWSER_GREEN: Browser QA #1361 run 33000517257 checked out 345475345b55d985cc31515e72a2899d8f59b266; Browser tests PASS 38/38; visual artifact 9618430459 uploaded; live-owner step failed because Hostinger V10 lacks Vercel-only OWNER PREVIEW / NO PAYMENT marker",
+      "exactCodeHeadBrowserQa": "HISTORICAL_PARTIAL_WORKFLOW_RED_BUT_BRANCH_BROWSER_GREEN: Browser QA #1361 run 33000517257 checked out 345475345b55d985cc31515e72a2899d8f59b266; Browser tests PASS 38/38; visual artifact 9618430459 uploaded; live-owner step failed because Hostinger V10 lacks Vercel-only OWNER PREVIEW / NO PAYMENT marker",
       "browserQaArtifact": "issued-once-browser-qa artifact 9618430459; sha256 9d331ace9c6719392f8aff32cb900c8d0e52002b46a3c63fe094f71c5a65da5a",
-      "livePreviewFailureClassification": "INFRASTRUCTURE_FALSE_RED_AFTER_VERCEL_TO_HOSTINGER_MIGRATION; live-owner-preview.mjs is explicitly Vercel-preview-specific and does not test Safepay payment verification",
+      "livePreviewFailureClassification": "RESOLVED_INFRASTRUCTURE_FALSE_RED_AFTER_VERCEL_TO_HOSTINGER_MIGRATION; live-owner-preview.mjs was explicitly Vercel-preview-specific and did not test Safepay payment verification",
+      "browserQaInfrastructureRepair": "PASS PR16 final head c46066a557e6af0eb45967ebe36bf5a42533315b; CI #1470 run 33010425057 PASS 195/195 files 564/564 tests typecheck lint build; Browser QA #1365 run 33010464175 PASS 38/38",
+      "hostingerManualLiveSmoke": "PASS Browser QA #1366 run 33010913394 job 98316631338 against https://lightgray-coyote-141764.hostingersite.com; LIVE_HOSTINGER_PREVIEW_PASS desktop and mobile; artifact 9622537829 sha256 8db6e1090fc3bad6bf66ec06724d031ae734fede99394941a66369eb180dbe95",
       "localFullRunner": "BLOCKED_OUTBOUND_DNS_PREVENTS_DEPENDENCY_INSTALL; GitHub Actions provided the authoritative exact-head verification instead",
       "vercelStatus": "PREEXISTING_FAILURE_ON_MIGRATION_BASE_AND_REPAIR_HEAD; Vercel is not the active Hostinger release target",
       "mergeAllowed": false,
+      "mergeBlockedOnlyBy": "OWNER_INTEGRATION_DECISION_FOR_PR16_THEN_FRESH_PR15_VERIFICATION_ON_UPDATED_BASE",
       "deploymentAllowed": false
     },
     "productionMutationPerformed": false,
@@ -154,11 +160,27 @@
       "fullCi": "PASS_RUN_32999748983",
       "unitTests": "PASS_564_OF_564",
       "browserTests": "PASS_38_OF_38_RUN_33000517257",
-      "browserWorkflowOverall": "FAIL_ONLY_VERCEL_PREVIEW_LIVE_STEP_ON_HOSTINGER_URL",
+      "browserWorkflowOverall": "HISTORICAL_VERCEL_PREVIEW_FALSE_RED_RESOLVED_BY_VERIFIED_PR16_HOSTINGER_AWARE_HARNESS",
       "visualEvidence": "PASS_ARTIFACT_9618430459",
       "successClaimAllowedForSafepayCode": true,
       "mergeClaimAllowed": false
     }
+  },
+  "browserQaHostingerRepair": {
+    "branch": "engineering/browser-qa-hostinger-20260827",
+    "pullRequest": 16,
+    "pullRequestState": "DRAFT_UNMERGED_AWAITING_OWNER_INTEGRATION_DECISION",
+    "baseBranch": "infra/hostinger-migration-20260823",
+    "finalHead": "c46066a557e6af0eb45967ebe36bf5a42533315b",
+    "rootCause": "Manual Browser QA always invoked a Vercel-owner-preview-specific probe even when preview_url was a real Hostinger deployment, causing a permanent false red after migration",
+    "implementationScope": "Infrastructure/test only: host-aware live-preview router, read-only Hostinger public smoke, workflow routing and regression contract; no product/payment/database/webhook/runtime production code changed",
+    "ci": "PASS CI #1470 run 33010425057; 195/195 files; 564/564 tests; typecheck PASS; lint 0 errors; production build PASS",
+    "browserQa": "PASS Browser QA #1365 run 33010464175; 38/38 desktop/mobile Chromium tests; artifact 9622353294 sha256 93f2916def41f9d4b37f9399c8ac7279a6a3674784d98759aaedf4fc0b6e8335",
+    "manualHostinger": "PASS Browser QA #1366 run 33010913394 job 98316631338; PREVIEW_URL https://lightgray-coyote-141764.hostingersite.com; LIVE_HOSTINGER_PREVIEW_PASS desktop and mobile; artifact 9622537829 sha256 8db6e1090fc3bad6bf66ec06724d031ae734fede99394941a66369eb180dbe95",
+    "writesPerformed": false,
+    "otpPerformed": false,
+    "paymentPerformed": false,
+    "hostingerBranchChanged": false
   },
   "liveBoundaryAudit": {
     "latestRunId": 32961112453,
@@ -257,12 +279,14 @@
     "productionDomainCutover": "NOT_PERFORMED",
     "pullRequest13": "DRAFT_UNMERGED",
     "pullRequest14": "MERGED_CLOSED_TEST_ONLY_PROOF_HARNESS",
-    "pullRequest15": "DRAFT_UNMERGED_CODE_VERIFIED_BROWSER_38_GREEN_LIVE_PREVIEW_FALSE_RED",
+    "pullRequest15": "DRAFT_UNMERGED_CODE_VERIFIED_HOSTINGER_GATE_REPAIRED_AWAITING_PR16_INTEGRATION",
+    "pullRequest16": "DRAFT_UNMERGED_FULLY_VERIFIED_AWAITING_OWNER_INTEGRATION_DECISION",
     "pullRequest3": "SEPARATE_FINAL_AUDIT_GATE"
   },
   "nextActions": [
-    "SYSTEM: reconcile Browser QA manual live-preview step with the Hostinger migration so non-Vercel URLs do not produce a permanent false-red gate",
-    "SYSTEM: keep PR 15 isolated and do not change its verified Safepay production line while infrastructure gate reconciliation is pending",
+    "OWNER: choose the integration outcome for fully verified Browser QA infrastructure PR 16",
+    "SYSTEM: if PR 16 is integrated into infra/hostinger-migration-20260823, reconcile PR 15 against that updated base and require fresh merged-result CI plus Browser QA before PR 15 integration",
+    "SYSTEM: keep PR 15 functional Safepay production line unchanged while integration ordering is resolved",
     "OWNER: add truthful merchant public name/support email/location without changing the Hostinger branch",
     "OWNER: configure SUPPORT_INBOX_EMAIL if not already present",
     "OWNER: complete Safepay runtime/webhook configuration only after PR 15 promotion; QA must not create a real charge",
@@ -274,5 +298,5 @@
     "SYSTEM+OWNER: prove normal Gmail deliverability and DMARC without exposing OTP",
     "SYSTEM+OWNER: request separate issuedonce.shop cutover approval only after temporary-host gates are green"
   ],
-  "nextOwnerAction": "NONE_FOR_SAFEPAY_CODE_VERIFICATION; SYSTEM_TO_RECONCILE_STALE_BROWSER_QA_LIVE_PREVIEW_GATE"
+  "nextOwnerAction": "DECIDE_PR16_INTEGRATION_OPTION"
 }
