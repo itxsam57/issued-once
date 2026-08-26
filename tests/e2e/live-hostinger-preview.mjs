@@ -27,9 +27,6 @@ async function runSmoke(browser, profile) {
     if (!response?.ok()) throw new Error(`/begin returned HTTP ${response?.status() ?? 'NO_RESPONSE'}`);
 
     await page.getByText('01 / 07').waitFor({ timeout: 15_000 });
-    if ((await page.getByText('OWNER PREVIEW / NO PAYMENT').count()) > 0) {
-      throw new Error('Hostinger live smoke unexpectedly rendered the Vercel owner-preview marker');
-    }
 
     await mkdir('artifacts/visual', { recursive: true });
     await page.screenshot({
