@@ -17,6 +17,13 @@ const FORBIDDEN_MARKERS = [
   'OPENAI_API_KEY',
   'INTERNAL_OPERATIONS_TOKEN',
 ];
+const REQUIRED_SECURITY_HEADERS = {
+  'strict-transport-security': 'max-age=31536000; includeSubDomains',
+  'x-content-type-options': 'nosniff',
+  'x-frame-options': 'DENY',
+  'referrer-policy': 'strict-origin-when-cross-origin',
+  'permissions-policy': 'camera=(), microphone=(), geolocation=()',
+};
 
 function check(condition, message) {
   if (!condition) failures.push(message);
@@ -28,11 +35,26 @@ function assertNoSecretMarkers(text, label) {
   }
 }
 
+function assertBareHomeSecurityHeaders(result) {
+  for (const [name, expected] of Object.entries(REQUIRED_SECURITY_HEADERS)) {
+    check(result.headers[name] === expected, `bare / ${name} mismatch`);
+  }
+
+  check(!('x-powered-by' in result.headers), 'bare / exposes x-powered-by');
+
+  const cacheControl = result.headers['cache-control'] ?? '';
+  check(cacheControl.includes('no-store'), 'bare / cache-control is missing no-store');
+  check(!/s-maxage\s*=/i.test(cacheControl), 'bare / cache-control contains s-maxage');
+}
+
 async function fetchText(context, path, init) {
   const response = await context.request.fetch(`${baseUrl}${path}`, init);
   const text = await response.text().catch(() => '');
+  const headers = Object.fromEntries(
+    Object.entries(response.headers()).map(([name, value]) => [name.toLowerCase(), value]),
+  );
   assertNoSecretMarkers(text, path);
-  return { status: response.status(), text };
+  return { status: response.status(), text, headers };
 }
 
 async function checkStatus(context, path, expected, init) {
@@ -51,7 +73,8 @@ try {
   const anonymous = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   try {
     for (const path of ['/', '/terms', '/returns']) {
-      await checkStatus(anonymous, path, [200]);
+      const publicPage = await checkStatus(anonymous, path, [200]);
+      if (path === '/') assertBareHomeSecurityHeaders(publicPage);
     }
 
     const storeInfo = await checkStatus(anonymous, '/store-info', [200]);
