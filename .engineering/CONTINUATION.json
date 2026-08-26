@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.11.0",
+  "version": "1.12.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-26T19:20:00+05:00",
+  "updatedAt": "2026-08-26T22:00:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -13,6 +13,9 @@
     "engineeringProofBranch": "engineering/live-header-proof-20260826",
     "engineeringProofPullRequest": 14,
     "engineeringProofStatus": "MERGED_CLOSED",
+    "safepayRepairBranch": "engineering/safepay-reporter-v1-20260826",
+    "safepayRepairPullRequest": 15,
+    "safepayRepairHeadBeforeGovernorCheckpoint": "d2eec2402418f765e32f37e12bd0e39ee3a94799",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
@@ -20,14 +23,14 @@
     "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "decision": "V10_EXACT_LIVE_CACHE_SECURITY_GATE_GREEN_AWAITING_PUBLIC_PROVIDER_AND_MANUAL_FLOW_CONFIGURATION",
+    "state": "BLOCKED",
+    "decision": "SAFEPAY_REPORTER_V1_FIX_FOCUSED_GREEN_EXACT_HEAD_FULL_CI_TRIGGER_BLOCKED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Exact V10 remains live and the owner-cleared Hostinger cache has now passed the strict bare-home security-header/cache gate. Operations and cron auth boundaries are healthy. Remaining release work is truthful merchant/public support configuration, Safepay runtime/webhook configuration, Printful runtime/webhook configuration, positive support/artwork/design proofs, owner-managed OTP verification plus shipping persistence, email deliverability, and later separate canonical-domain approval. The current hPanel branch selection must not be changed because prior branch changes reset environment variables."
+    "stopReason": "The Safepay Reporter endpoint defect is isolated and minimally repaired on PR 15: the current official Safepay node-core Reporter contract is GET /reporter/api/v1/payments/{tracker}, the focused RED reproduction proved the existing v2 mismatch, and the focused GREEN harness proves the corrected v1 URL while preserving exact frozen-quote fail-closed checks, merchant-secret authentication and no-store behavior. The final PR diff against the Hostinger migration base is limited to the one-line gateway correction plus its regression test. Exact-head full CI and Browser QA cannot currently be claimed because GitHub Actions does not schedule runs for connector-authored pull_request or push events in this environment, including an isolated branch-only verification workflow, while the local execution sandbox cannot install dependencies because outbound DNS is blocked. PR 15 remains draft and unmerged; production V10, Hostinger branch selection and production database remain untouched."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V10_RUNTIME_UNCHANGED_CACHE_SECURITY_GATE_GREEN_ENGINEERING_HARNESS_VERIFIED_AWAITING_OWNER_PROVIDER_CONFIG",
+    "internalWorkStatus": "SAFEPAY_REPORTER_V1_MINIMAL_FIX_FOCUSED_GREEN_FULL_REPOSITORY_GATE_BLOCKED_EXTERNAL_RUNNER",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, Browser QA, exact release health, live-product and database evidence before success claims",
@@ -39,6 +42,7 @@
       "Do not apply migration 0029 or configure referral attribution signing",
       "Keep Printful production confirmation disabled",
       "Do not create real Safepay charges solely for QA",
+      "Do not merge or deploy PR 15 until exact-head repository verification is green",
       "Do not cut issuedonce.shop until all temporary-host gates and email deliverability are green"
     ]
   },
@@ -84,27 +88,72 @@
     "exactReleaseHealth": "PASS_PROVIDER_HOSTINGER_RELEASE_V10",
     "realQaPayment": false
   },
+  "activeSafepayRepair": {
+    "branch": "engineering/safepay-reporter-v1-20260826",
+    "pullRequest": 15,
+    "pullRequestState": "DRAFT_UNMERGED",
+    "baseBranch": "infra/hostinger-migration-20260823",
+    "baseHead": "52ba4252d69f11e4f797efca6eec9a084c4f34ee",
+    "codeHeadBeforeGovernorCheckpoint": "d2eec2402418f765e32f37e12bd0e39ee3a94799",
+    "rootCause": "verifyTracker used /reporter/api/v2/payments/{tracker} instead of the current official Reporter /reporter/api/v1/payments/{tracker} contract",
+    "officialContractProof": {
+      "repository": "getsafepay/node-core",
+      "commit": "b3329b54a6b6a4774968b024c4bc152445e209ed",
+      "file": "src/resources/Reporter/Payments.ts",
+      "basePath": "/reporter",
+      "fetch": "GET /api/v1/payments/{tracker}"
+    },
+    "tdd": {
+      "redRegressionCommit": "dc024954cb874348232b25e8986aad28ca1389b5",
+      "redProof": "PASS_EXPECTED_FAILURE: actual https://api.getsafepay.com/reporter/api/v2/payments/track_paid_1 vs expected https://api.getsafepay.com/reporter/api/v1/payments/track_paid_1",
+      "greenFixCommit": "d2eec2402418f765e32f37e12bd0e39ee3a94799",
+      "greenFixDiff": "one production line only: reporter api v2 to v1",
+      "greenHarness": "PASS: v1 URL, GET semantics, merchant-secret header, no-store, exact frozen quote accepted, mismatched quote fails closed, invalid tracker performs no provider fetch"
+    },
+    "finalDiffAgainstMigrationBase": {
+      "files": 2,
+      "production": "src/server/payments/SafepayPaymentGateway.ts: +1/-1",
+      "test": "tests/unit/safepay-gateway.test.ts: +29/-0",
+      "databaseChanges": 0,
+      "uiChanges": 0,
+      "webhookChanges": 0
+    },
+    "verification": {
+      "migrationBaseCi": "PASS CI #1459 run 32980446276 at 52ba4252d69f11e4f797efca6eec9a084c4f34ee",
+      "migrationBaseBrowserQa": "PASS Browser QA #1358 run 32980446030 at 52ba4252d69f11e4f797efca6eec9a084c4f34ee",
+      "exactHeadCi": "BLOCKED_NO_ACTIONS_RUN_SCHEDULED_FOR_CONNECTOR_AUTHORED_PR_OR_PUSH_EVENTS",
+      "exactHeadBrowserQa": "BLOCKED_NO_ACTIONS_RUN_SCHEDULED; final diff contains no UI files",
+      "isolatedVerificationBranch": "engineering/safepay-reporter-v1-verification-20260826",
+      "isolatedWorkflowCommit": "515e04a296f948c78d9900275c985bc9e91c0d54",
+      "isolatedWorkflowScheduled": false,
+      "localFullRunner": "BLOCKED_OUTBOUND_DNS_PREVENTS_DEPENDENCY_INSTALL",
+      "vercelStatus": "PREEXISTING_FAILURE_ON_MIGRATION_BASE_AND_REPAIR_HEAD; Vercel is not the active Hostinger release target",
+      "mergeAllowed": false,
+      "deploymentAllowed": false
+    },
+    "productionMutationPerformed": false,
+    "realPaymentPerformed": false
+  },
   "repositoryVerification": {
-    "verifiedMigrationHead": "697712f129c19f1f10cd27f685a787893df19f93",
+    "verifiedMigrationHead": "52ba4252d69f11e4f797efca6eec9a084c4f34ee",
     "ci": {
-      "runNumber": 1458,
-      "runId": 32975401934,
-      "jobId": 98198783508,
+      "runNumber": 1459,
+      "runId": 32980446276,
       "result": "PASS",
-      "testFiles": 195,
-      "tests": 563,
-      "lintErrors": 0,
-      "lintWarnings": 5,
       "steps": ["locked dependency install", "unit tests", "typecheck", "lint", "production build"]
     },
     "browserQa": {
-      "runNumber": 1357,
-      "runId": 32975401933,
-      "jobId": 98198783317,
+      "runNumber": 1358,
+      "runId": 32980446030,
       "result": "PASS",
-      "tests": 38,
-      "artifactId": 9609318225,
       "steps": ["desktop/mobile Chromium browser tests", "visual evidence upload"]
+    },
+    "safepayRepairExactHead": {
+      "headBeforeGovernorCheckpoint": "d2eec2402418f765e32f37e12bd0e39ee3a94799",
+      "focusedContract": "PASS",
+      "fullCi": "BLOCKED_EXTERNAL_RUNNER_TRIGGER",
+      "browserQa": "BLOCKED_EXTERNAL_RUNNER_TRIGGER",
+      "successClaimAllowed": false
     }
   },
   "liveBoundaryAudit": {
@@ -165,7 +214,7 @@
   },
   "runtimeConfigurationContracts": {
     "operations": {"INTERNAL_OPERATIONS_TOKEN": "configured; preserve existing value; minimum 24-character contract proven by 401"},
-    "cron": {"CRON_SECRET": "configured; preserve existing value; minimum 24-character contract proven by 401"},
+    "cron": {"CRON_SECRET": "configured; preserve existing value; minimum 24-character contract proven by unauthenticated 401"},
     "merchantPublicRequired": ["MERCHANT_PUBLIC_NAME", "MERCHANT_SUPPORT_EMAIL", "MERCHANT_PUBLIC_LOCATION"],
     "supportRequired": ["SUPPORT_INBOX_EMAIL"],
     "designRequired": ["OPENAI_API_KEY"],
@@ -204,12 +253,15 @@
     "productionDomainCutover": "NOT_PERFORMED",
     "pullRequest13": "DRAFT_UNMERGED",
     "pullRequest14": "MERGED_CLOSED_TEST_ONLY_PROOF_HARNESS",
+    "pullRequest15": "DRAFT_UNMERGED_EXACT_HEAD_FULL_VERIFICATION_BLOCKED",
     "pullRequest3": "SEPARATE_FINAL_AUDIT_GATE"
   },
   "nextActions": [
+    "SYSTEM+OWNER: obtain exact-head full CI for PR 15 before merge; connector-authored events currently do not schedule Actions, so a manual GitHub workflow dispatch may be required",
+    "SYSTEM: after exact-head CI is green, reconcile PR 15 and determine whether backend-only change requires a separate manual Browser QA dispatch before merge",
     "OWNER: add truthful merchant public name/support email/location without changing the Hostinger branch",
     "OWNER: configure SUPPORT_INBOX_EMAIL if not already present",
-    "OWNER: complete Safepay runtime/webhook configuration; QA must not create a real charge",
+    "OWNER: complete Safepay runtime/webhook configuration only after PR 15 verification and promotion; QA must not create a real charge",
     "OWNER: complete Printful webhook/manufacturing configuration; production confirmation remains disabled",
     "OWNER: configure OPENAI_API_KEY and ARTWORK_SIGNING_KEY if absent, preserving any existing values",
     "SYSTEM: positively prove support delivery, design generation/private artwork and signed artwork access after configuration",
@@ -218,5 +270,5 @@
     "SYSTEM+OWNER: prove normal Gmail deliverability and DMARC without exposing OTP",
     "SYSTEM+OWNER: request separate issuedonce.shop cutover approval only after temporary-host gates are green"
   ],
-  "nextOwnerAction": "HOSTINGER_COMPLETE_TRUTHFUL_PUBLIC_SUPPORT_SAFEPAY_PRINTFUL_DESIGN_CONFIGURATION_WITHOUT_BRANCH_CHANGE"
+  "nextOwnerAction": "MANUALLY_TRIGGER_PR15_EXACT_HEAD_CI_IF_CONNECTOR_CANNOT_DISPATCH_WORKFLOW"
 }
