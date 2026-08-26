@@ -25,6 +25,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
+      - name: Syntax-check live proof scripts
+        run: |
+          node --check tests/e2e/live-release-health.mjs
+          node --check tests/e2e/live-security-headers.mjs
+          node --check tests/e2e/live-non-otp-boundaries.mjs
       - name: Resolve exact live release from Continuation Governor
         shell: bash
         run: |
