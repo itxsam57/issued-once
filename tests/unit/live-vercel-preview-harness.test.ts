@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const workflow = readFileSync('.github/workflows/browser-qa.yml', 'utf8');
@@ -8,6 +8,14 @@ const previewExperience = readFileSync(
   'src/components/preview/VisualPreviewExperience.tsx',
   'utf8',
 );
+const livePreviewRouterPath = 'tests/e2e/live-preview-smoke.mjs';
+const hostingerProbePath = 'tests/e2e/live-hostinger-preview.mjs';
+const livePreviewRouter = existsSync(livePreviewRouterPath)
+  ? readFileSync(livePreviewRouterPath, 'utf8')
+  : '';
+const hostingerProbe = existsSync(hostingerProbePath)
+  ? readFileSync(hostingerProbePath, 'utf8')
+  : '';
 
 describe('live Vercel preview harness', () => {
   it('passes the Vercel automation bypass secret from GitHub Actions into the live probe', () => {
@@ -22,6 +30,15 @@ describe('live Vercel preview harness', () => {
     expect(workflow).toContain('preview_url:');
     expect(workflow).toContain("PREVIEW_URL: ${{ inputs.preview_url }}");
     expect(workflow).not.toContain('PREVIEW_URL: https://issued-once-git-feat-mystery-foundation-samx4.vercel.app');
+  });
+
+  it('routes Hostinger manual previews through a Hostinger-safe smoke instead of Vercel owner-preview assumptions', () => {
+    expect(workflow).toContain('node tests/e2e/live-preview-smoke.mjs');
+    expect(livePreviewRouter).toContain("hostname.endsWith('.hostingersite.com')");
+    expect(livePreviewRouter).toContain("await import('./live-hostinger-preview.mjs')");
+    expect(livePreviewRouter).toContain("await import('./live-owner-preview.mjs')");
+    expect(hostingerProbe).toContain("runtimeProvider === 'hostinger'");
+    expect(hostingerProbe).not.toContain('OWNER PREVIEW / NO PAYMENT');
   });
 
   it('tracks the preview-specific physical and delivery contract', () => {
