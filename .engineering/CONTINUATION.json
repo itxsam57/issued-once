@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "version": "1.10.9",
+  "version": "1.11.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-26T18:37:17+05:00",
+  "updatedAt": "2026-08-26T19:20:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "activeMigrationHeadBeforeThisCheckpoint": "5daf843a49ca941d4a85bc4d2c71dd61d682a16a",
+    "activeMigrationHeadBeforeThisCheckpoint": "697712f129c19f1f10cd27f685a787893df19f93",
     "engineeringProofBranch": "engineering/live-header-proof-20260826",
     "engineeringProofPullRequest": 14,
     "engineeringProofStatus": "MERGED_CLOSED",
@@ -21,13 +21,13 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "V10_EXACT_LIVE_STRICT_HEADER_GATE_INTEGRATED_AWAITING_OWNER_CACHE_PURGE_AND_PROVIDER_CONFIG",
+    "decision": "V10_EXACT_LIVE_CACHE_SECURITY_GATE_GREEN_AWAITING_PUBLIC_PROVIDER_AND_MANUAL_FLOW_CONFIGURATION",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Exact V10 is live. Operations and cron auth boundaries are healthy. The strict bare-home security-header/cache gate is merged and post-merge CI/Browser QA are green, but the temporary-domain homepage remains a Hostinger cache HIT containing s-maxage and missing the five required security headers until the owner clears the hosting/server cache. Five truthful launch-configuration findings also remain: merchant disclosure, public support address, Safepay webhook/runtime, Printful webhook/runtime, and Safepay payment runtime. The current hPanel branch selection must not be changed because prior branch changes reset environment variables."
+    "stopReason": "Exact V10 remains live and the owner-cleared Hostinger cache has now passed the strict bare-home security-header/cache gate. Operations and cron auth boundaries are healthy. Remaining release work is truthful merchant/public support configuration, Safepay runtime/webhook configuration, Printful runtime/webhook configuration, positive support/artwork/design proofs, owner-managed OTP verification plus shipping persistence, email deliverability, and later separate canonical-domain approval. The current hPanel branch selection must not be changed because prior branch changes reset environment variables."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V10_RUNTIME_UNCHANGED_STRICT_HEADER_GATE_MERGED_POST_MERGE_CI_BROWSER_GREEN_AWAITING_OWNER_CACHE_PURGE",
+    "internalWorkStatus": "V10_RUNTIME_UNCHANGED_CACHE_SECURITY_GATE_GREEN_ENGINEERING_HARNESS_VERIFIED_AWAITING_OWNER_PROVIDER_CONFIG",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, Browser QA, exact release health, live-product and database evidence before success claims",
@@ -49,15 +49,15 @@
     "migrations": {"0030": true, "0031": true, "0032": true, "0033": true, "0029": false},
     "auditSemantics": "V2 is a key-version subset inside existing physical tables, not a separate *_v2 table namespace.",
     "latestReadOnlyProof": {
-      "experienceAnswersTotal": 518,
+      "experienceAnswersTotal": 2428,
       "experienceAnswersKeyV2": 518,
-      "otpChallengesTotal": 24,
+      "otpChallengesTotal": 280,
       "otpChallengesKeyV2": 24,
       "verifiedContactsTotal": 7,
       "verifiedContactsKeyV2": 0,
-      "shippingSnapshotsTotal": 8,
+      "shippingSnapshotsTotal": 7,
       "shippingSnapshotsKeyV2": 0,
-      "supportRequestsTotal": 1,
+      "supportRequestsTotal": 0,
       "supportRequestsKeyV2": 0,
       "backgroundJobsTotal": 0,
       "manufacturingJobsTotal": 0,
@@ -68,7 +68,7 @@
       "referralCreatorsPresent": false,
       "referralConversionsPresent": false
     },
-    "qaSafetyConclusion": "Latest V10 QA produced only expected encrypted/key-version-v2 questionnaire and OTP evidence plus hashed limiter subjects. It created no V2 verified contact, V2 shipping, V2 support, background/manufacturing work, new payment attempt, or referral rollout."
+    "qaSafetyConclusion": "Fresh read-only proof after the Hostinger cache purge shows V2 customer-sensitive state unchanged: 518 V2 answers, 24 V2 OTP challenges, zero V2 verified contacts/shipping/support, zero background/manufacturing work, six total payment attempts unchanged, three hashed limiter subjects, and no referral rollout."
   },
   "migration0033": {
     "file": "db/migrations/0033_otp_rate_limits.sql",
@@ -85,25 +85,33 @@
     "realQaPayment": false
   },
   "repositoryVerification": {
-    "postMergeHead": "5daf843a49ca941d4a85bc4d2c71dd61d682a16a",
+    "verifiedMigrationHead": "697712f129c19f1f10cd27f685a787893df19f93",
     "ci": {
-      "runNumber": 1457,
-      "runId": 32971781451,
-      "jobId": 98186971566,
+      "runNumber": 1458,
+      "runId": 32975401934,
+      "jobId": 98198783508,
       "result": "PASS",
+      "testFiles": 195,
+      "tests": 563,
+      "lintErrors": 0,
+      "lintWarnings": 5,
       "steps": ["locked dependency install", "unit tests", "typecheck", "lint", "production build"]
     },
     "browserQa": {
-      "runNumber": 1356,
-      "runId": 32971781470,
-      "jobId": 98186972217,
+      "runNumber": 1357,
+      "runId": 32975401933,
+      "jobId": 98198783317,
       "result": "PASS",
-      "steps": ["browser tests", "visual evidence upload"]
+      "tests": 38,
+      "artifactId": 9609318225,
+      "steps": ["desktop/mobile Chromium browser tests", "visual evidence upload"]
     }
   },
   "liveBoundaryAudit": {
     "latestRunId": 32961112453,
     "latestJobId": 98154721599,
+    "freshAfterCachePurge": false,
+    "freshAfterCachePurgeNote": "The prior boundary job aged out of the rerun endpoint. Do not claim a fresh complete boundary rerun solely from the cache purge; the strict cache/header gate and fresh Neon safety audit were independently rerun.",
     "releaseHealth": "PASS_EXACT_V10",
     "healthyBoundaries": [
       "public core pages 200",
@@ -137,8 +145,8 @@
       "Referrer-Policy: strict-origin-when-cross-origin",
       "Permissions-Policy: camera=(), microphone=(), geolocation=()"
     ],
-    "runtimeImplementation": "V10 runtime applies the baseline to normal/API/legacy responses; cache-busted home and dynamic API responses already prove the intended headers.",
-    "bareHomeCurrent": "STALE_HOSTINGER_HCDN_CACHE_HIT_S_MAXAGE_31536000_MISSING_FIVE_HEADERS",
+    "runtimeImplementation": "V10 runtime applies the baseline to normal/API/legacy responses.",
+    "bareHomeCurrent": "GREEN_AFTER_OWNER_HOSTINGER_CACHE_PURGE",
     "strictLiveGate": {
       "workflow": ".github/workflows/hostinger-strict-header-audit.yml",
       "probe": "tests/e2e/live-security-headers.mjs",
@@ -146,28 +154,21 @@
       "mergedViaPullRequest": 14,
       "integrationHead": "5daf843a49ca941d4a85bc4d2c71dd61d682a16a",
       "runId": 32970751752,
-      "jobId": 98183661688,
+      "rerunJobId": 98212747146,
       "syntaxCheck": "PASS_THREE_LIVE_PROOF_SCRIPTS",
       "exactReleaseHealth": "PASS_V10_AA73848E",
-      "result": "EXPECTED_RED_STALE_CACHE",
-      "findingCount": 7,
-      "findings": [
-        "strict-transport-security mismatch",
-        "x-content-type-options mismatch",
-        "x-frame-options mismatch",
-        "referrer-policy mismatch",
-        "permissions-policy mismatch",
-        "cache-control missing no-store",
-        "cache-control contains s-maxage"
-      ],
-      "xPoweredBy": "ABSENT_NO_FINDING"
+      "result": "PASS_AFTER_HOSTINGER_CACHE_PURGE",
+      "findingCount": 0,
+      "proofLine": "LIVE_SECURITY_HEADER_PASS bare-home exact-baseline no-powered-by no-store no-s-maxage"
     },
-    "ownerBoundary": "CLEAR_HOSTINGER_HOSTING_SERVER_CACHE_ONLY_WITHOUT_CHANGING_GIT_BRANCH_OR_ENVIRONMENT_VARIABLES; THEN_RERUN_STRICT_HEADER_GATE_AND_REQUIRE_GREEN"
+    "ownerBoundary": "RESOLVED_BY_OWNER_CACHE_PURGE_AND_FRESH_STRICT_LIVE_GREEN"
   },
   "runtimeConfigurationContracts": {
     "operations": {"INTERNAL_OPERATIONS_TOKEN": "configured; preserve existing value; minimum 24-character contract proven by 401"},
     "cron": {"CRON_SECRET": "configured; preserve existing value; minimum 24-character contract proven by 401"},
     "merchantPublicRequired": ["MERCHANT_PUBLIC_NAME", "MERCHANT_SUPPORT_EMAIL", "MERCHANT_PUBLIC_LOCATION"],
+    "supportRequired": ["SUPPORT_INBOX_EMAIL"],
+    "designRequired": ["OPENAI_API_KEY"],
     "safepayRequired": ["SAFEPAY_API_KEY", "SAFEPAY_API_SECRET or SAFEPAY_V1_SECRET", "SAFEPAY_WEBHOOK_SECRET"],
     "printfulRequiredForManufacturing": ["PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "ARTWORK_SIGNING_KEY", "APP_ORIGIN"],
     "printfulRequiredForWebhook": ["PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"]
@@ -206,16 +207,16 @@
     "pullRequest3": "SEPARATE_FINAL_AUDIT_GATE"
   },
   "nextActions": [
-    "OWNER: clear Hostinger hosting/server cache for the current temporary app without changing branch or environment variables",
-    "SYSTEM: rerun strict bare-home security-header audit and require green after cache purge",
-    "SYSTEM: rerun exact-release/live boundary/Neon safety proof after cache purge",
-    "OWNER: add truthful merchant public name/support email/location",
+    "OWNER: add truthful merchant public name/support email/location without changing the Hostinger branch",
+    "OWNER: configure SUPPORT_INBOX_EMAIL if not already present",
     "OWNER: complete Safepay runtime/webhook configuration; QA must not create a real charge",
     "OWNER: complete Printful webhook/manufacturing configuration; production confirmation remains disabled",
-    "SYSTEM: positively prove ARTWORK_SIGNING_KEY through a safe successful signing path before marking configured",
-    "SYSTEM: rerun live boundary audit and require provider invalid-auth/precondition behavior",
+    "OWNER: configure OPENAI_API_KEY and ARTWORK_SIGNING_KEY if absent, preserving any existing values",
+    "SYSTEM: positively prove support delivery, design generation/private artwork and signed artwork access after configuration",
+    "SYSTEM: rerun live boundary audit and require provider invalid-auth/precondition behavior after configuration",
+    "SYSTEM+OWNER: owner-managed OTP verification must create a V2 verified-contact row, then shipping must create a V2 shipping snapshot",
     "SYSTEM+OWNER: prove normal Gmail deliverability and DMARC without exposing OTP",
     "SYSTEM+OWNER: request separate issuedonce.shop cutover approval only after temporary-host gates are green"
   ],
-  "nextOwnerAction": "HOSTINGER_CLEAR_SERVER_CACHE_ONLY_WITHOUT_BRANCH_OR_ENVIRONMENT_CHANGES"
+  "nextOwnerAction": "HOSTINGER_COMPLETE_TRUTHFUL_PUBLIC_SUPPORT_SAFEPAY_PRINTFUL_DESIGN_CONFIGURATION_WITHOUT_BRANCH_CHANGE"
 }
