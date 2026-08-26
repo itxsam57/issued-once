@@ -1,4 +1,4 @@
-name: Live V9 Security Header Audit
+name: Live V10 Security Header Audit
 
 on:
   push:
@@ -15,15 +15,15 @@ jobs:
     timeout-minutes: 5
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
-      EXPECTED_RELEASE_ID: f818c1b5574289b2bc635305dfa1bd9a431529fc
+      EXPECTED_RELEASE_ID: aa73848e9ef79905e8239f9fb4cc8fce244e04c6
       LIVE_RELEASE_HEALTH_ATTEMPTS: '10'
       LIVE_RELEASE_HEALTH_DELAY_MS: '1000'
     steps:
       - name: Checkout audit branch
         uses: actions/checkout@v4
-      - name: Confirm exact deployed V9 release
+      - name: Confirm exact deployed V10 release
         run: node tests/e2e/live-release-health.mjs
-      - name: Probe Hostinger bare-home cache revalidation
+      - name: Require security headers on bare home and dynamic controls
         run: |
           node <<'NODE'
           const baseUrl = process.env.LIVE_PRODUCTION_URL.replace(/\/$/, '');
@@ -35,30 +35,28 @@ jobs:
             'permissions-policy': 'camera=(), microphone=(), geolocation=()',
           };
 
-          async function inspect(label, path, extraHeaders = {}) {
+          async function inspect(path, expectedStatus = 200) {
             const response = await fetch(`${baseUrl}${path}`, {
-              headers: { accept: path.startsWith('/api/') ? 'application/json' : 'text/html', ...extraHeaders },
+              headers: { accept: path.startsWith('/api/') ? 'application/json' : 'text/html' },
               redirect: 'error',
               signal: AbortSignal.timeout(10_000),
             });
-            const cacheControl = response.headers.get('cache-control') ?? '';
+            const cacheControl = response.headers.get('cache-control') ?? 'missing';
             const cacheStatus = response.headers.get('x-hcdn-cache-status') ?? response.headers.get('x-litespeed-cache') ?? 'unreported';
             const missing = Object.entries(expected)
               .filter(([name, value]) => response.headers.get(name) !== value)
               .map(([name]) => name);
-            console.log(`LIVE_CACHE_PROBE label=${label} status=${response.status} cache-control=${cacheControl || 'missing'} cache-status=${cacheStatus} missing=${missing.length}`);
-            if (response.status !== 200) throw new Error(`${label} returned HTTP ${response.status}`);
-            return { cacheControl, missing, poweredBy: response.headers.has('x-powered-by') };
+            const poweredBy = response.headers.has('x-powered-by');
+            console.log(`LIVE_V10_HEADER path=${path} status=${response.status} cache-control=${cacheControl} cache-status=${cacheStatus} missing=${missing.length} poweredBy=${poweredBy ? 'present' : 'absent'}`);
+            if (response.status !== expectedStatus) throw new Error(`${path} returned HTTP ${response.status}`);
+            if (missing.length) throw new Error(`${path} missing security headers: ${missing.join(',')}`);
+            if (poweredBy) throw new Error(`${path} exposes x-powered-by`);
+            return { cacheControl, cacheStatus };
           }
 
-          const before = await inspect('before', '/');
-          const revalidated = await inspect('no-cache-request', '/', { 'cache-control': 'no-cache', pragma: 'no-cache' });
-          const after = await inspect('after', '/');
-          const cacheBusted = await inspect('cache-busted', `/?__issued_once_release=${process.env.EXPECTED_RELEASE_ID}`);
-
-          if (cacheBusted.missing.length || cacheBusted.poweredBy || /s-maxage=31536000/i.test(cacheBusted.cacheControl)) {
-            throw new Error('V9 runtime HTML security path is not healthy');
-          }
-
-          console.log(`LIVE_CACHE_REVALIDATION_RESULT beforeMissing=${before.missing.length} noCacheMissing=${revalidated.missing.length} afterMissing=${after.missing.length}`);
+          const home = await inspect('/');
+          await inspect('/api/health/release');
+          const legacy = await inspect('/api/checkout/start', 410);
+          if (!/no-store/i.test(legacy.cacheControl)) throw new Error('legacy control must remain no-store');
+          console.log(`LIVE_V10_SECURITY_HEADERS_PASS homeCache=${home.cacheStatus} release=${process.env.EXPECTED_RELEASE_ID}`);
           NODE
