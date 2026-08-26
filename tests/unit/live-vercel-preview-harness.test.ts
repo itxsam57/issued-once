@@ -37,7 +37,7 @@ describe('live Vercel preview harness', () => {
     expect(livePreviewRouter).toContain("hostname.endsWith('.hostingersite.com')");
     expect(livePreviewRouter).toContain("await import('./live-hostinger-preview.mjs')");
     expect(livePreviewRouter).toContain("await import('./live-owner-preview.mjs')");
-    expect(hostingerProbe).toContain("runtimeProvider === 'hostinger'");
+    expect(hostingerProbe).toContain("runtimeProvider !== 'hostinger'");
     expect(hostingerProbe).not.toContain('OWNER PREVIEW / NO PAYMENT');
   });
 
