@@ -1,38 +1,29 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-26T16:10:00+05:00",
+  "updatedAt": "2026-08-26T16:18:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "engineeringHeadBeforeGovernorUpdate": "ce50c62a0aff0d177707790451335818cae34616",
+    "engineeringHeadBeforeGovernorUpdate": "631994d94cdfb5285a145f2df55b082b79aa72b5",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
-    "liveHeaderCandidateBranch": "release/hostinger-v9-candidate-20260825",
-    "liveHeaderCandidateHead": "f818c1b5574289b2bc635305dfa1bd9a431529fc",
     "liveCombinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
     "liveCombinedCandidateHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
-    "headerAuditBranch": "audit/live-v7-security-headers-20260825",
     "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "V10_LIVE_GREEN_TEMP_DOMAIN_STALE_CACHE_SERVER_PURGE_OWNER_BOUNDARY",
-    "allowedStopStates": [
-      "OWNER_REQUIRED",
-      "BLOCKED",
-      "WAIT_EXTERNAL",
-      "LOOP_DETECTED",
-      "COMPLETE"
-    ],
-    "stopReason": "Migration 0033 and exact V10 runtime are live and verified. Fresh V10 HTML, APIs and legacy responses emit the required security headers, but Hostinger still serves a pre-fix bare-home object as x-hcdn-cache-status=HIT with s-maxage=31536000. HTTP no-cache revalidation is ignored. Current Hostinger documentation says temporary-domain CDN optimization is automatically managed and may not expose normal CDN controls, so the next owner-controlled action is to clear the hosting/server cache for the temporary Node app without changing branch or environment variables; flush CDN cache only if hPanel actually exposes that control."
+    "decision": "V10_LIVE_EXACT_FIVE_CONFIG_FINDINGS_PLUS_TEMP_DOMAIN_STALE_CACHE_OWNER_BOUNDARY",
+    "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
+    "stopReason": "Exact V10 is live and its non-OTP boundary audit has now run after release convergence. Operations and cron authentication are configured and correctly reject invalid credentials with 401. Five configuration findings remain: public merchant disclosure, public support address, Safepay webhook runtime, Printful webhook runtime, and Safepay payment runtime. Separately, Hostinger still serves a pre-fix bare-home object as x-hcdn-cache-status=HIT with s-maxage=31536000. The next infrastructure owner action remains clearing hosting/server cache without changing branch or environment variables, then adding only genuinely missing launch configuration values in hPanel."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V10_EXACT_RELEASE_GREEN_DB_LIMITER_LIVE_RUNTIME_HEADERS_GREEN_TEMP_DOMAIN_STALE_CACHE_OWNER_BOUNDARY",
+    "internalWorkStatus": "V10_EXACT_RELEASE_GREEN_DB_SAFE_BOUNDARY_RETEST_COMPLETE_FIVE_CONFIG_FINDINGS_STALE_TEMP_CACHE_OWNER_BOUNDARY",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, Browser QA, exact release health, live-product and database evidence before success claims",
@@ -85,11 +76,7 @@
       "manufacturingProviderEventsTotal": 0,
       "paymentAttemptsTotal": 6,
       "otpRateLimitsTotal": 3,
-      "otpRateLimitKinds": {
-        "email": 1,
-        "experience": 1,
-        "ip": 1
-      },
+      "otpRateLimitKinds": {"email": 1, "experience": 1, "ip": 1},
       "referralCreatorsPresent": false,
       "referralConversionsPresent": false
     },
@@ -99,7 +86,6 @@
     "file": "db/migrations/0033_otp_rate_limits.sql",
     "purpose": "Atomic cross-experience OTP abuse control by HMAC email, experience and identifiable IP subjects",
     "productionStatus": "APPLIED_VERIFIED_AND_USED_BY_LIVE_V10",
-    "schemaProof": "PASS_TABLE_PRIMARY_KEY_AND_UPDATED_AT_INDEX_PRESENT_INITIAL_ROW_COUNT_ZERO",
     "privacy": "HMAC hashes only; no plaintext email or IP stored in limiter table",
     "liveRuntimeProof": "PASS_V10_REAL_OTP_REQUEST_CREATED_THREE_ROWS_EMAIL_EXPERIENCE_IP_ALL_SHORT_COUNT_1_LONG_COUNT_1",
     "retention": {
@@ -126,6 +112,25 @@
     "databaseLimiterProof": "PASS_THREE_HASHED_SUBJECT_ROWS_AFTER_REAL_OTP_SMOKE",
     "realQaPayment": false
   },
+  "liveBoundaryAudit": {
+    "runId": 32880596639,
+    "rerunJobId": 98153446268,
+    "releaseHealth": "PASS_EXACT_V10",
+    "passes": [
+      "/ 200", "/terms 200", "/returns 200", "/store-info 200", "/contact 200", "/api/health/release 200", "/api/issue/status anonymous 200/found=false", "/api/artwork/invalid-token 401", "/ops/api/dashboard 401", "/api/ops/session invalid-token 401", "/api/internal/jobs/drain unauthenticated 401", "legacy internal design/manufacturing/quiz routes 410", "/api/webhooks/fourthwall 410", "/api/support invalid-payload 400", "/api/shipping before verified-contact 409", "/api/referrals/apply 503 intentionally unavailable"
+    ],
+    "findings": [
+      "Public merchant disclosure is not fully configured",
+      "Public support address is not configured",
+      "/api/webhooks/safepay returns 503 instead of auth 401 because Safepay runtime/webhook configuration is incomplete",
+      "/api/webhooks/printful returns 503 instead of auth 401 because Printful webhook configuration is incomplete",
+      "/api/payments/create returns 503 instead of session/quote precondition 409 because Safepay payment runtime is incomplete"
+    ],
+    "configuredAuthProof": {
+      "INTERNAL_OPERATIONS_TOKEN": "PROVEN_PRESENT_AND_SAFE_LENGTH_BY_INVALID_CREDENTIAL_401",
+      "CRON_SECRET": "PROVEN_PRESENT_AND_SAFE_LENGTH_BY_UNAUTHENTICATED_401"
+    }
+  },
   "securityHeaders": {
     "required": [
       "Strict-Transport-Security: max-age=31536000; includeSubDomains",
@@ -140,42 +145,23 @@
     "liveLegacy410": "PASS_ALL_FIVE_HEADERS_CACHE_CONTROL_NO_STORE_X_POWERED_BY_ABSENT",
     "liveCacheBustedHome": "PASS_ALL_FIVE_HEADERS_PRIVATE_NO_CACHE_NO_STORE_X_POWERED_BY_ABSENT",
     "bareHomeCurrent": "STALE_HOSTINGER_HCDN_CACHE_HIT_S_MAXAGE_31536000_MISSING_FIVE_HEADERS",
-    "cacheDiagnosis": "PASS_STALE_CACHED_OBJECT_CONFIRMED: cache-busted V10 HTML is dynamic and correct while bare / remains a pre-fix HIT",
     "httpRevalidationAttempt": "NO_EFFECT: Cache-Control no-cache and Pragma no-cache still returned HIT with five headers missing",
     "temporaryDomainConstraint": "Current Hostinger documentation says temporary-domain CDN optimization is automatically managed and normal CDN settings may not be modifiable",
     "ownerBoundary": "CLEAR_HOSTING_SERVER_CACHE_FOR_TEMPORARY_NODE_APP_WITHOUT_BRANCH_OR_ENV_CHANGES; IF A CDN FLUSH CONTROL IS EXPOSED, FLUSH IT TOO; THEN RERUN STRICT BARE_HOME_AUDIT"
   },
   "runtimeConfigurationContracts": {
-    "operations": {
-      "INTERNAL_OPERATIONS_TOKEN": "required; minimum 24 characters"
-    },
-    "cron": {
-      "CRON_SECRET": "required; minimum 24 characters; missing/unsafe returns 503, wrong bearer returns 401"
-    },
+    "operations": {"INTERNAL_OPERATIONS_TOKEN": "configured and live; minimum 24-character contract proven by 401 invalid-credential boundary"},
+    "cron": {"CRON_SECRET": "configured and live; minimum 24-character contract proven by 401 unauthenticated boundary"},
     "safepay": {
-      "required": [
-        "DATABASE_URL",
-        "SAFEPAY_API_KEY",
-        "SAFEPAY_API_SECRET or legacy SAFEPAY_V1_SECRET",
-        "SAFEPAY_WEBHOOK_SECRET"
-      ],
-      "environment": "SAFEPAY_ENVIRONMENT defaults to sandbox and must be sandbox or production; production is a deliberate launch setting"
+      "required": ["DATABASE_URL", "SAFEPAY_API_KEY", "SAFEPAY_API_SECRET or legacy SAFEPAY_V1_SECRET", "SAFEPAY_WEBHOOK_SECRET"],
+      "environment": "SAFEPAY_ENVIRONMENT defaults to sandbox and must be sandbox or production; production is a deliberate launch setting",
+      "liveStatus": "INCOMPLETE_503_ON_WEBHOOK_AND_PAYMENT_CREATE"
     },
     "printful": {
-      "requiredForManufacturing": [
-        "DATABASE_URL",
-        "PRINTFUL_API_TOKEN",
-        "PRINTFUL_VARIANT_MAP_JSON",
-        "ARTWORK_SIGNING_KEY",
-        "APP_ORIGIN"
-      ],
-      "requiredForWebhook": [
-        "PRINTFUL_WEBHOOK_PUBLIC_KEY",
-        "PRINTFUL_WEBHOOK_SECRET_HEX"
-      ],
-      "optional": [
-        "PRINTFUL_STORE_ID"
-      ]
+      "requiredForManufacturing": ["DATABASE_URL", "PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "ARTWORK_SIGNING_KEY", "APP_ORIGIN"],
+      "requiredForWebhook": ["PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
+      "optional": ["PRINTFUL_STORE_ID"],
+      "liveStatus": "WEBHOOK_CONFIG_INCOMPLETE_503"
     }
   },
   "emailDeliverability": {
@@ -188,12 +174,9 @@
     "releaseQualityStatus": "OPEN"
   },
   "hostingerConfiguration": {
-    "ownerGeneratedSecretsPending": [
-      "INTERNAL_OPERATIONS_TOKEN",
-      "CRON_SECRET",
-      "ARTWORK_SIGNING_KEY"
-    ],
-    "ownerProviderCredentialsPending": [
+    "provenConfigured": ["INTERNAL_OPERATIONS_TOKEN", "CRON_SECRET"],
+    "ownerGeneratedSecretsStillUnproven": ["ARTWORK_SIGNING_KEY"],
+    "ownerProviderCredentialsPendingOrIncomplete": [
       "OPENAI_API_KEY",
       "SAFEPAY_API_KEY",
       "SAFEPAY_API_SECRET",
@@ -202,7 +185,7 @@
       "PRINTFUL_WEBHOOK_PUBLIC_KEY",
       "PRINTFUL_WEBHOOK_SECRET_HEX"
     ],
-    "ownerConfigurationValuesPending": [
+    "ownerConfigurationValuesPendingOrUnproven": [
       "SUPPORT_INBOX_EMAIL",
       "MERCHANT_PUBLIC_NAME",
       "MERCHANT_SUPPORT_EMAIL",
@@ -215,21 +198,9 @@
       "SUPPORT_REPLY_TO optional"
     ],
     "preserveExisting": [
-      "DATABASE_URL",
-      "QUIZ_ENCRYPTION_KEY_V2",
-      "IDENTITY_HMAC_KEY",
-      "RESEND_API_KEY",
-      "RESEND_FROM_EMAIL",
-      "APP_ORIGIN",
-      "ARTWORK_STORAGE_DIR",
-      "NODE_ENV",
-      "RUNTIME_PROVIDER"
+      "DATABASE_URL", "QUIZ_ENCRYPTION_KEY_V2", "IDENTITY_HMAC_KEY", "RESEND_API_KEY", "RESEND_FROM_EMAIL", "APP_ORIGIN", "ARTWORK_STORAGE_DIR", "NODE_ENV", "RUNTIME_PROVIDER", "INTERNAL_OPERATIONS_TOKEN", "CRON_SECRET"
     ],
-    "forbidden": [
-      "REFERRAL_ATTRIBUTION_SIGNING_KEY",
-      "any migration 0029 activation",
-      "Printful production confirmation during QA"
-    ]
+    "forbidden": ["REFERRAL_ATTRIBUTION_SIGNING_KEY", "any migration 0029 activation", "Printful production confirmation during QA"]
   },
   "safetyGates": {
     "realQaPayment": "NOT_PERFORMED",
@@ -243,15 +214,15 @@
   },
   "nextActions": [
     "OWNER: clear the hosting/server cache for the temporary Hostinger Node app without changing its Git branch or environment variables; if hPanel actually exposes a CDN flush control for the temporary domain, flush that cache too",
-    "SYSTEM: immediately rerun strict bare-home security-header audit after cache purge and require Hostinger not to serve the pre-fix cached object",
-    "SYSTEM: rerun exact V10 release proof and Neon safety corroboration after cache purge",
-    "OWNER: add remaining Hostinger environment/configuration values directly in hPanel without sharing secrets in chat",
+    "SYSTEM: immediately rerun strict bare-home security-header audit after cache purge",
+    "OWNER: add truthful merchant public name/support email/location in hPanel; never invent legal/public identity values",
+    "OWNER: add/complete Safepay credentials and explicit launch environment in hPanel; QA must not create a real charge",
+    "OWNER: add/complete Printful webhook/manufacturing configuration in hPanel; production confirmation stays disabled",
     "OWNER+SYSTEM: complete verified-contact and shipping persistence proof without sharing OTP or address in chat",
-    "SYSTEM: prove design generation/queue/artwork access once OPENAI_API_KEY and ARTWORK_SIGNING_KEY are configured",
-    "SYSTEM: prove Safepay guards without making a real QA charge",
-    "SYSTEM: prove Printful webhook/manufacturing guards while keeping production confirmation disabled",
+    "SYSTEM: prove design generation/queue/artwork access once OPENAI_API_KEY and ARTWORK_SIGNING_KEY are positively configured",
+    "SYSTEM: rerun boundary audit after configuration and require Safepay/Printful invalid webhook auth to return 401 and payment create precondition to return 409",
     "SYSTEM+OWNER: remediate Gmail Spam placement and prove final deliverability",
     "SYSTEM+OWNER: only after all temporary-host gates are green request separate issuedonce.shop cutover approval and repeat complete proof"
   ],
-  "nextOwnerAction": "HOSTINGER_CLEAR_HOSTING_SERVER_CACHE_FOR_TEMPORARY_NODE_APP_WITHOUT_BRANCH_OR_ENV_CHANGES"
+  "nextOwnerAction": "HOSTINGER_CLEAR_SERVER_CACHE_THEN_COMPLETE_TRUTHFUL_PUBLIC_MERCHANT_AND_PROVIDER_CONFIG_WITHOUT_BRANCH_CHANGE"
 }
