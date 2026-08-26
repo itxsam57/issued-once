@@ -2,6 +2,7 @@ import { createHmac } from 'node:crypto';
 import { expect, test, vi } from 'vitest';
 import { SafepayPaymentGateway } from '@/server/payments/SafepayPaymentGateway';
 
+// Regression contract: tracker verification must use Safepay's current Reporter v1 route.
 function gateway(overrides: Partial<ConstructorParameters<typeof SafepayPaymentGateway>[0]> = {}) {
   return new SafepayPaymentGateway({
     environment: 'production',
