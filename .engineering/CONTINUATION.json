@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-26T15:54:00+05:00",
+  "updatedAt": "2026-08-26T16:10:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "engineeringHeadBeforeGovernorUpdate": "6d8bbe3b3186e8bb2d27116a101ef1d9fa5de66a",
+    "engineeringHeadBeforeGovernorUpdate": "ce50c62a0aff0d177707790451335818cae34616",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveHeaderCandidateBranch": "release/hostinger-v9-candidate-20260825",
@@ -56,16 +56,34 @@
     "migration0032AppliedAndVerified": true,
     "migration0033AppliedAndVerified": true,
     "migration0029Applied": false,
+    "auditSemantics": "V2 is a key-version subset inside the existing physical tables, not a separate *_v2 table namespace.",
+    "physicalTables": {
+      "experienceAnswers": "public.experience_answers",
+      "otpChallenges": "public.otp_challenges",
+      "verifiedContacts": "public.verified_contacts",
+      "shippingSnapshots": "public.shipping_snapshots",
+      "supportRequests": "public.support_requests",
+      "backgroundJobs": "public.background_jobs",
+      "manufacturingJobs": "public.manufacturing_jobs",
+      "manufacturingProviderEvents": "public.manufacturing_provider_events",
+      "paymentAttempts": "public.payment_attempts",
+      "otpRateLimits": "public.otp_rate_limits"
+    },
     "latestReadOnlyProof": {
-      "experienceAnswersV2": 518,
-      "otpChallengesV2": 24,
-      "verifiedContactsV2": 0,
-      "shippingSnapshotsV2": 0,
-      "supportRequestsV2": 0,
+      "experienceAnswersTotal": 518,
+      "experienceAnswersKeyV2": 518,
+      "otpChallengesTotal": 24,
+      "otpChallengesKeyV2": 24,
+      "verifiedContactsTotal": 7,
+      "verifiedContactsKeyV2": 0,
+      "shippingSnapshotsTotal": 8,
+      "shippingSnapshotsKeyV2": 0,
+      "supportRequestsTotal": 1,
+      "supportRequestsKeyV2": 0,
       "backgroundJobsTotal": 0,
-      "manufacturingJobs": 0,
-      "manufacturingProviderEvents": 0,
-      "paymentAttempts": 6,
+      "manufacturingJobsTotal": 0,
+      "manufacturingProviderEventsTotal": 0,
+      "paymentAttemptsTotal": 6,
       "otpRateLimitsTotal": 3,
       "otpRateLimitKinds": {
         "email": 1,
@@ -75,7 +93,7 @@
       "referralCreatorsPresent": false,
       "referralConversionsPresent": false
     },
-    "qaSafetyConclusion": "Exact V10 live QA created expected encrypted questionnaire/OTP evidence and exactly one hashed limiter row for each email, experience and IP subject. It created no V2 verified contact, shipping snapshot, support request, background job, manufacturing job/event, new payment attempt or referral rollout."
+    "qaSafetyConclusion": "Exact V10 live QA created expected key-version-v2 encrypted questionnaire/OTP evidence and exactly one hashed limiter row for each email, experience and IP subject. Aggregate legacy data still exists in verified_contacts (7), shipping_snapshots (8) and support_requests (1), but the key-version-v2 subsets remain 0/0/0. V10 QA created no V2 verified contact, V2 shipping snapshot, V2 support request, background job, manufacturing job/event, new payment attempt or referral rollout."
   },
   "migration0033": {
     "file": "db/migrations/0033_otp_rate_limits.sql",
