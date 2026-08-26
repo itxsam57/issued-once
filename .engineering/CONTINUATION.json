@@ -1,40 +1,41 @@
 {
   "schemaVersion": 1,
+  "version": "1.10.8",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-26T16:18:00+05:00",
+  "updatedAt": "2026-08-26T17:55:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "engineeringHeadBeforeGovernorUpdate": "631994d94cdfb5285a145f2df55b082b79aa72b5",
-    "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
+    "engineeringProofBranch": "engineering/live-header-proof-20260826",
+    "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
-    "liveCombinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
-    "liveCombinedCandidateHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
+    "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
+    "hpanelBranchSelection": "UNVERIFIED_PRESERVE_CURRENT_SELECTION_DO_NOT_CHANGE",
     "deferredReferralMigration": "0029_creator_referrals.sql"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "V10_LIVE_EXACT_FIVE_CONFIG_FINDINGS_PLUS_TEMP_DOMAIN_STALE_CACHE_OWNER_BOUNDARY",
+    "decision": "V10_EXACT_LIVE_AUTOMATED_STALE_ROOT_HEADER_GATE_PLUS_FIVE_RUNTIME_CONFIG_FINDINGS",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Exact V10 is live and its non-OTP boundary audit has now run after release convergence. Operations and cron authentication are configured and correctly reject invalid credentials with 401. Five configuration findings remain: public merchant disclosure, public support address, Safepay webhook runtime, Printful webhook runtime, and Safepay payment runtime. Separately, Hostinger still serves a pre-fix bare-home object as x-hcdn-cache-status=HIT with s-maxage=31536000. The next infrastructure owner action remains clearing hosting/server cache without changing branch or environment variables, then adding only genuinely missing launch configuration values in hPanel."
+    "stopReason": "Exact V10 is live. Repository/runtime auth boundaries for operations and cron are healthy. The bare temporary-domain homepage is still a Hostinger cache HIT containing s-maxage and missing the five required security headers; this defect is now enforced by an isolated live GitHub Actions gate. Five truthful launch-configuration findings also remain: merchant disclosure, public support address, Safepay webhook/runtime, Printful webhook/runtime, and Safepay payment runtime. The current hPanel branch selection must not be changed because prior branch changes reset environment variables."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "V10_EXACT_RELEASE_GREEN_DB_SAFE_BOUNDARY_RETEST_COMPLETE_FIVE_CONFIG_FINDINGS_STALE_TEMP_CACHE_OWNER_BOUNDARY",
+    "internalWorkStatus": "V10_LIVE_RUNTIME_UNCHANGED_STRICT_HEADER_GATE_VERIFIED_RED_AWAITING_FULL_REPO_PR_GATES_AND_OWNER_CACHE_PURGE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion",
       "Require fresh CI, Browser QA, exact release health, live-product and database evidence before success claims",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets",
       "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan",
       "Do not mutate frozen release candidate branches",
-      "Do not change the Hostinger-linked branch in hPanel because prior branch changes reset environment variables",
+      "Do not change the current Hostinger branch selection in hPanel because prior branch changes reset environment variables",
       "Migration 0033 is approved, applied and live; preserve its schema and hashed-only privacy contract",
       "Do not apply migration 0029 or configure referral attribution signing",
       "Keep Printful production confirmation disabled",
-      "Do not create real charges solely for QA",
+      "Do not create real Safepay charges solely for QA",
       "Do not cut issuedonce.shop until all temporary-host gates and email deliverability are green"
     ]
   },
@@ -42,24 +43,8 @@
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
     "branchId": "br-dawn-cloud-axm880q9",
-    "migration0030Applied": true,
-    "migration0031Applied": true,
-    "migration0032AppliedAndVerified": true,
-    "migration0033AppliedAndVerified": true,
-    "migration0029Applied": false,
-    "auditSemantics": "V2 is a key-version subset inside the existing physical tables, not a separate *_v2 table namespace.",
-    "physicalTables": {
-      "experienceAnswers": "public.experience_answers",
-      "otpChallenges": "public.otp_challenges",
-      "verifiedContacts": "public.verified_contacts",
-      "shippingSnapshots": "public.shipping_snapshots",
-      "supportRequests": "public.support_requests",
-      "backgroundJobs": "public.background_jobs",
-      "manufacturingJobs": "public.manufacturing_jobs",
-      "manufacturingProviderEvents": "public.manufacturing_provider_events",
-      "paymentAttempts": "public.payment_attempts",
-      "otpRateLimits": "public.otp_rate_limits"
-    },
+    "migrations": {"0030": true, "0031": true, "0032": true, "0033": true, "0029": false},
+    "auditSemantics": "V2 is a key-version subset inside existing physical tables, not a separate *_v2 table namespace.",
     "latestReadOnlyProof": {
       "experienceAnswersTotal": 518,
       "experienceAnswersKeyV2": 518,
@@ -80,55 +65,47 @@
       "referralCreatorsPresent": false,
       "referralConversionsPresent": false
     },
-    "qaSafetyConclusion": "Exact V10 live QA created expected key-version-v2 encrypted questionnaire/OTP evidence and exactly one hashed limiter row for each email, experience and IP subject. Aggregate legacy data still exists in verified_contacts (7), shipping_snapshots (8) and support_requests (1), but the key-version-v2 subsets remain 0/0/0. V10 QA created no V2 verified contact, V2 shipping snapshot, V2 support request, background job, manufacturing job/event, new payment attempt or referral rollout."
+    "qaSafetyConclusion": "Latest V10 QA produced only expected encrypted/key-version-v2 questionnaire and OTP evidence plus hashed limiter subjects. It created no V2 verified contact, V2 shipping, V2 support, background/manufacturing work, new payment attempt, or referral rollout."
   },
   "migration0033": {
     "file": "db/migrations/0033_otp_rate_limits.sql",
-    "purpose": "Atomic cross-experience OTP abuse control by HMAC email, experience and identifiable IP subjects",
-    "productionStatus": "APPLIED_VERIFIED_AND_USED_BY_LIVE_V10",
+    "status": "APPLIED_VERIFIED_AND_USED_BY_LIVE_V10",
     "privacy": "HMAC hashes only; no plaintext email or IP stored in limiter table",
-    "liveRuntimeProof": "PASS_V10_REAL_OTP_REQUEST_CREATED_THREE_ROWS_EMAIL_EXPERIENCE_IP_ALL_SHORT_COUNT_1_LONG_COUNT_1",
-    "retention": {
-      "retentionHours": 48,
-      "cleanupBatchLimit": 5000,
-      "trigger": "authorized internal job drain after normal bounded job processing",
-      "isolatedPostgresProof": "PASS_TWO_OLDEST_STALE_ROWS_DELETED_WITH_LIMIT_TWO_NEWER_STALE_AND_CURRENT_ROWS_PRESERVED_SYNTHETIC_ROWS_REMOVED_AFTER_PROOF"
-    },
-    "combinedEngineeringHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
-    "ciRunId": 32879540422,
-    "ciResult": "PASS_UNIT_TYPECHECK_LINT_BUILD",
-    "browserQaRunId": 32879540360,
-    "browserQaResult": "PASS"
+    "retentionHours": 48,
+    "cleanupBatchLimit": 5000
   },
   "hostingerV10Proof": {
     "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
     "release": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
-    "frozenCandidateBranch": "release/hostinger-v10-candidate-20260825",
-    "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-    "tempProofRunNumber": 80,
-    "tempProofRunId": 32880597994,
-    "tempProofJobId": 97908845967,
-    "result": "PASS_EXACT_RELEASE_TEE_CAP_TOTE_REAL_OTP_REQUEST_ARTIFACT_UPLOAD",
-    "databaseLimiterProof": "PASS_THREE_HASHED_SUBJECT_ROWS_AFTER_REAL_OTP_SMOKE",
+    "candidateBranch": "release/hostinger-v10-candidate-20260825",
+    "exactReleaseHealth": "PASS_PROVIDER_HOSTINGER_RELEASE_V10",
     "realQaPayment": false
   },
   "liveBoundaryAudit": {
-    "runId": 32880596639,
-    "rerunJobId": 98153446268,
+    "latestRunId": 32961112453,
+    "latestJobId": 98154721599,
     "releaseHealth": "PASS_EXACT_V10",
-    "passes": [
-      "/ 200", "/terms 200", "/returns 200", "/store-info 200", "/contact 200", "/api/health/release 200", "/api/issue/status anonymous 200/found=false", "/api/artwork/invalid-token 401", "/ops/api/dashboard 401", "/api/ops/session invalid-token 401", "/api/internal/jobs/drain unauthenticated 401", "legacy internal design/manufacturing/quiz routes 410", "/api/webhooks/fourthwall 410", "/api/support invalid-payload 400", "/api/shipping before verified-contact 409", "/api/referrals/apply 503 intentionally unavailable"
+    "healthyBoundaries": [
+      "public core pages 200",
+      "anonymous issue status 200/found=false",
+      "invalid artwork token 401",
+      "owner dashboard/session invalid credential 401",
+      "internal job drain unauthenticated 401",
+      "deprecated internal and Fourthwall routes 410",
+      "invalid support payload 400",
+      "shipping before verified contact 409",
+      "referrals intentionally unavailable 503"
     ],
     "findings": [
       "Public merchant disclosure is not fully configured",
       "Public support address is not configured",
-      "/api/webhooks/safepay returns 503 instead of auth 401 because Safepay runtime/webhook configuration is incomplete",
-      "/api/webhooks/printful returns 503 instead of auth 401 because Printful webhook configuration is incomplete",
-      "/api/payments/create returns 503 instead of session/quote precondition 409 because Safepay payment runtime is incomplete"
+      "Safepay webhook returns 503 rather than invalid-auth 401 because runtime/webhook configuration is incomplete",
+      "Printful webhook returns 503 rather than invalid-auth 401 because webhook configuration is incomplete",
+      "Safepay payment create returns 503 rather than session/quote precondition 409 because payment runtime is incomplete"
     ],
     "configuredAuthProof": {
-      "INTERNAL_OPERATIONS_TOKEN": "PROVEN_PRESENT_AND_SAFE_LENGTH_BY_INVALID_CREDENTIAL_401",
-      "CRON_SECRET": "PROVEN_PRESENT_AND_SAFE_LENGTH_BY_UNAUTHENTICATED_401"
+      "INTERNAL_OPERATIONS_TOKEN": "PRESENT_AND_SAFE_LENGTH_PROVEN_BY_INVALID_CREDENTIAL_401",
+      "CRON_SECRET": "PRESENT_AND_SAFE_LENGTH_PROVEN_BY_UNAUTHENTICATED_401"
     }
   },
   "securityHeaders": {
@@ -139,30 +116,47 @@
       "Referrer-Policy: strict-origin-when-cross-origin",
       "Permissions-Policy: camera=(), microphone=(), geolocation=()"
     ],
-    "runtimeImplementation": "Next.js Proxy applies baseline to normal/API/legacy responses; root layout is force-dynamic so fresh HTML traverses the secure runtime path; immutable Next assets remain outside Proxy matcher",
-    "engineeringProof": "PASS_UNIT_TYPECHECK_LINT_BUILD_BROWSER",
-    "liveDynamicApi": "PASS_ALL_FIVE_HEADERS_X_POWERED_BY_ABSENT",
-    "liveLegacy410": "PASS_ALL_FIVE_HEADERS_CACHE_CONTROL_NO_STORE_X_POWERED_BY_ABSENT",
-    "liveCacheBustedHome": "PASS_ALL_FIVE_HEADERS_PRIVATE_NO_CACHE_NO_STORE_X_POWERED_BY_ABSENT",
+    "runtimeImplementation": "V10 runtime applies the baseline to normal/API/legacy responses; cache-busted home and dynamic API responses already prove the intended headers.",
     "bareHomeCurrent": "STALE_HOSTINGER_HCDN_CACHE_HIT_S_MAXAGE_31536000_MISSING_FIVE_HEADERS",
-    "httpRevalidationAttempt": "NO_EFFECT: Cache-Control no-cache and Pragma no-cache still returned HIT with five headers missing",
-    "temporaryDomainConstraint": "Current Hostinger documentation says temporary-domain CDN optimization is automatically managed and normal CDN settings may not be modifiable",
-    "ownerBoundary": "CLEAR_HOSTING_SERVER_CACHE_FOR_TEMPORARY_NODE_APP_WITHOUT_BRANCH_OR_ENV_CHANGES; IF A CDN FLUSH CONTROL IS EXPOSED, FLUSH IT TOO; THEN RERUN STRICT BARE_HOME_AUDIT"
+    "strictLiveGate": {
+      "workflow": ".github/workflows/hostinger-strict-header-audit.yml",
+      "probe": "tests/e2e/live-security-headers.mjs",
+      "fullBoundaryProbe": "tests/e2e/live-non-otp-boundaries.mjs",
+      "engineeringBranchHead": "ccd5b7b78f19b7b9d037906530424565e2a2f79e",
+      "runId": 32970751752,
+      "jobId": 98183661688,
+      "syntaxCheck": "PASS_THREE_LIVE_PROOF_SCRIPTS",
+      "exactReleaseHealth": "PASS_V10_AA73848E",
+      "result": "EXPECTED_RED_STALE_CACHE",
+      "findingCount": 7,
+      "findings": [
+        "strict-transport-security mismatch",
+        "x-content-type-options mismatch",
+        "x-frame-options mismatch",
+        "referrer-policy mismatch",
+        "permissions-policy mismatch",
+        "cache-control missing no-store",
+        "cache-control contains s-maxage"
+      ],
+      "xPoweredBy": "ABSENT_NO_FINDING"
+    },
+    "ownerBoundary": "CLEAR_HOSTINGER_HOSTING_SERVER_CACHE_ONLY_WITHOUT_CHANGING_GIT_BRANCH_OR_ENVIRONMENT_VARIABLES; THEN_RERUN_STRICT_HEADER_GATE_AND_REQUIRE_GREEN"
   },
   "runtimeConfigurationContracts": {
-    "operations": {"INTERNAL_OPERATIONS_TOKEN": "configured and live; minimum 24-character contract proven by 401 invalid-credential boundary"},
-    "cron": {"CRON_SECRET": "configured and live; minimum 24-character contract proven by 401 unauthenticated boundary"},
-    "safepay": {
-      "required": ["DATABASE_URL", "SAFEPAY_API_KEY", "SAFEPAY_API_SECRET or legacy SAFEPAY_V1_SECRET", "SAFEPAY_WEBHOOK_SECRET"],
-      "environment": "SAFEPAY_ENVIRONMENT defaults to sandbox and must be sandbox or production; production is a deliberate launch setting",
-      "liveStatus": "INCOMPLETE_503_ON_WEBHOOK_AND_PAYMENT_CREATE"
-    },
-    "printful": {
-      "requiredForManufacturing": ["DATABASE_URL", "PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "ARTWORK_SIGNING_KEY", "APP_ORIGIN"],
-      "requiredForWebhook": ["PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
-      "optional": ["PRINTFUL_STORE_ID"],
-      "liveStatus": "WEBHOOK_CONFIG_INCOMPLETE_503"
-    }
+    "operations": {"INTERNAL_OPERATIONS_TOKEN": "configured; preserve existing value; minimum 24-character contract proven by 401"},
+    "cron": {"CRON_SECRET": "configured; preserve existing value; minimum 24-character contract proven by 401"},
+    "merchantPublicRequired": ["MERCHANT_PUBLIC_NAME", "MERCHANT_SUPPORT_EMAIL", "MERCHANT_PUBLIC_LOCATION"],
+    "safepayRequired": ["SAFEPAY_API_KEY", "SAFEPAY_API_SECRET or SAFEPAY_V1_SECRET", "SAFEPAY_WEBHOOK_SECRET"],
+    "printfulRequiredForManufacturing": ["PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "ARTWORK_SIGNING_KEY", "APP_ORIGIN"],
+    "printfulRequiredForWebhook": ["PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"]
+  },
+  "hostingerConfiguration": {
+    "provenConfiguredPreserve": ["DATABASE_URL", "QUIZ_ENCRYPTION_KEY_V2", "IDENTITY_HMAC_KEY", "RESEND_API_KEY", "RESEND_FROM_EMAIL", "APP_ORIGIN", "ARTWORK_STORAGE_DIR", "NODE_ENV", "RUNTIME_PROVIDER", "INTERNAL_OPERATIONS_TOKEN", "CRON_SECRET"],
+    "stillUnproven": ["ARTWORK_SIGNING_KEY", "OPENAI_API_KEY", "SUPPORT_INBOX_EMAIL"],
+    "providerCredentialsPendingOrIncomplete": ["SAFEPAY_API_KEY", "SAFEPAY_API_SECRET", "SAFEPAY_WEBHOOK_SECRET", "PRINTFUL_API_TOKEN", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
+    "truthfulPublicOrProviderValuesPending": ["MERCHANT_PUBLIC_NAME", "MERCHANT_SUPPORT_EMAIL", "MERCHANT_PUBLIC_LOCATION", "SAFEPAY_ENVIRONMENT=production at launch", "PRINTFUL_VARIANT_MAP_JSON"],
+    "optional": ["PRINTFUL_STORE_ID", "MERCHANT_SUPPORT_PHONE", "MERCHANT_LEGAL_ENTITY", "SUPPORT_REPLY_TO"],
+    "forbidden": ["REFERRAL_ATTRIBUTION_SIGNING_KEY", "migration 0029 activation", "Printful production confirmation during QA"]
   },
   "emailDeliverability": {
     "resendTransport": "PASS",
@@ -173,56 +167,26 @@
     "dmarcFinalProof": false,
     "releaseQualityStatus": "OPEN"
   },
-  "hostingerConfiguration": {
-    "provenConfigured": ["INTERNAL_OPERATIONS_TOKEN", "CRON_SECRET"],
-    "ownerGeneratedSecretsStillUnproven": ["ARTWORK_SIGNING_KEY"],
-    "ownerProviderCredentialsPendingOrIncomplete": [
-      "OPENAI_API_KEY",
-      "SAFEPAY_API_KEY",
-      "SAFEPAY_API_SECRET",
-      "SAFEPAY_WEBHOOK_SECRET",
-      "PRINTFUL_API_TOKEN",
-      "PRINTFUL_WEBHOOK_PUBLIC_KEY",
-      "PRINTFUL_WEBHOOK_SECRET_HEX"
-    ],
-    "ownerConfigurationValuesPendingOrUnproven": [
-      "SUPPORT_INBOX_EMAIL",
-      "MERCHANT_PUBLIC_NAME",
-      "MERCHANT_SUPPORT_EMAIL",
-      "MERCHANT_PUBLIC_LOCATION",
-      "SAFEPAY_ENVIRONMENT=production at launch",
-      "PRINTFUL_VARIANT_MAP_JSON",
-      "PRINTFUL_STORE_ID optional",
-      "MERCHANT_SUPPORT_PHONE optional",
-      "MERCHANT_LEGAL_ENTITY optional",
-      "SUPPORT_REPLY_TO optional"
-    ],
-    "preserveExisting": [
-      "DATABASE_URL", "QUIZ_ENCRYPTION_KEY_V2", "IDENTITY_HMAC_KEY", "RESEND_API_KEY", "RESEND_FROM_EMAIL", "APP_ORIGIN", "ARTWORK_STORAGE_DIR", "NODE_ENV", "RUNTIME_PROVIDER", "INTERNAL_OPERATIONS_TOKEN", "CRON_SECRET"
-    ],
-    "forbidden": ["REFERRAL_ATTRIBUTION_SIGNING_KEY", "any migration 0029 activation", "Printful production confirmation during QA"]
-  },
   "safetyGates": {
     "realQaPayment": "NOT_PERFORMED",
     "printfulProductionConfirmation": "DISABLED",
     "migration0029": "NOT_APPLIED",
-    "migration0033": "APPLIED_AND_LIVE",
     "dummyDataReset": "NOT_AUTHORIZED",
     "productionDomainCutover": "NOT_PERFORMED",
     "pullRequest13": "DRAFT_UNMERGED",
     "pullRequest3": "SEPARATE_FINAL_AUDIT_GATE"
   },
   "nextActions": [
-    "OWNER: clear the hosting/server cache for the temporary Hostinger Node app without changing its Git branch or environment variables; if hPanel actually exposes a CDN flush control for the temporary domain, flush that cache too",
-    "SYSTEM: immediately rerun strict bare-home security-header audit after cache purge",
-    "OWNER: add truthful merchant public name/support email/location in hPanel; never invent legal/public identity values",
-    "OWNER: add/complete Safepay credentials and explicit launch environment in hPanel; QA must not create a real charge",
-    "OWNER: add/complete Printful webhook/manufacturing configuration in hPanel; production confirmation stays disabled",
-    "OWNER+SYSTEM: complete verified-contact and shipping persistence proof without sharing OTP or address in chat",
-    "SYSTEM: prove design generation/queue/artwork access once OPENAI_API_KEY and ARTWORK_SIGNING_KEY are positively configured",
-    "SYSTEM: rerun boundary audit after configuration and require Safepay/Printful invalid webhook auth to return 401 and payment create precondition to return 409",
-    "SYSTEM+OWNER: remediate Gmail Spam placement and prove final deliverability",
-    "SYSTEM+OWNER: only after all temporary-host gates are green request separate issuedonce.shop cutover approval and repeat complete proof"
+    "SYSTEM: trigger full CI and Browser QA for the isolated strict-header harness before promoting it to the migration branch",
+    "SYSTEM: fast-forward the active migration branch only after those repository gates pass; do not modify V10 runtime candidate",
+    "OWNER: clear Hostinger hosting/server cache for the current temporary app without changing branch or environment variables",
+    "SYSTEM: rerun strict bare-home security-header audit and require green after cache purge",
+    "OWNER: add truthful merchant public name/support email/location",
+    "OWNER: complete Safepay runtime/webhook configuration; QA must not create a real charge",
+    "OWNER: complete Printful webhook/manufacturing configuration; production confirmation remains disabled",
+    "SYSTEM: rerun live boundary audit and require provider invalid-auth/precondition behavior",
+    "SYSTEM+OWNER: prove normal Gmail deliverability and DMARC without exposing OTP",
+    "SYSTEM+OWNER: request separate issuedonce.shop cutover approval only after temporary-host gates are green"
   ],
-  "nextOwnerAction": "HOSTINGER_CLEAR_SERVER_CACHE_THEN_COMPLETE_TRUTHFUL_PUBLIC_MERCHANT_AND_PROVIDER_CONFIG_WITHOUT_BRANCH_CHANGE"
+  "nextOwnerAction": "HOSTINGER_CLEAR_SERVER_CACHE_ONLY_THEN_COMPLETE_TRUTHFUL_PUBLIC_AND_PROVIDER_CONFIG_WITHOUT_BRANCH_CHANGE"
 }
