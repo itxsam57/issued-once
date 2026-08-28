@@ -50,12 +50,12 @@ jobs:
         run: pnpm exec playwright install chromium
       - name: Browser tests
         run: pnpm test:e2e
-      - name: Live preview owner flow
+      - name: Live preview smoke
         if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/feat/mystery-foundation'
         env:
           PREVIEW_URL: ${{ inputs.preview_url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-        run: node tests/e2e/live-owner-preview.mjs
+        run: node tests/e2e/live-preview-smoke.mjs
       - name: Live production customer journey
         if: github.event_name == 'pull_request' && github.head_ref == 'feat/mystery-foundation'
         env:
