@@ -11,6 +11,7 @@ const completeEnv: NodeJS.ProcessEnv = {
   NODE_ENV: 'test',
   DATABASE_URL: 'postgresql://hidden',
   QUIZ_ENCRYPTION_KEY_V1: Buffer.alloc(32, 1).toString('base64'),
+  QUIZ_ENCRYPTION_KEY_V2: Buffer.alloc(32, 3).toString('base64'),
   IDENTITY_HMAC_KEY: Buffer.alloc(32, 2).toString('base64'),
   MERCHANT_PUBLIC_NAME: 'ISSUED ONCE',
   MERCHANT_SUPPORT_EMAIL: 'support@issuedonce.shop',
