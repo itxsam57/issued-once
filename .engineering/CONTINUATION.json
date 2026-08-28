@@ -1,302 +1,143 @@
 {
   "schemaVersion": 1,
-  "version": "1.14.0",
+  "version": "1.15.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-27T01:38:00+05:00",
+  "updatedAt": "2026-08-28T05:34:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "activeMigrationHeadBeforeThisCheckpoint": "697712f129c19f1f10cd27f685a787893df19f93",
-    "engineeringProofBranch": "engineering/live-header-proof-20260826",
-    "engineeringProofPullRequest": 14,
-    "engineeringProofStatus": "MERGED_CLOSED",
-    "safepayRepairBranch": "engineering/safepay-reporter-v1-20260826",
-    "safepayRepairPullRequest": 15,
-    "safepayVerifiedCodeHead": "345475345b55d985cc31515e72a2899d8f59b266",
-    "browserQaRepairBranch": "engineering/browser-qa-hostinger-20260827",
-    "browserQaRepairPullRequest": 16,
-    "browserQaRepairVerifiedHead": "c46066a557e6af0eb45967ebe36bf5a42533315b",
+    "activeMigrationHead": "6023e7f1bb2eb15551d1fed2470fab0131bb7987",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
-    "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
-    "hpanelBranchSelection": "UNVERIFIED_PRESERVE_CURRENT_SELECTION_DO_NOT_CHANGE",
-    "deferredReferralMigration": "0029_creator_referrals.sql"
+    "temporaryHost": "https://lightgray-coyote-141764.hostingersite.com",
+    "hpanelBranchSelection": "PRESERVE_CURRENT_SELECTION_DO_NOT_CHANGE",
+    "plannedCanonicalDomain": "issuedonce.shop"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "SAFEPAY_REPORTER_V1_CODE_AND_HOSTINGER_BROWSER_GATE_GREEN_AWAITING_PR16_INTEGRATION_DECISION",
-    "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Safepay Reporter v1 repair remains code-verified on exact functional head 345475345b55d985cc31515e72a2899d8f59b266: CI #1465 passed locked install, 195/195 test files, 564/564 tests, typecheck, lint with zero errors and production build; Browser QA #1361 checked out that same code head and its exact branch-local Playwright suite passed 38/38. The historical workflow red was isolated to a Vercel-only manual live-preview assumption. Separate Browser QA repair PR 16 is now fully verified at c46066a557e6af0eb45967ebe36bf5a42533315b: CI #1470 passed 195/195 files and 564/564 tests plus typecheck/lint/build, Browser QA #1365 passed 38/38, and manual Browser QA #1366 against https://lightgray-coyote-141764.hostingersite.com passed the Hostinger-aware live smoke for both desktop and mobile. The stale infrastructure block is therefore resolved. PRs 15 and 16 remain draft/unmerged because final branch integration is an owner decision under the finishing-branch protocol. Production V10, Hostinger branch selection and production database remain untouched."
+    "decision": "HOSTINGER_SAFEPAY_AND_REFERRAL_LAUNCH_CODE_INTEGRATED_GREEN_PRODUCTION_ACTIVATION_REMAINS_GATED",
+    "allowedStopStates": [
+      "OWNER_REQUIRED",
+      "BLOCKED",
+      "WAIT_EXTERNAL",
+      "LOOP_DETECTED",
+      "COMPLETE"
+    ],
+    "stopReason": "All currently approved repository integration work is merged into the Hostinger migration branch and verified together. Production remains intentionally unchanged. Remaining launch work crosses owner/provider boundaries: Hostinger production configuration, referral schema activation, real owner-managed OTP/shipping/support proofs, email deliverability, provider readiness and canonical-domain cutover. The Hostinger branch must not be changed because previous branch changes erased environment variables."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "SAFEPAY_REPORTER_V1_VERIFIED_HOSTINGER_BROWSER_GATE_REPAIRED_FULLY_GREEN_AWAITING_INTEGRATION_DECISION",
+    "internalWorkStatus": "INTEGRATED_CODE_GREEN_AWAITING_PRODUCTION_ACTIVATION_GATES",
     "rules": [
-      "Treat feat/mystery-foundation as canonical until final release promotion",
-      "Require fresh CI, Browser QA, exact release health, live-product and database evidence before success claims",
-      "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets",
-      "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan",
-      "Do not mutate frozen release candidate branches",
-      "Do not change the current Hostinger branch selection in hPanel because prior branch changes reset environment variables",
-      "Migration 0033 is approved, applied and live; preserve its schema and hashed-only privacy contract",
-      "Do not apply migration 0029 or configure referral attribution signing",
-      "Keep Printful production confirmation disabled",
-      "Do not create real Safepay charges solely for QA",
-      "Do not integrate PR 15 ahead of the owner decision for verified Browser QA infrastructure PR 16; after PR 16 integration, re-verify PR 15 against the updated migration base before integration",
-      "Do not cut issuedonce.shop until all temporary-host gates and email deliverability are green"
+      "Treat feat/mystery-foundation as canonical until final release promotion.",
+      "Require fresh CI, Browser QA, exact release health, live-product and database evidence before launch-success claims.",
+      "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets.",
+      "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan.",
+      "Do not mutate frozen release candidate branches.",
+      "Do not change the current Hostinger hPanel branch selection; prior branch changes reset environment variables.",
+      "Keep Printful production confirmation disabled until the explicit manufacturing launch gate.",
+      "Do not create real Safepay charges solely for QA.",
+      "Do not apply referral migrations 0029 or 0034 until the production referral-activation checkpoint is explicitly approved and database preflight is green.",
+      "Do not send creator launch outreach until referral migrations are live, the intended creator roster is reviewed, provider email configuration is green and the Owner explicitly triggers /ops/referral-launch.",
+      "Do not cut issuedonce.shop until all temporary-host provider, customer-flow and email-deliverability gates are green."
     ]
+  },
+  "integratedWork": {
+    "hostingerBrowserQaRepair": {
+      "pullRequest": 16,
+      "status": "MERGED",
+      "verifiedHead": "c46066a557e6af0eb45967ebe36bf5a42533315b",
+      "mergeCommit": "8566e51726e87d6e1507de7dc5224cc544e880f5",
+      "ci": "PASS CI #1470 run 33010425057; 195/195 files; 564/564 tests; typecheck/lint/build PASS",
+      "browserQa": "PASS Browser QA #1365 run 33010464175; 38/38 desktop/mobile",
+      "manualHostingerSmoke": "PASS Browser QA #1366 run 33010913394; desktop and mobile Hostinger-safe live smoke",
+      "productionMutationPerformed": false
+    },
+    "safepayReporterRepair": {
+      "pullRequest": 15,
+      "status": "MERGED",
+      "branchHead": "b1a6dd114ef41ec7226588f6d0b450683639c7f5",
+      "mergeCommit": "5b69a3079a2a05fffa13ee0888c8ec545cfa5290",
+      "rootCause": "Safepay tracker verification used /reporter/api/v2/payments/{tracker}; current official Reporter contract is GET /reporter/api/v1/payments/{tracker}.",
+      "freshIntegrationCi": "PASS CI #1489 run 33144747519 job 98763209138 against base 8566e51726e87d6e1507de7dc5224cc544e880f5; 195/195 files; 565/565 tests; typecheck/lint/build PASS",
+      "productionMutationPerformed": false,
+      "realPaymentPerformed": false
+    },
+    "referralLaunchOutreach": {
+      "pullRequest": 17,
+      "status": "MERGED",
+      "branchHead": "e09bf40af328beef31e46233308aa4e21a9e4aff",
+      "mergeCommit": "6023e7f1bb2eb15551d1fed2470fab0131bb7987",
+      "finalSyntheticMerge": "3600f2051e03edd1a429a6f6b84c66d68a86c6fe",
+      "finalBaseContainingHostingerAndSafepay": "5b69a3079a2a05fffa13ee0888c8ec545cfa5290",
+      "finalCi": "PASS CI #1492 run 33144978075 job 98763896914; 199/199 test files; 576/576 tests; typecheck PASS; lint 0 errors with 5 pre-existing warnings; production build PASS; 56/56 static pages",
+      "finalBrowserQa": "PASS Browser QA #1376 run 33144978099 job 98763897060; 38/38 desktop/mobile Playwright tests",
+      "browserArtifact": "artifact 9675429089; 49 files; 4407604 bytes; sha256:40408c2aa6781e8f547a56dbeb719f6fc9eee1829db670bcdfd444813329fd80",
+      "behavior": [
+        "active creators only",
+        "encrypted creator email decrypted only at send time",
+        "creator referral code and /r/CODE link included",
+        "one successful send per creator/campaign",
+        "failed sends recorded and retryable",
+        "bounded batches",
+        "Owner authentication plus explicit SEND_LAUNCH_REFERRALS confirmation",
+        "deployment alone cannot send creator email"
+      ],
+      "productionMutationPerformed": false,
+      "creatorEmailsSent": false
+    }
   },
   "productionDatabase": {
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
     "branchId": "br-dawn-cloud-axm880q9",
-    "migrations": {"0030": true, "0031": true, "0032": true, "0033": true, "0029": false},
-    "auditSemantics": "V2 is a key-version subset inside existing physical tables, not a separate *_v2 table namespace.",
-    "latestReadOnlyProof": {
-      "experienceAnswersTotal": 2428,
-      "experienceAnswersKeyV2": 518,
-      "otpChallengesTotal": 280,
-      "otpChallengesKeyV2": 24,
-      "verifiedContactsTotal": 7,
-      "verifiedContactsKeyV2": 0,
-      "shippingSnapshotsTotal": 7,
-      "shippingSnapshotsKeyV2": 0,
-      "supportRequestsTotal": 0,
-      "supportRequestsKeyV2": 0,
+    "migrations": {
+      "0030": true,
+      "0031": true,
+      "0032": true,
+      "0033": true,
+      "0029": false,
+      "0034": false
+    },
+    "latestReadOnlyProofIsHistoricalUntilRerun": true,
+    "latestKnownSafety": {
       "backgroundJobsTotal": 0,
       "manufacturingJobsTotal": 0,
       "manufacturingProviderEventsTotal": 0,
       "paymentAttemptsTotal": 6,
-      "otpRateLimitsTotal": 3,
-      "otpRateLimitKinds": {"email": 1, "experience": 1, "ip": 1},
       "referralCreatorsPresent": false,
       "referralConversionsPresent": false
-    },
-    "qaSafetyConclusion": "Fresh read-only proof after the Hostinger cache purge shows V2 customer-sensitive state unchanged: 518 V2 answers, 24 V2 OTP challenges, zero V2 verified contacts/shipping/support, zero background/manufacturing work, six total payment attempts unchanged, three hashed limiter subjects, and no referral rollout."
-  },
-  "migration0033": {
-    "file": "db/migrations/0033_otp_rate_limits.sql",
-    "status": "APPLIED_VERIFIED_AND_USED_BY_LIVE_V10",
-    "privacy": "HMAC hashes only; no plaintext email or IP stored in limiter table",
-    "retentionHours": 48,
-    "cleanupBatchLimit": 5000
-  },
-  "hostingerV10Proof": {
-    "temporaryUrl": "https://lightgray-coyote-141764.hostingersite.com",
-    "release": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
-    "candidateBranch": "release/hostinger-v10-candidate-20260825",
-    "exactReleaseHealth": "PASS_PROVIDER_HOSTINGER_RELEASE_V10",
-    "realQaPayment": false
-  },
-  "activeSafepayRepair": {
-    "branch": "engineering/safepay-reporter-v1-20260826",
-    "pullRequest": 15,
-    "pullRequestState": "DRAFT_UNMERGED",
-    "baseBranch": "infra/hostinger-migration-20260823",
-    "baseHead": "52ba4252d69f11e4f797efca6eec9a084c4f34ee",
-    "verifiedCodeHead": "345475345b55d985cc31515e72a2899d8f59b266",
-    "rootCause": "verifyTracker used /reporter/api/v2/payments/{tracker} instead of the current official Reporter /reporter/api/v1/payments/{tracker} contract",
-    "officialContractProof": {
-      "repository": "getsafepay/node-core",
-      "commit": "b3329b54a6b6a4774968b024c4bc152445e209ed",
-      "file": "src/resources/Reporter/Payments.ts",
-      "basePath": "/reporter",
-      "fetch": "GET /api/v1/payments/{tracker}"
-    },
-    "tdd": {
-      "redRegressionCommit": "dc024954cb874348232b25e8986aad28ca1389b5",
-      "redProof": "PASS_EXPECTED_FAILURE: actual https://api.getsafepay.com/reporter/api/v2/payments/track_paid_1 vs expected https://api.getsafepay.com/reporter/api/v1/payments/track_paid_1",
-      "greenFixCommit": "d2eec2402418f765e32f37e12bd0e39ee3a94799",
-      "greenFixDiff": "one production line only: reporter api v2 to v1",
-      "staleTestAlignmentCommit": "345475345b55d985cc31515e72a2899d8f59b266",
-      "greenHarness": "PASS: v1 URL, GET semantics, merchant-secret header, no-store, exact frozen quote accepted, mismatched quote fails closed, invalid tracker performs no provider fetch"
-    },
-    "finalFunctionalDiffAgainstMigrationBase": {
-      "production": "src/server/payments/SafepayPaymentGateway.ts: +1/-1",
-      "newRegressionTest": "tests/unit/safepay-gateway.test.ts: Reporter v1 focused regression",
-      "alignedExistingTest": "tests/unit/safepay-v3-contract.test.ts: Reporter v2 expectation updated to v1",
-      "databaseChanges": 0,
-      "uiChanges": 0,
-      "webhookChanges": 0
-    },
-    "verification": {
-      "migrationBaseCi": "PASS CI #1459 run 32980446276 at 52ba4252d69f11e4f797efca6eec9a084c4f34ee",
-      "migrationBaseBrowserQa": "PASS Browser QA #1358 run 32980446030 at 52ba4252d69f11e4f797efca6eec9a084c4f34ee",
-      "exactCodeHeadCi": "PASS CI #1465 run 32999748983 at 345475345b55d985cc31515e72a2899d8f59b266; 195/195 files; 564/564 tests; typecheck PASS; lint 0 errors; production build PASS",
-      "exactCodeHeadBrowserQa": "HISTORICAL_PARTIAL_WORKFLOW_RED_BUT_BRANCH_BROWSER_GREEN: Browser QA #1361 run 33000517257 checked out 345475345b55d985cc31515e72a2899d8f59b266; Browser tests PASS 38/38; visual artifact 9618430459 uploaded; live-owner step failed because Hostinger V10 lacks Vercel-only OWNER PREVIEW / NO PAYMENT marker",
-      "browserQaArtifact": "issued-once-browser-qa artifact 9618430459; sha256 9d331ace9c6719392f8aff32cb900c8d0e52002b46a3c63fe094f71c5a65da5a",
-      "livePreviewFailureClassification": "RESOLVED_INFRASTRUCTURE_FALSE_RED_AFTER_VERCEL_TO_HOSTINGER_MIGRATION; live-owner-preview.mjs was explicitly Vercel-preview-specific and did not test Safepay payment verification",
-      "browserQaInfrastructureRepair": "PASS PR16 final head c46066a557e6af0eb45967ebe36bf5a42533315b; CI #1470 run 33010425057 PASS 195/195 files 564/564 tests typecheck lint build; Browser QA #1365 run 33010464175 PASS 38/38",
-      "hostingerManualLiveSmoke": "PASS Browser QA #1366 run 33010913394 job 98316631338 against https://lightgray-coyote-141764.hostingersite.com; LIVE_HOSTINGER_PREVIEW_PASS desktop and mobile; artifact 9622537829 sha256 8db6e1090fc3bad6bf66ec06724d031ae734fede99394941a66369eb180dbe95",
-      "localFullRunner": "BLOCKED_OUTBOUND_DNS_PREVENTS_DEPENDENCY_INSTALL; GitHub Actions provided the authoritative exact-head verification instead",
-      "vercelStatus": "PREEXISTING_FAILURE_ON_MIGRATION_BASE_AND_REPAIR_HEAD; Vercel is not the active Hostinger release target",
-      "mergeAllowed": false,
-      "mergeBlockedOnlyBy": "OWNER_INTEGRATION_DECISION_FOR_PR16_THEN_FRESH_PR15_VERIFICATION_ON_UPDATED_BASE",
-      "deploymentAllowed": false
-    },
-    "productionMutationPerformed": false,
-    "realPaymentPerformed": false
-  },
-  "repositoryVerification": {
-    "verifiedMigrationHead": "52ba4252d69f11e4f797efca6eec9a084c4f34ee",
-    "ci": {
-      "runNumber": 1459,
-      "runId": 32980446276,
-      "result": "PASS",
-      "steps": ["locked dependency install", "unit tests", "typecheck", "lint", "production build"]
-    },
-    "browserQa": {
-      "runNumber": 1358,
-      "runId": 32980446030,
-      "result": "PASS",
-      "steps": ["desktop/mobile Chromium browser tests", "visual evidence upload"]
-    },
-    "safepayRepairExactCodeHead": {
-      "head": "345475345b55d985cc31515e72a2899d8f59b266",
-      "focusedContract": "PASS",
-      "fullCi": "PASS_RUN_32999748983",
-      "unitTests": "PASS_564_OF_564",
-      "browserTests": "PASS_38_OF_38_RUN_33000517257",
-      "browserWorkflowOverall": "HISTORICAL_VERCEL_PREVIEW_FALSE_RED_RESOLVED_BY_VERIFIED_PR16_HOSTINGER_AWARE_HARNESS",
-      "visualEvidence": "PASS_ARTIFACT_9618430459",
-      "successClaimAllowedForSafepayCode": true,
-      "mergeClaimAllowed": false
     }
   },
-  "browserQaHostingerRepair": {
-    "branch": "engineering/browser-qa-hostinger-20260827",
-    "pullRequest": 16,
-    "pullRequestState": "DRAFT_UNMERGED_AWAITING_OWNER_INTEGRATION_DECISION",
-    "baseBranch": "infra/hostinger-migration-20260823",
-    "finalHead": "c46066a557e6af0eb45967ebe36bf5a42533315b",
-    "rootCause": "Manual Browser QA always invoked a Vercel-owner-preview-specific probe even when preview_url was a real Hostinger deployment, causing a permanent false red after migration",
-    "implementationScope": "Infrastructure/test only: host-aware live-preview router, read-only Hostinger public smoke, workflow routing and regression contract; no product/payment/database/webhook/runtime production code changed",
-    "ci": "PASS CI #1470 run 33010425057; 195/195 files; 564/564 tests; typecheck PASS; lint 0 errors; production build PASS",
-    "browserQa": "PASS Browser QA #1365 run 33010464175; 38/38 desktop/mobile Chromium tests; artifact 9622353294 sha256 93f2916def41f9d4b37f9399c8ac7279a6a3674784d98759aaedf4fc0b6e8335",
-    "manualHostinger": "PASS Browser QA #1366 run 33010913394 job 98316631338; PREVIEW_URL https://lightgray-coyote-141764.hostingersite.com; LIVE_HOSTINGER_PREVIEW_PASS desktop and mobile; artifact 9622537829 sha256 8db6e1090fc3bad6bf66ec06724d031ae734fede99394941a66369eb180dbe95",
-    "writesPerformed": false,
-    "otpPerformed": false,
-    "paymentPerformed": false,
-    "hostingerBranchChanged": false
+  "productionRuntime": {
+    "liveRelease": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
+    "runtimeProvider": "hostinger",
+    "productionDeploymentOfIntegratedHead": false,
+    "hostingerBranchChanged": false,
+    "realSafepayQaCharge": false,
+    "printfulProductionConfirmation": false,
+    "referralMigrationsApplied": false,
+    "creatorLaunchOutreachSent": false,
+    "canonicalDomainCutover": false
   },
-  "liveBoundaryAudit": {
-    "latestRunId": 32961112453,
-    "latestJobId": 98154721599,
-    "freshAfterCachePurge": false,
-    "freshAfterCachePurgeNote": "The prior boundary job aged out of the rerun endpoint. Do not claim a fresh complete boundary rerun solely from the cache purge; the strict cache/header gate and fresh Neon safety audit were independently rerun.",
-    "releaseHealth": "PASS_EXACT_V10",
-    "healthyBoundaries": [
-      "public core pages 200",
-      "anonymous issue status 200/found=false",
-      "invalid artwork token 401",
-      "owner dashboard/session invalid credential 401",
-      "internal job drain unauthenticated 401",
-      "deprecated internal and Fourthwall routes 410",
-      "invalid support payload 400",
-      "shipping before verified contact 409",
-      "referrals intentionally unavailable 503"
-    ],
-    "findings": [
-      "Public merchant disclosure is not fully configured",
-      "Public support address is not configured",
-      "Safepay webhook returns 503 rather than invalid-auth 401 because runtime/webhook configuration is incomplete",
-      "Printful webhook returns 503 rather than invalid-auth 401 because webhook configuration is incomplete",
-      "Safepay payment create returns 503 rather than session/quote precondition 409 because payment runtime is incomplete"
-    ],
-    "configuredAuthProof": {
-      "INTERNAL_OPERATIONS_TOKEN": "PRESENT_AND_SAFE_LENGTH_PROVEN_BY_INVALID_CREDENTIAL_401",
-      "CRON_SECRET": "PRESENT_AND_SAFE_LENGTH_PROVEN_BY_UNAUTHENTICATED_401"
-    },
-    "artworkSigningKeyProof": "UNPROVEN_INVALID_TOKEN_401_IS_NOT_POSITIVE_CONFIGURATION_PROOF"
-  },
-  "securityHeaders": {
-    "required": [
-      "Strict-Transport-Security: max-age=31536000; includeSubDomains",
-      "X-Content-Type-Options: nosniff",
-      "X-Frame-Options: DENY",
-      "Referrer-Policy: strict-origin-when-cross-origin",
-      "Permissions-Policy: camera=(), microphone=(), geolocation=()"
-    ],
-    "runtimeImplementation": "V10 runtime applies the baseline to normal/API/legacy responses.",
-    "bareHomeCurrent": "GREEN_AFTER_OWNER_HOSTINGER_CACHE_PURGE",
-    "strictLiveGate": {
-      "workflow": ".github/workflows/hostinger-strict-header-audit.yml",
-      "probe": "tests/e2e/live-security-headers.mjs",
-      "fullBoundaryProbe": "tests/e2e/live-non-otp-boundaries.mjs",
-      "mergedViaPullRequest": 14,
-      "integrationHead": "5daf843a49ca941d4a85bc4d2c71dd61d682a16a",
-      "runId": 32970751752,
-      "rerunJobId": 98212747146,
-      "syntaxCheck": "PASS_THREE_LIVE_PROOF_SCRIPTS",
-      "exactReleaseHealth": "PASS_V10_AA73848E",
-      "result": "PASS_AFTER_HOSTINGER_CACHE_PURGE",
-      "findingCount": 0,
-      "proofLine": "LIVE_SECURITY_HEADER_PASS bare-home exact-baseline no-powered-by no-store no-s-maxage"
-    },
-    "ownerBoundary": "RESOLVED_BY_OWNER_CACHE_PURGE_AND_FRESH_STRICT_LIVE_GREEN"
-  },
-  "runtimeConfigurationContracts": {
-    "operations": {"INTERNAL_OPERATIONS_TOKEN": "configured; preserve existing value; minimum 24-character contract proven by 401"},
-    "cron": {"CRON_SECRET": "configured; preserve existing value; minimum 24-character contract proven by unauthenticated 401"},
-    "merchantPublicRequired": ["MERCHANT_PUBLIC_NAME", "MERCHANT_SUPPORT_EMAIL", "MERCHANT_PUBLIC_LOCATION"],
-    "supportRequired": ["SUPPORT_INBOX_EMAIL"],
-    "designRequired": ["OPENAI_API_KEY"],
-    "safepayRequired": ["SAFEPAY_API_KEY", "SAFEPAY_API_SECRET or SAFEPAY_V1_SECRET", "SAFEPAY_WEBHOOK_SECRET"],
-    "printfulRequiredForManufacturing": ["PRINTFUL_API_TOKEN", "PRINTFUL_VARIANT_MAP_JSON", "ARTWORK_SIGNING_KEY", "APP_ORIGIN"],
-    "printfulRequiredForWebhook": ["PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"]
-  },
-  "hostingerConfiguration": {
-    "provenConfiguredPreserve": ["DATABASE_URL", "QUIZ_ENCRYPTION_KEY_V2", "IDENTITY_HMAC_KEY", "RESEND_API_KEY", "RESEND_FROM_EMAIL", "APP_ORIGIN", "ARTWORK_STORAGE_DIR", "NODE_ENV", "RUNTIME_PROVIDER", "INTERNAL_OPERATIONS_TOKEN", "CRON_SECRET"],
-    "stillUnproven": ["ARTWORK_SIGNING_KEY", "OPENAI_API_KEY", "SUPPORT_INBOX_EMAIL"],
-    "providerCredentialsPendingOrIncomplete": ["SAFEPAY_API_KEY", "SAFEPAY_API_SECRET", "SAFEPAY_WEBHOOK_SECRET", "PRINTFUL_API_TOKEN", "PRINTFUL_WEBHOOK_PUBLIC_KEY", "PRINTFUL_WEBHOOK_SECRET_HEX"],
-    "truthfulPublicOrProviderValuesPending": ["MERCHANT_PUBLIC_NAME", "MERCHANT_SUPPORT_EMAIL", "MERCHANT_PUBLIC_LOCATION", "SAFEPAY_ENVIRONMENT=production at launch", "PRINTFUL_VARIANT_MAP_JSON"],
-    "optional": ["PRINTFUL_STORE_ID", "MERCHANT_SUPPORT_PHONE", "MERCHANT_LEGAL_ENTITY", "SUPPORT_REPLY_TO"],
-    "forbidden": ["REFERRAL_ATTRIBUTION_SIGNING_KEY", "migration 0029 activation", "Printful production confirmation during QA"]
-  },
-  "artworkSigningKeyEvidence": {
-    "v10Route": "src/app/api/artwork/[token]/route.ts",
-    "v10AccessClass": "src/server/design/SignedArtworkAccess.ts",
-    "conclusion": "DO_NOT_INFER_CONFIGURED_FROM_INVALID_TOKEN_401",
-    "reason": "The route catches both env/configuration errors and token-verification errors and deliberately returns the same 401 response. Positive proof requires a safe server path that successfully constructs/uses SignedArtworkAccess without exposing the key."
-  },
-  "emailDeliverability": {
-    "resendTransport": "PASS",
-    "gmailReceipt": "PASS",
-    "gmailPlacement": "SPAM_ON_REPEATED_AUTOMATED_QA",
-    "spf": "PASS",
-    "dkim": "PASS",
-    "dmarcFinalProof": false,
-    "releaseQualityStatus": "OPEN"
-  },
-  "safetyGates": {
-    "realQaPayment": "NOT_PERFORMED",
-    "printfulProductionConfirmation": "DISABLED",
-    "migration0029": "NOT_APPLIED",
-    "dummyDataReset": "NOT_AUTHORIZED",
-    "productionDomainCutover": "NOT_PERFORMED",
-    "pullRequest13": "DRAFT_UNMERGED",
-    "pullRequest14": "MERGED_CLOSED_TEST_ONLY_PROOF_HARNESS",
-    "pullRequest15": "DRAFT_UNMERGED_CODE_VERIFIED_HOSTINGER_GATE_REPAIRED_AWAITING_PR16_INTEGRATION",
-    "pullRequest16": "DRAFT_UNMERGED_FULLY_VERIFIED_AWAITING_OWNER_INTEGRATION_DECISION",
-    "pullRequest3": "SEPARATE_FINAL_AUDIT_GATE"
-  },
-  "nextActions": [
-    "OWNER: choose the integration outcome for fully verified Browser QA infrastructure PR 16",
-    "SYSTEM: if PR 16 is integrated into infra/hostinger-migration-20260823, reconcile PR 15 against that updated base and require fresh merged-result CI plus Browser QA before PR 15 integration",
-    "SYSTEM: keep PR 15 functional Safepay production line unchanged while integration ordering is resolved",
-    "OWNER: add truthful merchant public name/support email/location without changing the Hostinger branch",
-    "OWNER: configure SUPPORT_INBOX_EMAIL if not already present",
-    "OWNER: complete Safepay runtime/webhook configuration only after PR 15 promotion; QA must not create a real charge",
-    "OWNER: complete Printful webhook/manufacturing configuration; production confirmation remains disabled",
-    "OWNER: configure OPENAI_API_KEY and ARTWORK_SIGNING_KEY if absent, preserving any existing values",
-    "SYSTEM: positively prove support delivery, design generation/private artwork and signed artwork access after configuration",
-    "SYSTEM: rerun live boundary audit and require provider invalid-auth/precondition behavior after configuration",
-    "SYSTEM+OWNER: owner-managed OTP verification must create a V2 verified-contact row, then shipping must create a V2 shipping snapshot",
-    "SYSTEM+OWNER: prove normal Gmail deliverability and DMARC without exposing OTP",
-    "SYSTEM+OWNER: request separate issuedonce.shop cutover approval only after temporary-host gates are green"
+  "launchBlockers": [
+    "Re-audit the current temporary Hostinger deployment and provider boundary state; prior live-boundary evidence predates the integrated branch head.",
+    "Confirm truthful MERCHANT_PUBLIC_NAME, MERCHANT_SUPPORT_EMAIL and MERCHANT_PUBLIC_LOCATION.",
+    "Confirm SUPPORT_INBOX_EMAIL and positive support-delivery proof.",
+    "Confirm Safepay runtime and webhook credentials/environment without creating a QA charge.",
+    "Confirm Printful webhook/runtime configuration while production confirmation remains disabled.",
+    "Confirm OPENAI_API_KEY and ARTWORK_SIGNING_KEY through safe positive design/artwork proof.",
+    "Owner-managed OTP verification must create a V2 verified-contact row and shipping must create a V2 shipping snapshot.",
+    "Run referral database preflight, then obtain the explicit production activation checkpoint before applying 0029 followed by 0034.",
+    "After referral schema activation, create/review the intended creator roster before any launch email is sent.",
+    "Prove Gmail inbox placement and final DMARC/deliverability without exposing OTP content.",
+    "Only after temporary-host gates are green, request/execute canonical issuedonce.shop cutover and repeat complete proof."
   ],
-  "nextOwnerAction": "DECIDE_PR16_INTEGRATION_OPTION"
+  "nextAction": {
+    "actor": "ENGINEERING_THEN_OWNER_WHERE_PROVIDER_ACCESS_IS_REQUIRED",
+    "instruction": "First re-audit current GitHub/live evidence and narrow the exact remaining provider configuration. Do not change Hostinger branch or apply production referral migrations during discovery. Surface only the smallest owner actions that cannot be completed through connected tooling."
+  }
 }
