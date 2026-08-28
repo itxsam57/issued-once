@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { authorizeInternalRequest } from '@/server/http/internalAuth';
+import { requireInternalAuthorization } from '@/server/http/internalAuth';
 import { ResendSupportEmailGateway } from '@/server/support/ResendSupportEmailGateway';
 
 const schema = z.object({ confirmation: z.literal('SEND_SUPPORT_CANARY') }).strict();
@@ -25,8 +25,11 @@ function assertRealSupportInbox(value: string) {
 }
 
 export async function POST(request: Request) {
-  const unauthorized = authorizeInternalRequest(request);
-  if (unauthorized) return unauthorized;
+  try {
+    requireInternalAuthorization(request.headers);
+  } catch {
+    return Response.json({ error: 'Not found.' }, { status: 404 });
+  }
 
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
