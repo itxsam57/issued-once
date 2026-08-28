@@ -270,7 +270,7 @@ export class SafepayPaymentGateway implements PaymentGateway {
     assertCurrency(currency);
 
     const response = await this.fetchImpl(
-      `${apiBase(this.options.environment)}/reporter/api/v2/payments/${encodeURIComponent(providerReference)}`,
+      `${apiBase(this.options.environment)}/reporter/api/v1/payments/${encodeURIComponent(providerReference)}`,
       { headers: this.secretHeaders(), cache: 'no-store' },
     );
     if (!response.ok) throw new Error('Safepay tracker verification failed');
