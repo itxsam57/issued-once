@@ -22,12 +22,15 @@ test('Postgres launch outreach repository selects only active unsent creators an
 test('launch outreach is an explicit owner-only action and deployment alone cannot send creator email', async () => {
   const route = await readFile('src/app/ops/api/referrals/launch-outreach/route.ts', 'utf8');
   const runtime = await readFile('src/server/referrals/runtimeReferralLaunchOutreach.ts', 'utf8');
-  const panel = await readFile('src/components/ops/ReferralsPanel.tsx', 'utf8');
+  const page = await readFile('src/app/ops/referral-launch/page.tsx', 'utf8');
+  const control = await readFile('src/components/ops/ReferralLaunchControl.tsx', 'utf8');
   expect(route).toMatch(/hasOpsSession/);
   expect(route).toMatch(/SEND_LAUNCH_REFERRALS/);
   expect(route).toMatch(/createReferralLaunchOutreachService/);
   expect(runtime).toMatch(/ResendCustomerEmailGateway/);
   expect(runtime).toMatch(/createReferralLaunchOutreachService/);
-  expect(panel).toMatch(/SEND LAUNCH EMAILS/);
-  expect(panel).toMatch(/SEND_LAUNCH_REFERRALS/);
+  expect(page).toMatch(/hasOpsSession/);
+  expect(control).toMatch(/SEND LAUNCH EMAILS/);
+  expect(control).toMatch(/SEND_LAUNCH_REFERRALS/);
+  expect(control).toMatch(/confirm/i);
 });
