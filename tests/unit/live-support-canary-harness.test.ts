@@ -9,7 +9,7 @@ const routePath = join(process.cwd(), 'src/app/api/internal/support/canary/route
 test('support canary is internal-only, fixed-target, and cannot become an arbitrary mail relay', () => {
   expect(existsSync(routePath)).toBe(true);
   const route = readFileSync(routePath, 'utf8');
-  expect(route).toContain('authorizeInternalRequest');
+  expect(route).toContain('requireInternalAuthorization');
   expect(route).toContain('SEND_SUPPORT_CANARY');
   expect(route).toContain("env('SUPPORT_INBOX_EMAIL')");
   expect(route).toContain('ResendSupportEmailGateway');
