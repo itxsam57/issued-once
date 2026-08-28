@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.15.1",
+  "version": "1.16.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-28T05:37:00+05:00",
+  "updatedAt": "2026-08-28T10:46:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -19,19 +19,13 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "HOSTINGER_SAFEPAY_AND_REFERRAL_LAUNCH_CODE_INTEGRATED_GREEN_PRODUCTION_ACTIVATION_REMAINS_GATED",
-    "allowedStopStates": [
-      "OWNER_REQUIRED",
-      "BLOCKED",
-      "WAIT_EXTERNAL",
-      "LOOP_DETECTED",
-      "COMPLETE"
-    ],
-    "stopReason": "All currently approved repository integration work is merged into the Hostinger migration branch and verified together. Production remains intentionally unchanged. Remaining launch work crosses owner/provider boundaries: Hostinger production configuration, referral schema activation, real owner-managed OTP/shipping/support proofs, email deliverability, provider readiness and canonical-domain cutover. The Hostinger branch must not be changed because previous branch changes erased environment variables."
+    "decision": "REFERRAL_PRIVATE_PAYLOAD_V2_COMPATIBILITY_REPAIR_REQUIRES_APPROVAL_BEFORE_ACTIVATION",
+    "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
+    "stopReason": "Fresh live Hostinger smoke is green and current production remains unchanged, but referral production activation is blocked by a verified schema/runtime mismatch: generic private encryption now emits keyVersion v2 while unapplied referral migration 0029 constrains creator email and payout private payload keys to v1. A bounded append-only compatibility repair is designed and awaits explicit approval before implementation."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "INTEGRATED_CODE_GREEN_AWAITING_PRODUCTION_ACTIVATION_GATES",
+    "internalWorkStatus": "INTEGRATED_CODE_GREEN_REFERRAL_ACTIVATION_BLOCKED_ON_V2_SCHEMA_COMPATIBILITY",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Require fresh CI, Browser QA, exact release health, live-product and database evidence before launch-success claims.",
@@ -42,7 +36,7 @@
       "Migration 0033 is approved, applied and live; preserve its schema and hashed-only privacy contract.",
       "Keep Printful production confirmation disabled until the explicit manufacturing launch gate.",
       "Do not create real Safepay charges solely for QA.",
-      "Do not apply referral migrations 0029 or 0034 until the production referral-activation checkpoint is explicitly approved and database preflight is green.",
+      "Do not apply referral migrations 0029, 0034 or any compatibility follow-up until the referral private-payload v2 repair is verified and the production referral-activation checkpoint is explicitly approved.",
       "Do not send creator launch outreach until referral migrations are live, the intended creator roster is reviewed, provider email configuration is green and the Owner explicitly triggers /ops/referral-launch.",
       "Do not cut issuedonce.shop until all temporary-host provider, customer-flow and email-deliverability gates are green."
     ]
@@ -55,7 +49,7 @@
       "mergeCommit": "8566e51726e87d6e1507de7dc5224cc544e880f5",
       "ci": "PASS CI #1470 run 33010425057; 195/195 files; 564/564 tests; typecheck/lint/build PASS",
       "browserQa": "PASS Browser QA #1365 run 33010464175; 38/38 desktop/mobile",
-      "manualHostingerSmoke": "PASS Browser QA #1366 run 33010913394; desktop and mobile Hostinger-safe live smoke",
+      "freshLiveSmoke": "PASS rerun job 98765685902 in Browser QA run 33010913394 on 2026-08-28; 38/38 browser tests plus LIVE_HOSTINGER_PREVIEW_PASS desktop and mobile; production customer journey skipped; artifact 9675644963, 51 files, 4537768 bytes, sha256:fbbf0620c1b1617bc09c8a050c38b7cc01d0b4f4558b413a6264424231c21722",
       "productionMutationPerformed": false
     },
     "safepayReporterRepair": {
@@ -78,45 +72,52 @@
       "finalCi": "PASS CI #1492 run 33144978075 job 98763896914; 199/199 test files; 576/576 tests; typecheck PASS; lint 0 errors with 5 pre-existing warnings; production build PASS; 56/56 static pages",
       "finalBrowserQa": "PASS Browser QA #1376 run 33144978099 job 98763897060; 38/38 desktop/mobile Playwright tests",
       "browserArtifact": "artifact 9675429089; 49 files; 4407604 bytes; sha256:40408c2aa6781e8f547a56dbeb719f6fc9eee1829db670bcdfd444813329fd80",
-      "behavior": [
-        "active creators only",
-        "encrypted creator email decrypted only at send time",
-        "creator referral code and /r/CODE link included",
-        "one successful send per creator/campaign",
-        "failed sends recorded and retryable",
-        "bounded batches",
-        "Owner authentication plus explicit SEND_LAUNCH_REFERRALS confirmation",
-        "deployment alone cannot send creator email"
-      ],
       "productionMutationPerformed": false,
       "creatorEmailsSent": false
+    }
+  },
+  "freshDiscovery": {
+    "productionDatabaseReadOnly": {
+      "referralTablesPresent": false,
+      "backgroundJobsTotal": 0,
+      "manufacturingJobsTotal": 0,
+      "manufacturingProviderEventsTotal": 0,
+      "paymentAttemptsTotal": 6,
+      "otpChallengesTotal": 283,
+      "otpChallengesKeyV1": 259,
+      "otpChallengesKeyV2": 24,
+      "verifiedContactsTotal": 7,
+      "verifiedContactsKeyV2": 0,
+      "shippingSnapshotsTotal": 7,
+      "shippingSnapshotsKeyV2": 0,
+      "supportRequestsTotal": 0
+    },
+    "emailDelivery": {
+      "otpInboxDelivery": "POSITIVE: multiple ISSUED ONCE OTP messages from otp.issuedonce.shop reached the connected Gmail inbox through 2026-08-26",
+      "supportInboxDelivery": "UNPROVEN: no positive support message found"
+    },
+    "referralPrivatePayloadCompatibility": {
+      "status": "BLOCKING_MISMATCH_CONFIRMED",
+      "runtimeEvidence": "src/server/crypto/privatePayload.ts encryptPrivatePayload always returns version 1, keyVersion v2",
+      "serviceEvidence": "OpsReferralService uses encryptPrivatePayload by default for both creator email and payout details",
+      "schemaEvidence": "unapplied migration 0029 constrains referral_creators.email_key_version = v1 and referral_payout_requests.details_key_version = v1",
+      "typeEvidence": "PostgresReferralRepository NotificationInputRow and PostgresOpsReferralRepository PayoutDetailsRow are v1-only",
+      "impact": "Applying 0029 as-is then creating a real creator or payout with current runtime encryption can fail at the database or violate repository typing expectations.",
+      "approvedRepairDesign": false,
+      "proposedRepair": "Add append-only migration 0035 to allow v1/v2 referral private-payload key versions; widen stale repository row types to v1|v2; TDD v2 creator/payout round-trip; full CI/browser; temporary-Neon rehearsal before any production application."
     }
   },
   "productionDatabase": {
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
     "branchId": "br-dawn-cloud-axm880q9",
-    "migrations": {
-      "0030": true,
-      "0031": true,
-      "0032": true,
-      "0033": true,
-      "0029": false,
-      "0034": false
-    },
-    "latestReadOnlyProofIsHistoricalUntilRerun": true,
-    "latestKnownSafety": {
-      "backgroundJobsTotal": 0,
-      "manufacturingJobsTotal": 0,
-      "manufacturingProviderEventsTotal": 0,
-      "paymentAttemptsTotal": 6,
-      "referralCreatorsPresent": false,
-      "referralConversionsPresent": false
-    }
+    "migrations": {"0030": true, "0031": true, "0032": true, "0033": true, "0029": false, "0034": false, "0035": false},
+    "latestReadOnlyProofIsHistoricalUntilRerun": false
   },
   "productionRuntime": {
     "liveRelease": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "runtimeProvider": "hostinger",
+    "freshTemporaryHostSmoke": true,
     "productionDeploymentOfIntegratedHead": false,
     "hostingerBranchChanged": false,
     "realSafepayQaCharge": false,
@@ -126,20 +127,19 @@
     "canonicalDomainCutover": false
   },
   "launchBlockers": [
-    "Re-audit the current temporary Hostinger deployment and provider boundary state; prior live-boundary evidence predates the integrated branch head.",
+    "Referral private-payload v2 compatibility repair must be implemented and verified before referral migration activation.",
     "Confirm truthful MERCHANT_PUBLIC_NAME, MERCHANT_SUPPORT_EMAIL and MERCHANT_PUBLIC_LOCATION.",
-    "Confirm SUPPORT_INBOX_EMAIL and positive support-delivery proof.",
+    "Confirm SUPPORT_INBOX_EMAIL and positive support-delivery proof; current support_requests count is zero.",
     "Confirm Safepay runtime and webhook credentials/environment without creating a QA charge.",
     "Confirm Printful webhook/runtime configuration while production confirmation remains disabled.",
     "Confirm OPENAI_API_KEY and ARTWORK_SIGNING_KEY through safe positive design/artwork proof.",
-    "Owner-managed OTP verification must create a V2 verified-contact row and shipping must create a V2 shipping snapshot.",
-    "Run referral database preflight, then obtain the explicit production activation checkpoint before applying 0029 followed by 0034.",
+    "Complete one owner-managed OTP verification and shipping journey that produces verified_contacts.key_version=v2 and shipping_snapshots.key_version=v2.",
+    "After repair, run referral database preflight, then obtain explicit production activation approval before applying 0029, 0034 and 0035 in the verified order.",
     "After referral schema activation, create/review the intended creator roster before any launch email is sent.",
-    "Prove Gmail inbox placement and final DMARC/deliverability without exposing OTP content.",
-    "Only after temporary-host gates are green, request/execute canonical issuedonce.shop cutover and repeat complete proof."
+    "Only after temporary-host provider/customer/email gates are green, request/execute canonical issuedonce.shop cutover and repeat complete proof."
   ],
   "nextAction": {
-    "actor": "ENGINEERING_THEN_OWNER_WHERE_PROVIDER_ACCESS_IS_REQUIRED",
-    "instruction": "First re-audit current GitHub/live evidence and narrow the exact remaining provider configuration. Do not change Hostinger branch or apply production referral migrations during discovery. Surface only the smallest owner actions that cannot be completed through connected tooling."
+    "actor": "OWNER_FOR_REPAIR_APPROVAL_THEN_ENGINEERING",
+    "instruction": "Approve the bounded referral private-payload v2 compatibility repair. Engineering then implements TDD, full gates and an isolated Neon migration rehearsal. No production migration, Hostinger branch change, real payment or creator email send occurs during the repair."
   }
 }
