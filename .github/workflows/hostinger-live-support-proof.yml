@@ -16,6 +16,7 @@ jobs:
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
       EXPECTED_RELEASE_ID: ${{ github.sha }}
+      INTERNAL_OPERATIONS_TOKEN: ${{ secrets.INTERNAL_OPERATIONS_TOKEN }}
     steps:
       - name: Checkout pushed Hostinger candidate
         uses: actions/checkout@v4

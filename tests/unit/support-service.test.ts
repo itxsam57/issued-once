@@ -40,3 +40,22 @@ test('cannot create support request without an Issue linked to the current sessi
   const service = new SupportService(new MemoryRepository(null), { send: vi.fn() } as unknown as SupportEmailGateway);
   await expect(service.create({ sessionToken: 'session', message: 'help' })).rejects.toThrow(/issue/i);
 });
+
+test('sends a release-scoped support canary through the same support email gateway', async () => {
+  const send = vi.fn(async () => ({ providerMessageId: 'support-canary-mail-1' }));
+  const service = new SupportService(new MemoryRepository(null), { send });
+  const releaseId = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+
+  const canaryService = service as SupportService & {
+    sendCanary(input: { releaseId: string; replyTo: string }): Promise<{ providerMessageId: string }>;
+  };
+  await canaryService.sendCanary({ releaseId, replyTo: 'support@example.com' });
+
+  expect(send).toHaveBeenCalledOnce();
+  expect(send).toHaveBeenCalledWith({
+    issueCode: 'CANARY-aaaaaaaaaaaa',
+    replyTo: 'support@example.com',
+    message: `Automated ISSUED ONCE support delivery canary for release ${releaseId}. No customer data.`,
+    idempotencyKey: `issued-once/support-canary/${releaseId}`,
+  });
+});
