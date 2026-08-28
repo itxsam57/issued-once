@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from 'vitest';
 
-test('referral migration stores creator launch outreach separately with one successful campaign delivery per creator', async () => {
-  const sql = await readFile('db/migrations/0029_creator_referrals.sql', 'utf8');
+test('referral launch migration stores outreach separately with one successful campaign delivery per creator', async () => {
+  const sql = await readFile('db/migrations/0034_referral_launch_outreach.sql', 'utf8');
 
   expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS referral_creator_outreach_deliveries/i);
   expect(sql).toMatch(/creator_id uuid NOT NULL REFERENCES referral_creators\(id\)/i);
