@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.15.0",
+  "version": "1.15.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-28T05:34:00+05:00",
+  "updatedAt": "2026-08-28T05:37:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -11,6 +11,7 @@
     "activeMigrationPullRequest": 13,
     "activeMigrationHead": "6023e7f1bb2eb15551d1fed2470fab0131bb7987",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
+    "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
     "temporaryHost": "https://lightgray-coyote-141764.hostingersite.com",
     "hpanelBranchSelection": "PRESERVE_CURRENT_SELECTION_DO_NOT_CHANGE",
@@ -38,6 +39,7 @@
       "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan.",
       "Do not mutate frozen release candidate branches.",
       "Do not change the current Hostinger hPanel branch selection; prior branch changes reset environment variables.",
+      "Migration 0033 is approved, applied and live; preserve its schema and hashed-only privacy contract.",
       "Keep Printful production confirmation disabled until the explicit manufacturing launch gate.",
       "Do not create real Safepay charges solely for QA.",
       "Do not apply referral migrations 0029 or 0034 until the production referral-activation checkpoint is explicitly approved and database preflight is green.",
