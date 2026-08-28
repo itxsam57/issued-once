@@ -1,19 +1,15 @@
 {
   "schemaVersion": 1,
-  "version": "1.18.0",
+  "version": "1.19.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-28T13:05:00+05:00",
+  "updatedAt": "2026-08-28T15:02:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "activeMigrationHead": "7d5047726d9cc503226593acac2b53a9d6df0029",
-    "referralV2RepairPullRequest": 18,
-    "referralV2RepairMergeCommit": "7586ca4363643bccb81c78cc2abb0dddfbe255e6",
-    "productionProviderEnforcementPullRequest": 19,
-    "productionProviderEnforcementMergeCommit": "7d5047726d9cc503226593acac2b53a9d6df0029",
+    "activeMigrationHead": "0d52c6cac1c3bd34a20361aa3b8af83245ff8fd6",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
@@ -23,13 +19,13 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "PRODUCTION_REFERRAL_ACTIVATION_REQUIRES_EXPLICIT_APPROVAL",
+    "decision": "CODE_HARDENING_CONTINUES_BUT_PRODUCTION_REFERRAL_ACTIVATION_AND_DEPLOYMENT_ENV_MUTATIONS_REMAIN_OWNER_GATED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "PR #18 and PR #19 are integrated and exact-head verification is green. Production referral tables remain absent by fresh read-only Neon proof, so migrations 0029, 0034 and 0035 remain intentionally deferred. Applying them is a separately owner-gated production activation. Current Hostinger remains frozen on V10; candidate-coupled support proof cannot be truthfully rerun until the integrated candidate is deployed."
+    "stopReason": "Support delivery canary is integrated and exact-head verified, but the live Hostinger release remains frozen on V10. Positive support inbox placement cannot be proven until the integrated candidate is deployed. Production referral migrations and Hostinger environment/branch mutations remain separately gated."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "INTEGRATED_HEAD_GREEN_PRODUCTION_ACTIVATION_GATES_PENDING",
+    "internalWorkStatus": "INTEGRATED_HEAD_GREEN_LIVE_PROVIDER_AND_PRODUCTION_ACTIVATION_GATES_PENDING",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Require fresh CI, Browser QA when path-applicable, exact release health, live-product and database evidence before launch-success claims.",
@@ -37,53 +33,30 @@
       "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan.",
       "Do not mutate frozen release candidate branches.",
       "Do not change the current Hostinger hPanel branch selection; prior branch changes reset environment variables.",
-      "Migration 0033 is approved, applied and live; preserve its schema and hashed-only privacy contract.",
       "Keep Printful production confirmation disabled until the explicit manufacturing launch gate.",
       "Do not create real Safepay charges solely for QA.",
-      "Do not apply referral migrations 0029, 0034 or 0035 to production without the explicit production referral-activation checkpoint.",
+      "Do not apply referral migrations 0029, 0034 or 0035 to production without explicit production referral-activation approval.",
       "Do not send creator launch outreach until referral migrations are live, the intended creator roster is reviewed, provider email configuration is green and the Owner explicitly triggers /ops/referral-launch.",
       "Do not cut issuedonce.shop until all temporary-host provider, customer-flow and email-deliverability gates are green."
     ]
   },
   "integratedWork": {
-    "hostingerBrowserQaRepair": {
-      "pullRequest": 16,
+    "hostingerBrowserQaRepair": {"pullRequest": 16, "status": "MERGED", "mergeCommit": "8566e51726e87d6e1507de7dc5224cc544e880f5"},
+    "safepayReporterRepair": {"pullRequest": 15, "status": "MERGED", "mergeCommit": "5b69a3079a2a05fffa13ee0888c8ec545cfa5290", "realPaymentPerformed": false},
+    "referralLaunchOutreach": {"pullRequest": 17, "status": "MERGED", "mergeCommit": "6023e7f1bb2eb15551d1fed2470fab0131bb7987", "creatorEmailsSent": false},
+    "referralPrivatePayloadV2Repair": {"pullRequest": 18, "status": "MERGED", "mergeCommit": "7586ca4363643bccb81c78cc2abb0dddfbe255e6", "productionApplied": false},
+    "productionProviderEnforcement": {"pullRequest": 19, "status": "MERGED", "mergeCommit": "7d5047726d9cc503226593acac2b53a9d6df0029"},
+    "supportDeliveryCanaryRepair": {
+      "pullRequest": 21,
       "status": "MERGED",
-      "mergeCommit": "8566e51726e87d6e1507de7dc5224cc544e880f5",
-      "freshLiveSmoke": "PASS rerun job 98765685902 in Browser QA run 33010913394 on 2026-08-28; 38/38 plus LIVE_HOSTINGER_PREVIEW_PASS desktop/mobile; customer payment/write journey skipped",
-      "productionMutationPerformed": false
-    },
-    "safepayReporterRepair": {
-      "pullRequest": 15,
-      "status": "MERGED",
-      "mergeCommit": "5b69a3079a2a05fffa13ee0888c8ec545cfa5290",
-      "rootCause": "Safepay tracker verification used /reporter/api/v2/payments/{tracker}; current Reporter contract is GET /reporter/api/v1/payments/{tracker}.",
-      "realPaymentPerformed": false
-    },
-    "referralLaunchOutreach": {
-      "pullRequest": 17,
-      "status": "MERGED",
-      "mergeCommit": "6023e7f1bb2eb15551d1fed2470fab0131bb7987",
-      "creatorEmailsSent": false
-    },
-    "referralPrivatePayloadV2Repair": {
-      "pullRequest": 18,
-      "status": "MERGED",
-      "functionalHead": "aa7e2bb3d145179806fe1e26689a8a058312c658",
-      "mergeCommit": "7586ca4363643bccb81c78cc2abb0dddfbe255e6",
-      "repair": "Append-only 0035 widens only referral_creators.email_key_version and referral_payout_requests.details_key_version from v1-only to v1|v2 and aligns repository row types.",
-      "neonRehearsal": "PASS_AND_DELETED: isolated Neon applied 0029 then 0034 then 0035; V2 creator email and payout rows accepted; old V1 remained compatible; checkout referral invariant violations=0",
-      "productionApplied": false
-    },
-    "productionProviderEnforcement": {
-      "pullRequest": 19,
-      "status": "MERGED",
-      "mergeCommit": "7d5047726d9cc503226593acac2b53a9d6df0029",
-      "behavior": "Production runtime/readiness fail closed on missing support, Safepay, OpenAI/design and Printful configuration while development/test behavior remains unchanged.",
-      "transparencyCompatibility": "CLOSED_NO_DIFF_REQUIRED: ReadinessService rejects gpt-image-2 and tests pin the transparent-background-compatible default gpt-image-1.5.",
-      "exactHeadCi": "PASS CI #1511 run 33152064519 job 98786112371; 203/203 test files; 582/582 tests; typecheck PASS; lint 0 errors/5 warnings; production build PASS; 56/56 static pages",
-      "exactHeadBrowserQa": "PASS Browser QA #1382 run 33152064518",
-      "productionDeploymentPerformed": false
+      "mergeCommit": "0d52c6cac1c3bd34a20361aa3b8af83245ff8fd6",
+      "verifiedHead": "057b53a74339896dabec44c24bbb00954b7fc28a",
+      "behavior": "Adds an authenticated exact-release support email canary that contains no customer data, sends only to SUPPORT_INBOX_EMAIL and uses release-scoped provider idempotency.",
+      "exactHeadCi": "PASS CI #1526 run 33182636468: 205/205 test files, 589/589 tests, typecheck PASS, lint 0 errors/5 warnings, production build PASS, 56/56 static pages.",
+      "exactHeadBrowserQa": "PASS Browser QA #1392 run 33182636478: 38/38 desktop+mobile; artifact 9690397229; sha256 eb9ac8466b783d3bbf6083004f27b693aed2db332cf910746c4e99438b862a7f.",
+      "productionDeploymentPerformed": false,
+      "providerAcceptanceProvenLive": false,
+      "inboxPlacementProvenLive": false
     }
   },
   "freshDiscovery": {
@@ -92,7 +65,6 @@
       "branchId": "br-dawn-cloud-axm880q9",
       "databaseName": "neondb",
       "referralTablesPresent": false,
-      "proof": "Fresh pg_class query on 2026-08-28 returned zero of referral_creators, referral_rule_versions, referral_attributions, referral_conversions, referral_notification_deliveries, referral_payout_requests, referral_payout_allocations and referral_creator_outreach_deliveries.",
       "productionMutationPerformed": false
     },
     "migrationManifest": {
@@ -101,12 +73,17 @@
       "deferredOrder": ["0029_creator_referrals.sql", "0034_referral_launch_outreach.sql", "0035_referral_private_payload_key_v2.sql"]
     },
     "emailDelivery": {
-      "otpInboxDelivery": "POSITIVE: multiple ISSUED ONCE OTP messages from otp.issuedonce.shop reached the connected Gmail inbox through 2026-08-26",
-      "supportInboxDelivery": "UNPROVEN"
+      "otpInboxDelivery": "POSITIVE through 2026-08-26",
+      "supportProviderAcceptance": "UNPROVEN_UNTIL_INTEGRATED_CANDIDATE_DEPLOYED_AND_CANARY_RUN",
+      "supportInboxDelivery": "UNPROVEN_UNTIL_CANARY_MAILBOX_EVIDENCE"
     },
-    "supportProofWorkflow": {
-      "status": "DEFER_UNTIL_INTEGRATED_CANDIDATE_DEPLOYED",
-      "reason": "Hostinger Live Support Proof sets EXPECTED_RELEASE_ID to github.sha and waits for exact deployed release. Current live Hostinger is intentionally frozen on aa73848..., so rerunning against integration head would be an expected false failure rather than valid evidence."
+    "supportCanary": {
+      "status": "CODE_READY_NOT_LIVE",
+      "route": "/api/internal/support-canary",
+      "auth": "INTERNAL_OPERATIONS_TOKEN bearer auth",
+      "releaseBinding": "expected release must equal APP_RELEASE_ID",
+      "privacy": "No customer data and no database persistence from the canary path",
+      "evidenceMeaning": "HTTP 200 proves provider acceptance only; inbox placement requires mailbox evidence."
     }
   },
   "productionDatabase": {
@@ -121,6 +98,7 @@
     "runtimeProvider": "hostinger",
     "productionDeploymentOfIntegratedHead": false,
     "hostingerBranchChanged": false,
+    "hostingerEnvironmentChanged": false,
     "realSafepayQaCharge": false,
     "printfulProductionConfirmation": false,
     "referralMigrationsApplied": false,
@@ -129,9 +107,9 @@
   },
   "launchBlockers": [
     "Obtain explicit production referral-activation approval before applying 0029, 0034 and 0035 in the verified order.",
-    "Deploy the integrated candidate without changing the existing Hostinger selected branch in a way that loses environment variables; then prove exact release health.",
+    "Deploy the integrated candidate while preserving Hostinger environment continuity and without an unsafe selected-branch change; then prove exact release health.",
     "Confirm truthful MERCHANT_PUBLIC_NAME, MERCHANT_SUPPORT_EMAIL and MERCHANT_PUBLIC_LOCATION.",
-    "Confirm SUPPORT_INBOX_EMAIL and positive live support-delivery proof.",
+    "Confirm SUPPORT_INBOX_EMAIL, run the exact-release support canary and confirm the canary in the mailbox.",
     "Confirm Safepay production runtime and webhook configuration without creating a QA charge.",
     "Confirm Printful webhook/runtime configuration while production confirmation remains disabled.",
     "Confirm OPENAI_API_KEY and ARTWORK_SIGNING_KEY through safe positive design/artwork proof.",
@@ -140,7 +118,7 @@
     "Only after temporary-host provider/customer/email gates are green, cut issuedonce.shop and repeat complete live proof."
   ],
   "nextAction": {
-    "actor": "OWNER",
-    "instruction": "Explicitly approve production referral activation before migrations 0029, 0034 and 0035 may be applied. This approval is separate from generic continuation."
+    "actor": "ENGINEERING_AND_OWNER",
+    "instruction": "Engineering may continue read-only audits and code-only hardening. Owner approval is still required for production referral activation and any Hostinger environment/branch mutation."
   }
 }
