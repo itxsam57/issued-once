@@ -1,15 +1,18 @@
 {
   "schemaVersion": 1,
-  "version": "1.16.0",
+  "version": "1.17.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-28T10:46:00+05:00",
+  "updatedAt": "2026-08-28T11:35:00+05:00",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "activeMigrationHead": "6023e7f1bb2eb15551d1fed2470fab0131bb7987",
+    "activeMigrationHead": "faf2cd7e16e308114772754d1d73519efd68e608",
+    "referralV2RepairBranch": "engineering/referral-private-payload-v2-20260828",
+    "referralV2RepairPullRequest": 18,
+    "referralV2RepairVerifiedFunctionalHead": "aa7e2bb3d145179806fe1e26689a8a058312c658",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
@@ -19,16 +22,16 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "REFERRAL_PRIVATE_PAYLOAD_V2_COMPATIBILITY_REPAIR_REQUIRES_APPROVAL_BEFORE_ACTIVATION",
+    "decision": "REFERRAL_PRIVATE_PAYLOAD_V2_REPAIR_VERIFIED_AWAITING_PR18_INTEGRATION_DECISION",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Fresh live Hostinger smoke is green and current production remains unchanged, but referral production activation is blocked by a verified schema/runtime mismatch: generic private encryption now emits keyVersion v2 while unapplied referral migration 0029 constrains creator email and payout private payload keys to v1. A bounded append-only compatibility repair is designed and awaits explicit approval before implementation."
+    "stopReason": "Referral private-payload V2 compatibility repair is implemented and independently verified in PR #18. TDD RED, full CI and isolated Neon 0029+0034+0035 rehearsal are green, and the disposable proof branch was deleted. Production remains unchanged. Integration of PR #18 is an Owner decision; production referral activation remains separately blocked on explicit approval after integration."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "INTEGRATED_CODE_GREEN_REFERRAL_ACTIVATION_BLOCKED_ON_V2_SCHEMA_COMPATIBILITY",
+    "internalWorkStatus": "REFERRAL_PRIVATE_PAYLOAD_V2_REPAIR_VERIFIED_AWAITING_OWNER_INTEGRATION_DECISION",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
-      "Require fresh CI, Browser QA, exact release health, live-product and database evidence before launch-success claims.",
+      "Require fresh CI, Browser QA when path-applicable, exact release health, live-product and database evidence before launch-success claims.",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets.",
       "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan.",
       "Do not mutate frozen release candidate branches.",
@@ -36,7 +39,7 @@
       "Migration 0033 is approved, applied and live; preserve its schema and hashed-only privacy contract.",
       "Keep Printful production confirmation disabled until the explicit manufacturing launch gate.",
       "Do not create real Safepay charges solely for QA.",
-      "Do not apply referral migrations 0029, 0034 or any compatibility follow-up until the referral private-payload v2 repair is verified and the production referral-activation checkpoint is explicitly approved.",
+      "Do not apply referral migrations 0029, 0034 or 0035 to production until PR #18 is integrated, a fresh production preflight is green and the production referral-activation checkpoint is explicitly approved.",
       "Do not send creator launch outreach until referral migrations are live, the intended creator roster is reviewed, provider email configuration is green and the Owner explicitly triggers /ops/referral-launch.",
       "Do not cut issuedonce.shop until all temporary-host provider, customer-flow and email-deliverability gates are green."
     ]
@@ -76,6 +79,32 @@
       "creatorEmailsSent": false
     }
   },
+  "verifiedPendingIntegration": {
+    "referralPrivatePayloadV2Repair": {
+      "pullRequest": 18,
+      "status": "DRAFT_UNMERGED_VERIFIED",
+      "baseBranch": "infra/hostinger-migration-20260823",
+      "baseHead": "faf2cd7e16e308114772754d1d73519efd68e608",
+      "functionalHead": "aa7e2bb3d145179806fe1e26689a8a058312c658",
+      "redCommit": "1863cb851a654193f58159b744c1773e1b97913a",
+      "redProof": "CI #1497 run 33146474987: expected ENOENT for missing 0035 only; 199 existing test files and 576 existing tests passed.",
+      "repair": "Append-only 0035 widens only referral_creators.email_key_version and referral_payout_requests.details_key_version from v1-only to v1|v2; repository DB row types were aligned and V2 encrypted payload persistence/read tests were added.",
+      "functionalCi": "PASS CI #1501 run 33147934919 job 98773027452; 201/201 test files; 580/580 tests; typecheck PASS; lint 0 errors with 5 pre-existing warnings; production build PASS; 56/56 static pages.",
+      "browserQa": "NOT_TRIGGERED_BY_DESIGN: Browser QA pull_request path filter excludes db/migrations and src/server-only changes; no browser-run claim is made for PR #18.",
+      "neonRehearsal": {
+        "projectId": "autumn-butterfly-25489215",
+        "temporaryBranchName": "proof-referral-v2-20260828",
+        "temporaryBranchId": "br-fragrant-sunset-ax2qg3lq",
+        "status": "PASS_AND_DELETED",
+        "order": ["0029_creator_referrals.sql", "0034_referral_launch_outreach.sql", "0035_referral_private_payload_key_v2.sql"],
+        "proof": "V2 creator email row accepted; V2 payout details row accepted; both key-version constraints resolve to v1/v2; outreach table/index present; checkout referral amount invariant violations = 0.",
+        "productionMutationPerformed": false
+      },
+      "mergeAllowed": false,
+      "deploymentAllowed": false,
+      "productionReferralMigrationAllowed": false
+    }
+  },
   "freshDiscovery": {
     "productionDatabaseReadOnly": {
       "referralTablesPresent": false,
@@ -97,14 +126,17 @@
       "supportInboxDelivery": "UNPROVEN: no positive support message found"
     },
     "referralPrivatePayloadCompatibility": {
-      "status": "BLOCKING_MISMATCH_CONFIRMED",
-      "runtimeEvidence": "src/server/crypto/privatePayload.ts encryptPrivatePayload always returns version 1, keyVersion v2",
-      "serviceEvidence": "OpsReferralService uses encryptPrivatePayload by default for both creator email and payout details",
-      "schemaEvidence": "unapplied migration 0029 constrains referral_creators.email_key_version = v1 and referral_payout_requests.details_key_version = v1",
-      "typeEvidence": "PostgresReferralRepository NotificationInputRow and PostgresOpsReferralRepository PayoutDetailsRow are v1-only",
-      "impact": "Applying 0029 as-is then creating a real creator or payout with current runtime encryption can fail at the database or violate repository typing expectations.",
-      "approvedRepairDesign": false,
-      "proposedRepair": "Add append-only migration 0035 to allow v1/v2 referral private-payload key versions; widen stale repository row types to v1|v2; TDD v2 creator/payout round-trip; full CI/browser; temporary-Neon rehearsal before any production application."
+      "status": "REPAIR_VERIFIED_IN_PR18_NOT_YET_INTEGRATED",
+      "runtimeEvidence": "src/server/crypto/privatePayload.ts encryptPrivatePayload emits version 1 payloads with keyVersion v2.",
+      "schemaEvidenceBeforeRepair": "unapplied migration 0029 constrains referral_creators.email_key_version = v1 and referral_payout_requests.details_key_version = v1.",
+      "repairEvidence": "PR #18 adds append-only 0035 permitting v1/v2 on exactly those two constraints and aligns stale DB row types.",
+      "behavioralEvidence": "Isolated Neon rehearsal accepted v2 encrypted creator and payout rows after 0029+0034+0035 with zero checkout amount invariant violations.",
+      "approvedRepairDesign": true,
+      "repairVerified": true,
+      "productionApplied": false
+    },
+    "preExistingRepositoryDebt": {
+      "migrationManifest": "db/migrations/CURRENT and README remain historically stale relative to already-present 0030-0035 files. This predates the bounded PR #18 repair and was not expanded into the repair diff; reconcile separately before relying on CURRENT as an execution pointer."
     }
   },
   "productionDatabase": {
@@ -127,19 +159,19 @@
     "canonicalDomainCutover": false
   },
   "launchBlockers": [
-    "Referral private-payload v2 compatibility repair must be implemented and verified before referral migration activation.",
+    "Integrate verified PR #18 before referral production activation can be considered.",
+    "After PR #18 integration, rerun production referral database preflight and obtain explicit production activation approval before applying 0029, 0034 and 0035 in the verified order.",
     "Confirm truthful MERCHANT_PUBLIC_NAME, MERCHANT_SUPPORT_EMAIL and MERCHANT_PUBLIC_LOCATION.",
     "Confirm SUPPORT_INBOX_EMAIL and positive support-delivery proof; current support_requests count is zero.",
     "Confirm Safepay runtime and webhook credentials/environment without creating a QA charge.",
     "Confirm Printful webhook/runtime configuration while production confirmation remains disabled.",
     "Confirm OPENAI_API_KEY and ARTWORK_SIGNING_KEY through safe positive design/artwork proof.",
     "Complete one owner-managed OTP verification and shipping journey that produces verified_contacts.key_version=v2 and shipping_snapshots.key_version=v2.",
-    "After repair, run referral database preflight, then obtain explicit production activation approval before applying 0029, 0034 and 0035 in the verified order.",
     "After referral schema activation, create/review the intended creator roster before any launch email is sent.",
     "Only after temporary-host provider/customer/email gates are green, request/execute canonical issuedonce.shop cutover and repeat complete proof."
   ],
   "nextAction": {
-    "actor": "OWNER_FOR_REPAIR_APPROVAL_THEN_ENGINEERING",
-    "instruction": "Approve the bounded referral private-payload v2 compatibility repair. Engineering then implements TDD, full gates and an isolated Neon migration rehearsal. No production migration, Hostinger branch change, real payment or creator email send occurs during the repair."
+    "actor": "OWNER",
+    "instruction": "Choose the integration outcome for verified draft PR #18. If integrated into infra/hostinger-migration-20260823, engineering must verify the resulting base head before any separate production referral-migration approval is requested."
   }
 }
