@@ -16,6 +16,7 @@ jobs:
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
       EXPECTED_RELEASE_ID: ${{ github.sha }}
+      INTERNAL_OPERATIONS_TOKEN: ${{ secrets.INTERNAL_OPERATIONS_TOKEN }}
     steps:
       - name: Checkout pushed Hostinger candidate
         uses: actions/checkout@v4
@@ -34,5 +35,5 @@ jobs:
         run: pnpm exec playwright install chromium
       - name: Wait for exact pushed release
         run: node tests/e2e/live-release-health.mjs
-      - name: Prove live Issue session and support persistence request
+      - name: Prove live Issue boundary and positive support dispatch
         run: node tests/e2e/live-support-proof.mjs
