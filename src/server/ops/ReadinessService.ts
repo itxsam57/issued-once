@@ -86,15 +86,36 @@ export class ReadinessService {
       }
     }
 
-    const hasPrivacyValues = present(this.env, 'QUIZ_ENCRYPTION_KEY_V1', 'IDENTITY_HMAC_KEY');
+    const hasPrivacyValues = present(
+      this.env,
+      'QUIZ_ENCRYPTION_KEY_V1',
+      'QUIZ_ENCRYPTION_KEY_V2',
+      'IDENTITY_HMAC_KEY',
+    );
     const privacyKeysValid =
       isBase64Key32(this.env.QUIZ_ENCRYPTION_KEY_V1) &&
+      isBase64Key32(this.env.QUIZ_ENCRYPTION_KEY_V2) &&
       isBase64Key32(this.env.IDENTITY_HMAC_KEY);
     checks.push(!hasPrivacyValues
-      ? { key: 'privacy', label: 'Privacy keys', state: 'missing', detail: 'Encryption and identity-HMAC keys are required.' }
+      ? {
+          key: 'privacy',
+          label: 'Privacy keys',
+          state: 'missing',
+          detail: 'V1 and V2 encryption keys plus the identity-HMAC key are required.',
+        }
       : privacyKeysValid
-        ? { key: 'privacy', label: 'Privacy keys', state: 'ready', detail: 'Both privacy keys decode to the required 32 bytes.' }
-        : { key: 'privacy', label: 'Privacy keys', state: 'blocked', detail: 'Privacy keys are present but do not decode to exactly 32 bytes.' });
+        ? {
+            key: 'privacy',
+            label: 'Privacy keys',
+            state: 'ready',
+            detail: 'V1/V2 encryption keys and the identity-HMAC key decode to the required 32 bytes.',
+          }
+        : {
+            key: 'privacy',
+            label: 'Privacy keys',
+            state: 'blocked',
+            detail: 'V1/V2 encryption keys and the identity-HMAC key must each decode to exactly 32 bytes.',
+          });
 
     const merchant = readPublicMerchant(this.env);
     checks.push(merchant.ready
