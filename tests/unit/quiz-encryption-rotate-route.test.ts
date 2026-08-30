@@ -12,6 +12,7 @@ vi.mock('@/server/crypto/runtimeQuizEncryptionRotation', () => ({
 import { POST } from '@/app/api/internal/quiz-encryption/rotate/route';
 
 const TOKEN = 'quiz-rotation-token-that-is-at-least-32-characters';
+const originalNodeEnv = process.env.NODE_ENV;
 
 function request(token?: string, body?: unknown) {
   return new Request('https://issuedonce.shop/api/internal/quiz-encryption/rotate', {
@@ -26,12 +27,16 @@ function request(token?: string, body?: unknown) {
 
 afterEach(() => {
   delete process.env.VERCEL_ENV;
+  delete process.env.RUNTIME_PROVIDER;
   delete process.env.QUIZ_KEY_ROTATION_TOKEN;
+  if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = originalNodeEnv;
   vi.clearAllMocks();
 });
 
 describe('POST /api/internal/quiz-encryption/rotate', () => {
-  test('does not expose the rotation endpoint outside Vercel production', async () => {
+  test('does not expose the rotation endpoint in a Vercel preview production build', async () => {
+    process.env.NODE_ENV = 'production';
     process.env.VERCEL_ENV = 'preview';
     process.env.QUIZ_KEY_ROTATION_TOKEN = TOKEN;
 
@@ -39,6 +44,31 @@ describe('POST /api/internal/quiz-encryption/rotate', () => {
 
     expect(response.status).toBe(404);
     expect(createQuizEncryptionRotationService).not.toHaveBeenCalled();
+  });
+
+  test('does not expose a Hostinger runtime unless the Node runtime is production', async () => {
+    process.env.NODE_ENV = 'development';
+    process.env.RUNTIME_PROVIDER = 'hostinger';
+    process.env.QUIZ_KEY_ROTATION_TOKEN = TOKEN;
+
+    const response = await POST(request(TOKEN));
+
+    expect(response.status).toBe(404);
+    expect(createQuizEncryptionRotationService).not.toHaveBeenCalled();
+  });
+
+  test('allows a Hostinger production runtime to run one authenticated bounded batch', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.RUNTIME_PROVIDER = 'hostinger';
+    process.env.QUIZ_KEY_ROTATION_TOKEN = TOKEN;
+    createQuizEncryptionRotationService.mockReturnValue({ migrateBatch });
+    migrateBatch.mockResolvedValue({ scanned: 25, migrated: 24, skipped: 1, failed: 0, remaining: 1722 });
+
+    const response = await POST(request(TOKEN, { limit: 25 }));
+
+    expect(response.status).toBe(200);
+    expect(migrateBatch).toHaveBeenCalledWith(25);
+    expect(await response.json()).toEqual({ scanned: 25, migrated: 24, skipped: 1, failed: 0, remaining: 1722 });
   });
 
   test('fails closed when the dedicated rotation token is not safely configured', async () => {
