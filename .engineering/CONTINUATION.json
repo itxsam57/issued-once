@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "version": "1.19.0",
+  "version": "1.20.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-28T15:02:00Z",
+  "updatedAt": "2026-08-30T16:42:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "activeMigrationHead": "0d52c6cac1c3bd34a20361aa3b8af83245ff8fd6",
+    "activeMigrationHead": "338b350357a026ca4a6f649d25d7f4dc22b174b4",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
@@ -19,13 +19,13 @@
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
-    "decision": "CODE_HARDENING_CONTINUES_BUT_PRODUCTION_REFERRAL_ACTIVATION_AND_DEPLOYMENT_ENV_MUTATIONS_REMAIN_OWNER_GATED",
+    "decision": "CODE_HARDENING_CONTINUES_AUTONOMOUSLY_BUT_PRODUCTION_REFERRAL_ACTIVATION_AND_DEPLOYMENT_ENV_MUTATIONS_REMAIN_OWNER_GATED",
     "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "Support delivery canary is integrated and exact-head verified, but the live Hostinger release remains frozen on V10. Positive support inbox placement cannot be proven until the integrated candidate is deployed. Production referral migrations and Hostinger environment/branch mutations remain separately gated."
+    "stopReason": "The integrated support-canary log hardening is exact-head green. The owner reports temporary support variables are configured to a mailbox they can receive test mail on, but live provider acceptance and inbox placement remain unproven because the live Hostinger release is still frozen on V10. Merchant public location is deliberately deferred by the owner for now and remains a truthful-launch gate before canonical launch. Production referral migrations and Hostinger environment/branch mutations remain separately owner-gated."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "INTEGRATED_HEAD_GREEN_LIVE_PROVIDER_AND_PRODUCTION_ACTIVATION_GATES_PENDING",
+    "internalWorkStatus": "INTEGRATED_HEAD_GREEN_SUPPORT_CONFIG_OWNER_REPORTED_LIVE_PROVIDER_AND_PRODUCTION_ACTIVATION_GATES_PENDING",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Require fresh CI, Browser QA when path-applicable, exact release health, live-product and database evidence before launch-success claims.",
@@ -37,7 +37,9 @@
       "Do not create real Safepay charges solely for QA.",
       "Do not apply referral migrations 0029, 0034 or 0035 to production without explicit production referral-activation approval.",
       "Do not send creator launch outreach until referral migrations are live, the intended creator roster is reviewed, provider email configuration is green and the Owner explicitly triggers /ops/referral-launch.",
-      "Do not cut issuedonce.shop until all temporary-host provider, customer-flow and email-deliverability gates are green."
+      "Do not cut issuedonce.shop until all temporary-host provider, customer-flow and email-deliverability gates are green.",
+      "Treat temporary support mailbox values as test configuration only; do not claim production support identity or live delivery until provider and mailbox evidence exists.",
+      "Do not add or fabricate MERCHANT_PUBLIC_LOCATION while the owner has deferred location; require a truthful value before canonical launch."
     ]
   },
   "integratedWork": {
@@ -57,6 +59,21 @@
       "productionDeploymentPerformed": false,
       "providerAcceptanceProvenLive": false,
       "inboxPlacementProvenLive": false
+    },
+    "supportCanaryLogHardening": {
+      "redAuditPullRequest": 24,
+      "mergePullRequest": 25,
+      "status": "MERGED_AND_POST_MERGE_VERIFIED",
+      "redCommit": "4661aabebc4f4e31fa3e21a25501a7338c36c58f",
+      "greenCommit": "766db97ec479e1b32c2923069a2be413cdc6784e",
+      "mergeCommit": "338b350357a026ca4a6f649d25d7f4dc22b174b4",
+      "behavior": "Support canary failures retain a generic operational log without serializing arbitrary provider error payloads.",
+      "tddEvidence": "RED proved a sensitive sentinel reached server logs while all prior tests passed; GREEN removed only the caught error payload and added the regression test.",
+      "preMergeCi": "PASS CI #1532",
+      "preMergeBrowserQa": "PASS Browser QA #1396",
+      "postMergeCi": "PASS CI #1533",
+      "postMergeBrowserQa": "PASS Browser QA #1397",
+      "productionDeploymentPerformed": false
     }
   },
   "freshDiscovery": {
@@ -74,8 +91,15 @@
     },
     "emailDelivery": {
       "otpInboxDelivery": "POSITIVE through 2026-08-26",
+      "supportConfiguration": "OWNER_REPORTED_CONFIGURED_WITH_TEMPORARY_TEST_VALUES_ON_2026-08-30",
       "supportProviderAcceptance": "UNPROVEN_UNTIL_INTEGRATED_CANDIDATE_DEPLOYED_AND_CANARY_RUN",
-      "supportInboxDelivery": "UNPROVEN_UNTIL_CANARY_MAILBOX_EVIDENCE"
+      "supportInboxDelivery": "UNPROVEN_UNTIL_CANARY_MAILBOX_EVIDENCE",
+      "futureCanonicalSupportIdentity": "DEFERRED_UNTIL_DOMAIN_RELATED_SUPPORT_EMAIL_IS_READY"
+    },
+    "merchantIdentity": {
+      "publicLocation": "OWNER_DEFERRED_FOR_NOW",
+      "locationFabricatedOrAdded": false,
+      "truthfulLocationRequiredBeforeCanonicalLaunch": true
     },
     "supportCanary": {
       "status": "CODE_READY_NOT_LIVE",
@@ -83,6 +107,7 @@
       "auth": "INTERNAL_OPERATIONS_TOKEN bearer auth",
       "releaseBinding": "expected release must equal APP_RELEASE_ID",
       "privacy": "No customer data and no database persistence from the canary path",
+      "logPrivacy": "Provider error payloads are redacted from the route-level server log as of integration head 338b350357a026ca4a6f649d25d7f4dc22b174b4.",
       "evidenceMeaning": "HTTP 200 proves provider acceptance only; inbox placement requires mailbox evidence."
     }
   },
@@ -99,6 +124,9 @@
     "productionDeploymentOfIntegratedHead": false,
     "hostingerBranchChanged": false,
     "hostingerEnvironmentChanged": false,
+    "supportVariablesOwnerReportedConfigured": true,
+    "supportVariablesProviderVerified": false,
+    "merchantPublicLocationDeferred": true,
     "realSafepayQaCharge": false,
     "printfulProductionConfirmation": false,
     "referralMigrationsApplied": false,
@@ -108,8 +136,8 @@
   "launchBlockers": [
     "Obtain explicit production referral-activation approval before applying 0029, 0034 and 0035 in the verified order.",
     "Deploy the integrated candidate while preserving Hostinger environment continuity and without an unsafe selected-branch change; then prove exact release health.",
-    "Confirm truthful MERCHANT_PUBLIC_NAME, MERCHANT_SUPPORT_EMAIL and MERCHANT_PUBLIC_LOCATION.",
-    "Confirm SUPPORT_INBOX_EMAIL, run the exact-release support canary and confirm the canary in the mailbox.",
+    "Use truthful merchant public identity before canonical launch; MERCHANT_PUBLIC_LOCATION is deliberately deferred by the owner for now and must not be fabricated.",
+    "SUPPORT_INBOX_EMAIL and related temporary support values are owner-reported configured to a reachable test mailbox; after integrated deployment, run the exact-release support canary and confirm provider acceptance plus mailbox receipt.",
     "Confirm Safepay production runtime and webhook configuration without creating a QA charge.",
     "Confirm Printful webhook/runtime configuration while production confirmation remains disabled.",
     "Confirm OPENAI_API_KEY and ARTWORK_SIGNING_KEY through safe positive design/artwork proof.",
@@ -119,6 +147,6 @@
   ],
   "nextAction": {
     "actor": "ENGINEERING_AND_OWNER",
-    "instruction": "Engineering may continue read-only audits and code-only hardening. Owner approval is still required for production referral activation and any Hostinger environment/branch mutation."
+    "instruction": "Engineering continues autonomous read-only audits and code-only hardening. Owner input is required only when a production referral activation, Hostinger environment/branch mutation, truthful merchant location entry, or other explicit production side-effect gate is reached."
   }
 }
