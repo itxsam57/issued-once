@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     if (error instanceof InternalOperationsUnauthorizedError) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('Support delivery canary failed', error);
+    console.error('Support delivery canary failed');
     return Response.json({ error: 'Support delivery unavailable' }, { status: 503 });
   }
 }

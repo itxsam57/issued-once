@@ -66,3 +66,27 @@ test('sends one no-customer-data canary only for the authenticated exact deploye
   expect(sendCanaryMock).toHaveBeenCalledOnce();
   expect(sendCanaryMock).toHaveBeenCalledWith({ releaseId, replyTo: 'support@example.com' });
 });
+
+test('does not leak support delivery error details into server logs', async () => {
+  const sensitiveMarker = 'support-provider-secret-sentinel';
+  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  sendCanaryMock.mockRejectedValueOnce(
+    new Error(`provider request failed with sensitive detail ${sensitiveMarker}`),
+  );
+
+  try {
+    const POST = await loadPost();
+    const response = await POST(request(releaseId, internalToken));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: 'Support delivery unavailable' });
+
+    const loggedText = consoleError.mock.calls
+      .flat()
+      .map((value) => (value instanceof Error ? `${value.name}: ${value.message}` : String(value)))
+      .join(' ');
+    expect(loggedText).not.toContain(sensitiveMarker);
+  } finally {
+    consoleError.mockRestore();
+  }
+});
