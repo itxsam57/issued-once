@@ -15,7 +15,7 @@ const auth = { authorization: `Bearer ${ownerToken}`, 'content-type': 'applicati
 
 function loggedText(consoleError: ReturnType<typeof vi.spyOn>) {
   return consoleError.mock.calls.flat()
-    .map((value) => (value instanceof Error ? `${value.name}: ${value.message}` : String(value)))
+    .map((value: unknown) => (value instanceof Error ? `${value.name}: ${value.message}` : String(value)))
     .join(' ');
 }
 
