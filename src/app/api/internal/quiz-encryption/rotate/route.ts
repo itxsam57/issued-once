@@ -8,8 +8,14 @@ const requestSchema = z
   })
   .strict();
 
+function isProductionRotationRuntime(): boolean {
+  if (process.env.VERCEL_ENV === 'production') return true;
+  return process.env.NODE_ENV === 'production'
+    && process.env.RUNTIME_PROVIDER?.trim().toLowerCase() === 'hostinger';
+}
+
 export async function POST(request: Request) {
-  if (process.env.VERCEL_ENV !== 'production') {
+  if (!isProductionRotationRuntime()) {
     return Response.json({ error: 'Not found' }, { status: 404 });
   }
 
