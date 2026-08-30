@@ -15,6 +15,8 @@ vi.mock('@/server/contact/runtimeContact', () => ({
 
 import { POST } from '@/app/api/internal/jobs/drain/route';
 
+const cronSecret = 'cron-secret-that-is-long-enough';
+
 afterEach(() => {
   delete process.env.CRON_SECRET;
   vi.clearAllMocks();
@@ -28,7 +30,7 @@ function request(token?: string) {
 }
 
 test('job drain fails closed without the dedicated cron secret', async () => {
-  process.env.CRON_SECRET = 'cron-secret-that-is-long-enough';
+  process.env.CRON_SECRET = cronSecret;
 
   await expect(POST(request())).resolves.toMatchObject({ status: 401 });
   await expect(POST(request('wrong-secret'))).resolves.toMatchObject({ status: 401 });
@@ -45,11 +47,11 @@ test('job drain requires safe cron configuration', async () => {
 });
 
 test('authorized cron drains bounded jobs and prunes stale OTP limiter state', async () => {
-  process.env.CRON_SECRET = 'cron-secret-that-is-long-enough';
+  process.env.CRON_SECRET = cronSecret;
   drain.mockResolvedValueOnce({ claimed: 3, completed: 2, retried: 1, failed: 0 });
   cleanupOtpRateLimits.mockResolvedValueOnce(17);
 
-  const response = await POST(request('cron-secret-that-is-long-enough'));
+  const response = await POST(request(cronSecret));
   expect(response.status).toBe(200);
   await expect(response.json()).resolves.toEqual({
     claimed: 3,
@@ -64,4 +66,24 @@ test('authorized cron drains bounded jobs and prunes stale OTP limiter state', a
     limit: 8,
   }));
   expect(cleanupOtpRateLimits).toHaveBeenCalledTimes(1);
+});
+
+test('does not leak background job error details into server logs', async () => {
+  process.env.CRON_SECRET = cronSecret;
+  const sensitiveMarker = 'job-provider-secret-sentinel';
+  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  drain.mockRejectedValueOnce(new Error(`unexpected upstream failure ${sensitiveMarker}`));
+
+  try {
+    const response = await POST(request(cronSecret));
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ error: 'Background job drain failed' });
+
+    const loggedText = consoleError.mock.calls.flat()
+      .map((value) => (value instanceof Error ? `${value.name}: ${value.message}` : String(value)))
+      .join(' ');
+    expect(loggedText).not.toContain(sensitiveMarker);
+  } finally {
+    consoleError.mockRestore();
+  }
 });
