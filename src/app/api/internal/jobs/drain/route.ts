@@ -36,8 +36,8 @@ export async function POST(request: Request) {
     });
     const otpRateLimitsPruned = await cleanupOtpRateLimits();
     return Response.json({ ...result, otpRateLimitsPruned });
-  } catch (error) {
-    console.error('Background job drain failed', error);
+  } catch {
+    console.error('Background job drain failed');
     return Response.json({ error: 'Background job drain failed' }, { status: 500 });
   }
 }

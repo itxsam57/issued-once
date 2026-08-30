@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && /review|approval|artwork|resolution|dimensions|png|https|bytes/i.test(error.message)) {
       return Response.json({ error: 'Design is not ready for manufacturing' }, { status: 409 });
     }
-    console.error('design approval failed', error);
+    console.error('design approval failed');
     return Response.json({ error: 'Design approval failed' }, { status: 500 });
   }
 }
