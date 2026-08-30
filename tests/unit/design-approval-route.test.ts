@@ -1,7 +1,10 @@
 import { afterEach, expect, test, vi } from 'vitest';
 
 const { createDesignServiceMock } = vi.hoisted(() => ({ createDesignServiceMock: vi.fn() }));
-vi.mock('@/server/design/runtimeDesign', () => ({ createDesignService: createDesignServiceMock }));
+vi.mock('@/server/design/runtimeDesign', () => ({
+  createDesignService: createDesignServiceMock,
+  DesignRuntimeUnavailableError: class DesignRuntimeUnavailableError extends Error {},
+}));
 
 import { POST } from '@/app/api/internal/design/approve/route';
 
