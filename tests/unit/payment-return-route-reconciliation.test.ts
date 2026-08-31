@@ -10,6 +10,8 @@ const {
   referralsAreEnabledMock,
   recordPaidAttemptMock,
   enqueueReferralNotificationMock,
+  getExperienceRepositoryMock,
+  rotateSessionHashMock,
 } = vi.hoisted(() => ({
   createPaymentServiceMock: vi.fn(),
   createIssueServiceMock: vi.fn(),
@@ -20,6 +22,8 @@ const {
   referralsAreEnabledMock: vi.fn(),
   recordPaidAttemptMock: vi.fn(),
   enqueueReferralNotificationMock: vi.fn(),
+  getExperienceRepositoryMock: vi.fn(),
+  rotateSessionHashMock: vi.fn(),
 }));
 
 vi.mock('@/server/payments/runtimePayments', () => ({
@@ -41,6 +45,9 @@ vi.mock('@/server/referrals/runtimeReferrals', () => ({
 vi.mock('@/server/referrals/referralNotificationQueue', () => ({
   enqueueReferralNotification: enqueueReferralNotificationMock,
 }));
+vi.mock('@/server/experience/runtimeRepository', () => ({
+  getExperienceRepository: getExperienceRepositoryMock,
+}));
 
 import { GET as paymentReturnGet, POST as paymentReturnPost } from '@/app/payment/return/route';
 
@@ -48,7 +55,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   reserveForPaidAttemptMock.mockResolvedValue({
     kind: 'reserved',
-    issue: { id: 'issue-return-1', issueCode: 'IO-ABCD-EFGH' },
+    issue: {
+      id: 'issue-return-1',
+      issueCode: 'IO-ABCD-EFGH',
+      experienceId: 'exp-return-1',
+    },
   });
   createIssueServiceMock.mockReturnValue({ reserveForPaidAttempt: reserveForPaidAttemptMock });
   referralsAreEnabledMock.mockReturnValue(false);
@@ -57,6 +68,8 @@ beforeEach(() => {
   dispatchPaidIssueDesignMock.mockResolvedValue({ mode: 'HYBRID', queued: true, policyVersion: 1 });
   enqueueIssueNotificationMock.mockResolvedValue({ messageId: 'notify-return-1' });
   enqueueReferralNotificationMock.mockResolvedValue({ messageId: 'referral-return-1' });
+  rotateSessionHashMock.mockResolvedValue(true);
+  getExperienceRepositoryMock.mockReturnValue({ rotateSessionHash: rotateSessionHashMock });
 });
 
 test('GET payment return uses Reporter-backed reconciliation before finalizing the paid Issue', async () => {
@@ -72,6 +85,23 @@ test('GET payment return uses Reporter-backed reconciliation before finalizing t
   expect(enqueueIssueNotificationMock).toHaveBeenCalledWith('issue-return-1', 'PAYMENT_RECEIVED');
 });
 
+test('GET paid return rotates the Issue experience and restores the existing session cookie', async () => {
+  const reconcileTracker = vi.fn().mockResolvedValue({ kind: 'paid', paymentAttemptId: 'attempt-return-1' });
+  createPaymentServiceMock.mockReturnValue({ reconcileTracker });
+
+  const response = await paymentReturnGet(new Request('https://issuedonce.shop/payment/return?tracker=track_return_1'));
+
+  expect(rotateSessionHashMock).toHaveBeenCalledWith(expect.objectContaining({
+    experienceId: 'exp-return-1',
+    publicSessionHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+  }));
+  const setCookie = response.headers.get('set-cookie') ?? '';
+  expect(setCookie).toContain('__Host-io_session=');
+  expect(setCookie).toContain('HttpOnly');
+  expect(setCookie).toContain('Secure');
+  expect(setCookie).toContain('SameSite=lax');
+});
+
 test('POST payment return reconciles a form tracker instead of discarding it', async () => {
   const reconcileTracker = vi.fn().mockResolvedValue({ kind: 'pending', paymentAttemptId: 'attempt-return-1' });
   createPaymentServiceMock.mockReturnValue({ reconcileTracker });
@@ -85,4 +115,6 @@ test('POST payment return reconciles a form tracker instead of discarding it', a
   expect(response.status).toBe(303);
   expect(reconcileTracker).toHaveBeenCalledWith({ providerReference: 'track_return_1' });
   expect(reserveForPaidAttemptMock).not.toHaveBeenCalled();
+  expect(rotateSessionHashMock).not.toHaveBeenCalled();
+  expect(response.headers.get('set-cookie')).toBeNull();
 });
