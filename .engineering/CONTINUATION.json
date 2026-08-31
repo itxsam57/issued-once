@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "version": "1.25.0",
+  "version": "1.26.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-31T19:28:00Z",
+  "updatedAt": "2026-08-31T21:06:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "6485e944e338091a742814c0c2da5354cc32fa4d",
+    "verifiedRuntimeIntegrationHead": "8fd418dd09fea083e188c01e86e01fcaa57240bc",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
@@ -25,12 +25,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "CONTINUE_CR18_CODE_SIDE_WITHOUT_PRODUCTION_SIDE_EFFECTS",
-    "reason": "CR-11 is code-ready and integrated with exact-head and post-merge CI plus Browser QA. Its remaining deployed request-to-owner-reply proof is a later live release gate, not a blocker for the next autonomous code-side consumer-readiness task."
+    "decision": "CONTINUE_CR13_CR14_CODE_SIDE_WITHOUT_PRODUCTION_SIDE_EFFECTS",
+    "reason": "CR-18 is code-ready and integrated. Production catalog access now fails closed without an ACTIVE owner publication, readiness exposes the same blocking authority requirement, and preview/dev continues through PreviewCatalogGateway. Deployed owner-published catalog proof remains a later live release gate and does not block the next code-side artwork-provider/quality task."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR11_CODE_READY_INTEGRATED_CR18_NEXT",
+    "internalWorkStatus": "CR18_CODE_READY_INTEGRATED_CR13_CR14_NEXT",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
@@ -46,43 +46,44 @@
     ]
   },
   "lastCompleted": {
-    "consumerReadinessId": "CR-11",
-    "title": "Encrypted Issue-scoped customer support",
-    "status": "CODE_READY_MERGED_AND_POST_MERGE_VERIFIED",
-    "featureBranch": "feat/cr-11-in-app-support",
-    "draftPullRequest": 56,
-    "pullRequest": 57,
-    "featureHead": "d3f4c5bc34741d8bcddd8b7d897a8d4590af8e6d",
-    "mergeCommit": "6485e944e338091a742814c0c2da5354cc32fa4d",
+    "consumerReadinessId": "CR-18",
+    "title": "Explicit production catalog authority",
+    "status": "CODE_READY_MERGED_AND_TREE_VERIFIED",
+    "featureBranch": "feat/cr-18-catalog-authority",
+    "pullRequest": 59,
+    "featureHead": "43008c64fa7cc1d73d4a9b343d53819e48df6905",
+    "verifiedPullRequestMergeRef": "5654c41f3768a2acaf208a40bc8ea2d754ca753d",
+    "mergeCommit": "8fd418dd09fea083e188c01e86e01fcaa57240bc",
+    "verifiedTree": "ca99250c755ab9712f5c9117736ae963abd4351d",
     "redEvidence": [
-      "CI 33426961266: existing suite green; new IssueSupportForm regression failed because implementation was absent",
-      "CI 33427358886: tightened UI/reference/privacy contract failed as expected",
-      "Browser QA 33427358895: new support flow failed on desktop/mobile because Need help? was absent"
+      "Commit 9620bdd750971994a9792b77f0938cf3ab864ce3 added focused CR-18 regressions that failed because missing ACTIVE publication still allowed boot/default commercial truth and readiness lacked catalog_authority.",
+      "Commit a67207b17a6387e0e56171935a025b59e2a2d45b moved the authority contract to the shared Postgres quote/catalog boundary rather than a checkout-only patch."
     ],
     "greenEvidence": [
-      "CI 33428181290 PASS: unit tests, typecheck, lint, production build",
-      "Browser QA 33428181278 PASS: desktop/mobile",
-      "wrapper CI 33428592576 PASS",
-      "wrapper Browser QA 33428592448 PASS",
-      "post-merge CI 33428935199 PASS on 6485e944e338091a742814c0c2da5354cc32fa4d",
-      "post-merge Browser QA 33428935165 PASS on 6485e944e338091a742814c0c2da5354cc32fa4d"
+      "PR #59 merge-ref CI run 33438840018 PASS: 222 files / 656 tests, typecheck, lint with 0 errors and 5 pre-existing warnings, production build.",
+      "tests/unit/postgres-issued-once-catalog-authority.test.ts PASS: missing ACTIVE publication fails closed; explicitly published empty catalog remains authoritative.",
+      "tests/unit/readiness-service.test.ts PASS: blocking catalog_authority readiness contract is explicit and mandatory.",
+      "Synthetic PR merge 5654c41f3768a2acaf208a40bc8ea2d754ca753d and actual integration merge 8fd418dd09fea083e188c01e86e01fcaa57240bc share exact tree ca99250c755ab9712f5c9117736ae963abd4351d.",
+      "Browser QA was not triggered because repository browser-qa.yml path filters do not include the backend-only CR-18 files.",
+      "Vercel preview failure was confirmed pre-existing on the prior CR-11 green head, including hobby-plan deployment rate limiting; production remains Hostinger."
     ],
-    "remainingLiveEvidence": "Deploy exact integrated release, create controlled customer support request, observe it in Owner OS support desk, complete owner reply, and prove no cross-customer leakage.",
+    "remainingLiveEvidence": "Deploy the exact integrated release, publish/confirm an owner-authorized production catalog, verify catalog_authority readiness is green, and prove the live commercial quote/selection path uses that publication rather than boot defaults.",
     "productionDeploymentPerformed": false,
     "productionEnvironmentChanged": false
   },
   "activeTask": {
-    "consumerReadinessId": "CR-18",
-    "title": "Explicit production catalog authority",
+    "consumerReadinessId": "CR-13+CR-14",
+    "title": "Current artwork provider contract and real printable-image quality gate",
     "status": "NEXT",
-    "designBoundary": "Keep boot/default catalog available for development and initialization, but production selling/readiness must fail closed unless owner-published catalog authority exists.",
+    "designBoundary": "Keep interpretation/artwork private and provider-replaceable; production generation must use a currently supported provider/model contract, and artwork acceptance must validate actual decoded image bytes and printable transparency/resolution rather than trusting metadata.",
     "requiredEvidence": [
-      "RED regression proving production currently falls back to boot/default catalog",
-      "production fail-closed rule when no published catalog exists",
-      "development/non-production boot catalog continuity",
-      "readiness regression reflects the same authority rule",
-      "exact-head CI/typecheck/lint/production build",
-      "Browser QA if customer-facing behavior is affected"
+      "inspect current interpretation/image-provider runtime and model assumptions against current supported contracts",
+      "RED regressions for obsolete/unsupported provider assumptions where present",
+      "RED regressions proving corrupt/non-PNG/no-alpha/insufficient-effective-resolution artwork cannot pass metadata-only QA",
+      "single shared decoded-image quality contract covering corruption, dimensions, alpha/transparency, placement/template applicability and effective DPI",
+      "private storage/access behavior remains intact",
+      "exact-head unit/typecheck/lint/production build and Browser QA only if customer/owner UI changes",
+      "real generated candidate/provider proof remains live/provider evidence before DONE"
     ]
   },
   "standingOwnerGates": {
@@ -107,6 +108,6 @@
   },
   "nextAction": {
     "actor": "ENGINEERING",
-    "instruction": "Execute CR-18 from the canonical consumer-readiness master plan. Inspect current catalog publication, runtime catalog selection, checkout/quote and readiness paths; create a focused RED regression proving boot/default catalog can become production commercial truth without an owner-published catalog; implement a single shared production-authority rule while preserving development initialization behavior; verify exact-head gates and integrate without production deployment/environment/provider/payment/factory side effects."
+    "instruction": "Execute CR-13 + CR-14 from the canonical consumer-readiness master plan. Trace the current interpretation/image-generation provider wiring and ArtworkQualityGate against current supported provider contracts; create focused RED regressions for any obsolete provider/model assumption and for metadata-only acceptance of corrupt, opaque or under-resolution artwork; implement the smallest shared decoded-image quality boundary while preserving private/replaceable provider architecture; verify exact-head gates and integrate without production deployment, provider-charge, payment or factory side effects."
   }
 }
