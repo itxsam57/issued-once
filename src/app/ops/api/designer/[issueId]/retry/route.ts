@@ -15,7 +15,7 @@ export async function POST(_request: Request, context: { params: Promise<{ issue
     if (error instanceof Error && /failed design|retry/i.test(error.message)) {
       return Response.json({ error: 'Only a failed design can be retried' }, { status: 409 });
     }
-    console.error('Owner design retry failed', error);
+    console.error('Owner design retry failed');
     return Response.json({ error: 'Designer retry unavailable' }, { status: 503 });
   }
 }
