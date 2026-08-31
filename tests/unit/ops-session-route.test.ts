@@ -21,6 +21,10 @@ import { DELETE, POST } from '@/app/api/ops/session/route';
 
 const OWNER_TOKEN = 'owner-secret-token-that-is-long-enough';
 
+function renderedConsoleCalls(calls: unknown[][]): string {
+  return calls.flat().map((value) => String(value)).join('\n');
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.cookieValue = null;
@@ -60,7 +64,7 @@ test('production login fails closed when session auditing cannot be recorded wit
     }));
     expect(response.status).toBe(503);
     expect(mocks.setCookie).not.toHaveBeenCalled();
-    expect(JSON.stringify(consoleError.mock.calls)).not.toContain(sentinel);
+    expect(renderedConsoleCalls(consoleError.mock.calls)).not.toContain(sentinel);
   } finally {
     consoleError.mockRestore();
   }
@@ -77,7 +81,7 @@ test('logout clears the cookie even when audit recording fails without logging d
     expect(response.status).toBe(200);
     expect(mocks.setCookie).toHaveBeenCalledWith('io_ops', '', expect.objectContaining({ maxAge: 0 }));
     expect(mocks.record).toHaveBeenCalledWith(expect.objectContaining({ action: 'OPS_LOGOUT', targetType: 'owner_session', targetId: 'OWNER' }));
-    expect(JSON.stringify(consoleError.mock.calls)).not.toContain(sentinel);
+    expect(renderedConsoleCalls(consoleError.mock.calls)).not.toContain(sentinel);
   } finally {
     consoleError.mockRestore();
   }
