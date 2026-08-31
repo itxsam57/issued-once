@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "version": "1.20.0",
+  "version": "1.21.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-30T16:42:00Z",
+  "updatedAt": "2026-08-31T09:12:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "activeMigrationHead": "338b350357a026ca4a6f649d25d7f4dc22b174b4",
+    "activeMigrationHead": "5425a36757f968cd3cabaae868883a6bf4cec62f",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
@@ -20,12 +20,18 @@
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "decision": "CODE_HARDENING_CONTINUES_AUTONOMOUSLY_BUT_PRODUCTION_REFERRAL_ACTIVATION_AND_DEPLOYMENT_ENV_MUTATIONS_REMAIN_OWNER_GATED",
-    "allowedStopStates": ["OWNER_REQUIRED", "BLOCKED", "WAIT_EXTERNAL", "LOOP_DETECTED", "COMPLETE"],
-    "stopReason": "The integrated support-canary log hardening is exact-head green. The owner reports temporary support variables are configured to a mailbox they can receive test mail on, but live provider acceptance and inbox placement remain unproven because the live Hostinger release is still frozen on V10. Merchant public location is deliberately deferred by the owner for now and remains a truthful-launch gate before canonical launch. Production referral migrations and Hostinger environment/branch mutations remain separately owner-gated."
+    "allowedStopStates": [
+      "OWNER_REQUIRED",
+      "BLOCKED",
+      "WAIT_EXTERNAL",
+      "LOOP_DETECTED",
+      "COMPLETE"
+    ],
+    "stopReason": "Customer contact-route logging hardening is merged and post-merge exact-head green at 5425a36757f968cd3cabaae868883a6bf4cec62f (CI #1566 and Browser QA #1420). Engineering remains authorized to continue autonomous read-only audits and code-only hardening. The owner reports temporary support variables are configured to a mailbox they can receive test mail on, but live provider acceptance and inbox placement remain unproven because the live Hostinger release is still frozen on V10. Merchant public location is deliberately deferred by the owner for now and remains a truthful-launch gate before canonical launch. Production referral migrations and Hostinger environment/branch mutations remain separately owner-gated."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "INTEGRATED_HEAD_GREEN_SUPPORT_CONFIG_OWNER_REPORTED_LIVE_PROVIDER_AND_PRODUCTION_ACTIVATION_GATES_PENDING",
+    "internalWorkStatus": "INTEGRATED_CONTACT_LOG_HARDENING_EXACT_HEAD_GREEN_PRODUCTION_ACTIVATION_GATES_PENDING",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Require fresh CI, Browser QA when path-applicable, exact release health, live-product and database evidence before launch-success claims.",
@@ -43,11 +49,34 @@
     ]
   },
   "integratedWork": {
-    "hostingerBrowserQaRepair": {"pullRequest": 16, "status": "MERGED", "mergeCommit": "8566e51726e87d6e1507de7dc5224cc544e880f5"},
-    "safepayReporterRepair": {"pullRequest": 15, "status": "MERGED", "mergeCommit": "5b69a3079a2a05fffa13ee0888c8ec545cfa5290", "realPaymentPerformed": false},
-    "referralLaunchOutreach": {"pullRequest": 17, "status": "MERGED", "mergeCommit": "6023e7f1bb2eb15551d1fed2470fab0131bb7987", "creatorEmailsSent": false},
-    "referralPrivatePayloadV2Repair": {"pullRequest": 18, "status": "MERGED", "mergeCommit": "7586ca4363643bccb81c78cc2abb0dddfbe255e6", "productionApplied": false},
-    "productionProviderEnforcement": {"pullRequest": 19, "status": "MERGED", "mergeCommit": "7d5047726d9cc503226593acac2b53a9d6df0029"},
+    "hostingerBrowserQaRepair": {
+      "pullRequest": 16,
+      "status": "MERGED",
+      "mergeCommit": "8566e51726e87d6e1507de7dc5224cc544e880f5"
+    },
+    "safepayReporterRepair": {
+      "pullRequest": 15,
+      "status": "MERGED",
+      "mergeCommit": "5b69a3079a2a05fffa13ee0888c8ec545cfa5290",
+      "realPaymentPerformed": false
+    },
+    "referralLaunchOutreach": {
+      "pullRequest": 17,
+      "status": "MERGED",
+      "mergeCommit": "6023e7f1bb2eb15551d1fed2470fab0131bb7987",
+      "creatorEmailsSent": false
+    },
+    "referralPrivatePayloadV2Repair": {
+      "pullRequest": 18,
+      "status": "MERGED",
+      "mergeCommit": "7586ca4363643bccb81c78cc2abb0dddfbe255e6",
+      "productionApplied": false
+    },
+    "productionProviderEnforcement": {
+      "pullRequest": 19,
+      "status": "MERGED",
+      "mergeCommit": "7d5047726d9cc503226593acac2b53a9d6df0029"
+    },
     "supportDeliveryCanaryRepair": {
       "pullRequest": 21,
       "status": "MERGED",
@@ -74,6 +103,35 @@
       "postMergeCi": "PASS CI #1533",
       "postMergeBrowserQa": "PASS Browser QA #1397",
       "productionDeploymentPerformed": false
+    },
+    "contactOtpRequestLogHardening": {
+      "pullRequest": 35,
+      "status": "MERGED_AND_POST_MERGE_VERIFIED",
+      "greenCommit": "189d529f27c85a759ab1d3043d3072bdc425289c",
+      "mergeCommit": "28b9239e4cae53a02f0c7ecf8f8562b0932ad873",
+      "behavior": "Generic OTP-request failures no longer serialize arbitrary caught Error payloads in server logs; customer response, cookie and provider behavior are unchanged.",
+      "tddEvidence": "RED CI #1556 proved exactly one sentinel log leak while the remaining suite passed.",
+      "preMergeCi": "PASS CI #1557",
+      "preMergeBrowserQa": "PASS Browser QA #1413",
+      "wrapperCi": "PASS CI #1558",
+      "wrapperBrowserQa": "PASS Browser QA #1414",
+      "postMergeCi": "PASS CI #1559",
+      "postMergeBrowserQa": "PASS Browser QA #1415",
+      "productionDeploymentPerformed": false
+    },
+    "contactSiblingLogHardening": {
+      "pullRequest": 36,
+      "status": "MERGED_AND_POST_MERGE_VERIFIED",
+      "redCommit": "f61167250d58a28aeca216ca4567366546c67807",
+      "greenCommit": "b8b31ba11aa630c899fd8ce93c033a5dfa36e900",
+      "mergeCommit": "5425a36757f968cd3cabaae868883a6bf4cec62f",
+      "behavior": "Generic continuity-check, OTP-verification and verified-contact-reuse failures no longer serialize arbitrary caught Error payloads in server logs; customer response, cookie, provider and OTP classification behavior are unchanged.",
+      "tddEvidence": "RED CI #1560 proved exactly three intended sentinel log leaks with 602 passing / 605 total; GREEN removed only the three raw caught-error log arguments.",
+      "preMergeCi": "PASS CI #1562",
+      "preMergeBrowserQa": "PASS Browser QA #1416",
+      "postMergeCi": "PASS CI #1566",
+      "postMergeBrowserQa": "PASS Browser QA #1420",
+      "productionDeploymentPerformed": false
     }
   },
   "freshDiscovery": {
@@ -87,7 +145,11 @@
     "migrationManifest": {
       "coreAppliedThrough": "0033_owner_identity_settings.sql",
       "referralAppliedThrough": "NONE",
-      "deferredOrder": ["0029_creator_referrals.sql", "0034_referral_launch_outreach.sql", "0035_referral_private_payload_key_v2.sql"]
+      "deferredOrder": [
+        "0029_creator_referrals.sql",
+        "0034_referral_launch_outreach.sql",
+        "0035_referral_private_payload_key_v2.sql"
+      ]
     },
     "emailDelivery": {
       "otpInboxDelivery": "POSITIVE through 2026-08-26",
@@ -107,7 +169,7 @@
       "auth": "INTERNAL_OPERATIONS_TOKEN bearer auth",
       "releaseBinding": "expected release must equal APP_RELEASE_ID",
       "privacy": "No customer data and no database persistence from the canary path",
-      "logPrivacy": "Provider error payloads are redacted from the route-level server log as of integration head 338b350357a026ca4a6f649d25d7f4dc22b174b4.",
+      "logPrivacy": "Provider error payloads are redacted from the route-level server log as of verified integration head 5425a36757f968cd3cabaae868883a6bf4cec62f.",
       "evidenceMeaning": "HTTP 200 proves provider acceptance only; inbox placement requires mailbox evidence."
     }
   },
@@ -115,7 +177,15 @@
     "projectId": "autumn-butterfly-25489215",
     "databaseName": "neondb",
     "branchId": "br-dawn-cloud-axm880q9",
-    "migrations": {"0030": true, "0031": true, "0032": true, "0033": true, "0029": false, "0034": false, "0035": false},
+    "migrations": {
+      "0030": true,
+      "0031": true,
+      "0032": true,
+      "0033": true,
+      "0029": false,
+      "0034": false,
+      "0035": false
+    },
     "referralActivationApproved": false
   },
   "productionRuntime": {
