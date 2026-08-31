@@ -129,7 +129,7 @@ describe('public API route log privacy', () => {
   });
 
   test('shipping save keeps unknown provider details out of logs while preserving its 500 contract', async () => {
-    const sentinel = 'shipping-provider-secret-sentinel';
+    const sentinel = 'fulfillment-provider-secret-sentinel';
     createShippingServiceMock.mockReturnValue({
       save: vi.fn().mockRejectedValue(new Error(sentinel)),
     });
