@@ -1,4 +1,5 @@
 import { beforeEach, expect, test, vi } from 'vitest';
+import { hashSessionToken } from '@/server/http/sessionToken';
 
 const {
   createPaymentServiceMock,
@@ -12,6 +13,7 @@ const {
   enqueueReferralNotificationMock,
   getExperienceRepositoryMock,
   rotateSessionHashMock,
+  rotateSessionHashIfCurrentMock,
 } = vi.hoisted(() => ({
   createPaymentServiceMock: vi.fn(),
   createIssueServiceMock: vi.fn(),
@@ -24,6 +26,7 @@ const {
   enqueueReferralNotificationMock: vi.fn(),
   getExperienceRepositoryMock: vi.fn(),
   rotateSessionHashMock: vi.fn(),
+  rotateSessionHashIfCurrentMock: vi.fn(),
 }));
 
 vi.mock('@/server/payments/runtimePayments', () => ({
@@ -51,6 +54,8 @@ vi.mock('@/server/experience/runtimeRepository', () => ({
 
 import { GET as paymentReturnGet, POST as paymentReturnPost } from '@/app/payment/return/route';
 
+const currentToken = 'existing-browser-session-token';
+
 beforeEach(() => {
   vi.clearAllMocks();
   reserveForPaidAttemptMock.mockResolvedValue({
@@ -69,14 +74,20 @@ beforeEach(() => {
   enqueueIssueNotificationMock.mockResolvedValue({ messageId: 'notify-return-1' });
   enqueueReferralNotificationMock.mockResolvedValue({ messageId: 'referral-return-1' });
   rotateSessionHashMock.mockResolvedValue(true);
-  getExperienceRepositoryMock.mockReturnValue({ rotateSessionHash: rotateSessionHashMock });
+  rotateSessionHashIfCurrentMock.mockResolvedValue(true);
+  getExperienceRepositoryMock.mockReturnValue({
+    rotateSessionHash: rotateSessionHashMock,
+    rotateSessionHashIfCurrent: rotateSessionHashIfCurrentMock,
+  });
 });
 
 test('GET payment return uses Reporter-backed reconciliation before finalizing the paid Issue', async () => {
   const reconcileTracker = vi.fn().mockResolvedValue({ kind: 'paid', paymentAttemptId: 'attempt-return-1' });
   createPaymentServiceMock.mockReturnValue({ reconcileTracker });
 
-  const response = await paymentReturnGet(new Request('https://issuedonce.shop/payment/return?tracker=track_return_1'));
+  const response = await paymentReturnGet(new Request('https://issuedonce.shop/payment/return?tracker=track_return_1', {
+    headers: { cookie: `__Host-io_session=${currentToken}` },
+  }));
 
   expect(response.status).toBe(303);
   expect(response.headers.get('location')).toBe('https://issuedonce.shop/issue');
@@ -86,21 +97,41 @@ test('GET payment return uses Reporter-backed reconciliation before finalizing t
   expect(enqueueIssueNotificationMock).toHaveBeenCalledWith('issue-return-1', 'PAYMENT_RECEIVED');
 });
 
-test('GET paid return rotates the Issue experience and restores the existing session cookie', async () => {
+test('GET paid return compare-and-swaps the current Issue session before restoring the cookie', async () => {
   const reconcileTracker = vi.fn().mockResolvedValue({ kind: 'paid', paymentAttemptId: 'attempt-return-1' });
   createPaymentServiceMock.mockReturnValue({ reconcileTracker });
 
-  const response = await paymentReturnGet(new Request('https://issuedonce.shop/payment/return?tracker=track_return_1'));
+  const response = await paymentReturnGet(new Request('https://issuedonce.shop/payment/return?tracker=track_return_1', {
+    headers: { cookie: `__Host-io_session=${currentToken}` },
+  }));
 
-  expect(rotateSessionHashMock).toHaveBeenCalledWith(expect.objectContaining({
+  expect(rotateSessionHashIfCurrentMock).toHaveBeenCalledWith(expect.objectContaining({
     experienceId: 'exp-return-1',
+    expectedPublicSessionHash: hashSessionToken(currentToken),
     publicSessionHash: expect.stringMatching(/^[a-f0-9]{64}$/),
   }));
+  expect(rotateSessionHashMock).not.toHaveBeenCalled();
   const setCookie = response.headers.get('set-cookie') ?? '';
   expect(setCookie).toContain('__Host-io_session=');
   expect(setCookie).toContain('HttpOnly');
   expect(setCookie).toContain('Secure');
   expect(setCookie).toContain('SameSite=lax');
+});
+
+test('paid tracker without the current Issue session finalizes payment but does not mint Issue access', async () => {
+  const reconcileTracker = vi.fn().mockResolvedValue({ kind: 'paid', paymentAttemptId: 'attempt-return-1' });
+  createPaymentServiceMock.mockReturnValue({ reconcileTracker });
+
+  const response = await paymentReturnGet(new Request('https://issuedonce.shop/payment/return?tracker=track_return_1'));
+
+  expect(response.status).toBe(303);
+  expect(response.headers.get('location')).toBe('https://issuedonce.shop/payment/pending');
+  expect(reserveForPaidAttemptMock).toHaveBeenCalledWith('attempt-return-1');
+  expect(dispatchPaidIssueDesignMock).toHaveBeenCalledWith('issue-return-1');
+  expect(enqueueIssueNotificationMock).toHaveBeenCalledWith('issue-return-1', 'PAYMENT_RECEIVED');
+  expect(rotateSessionHashIfCurrentMock).not.toHaveBeenCalled();
+  expect(rotateSessionHashMock).not.toHaveBeenCalled();
+  expect(response.headers.get('set-cookie')).toBeNull();
 });
 
 test('POST payment return reconciles a form tracker instead of discarding it', async () => {
@@ -117,6 +148,7 @@ test('POST payment return reconciles a form tracker instead of discarding it', a
   expect(response.headers.get('location')).toBe('https://issuedonce.shop/payment/pending');
   expect(reconcileTracker).toHaveBeenCalledWith({ providerReference: 'track_return_1' });
   expect(reserveForPaidAttemptMock).not.toHaveBeenCalled();
+  expect(rotateSessionHashIfCurrentMock).not.toHaveBeenCalled();
   expect(rotateSessionHashMock).not.toHaveBeenCalled();
   expect(response.headers.get('set-cookie')).toBeNull();
 });
