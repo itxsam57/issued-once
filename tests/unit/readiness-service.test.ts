@@ -53,6 +53,7 @@ function healthyDependencies(env: NodeJS.ProcessEnv) {
   return {
     env,
     databasePing: vi.fn(async () => true),
+    catalogAuthorityPing: vi.fn(async () => true),
     storagePing: vi.fn(async () => true),
     queuePing: vi.fn(async () => true),
     fetchImpl: vi.fn(async (url: string) => {
@@ -75,6 +76,7 @@ test('reports live/read-only boundaries separately from configured-only and safe
     expect.objectContaining({ key: 'database', state: 'ready' }),
     expect.objectContaining({ key: 'privacy', state: 'ready' }),
     expect.objectContaining({ key: 'merchant', state: 'ready' }),
+    expect.objectContaining({ key: 'catalog-authority', state: 'ready' }),
     expect.objectContaining({ key: 'openai', state: 'ready' }),
     expect.objectContaining({ key: 'storage', state: 'ready' }),
     expect.objectContaining({ key: 'queues', state: 'ready' }),
@@ -144,6 +146,21 @@ test('uses the audited boot catalog when the deployment override is absent', asy
   }));
 });
 
+test('fails release readiness closed when no owner-published ACTIVE catalog exists', async () => {
+  const dependencies = healthyDependencies(completeEnv);
+  dependencies.catalogAuthorityPing.mockResolvedValue(false);
+
+  const result = await new ReadinessService(dependencies).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'catalog-authority',
+    state: 'missing',
+    detail: expect.stringMatching(/owner-published|active catalog/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
+  expect(result.readyForProduction).toBe(false);
+});
+
 test('uses the same transparency-compatible default image model as the design runtime', async () => {
   const env = { ...completeEnv };
   delete env.OPENAI_IMAGE_MODEL;
@@ -183,6 +200,7 @@ test('missing boundaries fail closed and never report production ready', async (
   const result = await new ReadinessService({
     env: { NODE_ENV: 'test', SAFEPAY_ENVIRONMENT: 'production', PRINTFUL_ALLOW_CONFIRM: 'true' },
     databasePing: vi.fn(async () => false),
+    catalogAuthorityPing: vi.fn(async () => false),
     storagePing: vi.fn(async () => false),
     queuePing: vi.fn(async () => false),
     fetchImpl: vi.fn() as typeof fetch,
@@ -191,6 +209,7 @@ test('missing boundaries fail closed and never report production ready', async (
   expect(result.readyForProduction).toBe(false);
   expect(result.checks).toEqual(expect.arrayContaining([
     expect.objectContaining({ key: 'database', state: 'missing' }),
+    expect.objectContaining({ key: 'catalog-authority', state: 'missing' }),
     expect.objectContaining({ key: 'merchant', state: 'missing' }),
     expect.objectContaining({ key: 'openai', state: 'missing' }),
     expect.objectContaining({ key: 'storage', state: 'missing' }),
