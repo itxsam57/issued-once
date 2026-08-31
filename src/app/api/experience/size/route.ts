@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Size selection state conflict' }, { status: 409 });
     }
 
-    console.error('physical size selection failed', error);
+    console.error('physical size selection failed');
     return Response.json({ error: 'Size could not be confirmed' }, { status: 500 });
   }
 }
