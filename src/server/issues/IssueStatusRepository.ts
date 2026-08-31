@@ -11,7 +11,13 @@ export type CustomerIssueStatus = {
   updatedAt: Date;
 };
 
+export type IssueRecoveryTarget = {
+  experienceId: string;
+  emailHash: string;
+};
+
 export interface IssueStatusRepository {
   findBySessionHash(sessionHash: string): Promise<CustomerIssueStatus | null>;
   findByIssueCode(issueCode: string): Promise<CustomerIssueStatus | null>;
+  findRecoveryTargetByIssueCode?(issueCode: string): Promise<IssueRecoveryTarget | null>;
 }
