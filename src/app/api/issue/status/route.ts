@@ -16,7 +16,7 @@ export async function GET() {
     if (error instanceof IssueStatusRuntimeUnavailableError) {
       return Response.json({ error: 'Issue status is unavailable' }, { status: 503 });
     }
-    console.error('issue status lookup failed', error);
+    console.error('issue status lookup failed');
     return Response.json({ error: 'Issue status failed' }, { status: 500 });
   }
 }

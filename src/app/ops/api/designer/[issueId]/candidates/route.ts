@@ -21,8 +21,8 @@ export async function GET(
       createdAt: item.createdAt.toISOString(),
     })));
     return Response.json({ items: safe }, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (error) {
-    console.error('Owner design candidates failed', error);
+  } catch {
+    console.error('Owner design candidates failed');
     return Response.json({ error: 'Design candidates unavailable' }, { status: 503 });
   }
 }

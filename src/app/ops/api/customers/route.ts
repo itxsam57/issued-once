@@ -26,8 +26,8 @@ export async function GET(request: Request) {
       })),
       nextCursor: result.nextCursor,
     }, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (error) {
-    console.error('Owner customer list failed', error);
+  } catch {
+    console.error('Owner customer list failed');
     return Response.json({ error: 'Customers unavailable' }, { status: 503 });
   }
 }

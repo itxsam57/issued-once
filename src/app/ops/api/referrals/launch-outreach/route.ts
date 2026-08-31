@@ -21,8 +21,8 @@ export async function POST(request: Request) {
       limit: parsed.data.limit,
     });
     return Response.json({ ok: true, ...result }, { headers: noStore });
-  } catch (error) {
-    console.error('Referral launch outreach failed', error);
+  } catch {
+    console.error('Referral launch outreach failed');
     return Response.json({ error: 'Referral launch outreach unavailable' }, { status: 503, headers: noStore });
   }
 }
