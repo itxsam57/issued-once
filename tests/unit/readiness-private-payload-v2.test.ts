@@ -9,6 +9,7 @@ test('privacy readiness fails closed when the active V2 private-payload key is m
       IDENTITY_HMAC_KEY: Buffer.alloc(32, 2).toString('base64'),
     },
     databasePing: vi.fn(async () => false),
+    catalogAuthorityPing: vi.fn(async () => false),
     storagePing: vi.fn(async () => false),
     queuePing: vi.fn(async () => false),
     fetchImpl: vi.fn() as typeof fetch,
