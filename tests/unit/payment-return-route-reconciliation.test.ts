@@ -79,6 +79,7 @@ test('GET payment return uses Reporter-backed reconciliation before finalizing t
   const response = await paymentReturnGet(new Request('https://issuedonce.shop/payment/return?tracker=track_return_1'));
 
   expect(response.status).toBe(303);
+  expect(response.headers.get('location')).toBe('https://issuedonce.shop/issue');
   expect(reconcileTracker).toHaveBeenCalledWith({ providerReference: 'track_return_1' });
   expect(reserveForPaidAttemptMock).toHaveBeenCalledWith('attempt-return-1');
   expect(dispatchPaidIssueDesignMock).toHaveBeenCalledWith('issue-return-1');
@@ -113,6 +114,7 @@ test('POST payment return reconciles a form tracker instead of discarding it', a
   }));
 
   expect(response.status).toBe(303);
+  expect(response.headers.get('location')).toBe('https://issuedonce.shop/payment/pending');
   expect(reconcileTracker).toHaveBeenCalledWith({ providerReference: 'track_return_1' });
   expect(reserveForPaidAttemptMock).not.toHaveBeenCalled();
   expect(rotateSessionHashMock).not.toHaveBeenCalled();
