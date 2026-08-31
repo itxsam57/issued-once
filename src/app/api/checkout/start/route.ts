@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Checkout state conflict' }, { status: 409 });
     }
 
-    console.error('checkout start failed', error);
+    console.error('checkout start failed');
     return Response.json({ error: 'Checkout could not be opened' }, { status: 500 });
   }
 }
