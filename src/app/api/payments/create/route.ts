@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     ) {
       return Response.json({ error: 'Payment state conflict' }, { status: 409 });
     }
-    console.error('payment start failed', error);
+    console.error('payment start failed');
     return Response.json({ error: 'Payment could not be opened' }, { status: 500 });
   }
 }
