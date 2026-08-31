@@ -104,7 +104,6 @@ export class PostgresExperienceRepository implements ExperienceRepository {
         SET public_session_hash = $2,
             updated_at = $3
         WHERE id = $1
-          AND expires_at > NOW()
         RETURNING id
       `,
       [input.experienceId, input.publicSessionHash, input.updatedAt],
