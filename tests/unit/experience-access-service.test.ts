@@ -45,6 +45,23 @@ class MemoryExperienceRepository implements ExperienceRepository {
     });
     return true;
   }
+
+  async rotateSessionHashIfCurrent(input: {
+    experienceId: string;
+    expectedPublicSessionHash: string;
+    publicSessionHash: string;
+    updatedAt: Date;
+  }) {
+    const record = this.records.get(input.expectedPublicSessionHash);
+    if (!record || record.id !== input.experienceId) return false;
+    this.records.delete(input.expectedPublicSessionHash);
+    this.records.set(input.publicSessionHash, {
+      ...record,
+      publicSessionHash: input.publicSessionHash,
+      updatedAt: input.updatedAt,
+    });
+    return true;
+  }
 }
 
 function record(): ExperienceRecord {
@@ -79,5 +96,28 @@ describe('ExperienceAccessService', () => {
     const service = new ExperienceAccessService(repository, () => newToken, () => now);
 
     await expect(service.restore('missing-experience')).rejects.toThrow('Experience access could not be restored');
+  });
+
+  test('compare-and-swaps a paid return only from the browser current session', async () => {
+    const repository = new MemoryExperienceRepository(record());
+    const service = new ExperienceAccessService(repository, () => newToken, () => now);
+
+    await expect(service.restoreFromCurrent('exp-access-1', oldToken)).resolves.toEqual({ token: newToken });
+    expect(await repository.findBySessionHash(hashSessionToken(oldToken))).toBeNull();
+    expect(await repository.findBySessionHash(hashSessionToken(newToken))).toMatchObject({
+      id: 'exp-access-1',
+      updatedAt: now,
+    });
+  });
+
+  test('rejects a stale or foreign browser session without rotating the Issue credential', async () => {
+    const repository = new MemoryExperienceRepository(record());
+    const service = new ExperienceAccessService(repository, () => newToken, () => now);
+
+    await expect(service.restoreFromCurrent('exp-access-1', 'stale-or-foreign-token'))
+      .rejects.toThrow('Experience access could not be restored');
+
+    expect(await repository.findBySessionHash(hashSessionToken(oldToken))).toMatchObject({ id: 'exp-access-1' });
+    expect(await repository.findBySessionHash(hashSessionToken(newToken))).toBeNull();
   });
 });
