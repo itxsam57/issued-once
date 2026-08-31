@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('a lost-session buyer can recover an Issue without existence leakage before OTP proof', async ({ page }) => {
   let restored = false;
+  const supportMessage = 'My tracking link has not updated for several days.';
 
   await page.route('**/api/issue/status', async (route) => {
     if (!restored) {
@@ -61,6 +62,15 @@ test('a lost-session buyer can recover an Issue without existence leakage before
     });
   });
 
+  await page.route('**/api/support', async (route) => {
+    expect(route.request().postDataJSON()).toEqual({ message: supportMessage });
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ received: true, issueCode: 'IO-ABCD-EFGH' }),
+    });
+  });
+
   await page.goto('/issue');
   await expect(page.getByRole('heading', { name: 'Hold this thought.' })).toBeVisible();
   await page.getByRole('button', { name: 'FIND MY ISSUE' }).click();
@@ -77,4 +87,8 @@ test('a lost-session buyer can recover an Issue without existence leakage before
 
   await expect(page.getByText('ISSUE / IO-ABCD-EFGH')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'IN TRANSIT' })).toBeVisible();
+
+  await page.getByLabel('Tell us what happened').fill(supportMessage);
+  await page.getByRole('button', { name: 'SEND TO SUPPORT' }).click();
+  await expect(page.getByText(/support received/i)).toBeVisible();
 });

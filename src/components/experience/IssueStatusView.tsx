@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { IssueRecoveryForm } from './IssueRecoveryForm';
 import recoveryStyles from './contact-verification.module.css';
 import styles from './issue-status.module.css';
@@ -30,6 +30,8 @@ type RecoveryIdentity = {
   email: string;
 };
 
+type SupportState = 'idle' | 'sending' | 'sent' | 'error';
+
 async function parseJson(response: Response): Promise<Record<string, unknown>> {
   return response.json().catch(() => ({})) as Promise<Record<string, unknown>>;
 }
@@ -38,6 +40,9 @@ export function IssueStatusView() {
   const [status, setStatus] = useState<IssueStatusPayload | null>(null);
   const [failed, setFailed] = useState(false);
   const [recovering, setRecovering] = useState(false);
+  const [supportMessage, setSupportMessage] = useState('');
+  const [supportState, setSupportState] = useState<SupportState>('idle');
+  const [supportError, setSupportError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -93,6 +98,35 @@ export function IssueStatusView() {
     return { restored: true as const };
   }
 
+  async function submitSupport(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const message = supportMessage.trim();
+    if (message.length < 2 || supportState === 'sending') return;
+
+    setSupportState('sending');
+    setSupportError(null);
+
+    try {
+      const response = await fetch('/api/support', {
+        method: 'POST',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      const payload = await parseJson(response);
+      if (!response.ok) {
+        throw new Error(typeof payload.error === 'string' ? payload.error : 'Support could not be sent right now.');
+      }
+
+      setSupportMessage('');
+      setSupportState('sent');
+    } catch (error) {
+      setSupportState('error');
+      setSupportError(error instanceof Error ? error.message : 'Support could not be sent right now.');
+    }
+  }
+
   if (failed) {
     return (
       <section className={styles.stage} role="alert">
@@ -141,6 +175,33 @@ export function IssueStatusView() {
           TRACK IT <span aria-hidden="true">↗</span>
         </a>
       ) : null}
+      <form className={styles.support} onSubmit={submitSupport}>
+        <label htmlFor="issue-support-message">Tell us what happened</label>
+        <textarea
+          id="issue-support-message"
+          value={supportMessage}
+          minLength={2}
+          maxLength={5000}
+          required
+          disabled={supportState === 'sending'}
+          onChange={(event) => {
+            setSupportMessage(event.target.value);
+            if (supportState !== 'idle') {
+              setSupportState('idle');
+              setSupportError(null);
+            }
+          }}
+        />
+        <button type="submit" disabled={supportState === 'sending' || supportMessage.trim().length < 2}>
+          {supportState === 'sending' ? 'SENDING…' : 'SEND TO SUPPORT'}
+        </button>
+        {supportState === 'sent' ? (
+          <p className={styles.supportStatus}>Support received. We&apos;ll reply to the verified email attached to this Issue.</p>
+        ) : null}
+        {supportState === 'error' && supportError ? (
+          <p className={styles.supportStatus} role="alert">{supportError}</p>
+        ) : null}
+      </form>
       <p className={styles.note}>Keep your Issue Code. It&apos;s the shortest way back to this piece.</p>
     </section>
   );

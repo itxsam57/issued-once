@@ -13,6 +13,13 @@
 .truth { display: flex; flex-wrap: wrap; gap: 0; width: fit-content; border-top: 1px solid color-mix(in srgb, currentColor 32%, transparent); border-bottom: 1px solid color-mix(in srgb, currentColor 32%, transparent); }
 .truth span { min-width: 96px; padding: 14px 22px 14px 0; margin-right: 22px; font-size: 11px; letter-spacing: .14em; }
 .track { width: fit-content; min-height: 46px; display: inline-flex; align-items: center; gap: 18px; border-bottom: 1px solid currentColor; color: inherit; text-decoration: none; font-size: 11px; letter-spacing: .14em; }
+.support { display: grid; gap: 12px; width: min(520px, 100%); }
+.support label { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; opacity: .58; }
+.support textarea { width: 100%; min-height: 128px; resize: vertical; border: 1px solid color-mix(in srgb, currentColor 32%, transparent); border-radius: 0; background: transparent; color: inherit; padding: 14px; font: inherit; line-height: 1.5; }
+.support textarea:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }
+.support button { width: fit-content; min-height: 44px; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: inherit; padding: 0; font: inherit; font-size: 11px; letter-spacing: .14em; cursor: pointer; }
+.support button:disabled { cursor: default; opacity: .38; }
+.supportStatus { margin: 0; max-width: 520px; font-size: 12px; line-height: 1.6; opacity: .66; }
 .note { margin: 0; max-width: 520px; font-size: 12px; line-height: 1.6; opacity: .5; }
 @media (max-width: 640px) {
   .stage { width: min(100% - 28px, 980px); }
