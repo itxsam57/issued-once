@@ -77,4 +77,45 @@ describe('repeat verified-email contact routes', () => {
     expect(denied.status).toBe(409);
     expect(await denied.json()).toEqual({ error: 'Verified email reuse is not available' });
   });
+
+  it('does not log unknown continuity-check error details', async () => {
+    const sentinel = 'continuity-provider-secret-sentinel';
+    cookieHarness({ session: 'child-session', continuity: 'continuity-proof' });
+    createContactServiceMock.mockReturnValue({
+      checkContinuity: vi.fn().mockRejectedValue(new Error(sentinel)),
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    try {
+      const response = await checkEmail(request('/api/contact/check-email', { email: 'sam@example.com' }));
+      const renderedLogs = errorSpy.mock.calls.flat().map((value) => String(value)).join('\n');
+
+      expect(response.status).toBe(500);
+      expect(await response.json()).toEqual({ error: 'Contact verification failed' });
+      expect(renderedLogs).not.toContain(sentinel);
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it('does not log unknown verified-contact reuse error details', async () => {
+    const sentinel = 'reuse-provider-secret-sentinel';
+    const { set } = cookieHarness({ session: 'child-session', continuity: 'continuity-proof' });
+    createContactServiceMock.mockReturnValue({
+      reuseVerified: vi.fn().mockRejectedValue(new Error(sentinel)),
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    try {
+      const response = await reuseVerified(request('/api/contact/reuse-verified', { email: 'sam@example.com' }));
+      const renderedLogs = errorSpy.mock.calls.flat().map((value) => String(value)).join('\n');
+
+      expect(response.status).toBe(500);
+      expect(await response.json()).toEqual({ error: 'Contact verification failed' });
+      expect(set).not.toHaveBeenCalled();
+      expect(renderedLogs).not.toContain(sentinel);
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
 });
