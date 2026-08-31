@@ -4,14 +4,16 @@
 
 **Architecture:** The existing `__Host-io_session` remains the only public Issue-access credential. A shared `ExperienceAccessService` rotates `experiences.public_session_hash` for a known `experienceId`, invalidating the old token and returning a fresh token for the existing cookie. Payment return may call it only after authoritative paid reconciliation/finalization. Explicit recovery must prove ownership through the Issue's verified contact and the existing OTP challenge system before rotating access.
 
+**Lifetime boundary:** Paid Issue access outlives the short interview-session TTL. Recovery may therefore rotate the public session hash for an existing experience even after `expires_at`, but it never renews `expires_at`. Normal experience/contact/interview lookups remain expiry-gated, so restoring Issue access cannot reactivate an expired interview.
+
 **Constraints:** No schema migration; no raw email/session token persistence; no Issue-code-only login; no new auth cookie; preserve current payment truth, OTP rate limits, anti-enumeration behavior, and sanitized logging.
 
 ## Task 1 — Shared session-rotation primitive
 
-- Extend `ExperienceRepository` with an atomic rotation operation for a non-expired experience.
-- Implement it in Postgres and preview repositories.
+- Extend `ExperienceRepository` with an atomic rotation operation for an existing experience.
+- Implement it in Postgres and preview repositories without renewing the experience expiry.
 - Add `ExperienceAccessService` that creates a new session token, hashes it, rotates the stored hash, and returns only the raw token.
-- Tests: repository SQL contract, old-token invalidation/new-token access, missing/expired experience failure.
+- Tests: repository SQL contract, old-token invalidation/new-token access, missing-experience failure, and recovery after interview expiry.
 
 ## Task 2 — Payment-return restoration
 
@@ -22,7 +24,7 @@
 
 ## Task 3 — Verified Issue-code recovery
 
-- Resolve Issue Code through the existing issue-status repository lookup to `experienceId`.
+- Resolve Issue Code through an internal recovery lookup to `experienceId` without adding `experienceId` to the public Issue-status response.
 - Match the supplied normalized email against the verified contact's keyed email hash without exposing existence details.
 - Reuse ContactService OTP challenge creation/verification by factoring methods that operate on a known `experienceId`; keep existing session-based endpoints delegating to the same implementation.
 - Add recovery request/verify routes. A successful OTP verification rotates the existing Issue session and sets the existing cookie.
