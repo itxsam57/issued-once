@@ -9,6 +9,10 @@ export class ExperienceAccessService {
   ) {}
 
   async restore(experienceId: string): Promise<{ token: string }> {
+    if (!this.experiences.rotateSessionHash) {
+      throw new Error('Experience access could not be restored');
+    }
+
     const token = this.createToken();
     const rotated = await this.experiences.rotateSessionHash({
       experienceId,
