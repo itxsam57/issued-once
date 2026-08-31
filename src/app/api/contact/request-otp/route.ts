@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && /not found|stage|email/i.test(error.message)) {
       return Response.json({ error: 'Contact verification could not be started' }, { status: 409 });
     }
-    console.error('contact otp request failed');
+    console.error('contact otp request failed', error);
     return Response.json({ error: 'Contact verification failed' }, { status: 500 });
   }
 }
