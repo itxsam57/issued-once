@@ -1,21 +1,22 @@
 {
   "schemaVersion": 1,
-  "version": "1.23.0",
+  "version": "1.24.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-31T12:08:00Z",
+  "updatedAt": "2026-08-31T17:25:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "activeMigrationHead": "b32a850784768ed7e4f3d3732c19e9538b33f96c",
+    "activeMigrationHead": "25495afe78efcb4d0cfebf8917eae1f152c5317f",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
     "temporaryHost": "https://lightgray-coyote-141764.hostingersite.com",
     "hpanelBranchSelection": "PRESERVE_CURRENT_SELECTION_DO_NOT_CHANGE",
-    "plannedCanonicalDomain": "issuedonce.shop"
+    "plannedCanonicalDomain": "issuedonce.shop",
+    "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
@@ -29,11 +30,11 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "OWNER_REQUIRED represents standing production side-effect gates, not a current stop for autonomous engineering. Five public API raw-error logging paths are merged and post-merge exact-head green at b32a850784768ed7e4f3d3732c19e9538b33f96c (CI #1581 and Browser QA #1430). Engineering must continue autonomous read-only audits and code-only hardening until an actual owner-gated production side effect is reached. Temporary support values remain owner-reported test configuration only; live support provider acceptance and inbox placement remain unproven because the live Hostinger release is frozen on V10. Merchant public location remains deliberately deferred and must not be fabricated. Production referral migrations and Hostinger environment/branch mutations remain separately owner-gated."
+    "stopReason": "OWNER_REQUIRED represents standing production side-effect gates, not a current engineering stop. Consumer-readiness CR-25 log privacy, CR-24 Safepay readiness parity, CR-05 destination-aware shipping and CR-07/CR-09 unified Issue access/recovery are integrated through exact migration head 25495afe78efcb4d0cfebf8917eae1f152c5317f. CR-07/CR-09 passed exact feature and post-merge CI plus Browser QA; no production deployment/environment mutation was performed. CR-05 and CR-07/CR-09 remain CODE_READY until their required deployed/live consumer proofs exist. The next autonomous code-side target from the canonical consumer-readiness master plan is CR-11 public encrypted Issue-scoped support. Temporary support values remain test configuration only; merchant public location remains deliberately deferred and must not be fabricated. Production referral migrations and Hostinger environment/branch mutations remain separately owner-gated."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "INTEGRATED_RUNTIME_AND_LOG_HARDENING_EXACT_HEAD_GREEN_PRODUCTION_ACTIVATION_GATES_PENDING",
+    "internalWorkStatus": "CR07_CR09_MERGED_POST_MERGE_GREEN_CR11_NEXT_PRODUCTION_ACTIVATION_GATES_PENDING",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Require fresh CI, Browser QA when path-applicable, exact release health, live-product and database evidence before launch-success claims.",
@@ -47,7 +48,8 @@
       "Do not send creator launch outreach until referral migrations are live, the intended creator roster is reviewed, provider email configuration is green and the Owner explicitly triggers /ops/referral-launch.",
       "Do not cut issuedonce.shop until all temporary-host provider, customer-flow and email-deliverability gates are green.",
       "Treat temporary support mailbox values as test configuration only; do not claim production support identity or live delivery until provider and mailbox evidence exists.",
-      "Do not add or fabricate MERCHANT_PUBLIC_LOCATION while the owner has deferred location; require a truthful value before canonical launch."
+      "Do not add or fabricate MERCHANT_PUBLIC_LOCATION while the owner has deferred location; require a truthful value before canonical launch.",
+      "Use docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md as the canonical consumer-readiness ledger and update it after each meaningful CR cycle."
     ]
   },
   "integratedWork": {
@@ -224,6 +226,58 @@
       "postMergeBrowserQa": "PASS Browser QA #1430",
       "productionDeploymentPerformed": false,
       "productionEnvironmentChanged": false
+    },
+    "consumerReadinessResidualLogPrivacy": {
+      "consumerReadinessId": "CR-25",
+      "status": "MERGED_AND_POST_MERGE_VERIFIED",
+      "mergeCommit": "c4a895b5dfbdc7cb5c8391fc1d176a278ea01f61",
+      "behavior": "Residual raw unknown-exception logging class is structurally regression-guarded across audited public/owner route families; newly discovered response-body leaks remain a separate defect class.",
+      "verification": "Exact-head and post-merge CI plus Browser QA passed before integration.",
+      "productionDeploymentPerformed": false,
+      "productionEnvironmentChanged": false
+    },
+    "shippingApplicability": {
+      "consumerReadinessId": "CR-05",
+      "pullRequest": 50,
+      "status": "CODE_READY_MERGED_AND_POST_MERGE_VERIFIED",
+      "mergeCommit": "1c92677008d85ca7ca6b1dec6cb6e922964bf6b0",
+      "behavior": "Server and customer form share destination-aware address requirements; region is mandatory only for US/CA/AU, phone is not globally required, and blank optional Printful fields are omitted.",
+      "verification": "Focused RED covered server/UI/provider boundaries; corrected exact-head CI and Browser QA passed; post-merge CI and Browser QA passed.",
+      "liveSaveProof": false,
+      "productionDeploymentPerformed": false,
+      "productionEnvironmentChanged": false
+    },
+    "safepayReadinessRuntimeParity": {
+      "consumerReadinessId": "CR-24",
+      "pullRequest": 51,
+      "status": "MERGED_AND_POST_MERGE_VERIFIED",
+      "featureHead": "e11568271eaafaa41f54aa07b18400d36cd8f195",
+      "mergeCommit": "0263200e8dfb0f38e9995ec2e8b5fdc4a9728292",
+      "behavior": "Owner readiness consumes the same validated Safepay runtime configuration contract, including SAFEPAY_API_SECRET/SAFEPAY_V1_SECRET, eliminating false-positive readiness caused by duplicated environment approximations.",
+      "verification": "Feature unit/typecheck/lint/build passed; exact merged-head CI and Browser QA passed.",
+      "productionDeploymentPerformed": false,
+      "productionEnvironmentChanged": false
+    },
+    "issueAccessRecovery": {
+      "consumerReadinessIds": [
+        "CR-07",
+        "CR-09"
+      ],
+      "draftPullRequest": 52,
+      "pullRequest": 53,
+      "status": "CODE_READY_MERGED_AND_POST_MERGE_VERIFIED",
+      "finalFeatureHead": "daa59cbafa5f404287ee30dc06e9a55e7f39a432",
+      "mergeCommit": "25495afe78efcb4d0cfebf8917eae1f152c5317f",
+      "featureCi": "PASS run 33419182618: unit tests, typecheck, lint, production build",
+      "featureBrowserQa": "PASS run 33419182637: desktop/mobile browser tests",
+      "postMergeCi": "PASS run 33419570168: unit tests, typecheck, lint, production build",
+      "postMergeBrowserQa": "PASS run 33419570255: desktop/mobile browser tests",
+      "behavior": "One accountless Issue-access boundary supports explicit Issue Code + verified-email + OTP recovery and post-payment handoff while retaining __Host-io_session as the only public credential. Recovery is anti-enumerating and challenges are bound to experienceId. Paid Issue access can rotate after interview expiry without renewing the interview TTL.",
+      "securityFindingAndFix": "Pre-merge review proved provider tracker/payment truth alone must not mint browser ownership. Final payment-return implementation requires the caller's current Issue session and atomically compare-and-swaps the stored session hash before setting a refreshed cookie; no-session/stale-session paid callbacks may still finalize payment truth but cannot mint Issue access.",
+      "livePaidReturnProof": false,
+      "realCrossDeviceOtpProof": false,
+      "productionDeploymentPerformed": false,
+      "productionEnvironmentChanged": false
     }
   },
   "freshDiscovery": {
@@ -266,10 +320,12 @@
     },
     "sourceReconciliation": {
       "status": "EXACT_REPO_EVIDENCE_OVERRIDES_CARRIED_FORWARD_NOTES",
-      "latestIntegratedRuntimeHead": "b32a850784768ed7e4f3d3732c19e9538b33f96c",
+      "latestIntegratedRuntimeHead": "25495afe78efcb4d0cfebf8917eae1f152c5317f",
+      "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
+      "nextConsumerReadinessTarget": "CR-11",
       "duplicateContactHardeningResolution": "PR #36 is authoritative; PR #37 and PR #38 are closed unmerged duplicates.",
       "readyForReviewConnectorIssue": "GitHub ready-for-review GraphQL mutation remains broken on unsupported Repository.fullDatabaseId; verified normal-PR fallback is used without changing code.",
-      "partialGovernanceCheckpoint": "PR #39 merged partial v1.21.0 at 9e13829bc9c20218da3d187d3760ee6c48084985 before the completeness patch landed; v1.22.0 superseded it and v1.23.0 adds the fully verified public-route logging cycle.",
+      "partialGovernanceCheckpoint": "PR #39 merged partial v1.21.0 at 9e13829bc9c20218da3d187d3760ee6c48084985 before the completeness patch landed; v1.22.0 superseded it, v1.23.0 added the verified public-route logging cycle, and v1.24.0 reconciles consumer-readiness through CR-07/CR-09.",
       "checkoutRouteCorrection": "Exact source confirms the active route is /api/checkout/start at src/app/api/checkout/start/route.ts, not a legacy /api/checkout route."
     }
   },
@@ -316,7 +372,7 @@
     "Only after temporary-host provider/customer/email gates are green, cut issuedonce.shop and repeat complete live proof."
   ],
   "nextAction": {
-    "actor": "ENGINEERING_AND_OWNER",
-    "instruction": "Engineering continues autonomous read-only audits and code-only hardening. Do not stop merely because standing OWNER_REQUIRED launch gates exist. Owner input is required only when a production referral activation, Hostinger environment/branch mutation, truthful merchant location entry, or other explicit production side-effect gate is actually reached."
+    "actor": "ENGINEERING",
+    "instruction": "Execute CR-11 from the canonical consumer-readiness master plan: expose encrypted Issue-scoped customer support through the current/recovered Issue access boundary, preserving SupportService privacy and Owner OS behavior. Continue autonomously through TDD, CI and Browser QA. Do not mutate production deployment/environment state or trigger provider/factory/payment side effects."
   }
 }

@@ -1,7 +1,8 @@
 # ISSUED ONCE Consumer Readiness Master Plan
 
 Date: 2026-08-31
-Canonical integration base audited: `ad9f388c33121b1225cc7a387b038940edfd389b`
+Original audited integration base: `ad9f388c33121b1225cc7a387b038940edfd389b`
+Current reconciled integration head: `25495afe78efcb4d0cfebf8917eae1f152c5317f`
 Parent implementation plan: `docs/superpowers/plans/2026-08-19-issued-once-final-commercial-cycle.md`
 Owner OS design: `docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md`
 
@@ -44,11 +45,11 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 | CR-02 | Raw answers/private data encrypted at rest and isolated between customers | CODE_READY | two-customer isolation gate on exact deployed code |
 | CR-03 | TEE/CAP/TOTE selection, size/base, frozen variant and price | CODE_READY | explicitly published production catalog + live three-form smoke |
 | CR-04 | Email OTP verification with rate limits, expiry, single use and privacy | CODE_READY | real Resend OTP receipt + verification on deployed integration release |
-| CR-05 | Shipping accepts valid destination data without globally requiring non-applicable fields | MISSING | country-aware/optional region + phone contract, regression and live save proof |
+| CR-05 | Shipping accepts valid destination data without globally requiring non-applicable fields | CODE_READY | country-aware/optional region + phone contract and regressions are integrated; live save proof still required |
 | CR-06 | Safepay checkout starts only from complete verified commercial state | CODE_READY | readiness parity fix + signed sandbox/production checkout proof |
-| CR-07 | Browser return never creates paid truth, but customer reaches their Issue after verified payment | MISSING | post-return polling/handoff to Issue + live paid return proof |
+| CR-07 | Browser return never creates paid truth, but customer reaches their Issue after verified payment | CODE_READY | ownership-bound paid-return handoff and browser regressions are integrated; live paid return proof still required |
 | CR-08 | One canonical Issue per paid attempt with immutable commercial snapshot | CODE_READY | real paid attempt + duplicate callback proof |
-| CR-09 | Returning customer can access Issue from another browser/device using Issue Code + verified contact challenge | MISSING | accountless recovery implementation + cross-device browser proof |
+| CR-09 | Returning customer can access Issue from another browser/device using Issue Code + verified contact challenge | CODE_READY | accountless recovery, anti-enumeration and browser recovery are integrated; deployed cross-device + real OTP proof still required |
 | CR-10 | Customer status shows safe lifecycle/tracking without private-data leakage | CODE_READY | recovery-linked live status + shipment projection proof |
 | CR-11 | Public support can be opened from the customer Issue without relying only on mailto | MISSING | Issue-scoped support UI + encrypted request + owner reply proof |
 | CR-12 | Customer lifecycle email notifications are idempotent and deliver from verified sender | CODE_READY | real PAYMENT_RECEIVED/IN_PRODUCTION/SHIPPED/DELIVERED email proof |
@@ -63,33 +64,79 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 | CR-21 | Signed Printful webhook updates production/shipped/delivered truth without cross-linking Issues | CODE_READY | real signed webhook/shipment proof + duplicate/cross-link regression |
 | CR-22 | Refund truth is provider-derived and an owner has a documented operational resolution path | IN_PROGRESS | first-class owner refund/reconciliation workflow or explicit runbook + provider proof |
 | CR-23 | Owner OS customer, Issue, support, sales, audit and recovery views are bounded, paginated and privacy-preserving | CODE_READY | deployed Owner OS browser proof + scale/query gate |
-| CR-24 | Owner System readiness mirrors every real runtime requirement and cannot show false-positive provider readiness | MISSING | parity tests against runtime env contracts; Safepay API secret included |
-| CR-25 | Unknown exceptions never serialize private/provider/database details into server logs | IN_PROGRESS | complete route sentinel suite + exact-head full green gate |
+| CR-24 | Owner System readiness mirrors every real runtime requirement and cannot show false-positive provider readiness | DONE | runtime/readiness config parity is integrated and exact-head full gates are green, including Safepay API-secret requirement |
+| CR-25 | Unknown exceptions never serialize private/provider/database details into server logs | DONE | complete route sentinel class is integrated and exact-head/post-merge full gates are green |
 | CR-26 | Merchant name, support address and truthful public location/legal disclosure are configured before public launch | OWNER_REQUIRED | owner-supplied truthful production values + live page proof |
 | CR-27 | Canonical domain serves exact integration release with required security/cache headers | CODE_READY | deploy current verified integration head + strict live boundary audit |
 | CR-28 | Full commercial cycle works from seven answers through verified payment, Issue, design, Printful, tracking, support and customer recovery | MISSING | one controlled full live order plus a second isolated customer proof |
 | CR-29 | Repeat-order reuse/fresh-answer flow preserves contact/profile boundaries | CODE_READY | deployed repeat-order browser proof after a real paid Issue |
 | CR-30 | Referral feature cannot affect checkout unless explicitly enabled; enabled flow is reversible on refund/delivery lifecycle | CODE_READY (launch-disabled) | only required before referral launch; non-referral checkout must remain green |
 
+## 2026-08-31 execution checkpoint
+
+### CR-25 — residual log privacy
+
+- Integration merge: `c4a895b5dfbdc7cb5c8391fc1d176a278ea01f61`.
+- Result: repository-wide raw-exception logging class is structurally guarded by regression tests and passed post-merge CI + Browser QA.
+- Production deployment/environment mutation: none.
+- Master-plan state: `DONE` because this row's completion contract is code/integration evidence and no provider side effect is part of the promise.
+
+### CR-05 — destination-aware shipping
+
+- Integration merge: `1c92677008d85ca7ca6b1dec6cb6e922964bf6b0`.
+- Shared contract: core delivery fields remain required; region is required only for US/CA/AU; phone is not globally required; empty optional Printful fields are omitted.
+- Regression evidence: server, UI and Printful-boundary tests plus exact-head/post-merge CI + Browser QA passed.
+- Remaining evidence: a live deployed valid-address save under the destination rules.
+- Master-plan state: `CODE_READY`.
+
+### CR-24 — Safepay readiness/runtime parity
+
+- Integration merge: `0263200e8dfb0f38e9995ec2e8b5fdc4a9728292`.
+- Readiness now consumes the same validated Safepay runtime configuration contract, including `SAFEPAY_API_SECRET` / `SAFEPAY_V1_SECRET` rather than an incomplete approximation.
+- Exact-head and post-merge unit/typecheck/lint/production-build gates passed; Browser QA passed where applicable.
+- Production deployment/environment mutation: none.
+- Master-plan state: `DONE` for the readiness-parity contract; live Safepay transaction proof remains tracked by CR-06/CR-07, not this row.
+
+### CR-07 + CR-09 — unified Issue access and recovery
+
+- Feature branch: `feat/issue-access-recovery-20260831`.
+- Draft PR #52 closed unmerged only because the connected GitHub ready-for-review mutation is broken by an upstream GraphQL schema mismatch; normal integration PR #53 carried the same branch.
+- Final feature head: `daa59cbafa5f404287ee30dc06e9a55e7f39a432`.
+- Integration merge: `25495afe78efcb4d0cfebf8917eae1f152c5317f`.
+- Feature CI: run `33419182618` PASS — unit tests, typecheck, lint and production build.
+- Feature Browser QA: run `33419182637` PASS — desktop/mobile browser tests.
+- Post-merge CI: run `33419570168` PASS — unit tests, typecheck, lint and production build.
+- Post-merge Browser QA: run `33419570255` PASS — desktop/mobile browser tests.
+- Recovery security: Issue Code + normalized verified email + OTP; unknown/mismatched pairs stay challenge-shaped and non-enumerating; cross-Issue/stale/wrong challenges cannot rotate access.
+- Long-lived access: a paid Issue can rotate its public session hash after the short interview TTL without renewing that TTL or reactivating expired interview/contact privileges.
+- Payment-return security finding: provider tracker/payment truth alone is not browser-ownership proof. Final implementation requires the caller's current Issue session and uses atomic compare-and-swap session rotation before setting a fresh cookie; leaked/forwarded tracker URLs cannot mint store access.
+- Pending customers stay on the live Issue polling/recovery surface instead of a home-page dead end.
+- Remaining CR-07 proof: controlled deployed paid-return evidence.
+- Remaining CR-09 proof: deployed cross-device recovery with real OTP delivery/verification.
+- Production deployment/environment mutation: none.
+- Master-plan state: both `CODE_READY`.
+
 ## Audit findings that must remain in scope
 
 ### A. Post-payment handoff and recovery
 
-The current Safepay return correctly refuses to trust browser navigation as payment truth, but the pending page does not poll/transition to the newly created Issue. The current public Issue status lookup depends on the original browser session cookie. The required accountless recovery path using Issue Code plus verified contact challenge is absent.
+**Code-side root cause resolved at integration `25495afe78efcb4d0cfebf8917eae1f152c5317f`; live proof remains.**
 
-Root-cause completion target: introduce one recovery capability that owns accountless Issue access. Do not bolt a second identity system onto support/status. Status, support and repeat-order re-entry must consume the same recovered Issue access boundary.
+One accountless Issue-access capability now owns both lost-session recovery and post-payment handoff. The existing `__Host-io_session` remains the only public Issue credential. Explicit recovery requires Issue Code + verified email + OTP and stays anti-enumerating before proof. Payment return still treats browser navigation as non-authoritative; payment can finalize only from Reporter-backed truth, and the browser receives refreshed Issue access only when its current session atomically matches the paid Issue's experience.
+
+Remaining completion target: deployed paid-return proof plus real cross-device OTP recovery.
 
 ### B. Readiness parity
 
-The readiness dashboard currently checks Safepay environment/API key/webhook secret but the actual payment runtime also requires `SAFEPAY_API_SECRET` or `SAFEPAY_V1_SECRET`. Readiness must be derived from the same validated runtime contract, not a duplicated approximation.
+**Resolved at integration `0263200e8dfb0f38e9995ec2e8b5fdc4a9728292`.**
 
-Root-cause completion target: centralize provider runtime configuration validation or have readiness call the same validators used by production runtime composition.
+Readiness and payment runtime now share the validated Safepay configuration contract, including the API-secret requirement. Future provider additions must follow the same single-source validator pattern rather than duplicate environment approximations.
 
 ### C. Shipping applicability
 
-Current shipping normalization requires phone and region for every destination. This is broader than the commercial plan and can reject legitimate addresses where those fields are not applicable.
+**Code-side resolved at integration `1c92677008d85ca7ca6b1dec6cb6e922964bf6b0`; live save proof remains.**
 
-Root-cause completion target: model requiredness by destination/provider contract rather than UI-only exceptions. Server validation and customer form must share the same rule.
+Server validation and customer form share destination-aware requirements. Region is required only where the provider requires it (US/CA/AU), phone is not globally mandatory, and provider serialization omits blank optional fields.
 
 ### D. Production catalog authority
 
@@ -107,7 +154,7 @@ Root-cause completion target: current supported image provider contract, actual 
 
 Encrypted Issue-scoped support exists server-side and Owner OS can reveal/reply/close/retry. The public customer experience still primarily exposes contact email instead of the encrypted Issue support flow.
 
-Root-cause completion target: expose support from recovered/current Issue access, preserving the existing encrypted SupportService and owner desk.
+Root-cause completion target: expose support from recovered/current Issue access, preserving the existing encrypted SupportService and owner desk. This is the next code-side execution target after the CR-07/09 checkpoint.
 
 ### G. Refund operations
 
@@ -117,7 +164,9 @@ Root-cause completion target: either implement a verified provider refund operat
 
 ### H. Residual log privacy
 
-Unknown caught exceptions in public/owner routes must never be passed directly to `console.error`. Preserve stable event names and public HTTP contracts while logging no raw exception object or customer lookup input. Regression tests must use sensitive sentinels and prove absence from rendered logs.
+**Resolved as an audited code class at integration `c4a895b5dfbdc7cb5c8391fc1d176a278ea01f61`.**
+
+Unknown caught exceptions in audited public/owner routes retain stable event names without serializing raw exception objects or customer lookup inputs. Keep the structural/sentinel regressions mandatory for future routes; any newly discovered response-body leakage remains a separate defect class and must not be hidden under this completed logging row.
 
 ### I. Live proof gap
 
@@ -127,11 +176,11 @@ Root-cause completion target: expand controlled live QA in stages. Never charge 
 
 ## Execution order from this audit
 
-1. `CR-25` complete residual API log privacy class already in TDD cycle.
-2. `CR-24` make readiness use the real runtime contracts; eliminate Safepay false positive.
-3. `CR-05` make shipping destination-valid and shared between server/UI.
-4. `CR-07` + `CR-09` build one accountless Issue access/recovery boundary and post-payment handoff.
-5. `CR-11` expose encrypted Issue-scoped customer support through that access boundary.
+1. `CR-25` residual API log privacy — **completed and integrated**.
+2. `CR-24` runtime/readiness parity — **completed and integrated**.
+3. `CR-05` destination-aware shipping — **code-ready and integrated; live save proof pending**.
+4. `CR-07` + `CR-09` unified Issue access/recovery — **code-ready and integrated; deployed paid-return/real-OTP proof pending**.
+5. `CR-11` expose encrypted Issue-scoped customer support through the recovered/current Issue access boundary — **NEXT**.
 6. `CR-18` require explicit production catalog authority.
 7. `CR-13` + `CR-14` move artwork generation/QA to a current, proven production contract.
 8. `CR-15` prove or replace runtime filesystem persistence.
