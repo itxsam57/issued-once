@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "version": "1.22.0",
+  "version": "1.23.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-31T09:13:00Z",
+  "updatedAt": "2026-08-31T12:08:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "activeMigrationHead": "5425a36757f968cd3cabaae868883a6bf4cec62f",
+    "activeMigrationHead": "b32a850784768ed7e4f3d3732c19e9538b33f96c",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
@@ -29,7 +29,7 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "OWNER_REQUIRED represents standing production side-effect gates, not a current stop for autonomous engineering. Contact-route logging hardening is merged and post-merge exact-head green at 5425a36757f968cd3cabaae868883a6bf4cec62f (CI #1566 and Browser QA #1420). Engineering must continue autonomous read-only audits and code-only hardening until an actual owner-gated production side effect is reached. Temporary support values remain owner-reported test configuration only; live support provider acceptance and inbox placement remain unproven because the live Hostinger release is frozen on V10. Merchant public location remains deliberately deferred and must not be fabricated. Production referral migrations and Hostinger environment/branch mutations remain separately owner-gated."
+    "stopReason": "OWNER_REQUIRED represents standing production side-effect gates, not a current stop for autonomous engineering. Five public API raw-error logging paths are merged and post-merge exact-head green at b32a850784768ed7e4f3d3732c19e9538b33f96c (CI #1581 and Browser QA #1430). Engineering must continue autonomous read-only audits and code-only hardening until an actual owner-gated production side effect is reached. Temporary support values remain owner-reported test configuration only; live support provider acceptance and inbox placement remain unproven because the live Hostinger release is frozen on V10. Merchant public location remains deliberately deferred and must not be fabricated. Production referral migrations and Hostinger environment/branch mutations remain separately owner-gated."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -199,6 +199,31 @@
         "resolution": "Closed unmerged after PR #36 integrated the same behavior first."
       },
       "productionDeploymentPerformed": false
+    },
+    "publicRouteLogHardening": {
+      "initialAuditPullRequest": 41,
+      "correctedRedAuditPullRequest": 43,
+      "pullRequest": 44,
+      "status": "MERGED_AND_POST_MERGE_VERIFIED",
+      "initialRedCommit": "0eb6b97ae0b6fcd7d49643d3221f11424e258737",
+      "initialRedCi": "FAIL CI #1571; rejected as valid RED after exact log inspection exposed a shipping-test classifier collision.",
+      "initialHarnessIssue": "The first shipping sentinel contained the word shipping and therefore matched the route's intentional 409 domain-error classifier instead of exercising the unknown 500 path.",
+      "intermediateGreenCommit": "f0cfadc9f62cb211fe52cab1cc798f26bbf7f949",
+      "intermediateCi": "FAIL CI #1576 only because the shipping sentinel still exercised the 409 classifier; Browser QA #1427 PASS.",
+      "correctedFeatureHead": "f847a8e967cc2bb576e7df9efe9c189ab8f291cc",
+      "correctedRedCommit": "c45c9ac887ba7490d6d6b552a2e75a5bc9adde2d",
+      "correctedRedCi": "FAIL CI #1579 exactly as intended: 5 privacy assertions failed, 605/610 tests passed, 207/208 test files passed; each 500 response contract assertion passed before the sentinel log assertion failed.",
+      "behavior": "Unknown failures in checkout start, payment start, shipping save, referral apply and public interview bootstrap retain generic server log labels without serializing raw caught Error payloads. Existing validation, auth, typed runtime, state-conflict and 500 response semantics are unchanged.",
+      "sourceCorrection": "The live checkout route is src/app/api/checkout/start/route.ts; there is no src/app/api/checkout/route.ts at the verified base.",
+      "featureCi": "PASS CI #1578",
+      "featureBrowserQa": "PASS Browser QA #1428",
+      "normalPrCi": "PASS CI #1580",
+      "normalPrBrowserQa": "PASS Browser QA #1429",
+      "mergeCommit": "b32a850784768ed7e4f3d3732c19e9538b33f96c",
+      "postMergeCi": "PASS CI #1581",
+      "postMergeBrowserQa": "PASS Browser QA #1430",
+      "productionDeploymentPerformed": false,
+      "productionEnvironmentChanged": false
     }
   },
   "freshDiscovery": {
@@ -236,15 +261,16 @@
       "auth": "INTERNAL_OPERATIONS_TOKEN bearer auth",
       "releaseBinding": "expected release must equal APP_RELEASE_ID",
       "privacy": "No customer data and no database persistence from the canary path",
-      "logPrivacy": "Provider error payloads are redacted from the route-level server log as of verified integration head 5425a36757f968cd3cabaae868883a6bf4cec62f.",
+      "logPrivacy": "Provider error payloads are redacted from the route-level server log as of verified integration head b32a850784768ed7e4f3d3732c19e9538b33f96c.",
       "evidenceMeaning": "HTTP 200 proves provider acceptance only; inbox placement requires mailbox evidence."
     },
     "sourceReconciliation": {
       "status": "EXACT_REPO_EVIDENCE_OVERRIDES_CARRIED_FORWARD_NOTES",
-      "latestIntegratedRuntimeHead": "5425a36757f968cd3cabaae868883a6bf4cec62f",
+      "latestIntegratedRuntimeHead": "b32a850784768ed7e4f3d3732c19e9538b33f96c",
       "duplicateContactHardeningResolution": "PR #36 is authoritative; PR #37 and PR #38 are closed unmerged duplicates.",
       "readyForReviewConnectorIssue": "GitHub ready-for-review GraphQL mutation remains broken on unsupported Repository.fullDatabaseId; verified normal-PR fallback is used without changing code.",
-      "partialGovernanceCheckpoint": "PR #39 merged partial v1.21.0 at 9e13829bc9c20218da3d187d3760ee6c48084985 before the completeness patch landed; v1.22.0 supersedes it."
+      "partialGovernanceCheckpoint": "PR #39 merged partial v1.21.0 at 9e13829bc9c20218da3d187d3760ee6c48084985 before the completeness patch landed; v1.22.0 superseded it and v1.23.0 adds the fully verified public-route logging cycle.",
+      "checkoutRouteCorrection": "Exact source confirms the active route is /api/checkout/start at src/app/api/checkout/start/route.ts, not a legacy /api/checkout route."
     }
   },
   "productionDatabase": {
