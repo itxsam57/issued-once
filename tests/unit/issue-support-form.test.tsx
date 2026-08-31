@@ -5,6 +5,7 @@ import {
   IssueSupportForm,
   submitIssueSupportRequest,
 } from '@/components/experience/IssueSupportForm';
+import { IssueStatusView } from '@/components/experience/IssueStatusView';
 
 describe('Issue support form', () => {
   afterEach(() => {
@@ -13,7 +14,7 @@ describe('Issue support form', () => {
 
   it('captures a reason and message, then shows the opaque support reference', async () => {
     const user = userEvent.setup();
-    const submitRequest = vi.fn(async () => ({ id: 'support-ref-123' }));
+    const submitRequest = vi.fn(async () => ({ reference: 'support-ref-123' }));
 
     render(<IssueSupportForm submitRequest={submitRequest} />);
 
@@ -34,11 +35,10 @@ describe('Issue support form', () => {
   });
 
   it('serializes the category into the existing support API message contract', async () => {
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      status: 201,
-      json: async () => ({ id: 'support-ref-456' }),
-    }));
+    const fetchMock = vi.fn(async () => Response.json(
+      { received: true, reference: 'support-ref-456' },
+      { status: 200 },
+    ));
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(
@@ -46,11 +46,13 @@ describe('Issue support form', () => {
         category: 'delivery-tracking',
         message: 'The tracking page has not changed for three days.',
       }),
-    ).resolves.toEqual({ id: 'support-ref-456' });
+    ).resolves.toEqual({ reference: 'support-ref-456' });
 
     expect(fetchMock).toHaveBeenCalledWith('/api/support', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         message: 'Reason: delivery-tracking\n\nThe tracking page has not changed for three days.',
       }),
@@ -74,5 +76,30 @@ describe('Issue support form', () => {
     );
     expect(screen.queryByText(/connection string/i)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'SEND TO SUPPORT' })).toBeEnabled();
+  });
+
+  it('is exposed from current or recovered Issue access after status resolves', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (input === '/api/issue/status') {
+        return Response.json({
+          found: true,
+          issueCode: 'IO-ABCD-EFGH',
+          status: 'IN PRODUCTION',
+          objectType: 'TEE',
+          sizeCode: 'M',
+          colorCode: 'BLACK',
+          trackingUrl: null,
+          trackingNumber: null,
+          updatedAt: '2026-08-31T18:00:00.000Z',
+        });
+      }
+      throw new Error(`Unexpected fetch: ${String(input)}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<IssueStatusView />);
+
+    expect(await screen.findByRole('heading', { name: 'Need help?' })).toBeInTheDocument();
+    expect(screen.getByText('ISSUE / IO-ABCD-EFGH')).toBeInTheDocument();
   });
 });
