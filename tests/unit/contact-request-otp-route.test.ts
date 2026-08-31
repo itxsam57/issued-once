@@ -22,7 +22,7 @@ function request(body: unknown = { email: 'sam@example.com' }) {
   });
 }
 
-function withSession(value: string | undefined = 'session-token') {
+function withSession(value?: string) {
   cookiesMock.mockResolvedValue({
     get: vi.fn().mockReturnValue(value ? { value } : undefined),
   });
@@ -31,7 +31,7 @@ function withSession(value: string | undefined = 'session-token') {
 describe('contact OTP request route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    withSession();
+    withSession('session-token');
   });
 
   it('preserves validation and session boundaries', async () => {
