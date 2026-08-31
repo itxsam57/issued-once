@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.21.0",
+  "version": "1.22.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-31T09:12:00Z",
+  "updatedAt": "2026-08-31T09:13:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -20,6 +20,8 @@
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "decision": "CODE_HARDENING_CONTINUES_AUTONOMOUSLY_BUT_PRODUCTION_REFERRAL_ACTIVATION_AND_DEPLOYMENT_ENV_MUTATIONS_REMAIN_OWNER_GATED",
+    "currentEngineeringStopRequired": false,
+    "currentEngineeringStopReason": null,
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -27,11 +29,11 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "Customer contact-route logging hardening is merged and post-merge exact-head green at 5425a36757f968cd3cabaae868883a6bf4cec62f (CI #1566 and Browser QA #1420). Engineering remains authorized to continue autonomous read-only audits and code-only hardening. The owner reports temporary support variables are configured to a mailbox they can receive test mail on, but live provider acceptance and inbox placement remain unproven because the live Hostinger release is still frozen on V10. Merchant public location is deliberately deferred by the owner for now and remains a truthful-launch gate before canonical launch. Production referral migrations and Hostinger environment/branch mutations remain separately owner-gated."
+    "stopReason": "OWNER_REQUIRED represents standing production side-effect gates, not a current stop for autonomous engineering. Contact-route logging hardening is merged and post-merge exact-head green at 5425a36757f968cd3cabaae868883a6bf4cec62f (CI #1566 and Browser QA #1420). Engineering must continue autonomous read-only audits and code-only hardening until an actual owner-gated production side effect is reached. Temporary support values remain owner-reported test configuration only; live support provider acceptance and inbox placement remain unproven because the live Hostinger release is frozen on V10. Merchant public location remains deliberately deferred and must not be fabricated. Production referral migrations and Hostinger environment/branch mutations remain separately owner-gated."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "INTEGRATED_CONTACT_LOG_HARDENING_EXACT_HEAD_GREEN_PRODUCTION_ACTIVATION_GATES_PENDING",
+    "internalWorkStatus": "INTEGRATED_RUNTIME_AND_LOG_HARDENING_EXACT_HEAD_GREEN_PRODUCTION_ACTIVATION_GATES_PENDING",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Require fresh CI, Browser QA when path-applicable, exact release health, live-product and database evidence before launch-success claims.",
@@ -104,13 +106,68 @@
       "postMergeBrowserQa": "PASS Browser QA #1397",
       "productionDeploymentPerformed": false
     },
+    "privilegedRouteLogHardening": {
+      "redAuditPullRequest": 28,
+      "pullRequest": 29,
+      "status": "MERGED_AND_POST_MERGE_VERIFIED",
+      "redCommit": "fc5f999c78797bd73f2f4f9923db87b863d5ef7d",
+      "greenCommit": "0f165315b7e371f13767a212f70aac06a91fa03c",
+      "mergeCommit": "89a0ec26615ae2f657ba1304b4fc2edb02568c55",
+      "behavior": "Unexpected downstream errors in design approval, background job drain, manufacturing draft creation and manufacturing confirmation retain generic server log labels without serializing raw caught Error payloads; response, auth and Printful safety semantics are unchanged.",
+      "tddEvidence": "RED CI #1538 failed exactly four sentinel assertions with 590 tests passing.",
+      "preMergeCi": "PASS CI #1540",
+      "preMergeBrowserQa": "PASS Browser QA #1401",
+      "wrapperCi": "PASS CI #1541",
+      "wrapperBrowserQa": "PASS Browser QA #1402",
+      "postMergeCi": "PASS CI #1542",
+      "postMergeBrowserQa": "PASS Browser QA #1403",
+      "productionDeploymentPerformed": false
+    },
+    "hostingerQuizRotationGuard": {
+      "redAuditPullRequest": 30,
+      "pullRequest": 31,
+      "status": "MERGED_AND_POST_MERGE_VERIFIED",
+      "redCommit": "79c26f933d6d170284cebe433054225df00024c7",
+      "implementationCommit": "3ae3ee314f4bb1fd5b196b0b587780a0d8d1ca0f",
+      "greenCommit": "ea7fd17192afbde11430c081285d08bf282ee5e8",
+      "mergeCommit": "56590c4d84dfdd05fe6969f2d431bcd79583fcef",
+      "behavior": "Internal quiz-encryption rotation is exposed only in Vercel production or Hostinger production (NODE_ENV=production plus RUNTIME_PROVIDER=hostinger); previews and non-production runtimes remain hidden with 404.",
+      "tddEvidence": "RED CI #1543 produced the sole intended failure: Hostinger production returned 404 instead of 200, with 595/596 tests passing. Final green head includes the vi.stubEnv test-harness correction.",
+      "preMergeCi": "PASS CI #1545",
+      "preMergeBrowserQa": "PASS Browser QA #1405",
+      "wrapperCi": "PASS CI #1546",
+      "wrapperBrowserQa": "PASS Browser QA #1406",
+      "postMergeCi": "PASS CI #1547",
+      "postMergeBrowserQa": "PASS Browser QA #1407",
+      "databaseRotationPerformed": false,
+      "productionDeploymentPerformed": false
+    },
+    "ownerSessionLogHardening": {
+      "redAuditPullRequest": 32,
+      "pullRequest": 33,
+      "status": "MERGED_AND_POST_MERGE_VERIFIED",
+      "initialFalseNegativeCommit": "ac39daca3491c4c6d058435e85762021c35efbc3",
+      "redCommit": "5bb75b780eb74ac2ef8361b2ce108cd4cf7e53f6",
+      "greenCommit": "5b2b5b29dc186cb5d8bdf112d9b15015ea48b312",
+      "mergeCommit": "3fe6f7933d7cfd0cab44d0b017d57e0e9f46cba8",
+      "behavior": "Owner login/logout audit failure paths retain generic server log labels without serializing raw caught Error payloads; login audit failure remains 503 without issuing a cookie and authenticated logout remains 200 while clearing the cookie.",
+      "tddEvidence": "CI #1548 was rejected as a false RED because JSON.stringify(Error) omits messages. Corrected String(...) capture at RED CI #1549 failed exactly two sentinel assertions with 594/596 tests passing.",
+      "preMergeCi": "PASS CI #1550",
+      "preMergeBrowserQa": "PASS Browser QA #1408",
+      "wrapperCi": "PASS CI #1551",
+      "wrapperBrowserQa": "PASS Browser QA #1409",
+      "postMergeCi": "PASS CI #1552",
+      "postMergeBrowserQa": "PASS Browser QA #1410",
+      "productionDeploymentPerformed": false
+    },
     "contactOtpRequestLogHardening": {
       "pullRequest": 35,
       "status": "MERGED_AND_POST_MERGE_VERIFIED",
+      "redCommit": "39cd0446a387508742114e488f52affaede63799",
       "greenCommit": "189d529f27c85a759ab1d3043d3072bdc425289c",
       "mergeCommit": "28b9239e4cae53a02f0c7ecf8f8562b0932ad873",
       "behavior": "Generic OTP-request failures no longer serialize arbitrary caught Error payloads in server logs; customer response, cookie and provider behavior are unchanged.",
-      "tddEvidence": "RED CI #1556 proved exactly one sentinel log leak while the remaining suite passed.",
+      "tddEvidence": "RED CI #1556 proved exactly one sentinel log leak while the remaining suite passed (601/602).",
       "preMergeCi": "PASS CI #1557",
       "preMergeBrowserQa": "PASS Browser QA #1413",
       "wrapperCi": "PASS CI #1558",
@@ -131,6 +188,16 @@
       "preMergeBrowserQa": "PASS Browser QA #1416",
       "postMergeCi": "PASS CI #1566",
       "postMergeBrowserQa": "PASS Browser QA #1420",
+      "duplicateAudit": {
+        "draftPullRequest": 37,
+        "normalPullRequest": 38,
+        "redCommit": "39bb8ce8a3b9839b6eaa17e7b250cf809ca859f9",
+        "greenCommit": "61f2dec1c54166a84511ec83736f7b888fa69b36",
+        "redCi": "FAIL CI #1561: exactly three sentinel failures, 602/605 passing",
+        "greenCi": "PASS CI #1565",
+        "greenBrowserQa": "PASS Browser QA #1419",
+        "resolution": "Closed unmerged after PR #36 integrated the same behavior first."
+      },
       "productionDeploymentPerformed": false
     }
   },
@@ -171,6 +238,13 @@
       "privacy": "No customer data and no database persistence from the canary path",
       "logPrivacy": "Provider error payloads are redacted from the route-level server log as of verified integration head 5425a36757f968cd3cabaae868883a6bf4cec62f.",
       "evidenceMeaning": "HTTP 200 proves provider acceptance only; inbox placement requires mailbox evidence."
+    },
+    "sourceReconciliation": {
+      "status": "EXACT_REPO_EVIDENCE_OVERRIDES_CARRIED_FORWARD_NOTES",
+      "latestIntegratedRuntimeHead": "5425a36757f968cd3cabaae868883a6bf4cec62f",
+      "duplicateContactHardeningResolution": "PR #36 is authoritative; PR #37 and PR #38 are closed unmerged duplicates.",
+      "readyForReviewConnectorIssue": "GitHub ready-for-review GraphQL mutation remains broken on unsupported Repository.fullDatabaseId; verified normal-PR fallback is used without changing code.",
+      "partialGovernanceCheckpoint": "PR #39 merged partial v1.21.0 at 9e13829bc9c20218da3d187d3760ee6c48084985 before the completeness patch landed; v1.22.0 supersedes it."
     }
   },
   "productionDatabase": {
@@ -217,6 +291,6 @@
   ],
   "nextAction": {
     "actor": "ENGINEERING_AND_OWNER",
-    "instruction": "Engineering continues autonomous read-only audits and code-only hardening. Owner input is required only when a production referral activation, Hostinger environment/branch mutation, truthful merchant location entry, or other explicit production side-effect gate is reached."
+    "instruction": "Engineering continues autonomous read-only audits and code-only hardening. Do not stop merely because standing OWNER_REQUIRED launch gates exist. Owner input is required only when a production referral activation, Hostinger environment/branch mutation, truthful merchant location entry, or other explicit production side-effect gate is actually reached."
   }
 }
