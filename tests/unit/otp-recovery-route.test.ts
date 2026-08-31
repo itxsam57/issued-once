@@ -55,4 +55,23 @@ describe('typed OTP route failures', () => {
     }
     expect(JSON.stringify(body)).not.toContain('provider');
   });
+
+  it('does not log unknown verification error details', async () => {
+    const sentinel = 'verify-otp-provider-secret-sentinel';
+    createContactServiceMock.mockReturnValue({
+      verifyOtp: vi.fn().mockRejectedValue(new Error(sentinel)),
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    try {
+      const response = await verifyOtp(request());
+      const renderedLogs = errorSpy.mock.calls.flat().map((value) => String(value)).join('\n');
+
+      expect(response.status).toBe(500);
+      expect(await response.json()).toEqual({ error: 'Contact verification failed' });
+      expect(renderedLogs).not.toContain(sentinel);
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
 });
