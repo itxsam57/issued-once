@@ -3,6 +3,7 @@ import type {
   AnswerTransition,
   ExperienceRecord,
   ExperienceRepository,
+  SessionHashCompareAndSwap,
   SessionHashRotation,
 } from './ExperienceRepository';
 
@@ -107,6 +108,26 @@ export class PostgresExperienceRepository implements ExperienceRepository {
         RETURNING id
       `,
       [input.experienceId, input.publicSessionHash, input.updatedAt],
+    );
+    return rows.length === 1;
+  }
+
+  async rotateSessionHashIfCurrent(input: SessionHashCompareAndSwap): Promise<boolean> {
+    const rows = await this.sql.query<RotationRow>(
+      `
+        UPDATE experiences
+        SET public_session_hash = $3,
+            updated_at = $4
+        WHERE id = $1
+          AND public_session_hash = $2
+        RETURNING id
+      `,
+      [
+        input.experienceId,
+        input.expectedPublicSessionHash,
+        input.publicSessionHash,
+        input.updatedAt,
+      ],
     );
     return rows.length === 1;
   }
