@@ -31,7 +31,7 @@ test('Issue recovery asks for Issue Code and email, stays neutral before proof, 
     email: 'Buyer@Example.com',
   });
   expect(screen.getByText('If those details match an Issue, six digits are on the way.')).toBeInTheDocument();
-  expect(screen.getByText(/Request CHALLENG/)).toBeInTheDocument();
+  expect(screen.getByText('CHALLENG').parentElement).toHaveTextContent('Request CHALLENG');
   expect(screen.queryByText(/we found|does not exist|no issue/i)).not.toBeInTheDocument();
 
   await user.type(screen.getByLabelText('Verification code'), '123456');
