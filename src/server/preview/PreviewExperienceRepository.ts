@@ -3,6 +3,8 @@ import type {
   AnswerTransition,
   ExperienceRecord,
   ExperienceRepository,
+  SessionHashCompareAndSwap,
+  SessionHashRotation,
   StoredAnswer,
 } from '@/server/experience/ExperienceRepository';
 import type { ObjectType } from '@/server/physical/PhysicalSelectionRepository';
@@ -54,6 +56,35 @@ export class PreviewExperienceRepository implements ExperienceRepository {
   async findBySessionHash(publicSessionHash: string): Promise<ExperienceRecord | null> {
     const record = this.store.experiences.get(publicSessionHash);
     return record ? structuredClone(record) : null;
+  }
+
+  async rotateSessionHash(input: SessionHashRotation): Promise<boolean> {
+    const entry = [...this.store.experiences.entries()].find(
+      ([, candidate]) => candidate.id === input.experienceId,
+    );
+    if (!entry) return false;
+
+    const [oldHash, record] = entry;
+    this.store.experiences.delete(oldHash);
+    this.store.experiences.set(input.publicSessionHash, {
+      ...record,
+      publicSessionHash: input.publicSessionHash,
+      updatedAt: input.updatedAt,
+    });
+    return true;
+  }
+
+  async rotateSessionHashIfCurrent(input: SessionHashCompareAndSwap): Promise<boolean> {
+    const record = this.store.experiences.get(input.expectedPublicSessionHash);
+    if (!record || record.id !== input.experienceId) return false;
+
+    this.store.experiences.delete(input.expectedPublicSessionHash);
+    this.store.experiences.set(input.publicSessionHash, {
+      ...record,
+      publicSessionHash: input.publicSessionHash,
+      updatedAt: input.updatedAt,
+    });
+    return true;
   }
 
   async saveAnswerAndAdvance(transition: AnswerTransition): Promise<void> {

@@ -252,3 +252,39 @@ test('skips the global IP reservation when the proxy cannot identify a client bu
   ]);
   expect(delivery.sent).toHaveLength(1);
 });
+
+test('reuses the OTP engine for a trusted experience id without requiring an active interview session', async () => {
+  const { service, contacts, delivery } = createService();
+
+  const requested = await service.requestOtpForExperience({
+    experienceId: 'exp-1',
+    email: ' Sam@Example.com ',
+    ipKey: 'recovery-browser',
+  });
+
+  expect(contacts.challenge?.experienceId).toBe('exp-1');
+  expect(delivery.sent).toEqual([
+    { email: 'sam@example.com', code: '123456', challengeId: requested.challengeId },
+  ]);
+
+  await expect(service.verifyOtpForExperience({
+    experienceId: 'exp-1',
+    challengeId: requested.challengeId,
+    code: '123456',
+  })).resolves.toEqual({ verified: true });
+});
+
+test('known-experience verification rejects a challenge minted for another Issue experience', async () => {
+  const { service } = createService();
+  const requested = await service.requestOtpForExperience({
+    experienceId: 'exp-1',
+    email: 'sam@example.com',
+    ipKey: 'recovery-browser',
+  });
+
+  await expect(service.verifyOtpForExperience({
+    experienceId: 'exp-other',
+    challengeId: requested.challengeId,
+    code: '123456',
+  })).rejects.toMatchObject({ code: 'CHALLENGE_NOT_FOUND' });
+});

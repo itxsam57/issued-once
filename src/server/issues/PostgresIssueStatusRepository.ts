@@ -1,6 +1,10 @@
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type { IssueStatus } from './IssueRepository';
-import type { CustomerIssueStatus, IssueStatusRepository } from './IssueStatusRepository';
+import type {
+  CustomerIssueStatus,
+  IssueRecoveryTarget,
+  IssueStatusRepository,
+} from './IssueStatusRepository';
 
 type Row = {
   issue_code: string;
@@ -11,6 +15,11 @@ type Row = {
   tracking_url: string | null;
   tracking_number: string | null;
   updated_at: Date | string;
+};
+
+type RecoveryRow = {
+  experience_id: string;
+  email_hash: string;
 };
 
 const toDate = (value: Date | string) => value instanceof Date ? value : new Date(value);
@@ -52,5 +61,18 @@ export class PostgresIssueStatusRepository implements IssueStatusRepository {
       [issueCode],
     );
     return rows[0] ? fromRow(rows[0]) : null;
+  }
+
+  async findRecoveryTargetByIssueCode(issueCode: string): Promise<IssueRecoveryTarget | null> {
+    const rows = await this.sql.query<RecoveryRow>(
+      `SELECT issue.experience_id, contact.email_hash
+       FROM issues AS issue
+       JOIN verified_contacts AS contact ON contact.experience_id=issue.experience_id
+       WHERE issue.issue_code=$1
+       LIMIT 1`,
+      [issueCode],
+    );
+    const row = rows[0];
+    return row ? { experienceId: row.experience_id, emailHash: row.email_hash } : null;
   }
 }
