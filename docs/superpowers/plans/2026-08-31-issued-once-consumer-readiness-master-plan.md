@@ -2,7 +2,7 @@
 
 Date: 2026-08-31
 Original audited integration base: `ad9f388c33121b1225cc7a387b038940edfd389b`
-Current reconciled integration head: `25495afe78efcb4d0cfebf8917eae1f152c5317f`
+Current reconciled integration head: `6485e944e338091a742814c0c2da5354cc32fa4d`
 Parent implementation plan: `docs/superpowers/plans/2026-08-19-issued-once-final-commercial-cycle.md`
 Owner OS design: `docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md`
 
@@ -51,7 +51,7 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 | CR-08 | One canonical Issue per paid attempt with immutable commercial snapshot | CODE_READY | real paid attempt + duplicate callback proof |
 | CR-09 | Returning customer can access Issue from another browser/device using Issue Code + verified contact challenge | CODE_READY | accountless recovery, anti-enumeration and browser recovery are integrated; deployed cross-device + real OTP proof still required |
 | CR-10 | Customer status shows safe lifecycle/tracking without private-data leakage | CODE_READY | recovery-linked live status + shipment projection proof |
-| CR-11 | Public support can be opened from the customer Issue without relying only on mailto | MISSING | Issue-scoped support UI + encrypted request + owner reply proof |
+| CR-11 | Public support can be opened from the customer Issue without relying only on mailto | CODE_READY | Issue-scoped support UI + encrypted request are integrated; deployed customer request -> owner reply proof still required |
 | CR-12 | Customer lifecycle email notifications are idempotent and deliver from verified sender | CODE_READY | real PAYMENT_RECEIVED/IN_PRODUCTION/SHIPPED/DELIVERED email proof |
 | CR-13 | AI interpretation and artwork generation are provider-backed, private and replaceable | CODE_READY | current supported production models + one real generated candidate proof |
 | CR-14 | Artwork quality gate proves an actually printable transparent PNG, not metadata alone | MISSING | decode/alpha/corruption/template/effective-DPI tests + real candidate proof |
@@ -116,6 +116,25 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 - Production deployment/environment mutation: none.
 - Master-plan state: both `CODE_READY`.
 
+### CR-11 — encrypted Issue-scoped customer support
+
+- Feature branch: `feat/cr-11-in-app-support`.
+- Draft PR #56 closed unmerged only because the connected GitHub draft-to-ready GraphQL mutation is broken; normal integration PR #57 carried the same exact reviewed head/base.
+- Final feature head: `d3f4c5bc34741d8bcddd8b7d897a8d4590af8e6d`.
+- Integration merge: `6485e944e338091a742814c0c2da5354cc32fa4d`.
+- TDD RED evidence: CI run `33426961266` failed only because `IssueSupportForm` did not exist; tightened RED CI `33427358886` failed the new UI/reference contract; Browser QA `33427358895` failed the new support flow on desktop/mobile while unrelated coverage stayed green aside from one passing retry.
+- Final feature CI: run `33428181290` PASS — unit tests, typecheck, lint and production build.
+- Final feature Browser QA: run `33428181278` PASS — desktop/mobile support flow.
+- Normal-PR wrapper CI: run `33428592576` PASS.
+- Normal-PR wrapper Browser QA: run `33428592448` PASS.
+- Post-merge CI: run `33428935199` PASS on exact integration SHA.
+- Post-merge Browser QA: run `33428935165` PASS on exact integration SHA.
+- Customer flow: current/recovered Issue access exposes a reason + free-text support form, reuses the existing encrypted SupportService, and shows the generated support request UUID as an opaque reference.
+- Privacy: support POST no longer returns Issue Code; generic failure UI does not expose backend/provider/database details.
+- Remaining evidence: deploy the exact integrated release, create a controlled customer support request, observe it in the owner support desk, and complete an owner reply without leaking another customer's data.
+- Production deployment/environment mutation: none.
+- Master-plan state: `CODE_READY`.
+
 ## Audit findings that must remain in scope
 
 ### A. Post-payment handoff and recovery
@@ -152,9 +171,11 @@ Root-cause completion target: current supported image provider contract, actual 
 
 ### F. Public support
 
-Encrypted Issue-scoped support exists server-side and Owner OS can reveal/reply/close/retry. The public customer experience still primarily exposes contact email instead of the encrypted Issue support flow.
+**Code-side resolved at integration `6485e944e338091a742814c0c2da5354cc32fa4d`; deployed owner-reply proof remains.**
 
-Root-cause completion target: expose support from recovered/current Issue access, preserving the existing encrypted SupportService and owner desk. This is the next code-side execution target after the CR-07/09 checkpoint.
+Current/recovered Issue access now exposes the encrypted support path directly. The customer selects a reason, enters free text, the existing encrypted SupportService persists the Issue-scoped request, and the response surfaces only the generated opaque request UUID rather than the Issue Code. Owner OS support behavior remains the operational reply/close/retry desk.
+
+Remaining completion target: deployed customer request -> owner desk receipt -> owner reply proof on the exact deployed release.
 
 ### G. Refund operations
 
@@ -180,8 +201,8 @@ Root-cause completion target: expand controlled live QA in stages. Never charge 
 2. `CR-24` runtime/readiness parity — **completed and integrated**.
 3. `CR-05` destination-aware shipping — **code-ready and integrated; live save proof pending**.
 4. `CR-07` + `CR-09` unified Issue access/recovery — **code-ready and integrated; deployed paid-return/real-OTP proof pending**.
-5. `CR-11` expose encrypted Issue-scoped customer support through the recovered/current Issue access boundary — **NEXT**.
-6. `CR-18` require explicit production catalog authority.
+5. `CR-11` encrypted Issue-scoped customer support — **code-ready and integrated; deployed owner-reply proof pending**.
+6. `CR-18` require explicit production catalog authority — **NEXT**.
 7. `CR-13` + `CR-14` move artwork generation/QA to a current, proven production contract.
 8. `CR-15` prove or replace runtime filesystem persistence.
 9. `CR-22` finish refund operations/runbook truth.
