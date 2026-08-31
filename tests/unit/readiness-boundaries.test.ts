@@ -36,6 +36,7 @@ function service(environment: NodeJS.ProcessEnv) {
   return new ReadinessService({
     env: environment,
     databasePing: vi.fn(async () => true),
+    catalogAuthorityPing: vi.fn(async () => true),
     storagePing: vi.fn(async () => true),
     queuePing: vi.fn(async () => true),
     fetchImpl: vi.fn(async (url: string) => {
