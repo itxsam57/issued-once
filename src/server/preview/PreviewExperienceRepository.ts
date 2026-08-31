@@ -64,7 +64,6 @@ export class PreviewExperienceRepository implements ExperienceRepository {
     if (!entry) return false;
 
     const [oldHash, record] = entry;
-    if (record.expiresAt.getTime() <= Date.now()) return false;
     this.store.experiences.delete(oldHash);
     this.store.experiences.set(input.publicSessionHash, {
       ...record,
