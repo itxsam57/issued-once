@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { IssueRecoveryForm } from './IssueRecoveryForm';
+import recoveryStyles from './contact-verification.module.css';
 import styles from './issue-status.module.css';
 
 type IssueStatusPayload =
@@ -17,9 +19,25 @@ type IssueStatusPayload =
       updatedAt: string;
     };
 
+type RecoveryRequest = {
+  challengeId: string;
+  retryAfterSeconds: number;
+  requestTag?: string;
+};
+
+type RecoveryIdentity = {
+  issueCode: string;
+  email: string;
+};
+
+async function parseJson(response: Response): Promise<Record<string, unknown>> {
+  return response.json().catch(() => ({})) as Promise<Record<string, unknown>>;
+}
+
 export function IssueStatusView() {
   const [status, setStatus] = useState<IssueStatusPayload | null>(null);
   const [failed, setFailed] = useState(false);
+  const [recovering, setRecovering] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -47,6 +65,34 @@ export function IssueStatusView() {
     };
   }, []);
 
+  async function requestRecoveryOtp(input: RecoveryIdentity): Promise<RecoveryRequest> {
+    const response = await fetch('/api/issue/recovery/request', {
+      method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    const payload = await parseJson(response);
+    if (!response.ok) throw new Error('Issue recovery is unavailable');
+    return payload as RecoveryRequest;
+  }
+
+  async function verifyRecoveryOtp(input: RecoveryIdentity & { challengeId: string; code: string }) {
+    const response = await fetch('/api/issue/recovery/verify', {
+      method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    const payload = await parseJson(response);
+    if (!response.ok || payload.restored !== true) {
+      throw new Error('Issue recovery could not be verified');
+    }
+    return { restored: true as const };
+  }
+
   if (failed) {
     return (
       <section className={styles.stage} role="alert">
@@ -58,11 +104,25 @@ export function IssueStatusView() {
   }
 
   if (!status || !status.found) {
+    if (recovering) {
+      return (
+        <IssueRecoveryForm
+          onRequestOtp={requestRecoveryOtp}
+          onVerifyOtp={verifyRecoveryOtp}
+          onComplete={() => window.location.reload()}
+          onCancel={() => setRecovering(false)}
+        />
+      );
+    }
+
     return (
       <section className={styles.stage} aria-live="polite">
         <p className={styles.signal}>PAYMENT / CHECKING</p>
         <h1>Hold this thought.</h1>
         <p>We&apos;re confirming that your issue is really yours.</p>
+        <div className={recoveryStyles.form}>
+          <button type="button" onClick={() => setRecovering(true)}>FIND MY ISSUE</button>
+        </div>
       </section>
     );
   }
