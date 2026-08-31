@@ -3,6 +3,7 @@ import type {
   AnswerTransition,
   ExperienceRecord,
   ExperienceRepository,
+  SessionHashRotation,
 } from './ExperienceRepository';
 
 export type SqlExecutor = {
@@ -24,6 +25,10 @@ type ExperienceRow = {
 
 type TransitionRow = {
   experience_id: string;
+};
+
+type RotationRow = {
+  id: string;
 };
 
 function toDate(value: Date | string): Date {
@@ -90,6 +95,21 @@ export class PostgresExperienceRepository implements ExperienceRepository {
       updatedAt: toDate(row.updated_at),
       expiresAt: toDate(row.expires_at),
     };
+  }
+
+  async rotateSessionHash(input: SessionHashRotation): Promise<boolean> {
+    const rows = await this.sql.query<RotationRow>(
+      `
+        UPDATE experiences
+        SET public_session_hash = $2,
+            updated_at = $3
+        WHERE id = $1
+          AND expires_at > NOW()
+        RETURNING id
+      `,
+      [input.experienceId, input.publicSessionHash, input.updatedAt],
+    );
+    return rows.length === 1;
   }
 
   async saveAnswerAndAdvance(transition: AnswerTransition): Promise<void> {
