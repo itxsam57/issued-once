@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Interview state conflict' }, { status: 409 });
     }
 
-    console.error('public interview answer failed', error);
+    console.error('public interview answer failed');
     return Response.json({ error: 'Interview answer failed' }, { status: 500 });
   }
 }
