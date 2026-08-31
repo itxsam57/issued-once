@@ -26,6 +26,7 @@ const completeEnv: NodeJS.ProcessEnv = {
   }),
   SAFEPAY_ENVIRONMENT: 'sandbox',
   SAFEPAY_API_KEY: 'hidden-safepay',
+  SAFEPAY_API_SECRET: 'hidden-safepay-secret',
   SAFEPAY_WEBHOOK_SECRET: 'hidden-webhook',
   RESEND_API_KEY: 'hidden-resend',
   RESEND_FROM_EMAIL: 'ISSUED ONCE <issue@issuedonce.shop>',
@@ -87,6 +88,31 @@ test('reports live/read-only boundaries separately from configured-only and safe
   expect(JSON.stringify(result)).not.toContain('Lahore, Punjab, Pakistan');
   expect(result.readyForSandbox).toBe(true);
   expect(result.readyForProduction).toBe(false);
+});
+
+test('Safepay readiness fails closed when the API secret required by the payment runtime is missing', async () => {
+  const env = { ...completeEnv };
+  delete env.SAFEPAY_API_SECRET;
+  delete env.SAFEPAY_V1_SECRET;
+
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'safepay',
+    state: 'missing',
+    detail: expect.stringMatching(/api secret/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
+test('Safepay readiness accepts the legacy V1 API secret because the payment runtime accepts it', async () => {
+  const env: NodeJS.ProcessEnv = { ...completeEnv, SAFEPAY_V1_SECRET: 'hidden-legacy-safepay-secret' };
+  delete env.SAFEPAY_API_SECRET;
+
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'safepay', state: 'configured' }));
+  expect(result.readyForSandbox).toBe(true);
 });
 
 test('merchant disclosure fails sandbox readiness closed when required public identity is missing', async () => {

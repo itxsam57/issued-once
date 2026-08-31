@@ -7,6 +7,10 @@ import { PostgresShippingRepository } from '@/server/shipping/PostgresShippingRe
 import { PaymentService } from './PaymentService';
 import { PostgresPaymentRepository } from './PostgresPaymentRepository';
 import { SafepayPaymentGateway } from './SafepayPaymentGateway';
+import {
+  readSafepayRuntimeConfig,
+  SafepayConfigurationError,
+} from './safepayRuntimeConfig';
 
 export class PaymentRuntimeUnavailableError extends Error {
   constructor(message = 'Payment runtime is not configured') {
@@ -21,18 +25,15 @@ function requireEnv(name: string): string {
   return value;
 }
 
-function requireSafepayApiSecret(): string {
-  const value = process.env.SAFEPAY_API_SECRET?.trim() || process.env.SAFEPAY_V1_SECRET?.trim();
-  if (!value) {
-    throw new PaymentRuntimeUnavailableError('SAFEPAY_API_SECRET or SAFEPAY_V1_SECRET is required');
-  }
-  return value;
-}
-
 export function createPaymentService(): PaymentService {
-  const environment = process.env.SAFEPAY_ENVIRONMENT?.trim() || 'sandbox';
-  if (environment !== 'sandbox' && environment !== 'production') {
-    throw new PaymentRuntimeUnavailableError('SAFEPAY_ENVIRONMENT must be sandbox or production');
+  let safepay;
+  try {
+    safepay = readSafepayRuntimeConfig(process.env);
+  } catch (error) {
+    if (error instanceof SafepayConfigurationError) {
+      throw new PaymentRuntimeUnavailableError(error.message);
+    }
+    throw error;
   }
 
   const sql = createNeonSqlExecutor(requireEnv('DATABASE_URL'));
@@ -43,11 +44,6 @@ export function createPaymentService(): PaymentService {
     shipping: new PostgresShippingRepository(sql),
     payments: new PostgresPaymentRepository(sql),
     checkoutStates: new PostgresCheckoutStateRepository(sql),
-    gateway: new SafepayPaymentGateway({
-      environment,
-      apiKey: requireEnv('SAFEPAY_API_KEY'),
-      apiSecret: requireSafepayApiSecret(),
-      webhookSecret: requireEnv('SAFEPAY_WEBHOOK_SECRET'),
-    }),
+    gateway: new SafepayPaymentGateway(safepay),
   });
 }

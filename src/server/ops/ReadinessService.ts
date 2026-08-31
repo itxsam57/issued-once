@@ -1,5 +1,10 @@
 import { readPublicMerchant } from '@/brand/publicMerchant';
 import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
+import {
+  readSafepayRuntimeConfig,
+  SafepayConfigurationError,
+  type SafepayEnvironment,
+} from '@/server/payments/safepayRuntimeConfig';
 import { IssuedOnceCatalogGateway } from '@/server/physical/IssuedOnceCatalogGateway';
 import { ISSUED_ONCE_BOOT_CATALOG_JSON } from '@/server/physical/bootCatalog';
 
@@ -53,6 +58,24 @@ function hasHttpsOrigin(value: string | undefined) {
 
 function safeFetchError(response: Response) {
   return `HTTP ${response.status}`;
+}
+
+function safepayReadinessFailure(error: SafepayConfigurationError): ReadinessCheck {
+  const invalid = error.code === 'INVALID_ENVIRONMENT';
+  return {
+    key: 'safepay',
+    label: 'Safepay',
+    state: invalid ? 'blocked' : 'missing',
+    detail: error.code === 'MISSING_API_SECRET'
+      ? 'Safepay API secret is required (SAFEPAY_API_SECRET or SAFEPAY_V1_SECRET).'
+      : error.code === 'MISSING_API_KEY'
+        ? 'Safepay API key is required.'
+        : error.code === 'MISSING_WEBHOOK_SECRET'
+          ? 'Safepay webhook secret is required.'
+          : error.code === 'MISSING_ENVIRONMENT'
+            ? 'Safepay environment is required.'
+            : 'Safepay environment must be sandbox or production.',
+  };
 }
 
 export class ReadinessService {
@@ -163,18 +186,22 @@ export class ReadinessService {
       checks.push({ key: 'catalog', label: 'Retail catalog', state: 'blocked', detail: 'Retail catalog is invalid, uses an unsupported Safepay currency, or is missing a current Issue form.' });
     }
 
-    const safepayEnvironment = this.env.SAFEPAY_ENVIRONMENT?.trim().toLowerCase();
-    if (!present(this.env, 'SAFEPAY_API_KEY', 'SAFEPAY_WEBHOOK_SECRET') || !['sandbox', 'production'].includes(safepayEnvironment ?? '')) {
-      checks.push({ key: 'safepay', label: 'Safepay', state: 'missing', detail: 'Safepay environment, API key, and webhook secret are required.' });
-    } else {
+    let safepayEnvironment: SafepayEnvironment | null = null;
+    try {
+      const safepay = readSafepayRuntimeConfig(this.env, { requireExplicitEnvironment: true });
+      safepayEnvironment = safepay.environment;
       checks.push({
         key: 'safepay',
         label: 'Safepay',
         state: 'configured',
-        detail: safepayEnvironment === 'sandbox'
+        detail: safepay.environment === 'sandbox'
           ? 'Sandbox credentials are configured; signed payment proof still requires a real sandbox cycle.'
           : 'Production credentials are configured; production payment still requires explicit owner launch proof.',
       });
+    } catch (error) {
+      checks.push(error instanceof SafepayConfigurationError
+        ? safepayReadinessFailure(error)
+        : { key: 'safepay', label: 'Safepay', state: 'blocked', detail: 'Safepay configuration could not be validated.' });
     }
 
     if (!present(this.env, 'RESEND_API_KEY', 'RESEND_FROM_EMAIL', 'SUPPORT_INBOX_EMAIL')) {
