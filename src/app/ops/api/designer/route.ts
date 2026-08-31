@@ -17,8 +17,8 @@ export async function GET() {
       updatedAt: item.updatedAt.toISOString(),
     })));
     return Response.json({ items: safe }, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (error) {
-    console.error('Owner Designer queue failed', error);
+  } catch {
+    console.error('Owner Designer queue failed');
     return Response.json({ error: 'Designer queue unavailable' }, { status: 503 });
   }
 }
