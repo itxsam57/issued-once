@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     ) {
       return Response.json({ error: 'Webhook payload is invalid' }, { status: 400 });
     }
-    console.error('safepay webhook processing failed', error);
+    console.error('safepay webhook processing failed');
     return Response.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
