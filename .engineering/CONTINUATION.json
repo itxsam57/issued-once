@@ -243,7 +243,8 @@
       "status": "EXACT_REPO_EVIDENCE_OVERRIDES_CARRIED_FORWARD_NOTES",
       "latestIntegratedRuntimeHead": "5425a36757f968cd3cabaae868883a6bf4cec62f",
       "duplicateContactHardeningResolution": "PR #36 is authoritative; PR #37 and PR #38 are closed unmerged duplicates.",
-      "readyForReviewConnectorIssue": "GitHub ready-for-review GraphQL mutation remains broken on unsupported Repository.fullDatabaseId; verified normal-PR fallback is used without changing code."
+      "readyForReviewConnectorIssue": "GitHub ready-for-review GraphQL mutation remains broken on unsupported Repository.fullDatabaseId; verified normal-PR fallback is used without changing code.",
+      "partialGovernanceCheckpoint": "PR #39 merged partial v1.21.0 at 9e13829bc9c20218da3d187d3760ee6c48084985 before the completeness patch landed; v1.22.0 supersedes it."
     }
   },
   "productionDatabase": {
