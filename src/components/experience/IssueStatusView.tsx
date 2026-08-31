@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { IssueRecoveryForm } from './IssueRecoveryForm';
+import { IssueSupportForm } from './IssueSupportForm';
 import recoveryStyles from './contact-verification.module.css';
 import styles from './issue-status.module.css';
 
@@ -142,6 +143,7 @@ export function IssueStatusView() {
         </a>
       ) : null}
       <p className={styles.note}>Keep your Issue Code. It&apos;s the shortest way back to this piece.</p>
+      <IssueSupportForm />
     </section>
   );
 }

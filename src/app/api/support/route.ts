@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       sessionToken: token,
       message: parsed.data.message,
     });
-    return Response.json({ received: true, issueCode: result.issueCode });
+    return Response.json({ received: true, reference: result.requestId });
   } catch (error) {
     if (error instanceof SupportRuntimeUnavailableError) {
       return Response.json({ error: 'Support is unavailable right now.' }, { status: 503 });
