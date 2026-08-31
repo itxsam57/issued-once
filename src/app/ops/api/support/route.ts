@@ -8,8 +8,8 @@ export async function GET(request: Request) {
     const status = value === 'OPEN' || value === 'CLOSED' ? value : null;
     const items = await createOpsSupportService().list(status, 100);
     return Response.json({ items: items.map((item) => ({ ...item, createdAt: item.createdAt.toISOString(), updatedAt: item.updatedAt.toISOString() })) }, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (error) {
-    console.error('Owner support queue failed', error);
+  } catch {
+    console.error('Owner support queue failed');
     return Response.json({ error: 'Support queue unavailable' }, { status: 503 });
   }
 }
