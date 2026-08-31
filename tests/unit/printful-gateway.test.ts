@@ -46,7 +46,7 @@ test('checks Issue external ID before creating an unconfirmed Printful order wit
       external_id: 'IO-ABCD-EFGH',
       recipient: {
         name: 'Sam Example', email: 'sam@example.com', phone: '+44 7000 000000',
-        address1: '1 Quiet Street', address2: '', city: 'London', state_code: 'London',
+        address1: '1 Quiet Street', city: 'London', state_code: 'London',
         country_code: 'GB', zip: 'SW1A 1AA',
       },
       items: [{
