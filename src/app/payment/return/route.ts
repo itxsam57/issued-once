@@ -24,8 +24,9 @@ async function reconcileReturnedTracker(providerReference: string | null): Promi
   return null;
 }
 
-function pendingRedirect(request: Request, restoredToken: string | null) {
-  const response = NextResponse.redirect(new URL('/payment/pending', request.url), 303);
+function paymentReturnRedirect(request: Request, restoredToken: string | null) {
+  const destination = restoredToken ? '/issue' : '/payment/pending';
+  const response = NextResponse.redirect(new URL(destination, request.url), 303);
   if (restoredToken) {
     response.cookies.set(SESSION_COOKIE_NAME, restoredToken, sessionCookieOptions);
   }
@@ -35,7 +36,7 @@ function pendingRedirect(request: Request, restoredToken: string | null) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const restoredToken = await reconcileReturnedTracker(url.searchParams.get('tracker'));
-  return pendingRedirect(request, restoredToken);
+  return paymentReturnRedirect(request, restoredToken);
 }
 
 export async function POST(request: Request) {
@@ -45,5 +46,5 @@ export async function POST(request: Request) {
   const tracker = url.searchParams.get('tracker')
     ?? (typeof formTracker === 'string' ? formTracker : null);
   const restoredToken = await reconcileReturnedTracker(tracker);
-  return pendingRedirect(request, restoredToken);
+  return paymentReturnRedirect(request, restoredToken);
 }
