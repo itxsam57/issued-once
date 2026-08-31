@@ -2,7 +2,7 @@
 
 Date: 2026-08-31
 Original audited integration base: `ad9f388c33121b1225cc7a387b038940edfd389b`
-Current reconciled integration head: `6485e944e338091a742814c0c2da5354cc32fa4d`
+Current reconciled integration head: `8fd418dd09fea083e188c01e86e01fcaa57240bc`
 Parent implementation plan: `docs/superpowers/plans/2026-08-19-issued-once-final-commercial-cycle.md`
 Owner OS design: `docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md`
 
@@ -58,7 +58,7 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 | CR-15 | Generated artwork is durably retained across application redeploy/restart boundary | MISSING | persistence design + destructive redeploy/restart recovery proof |
 | CR-16 | Owner reviews/approves/rejects/regenerates/uploads design with audited private-data reveals | CODE_READY | deployed Owner OS browser proof on a real controlled Issue |
 | CR-17 | Catalog publication cannot sell a variant without a factory mapping | CODE_READY | exact-head regression + Owner OS publish rejection proof |
-| CR-18 | Boot/default catalog never silently becomes accidental production commercial truth | MISSING | explicit production catalog authority/fail-closed rule + readiness regression |
+| CR-18 | Boot/default catalog never silently becomes accidental production commercial truth | CODE_READY | fail-closed owner-publication authority and readiness regression are integrated; deployed owner-published catalog + live quote/selection proof still required |
 | CR-19 | Printful draft creation is exact, idempotent and cannot charge automatically | CODE_READY | real Printful draft proof on controlled Issue |
 | CR-20 | Printful confirmation requires owner session + independent kill switch + exact typed Issue confirmation | CODE_READY | controlled owner confirmation proof when owner deliberately authorizes first charge |
 | CR-21 | Signed Printful webhook updates production/shipped/delivered truth without cross-linking Issues | CODE_READY | real signed webhook/shipment proof + duplicate/cross-link regression |
@@ -135,6 +135,24 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 - Production deployment/environment mutation: none.
 - Master-plan state: `CODE_READY`.
 
+### CR-18 — explicit production catalog authority
+
+- Feature branch: `feat/cr-18-catalog-authority`.
+- Final feature head: `43008c64fa7cc1d73d4a9b343d53819e48df6905`.
+- Integration PR: #59.
+- Integration merge: `8fd418dd09fea083e188c01e86e01fcaa57240bc`.
+- TDD RED evidence: `9620bdd750971994a9792b77f0938cf3ab864ce3` proved missing ACTIVE publication still allowed boot/default commercial truth and readiness lacked `catalog_authority`; `a67207b17a6387e0e56171935a025b59e2a2d45b` moved the invariant to the shared Postgres catalog/quote boundary rather than a checkout-only patch.
+- Final PR merge-ref CI: run `33438840018` PASS — 222 test files / 656 tests, typecheck, lint with 0 errors and 5 pre-existing warnings, production build.
+- Tree verification: synthetic PR merge `5654c41f3768a2acaf208a40bc8ea2d754ca753d` and actual integration merge `8fd418dd09fea083e188c01e86e01fcaa57240bc` share exact tree `ca99250c755ab9712f5c9117736ae963abd4351d`.
+- Shared authority contract: missing ACTIVE owner publication fails closed before Postgres-backed catalog variants can become commercial truth; an explicitly published empty catalog remains authoritative and does not fall back to boot defaults.
+- Readiness contract: `catalog_authority` is a mandatory blocking probe and uses a read-only ACTIVE-publication query.
+- Preview/dev continuity: visual preview remains on `PreviewCatalogGateway`; CR-18 does not move boot defaults into preview production authority.
+- Browser QA: not triggered by repository path policy because CR-18 changed backend-only files.
+- External preview note: Vercel deployment failure was also present on the prior CR-11 green head, including hobby-plan build-rate limiting; it is not a CR-18 regression and production remains Hostinger.
+- Remaining evidence: deploy the exact integrated release, publish/confirm an owner-authorized production catalog, observe `catalog_authority` GREEN, and prove the live quote/selection path uses that publication rather than boot defaults.
+- Production deployment/environment mutation: none.
+- Master-plan state: `CODE_READY`.
+
 ## Audit findings that must remain in scope
 
 ### A. Post-payment handoff and recovery
@@ -159,9 +177,11 @@ Server validation and customer form share destination-aware requirements. Region
 
 ### D. Production catalog authority
 
-Catalog publication correctly verifies factory mapping and freezes old quotes. However, absence of a published catalog permits the audited boot catalog to become runtime commercial truth.
+**Code-side root cause resolved at integration `8fd418dd09fea083e188c01e86e01fcaa57240bc`; deployed owner-publication proof remains.**
 
-Root-cause completion target: keep boot catalog for development/initialization, but production selling/readiness must require explicit owner-published catalog authority.
+Postgres-backed production catalog access now refuses to treat boot/default entries as commercial truth when there is no ACTIVE owner publication. An explicit empty publication remains authoritative rather than silently falling back. Owner readiness uses the same production rule through a blocking `catalog_authority` probe, while visual preview remains on its dedicated preview catalog path.
+
+Remaining completion target: deploy the exact integrated release, confirm an owner-published production catalog, observe readiness GREEN and prove live quote/selection comes from that publication.
 
 ### E. Artwork provider and quality
 
@@ -202,8 +222,8 @@ Root-cause completion target: expand controlled live QA in stages. Never charge 
 3. `CR-05` destination-aware shipping — **code-ready and integrated; live save proof pending**.
 4. `CR-07` + `CR-09` unified Issue access/recovery — **code-ready and integrated; deployed paid-return/real-OTP proof pending**.
 5. `CR-11` encrypted Issue-scoped customer support — **code-ready and integrated; deployed owner-reply proof pending**.
-6. `CR-18` require explicit production catalog authority — **NEXT**.
-7. `CR-13` + `CR-14` move artwork generation/QA to a current, proven production contract.
+6. `CR-18` require explicit production catalog authority — **code-ready and integrated; deployed owner-published catalog proof pending**.
+7. `CR-13` + `CR-14` move artwork generation/QA to a current, proven production contract — **NEXT**.
 8. `CR-15` prove or replace runtime filesystem persistence.
 9. `CR-22` finish refund operations/runbook truth.
 10. Deploy the exact verified integration release; run `CR-27` live boundary/security proof.
