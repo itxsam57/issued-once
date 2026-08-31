@@ -1,26 +1,21 @@
 {
   "schemaVersion": 1,
-  "version": "1.24.0",
+  "version": "1.25.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-31T17:25:00Z",
+  "updatedAt": "2026-08-31T19:28:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
-    "canonicalPullRequest": 3,
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "activeMigrationHead": "25495afe78efcb4d0cfebf8917eae1f152c5317f",
+    "verifiedRuntimeIntegrationHead": "6485e944e338091a742814c0c2da5354cc32fa4d",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
-    "liveCandidateBranch": "release/hostinger-v10-candidate-20260825",
-    "temporaryHost": "https://lightgray-coyote-141764.hostingersite.com",
-    "hpanelBranchSelection": "PRESERVE_CURRENT_SELECTION_DO_NOT_CHANGE",
-    "plannedCanonicalDomain": "issuedonce.shop",
-    "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md"
+    "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
+    "plannedCanonicalDomain": "issuedonce.shop"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "decision": "CODE_HARDENING_CONTINUES_AUTONOMOUSLY_BUT_PRODUCTION_REFERRAL_ACTIVATION_AND_DEPLOYMENT_ENV_MUTATIONS_REMAIN_OWNER_GATED",
+    "state": "CONTINUE_AUTONOMOUSLY",
     "currentEngineeringStopRequired": false,
     "currentEngineeringStopReason": null,
     "allowedStopStates": [
@@ -30,319 +25,73 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "OWNER_REQUIRED represents standing production side-effect gates, not a current engineering stop. Consumer-readiness CR-25 log privacy, CR-24 Safepay readiness parity, CR-05 destination-aware shipping and CR-07/CR-09 unified Issue access/recovery are integrated through exact migration head 25495afe78efcb4d0cfebf8917eae1f152c5317f. CR-07/CR-09 passed exact feature and post-merge CI plus Browser QA; no production deployment/environment mutation was performed. CR-05 and CR-07/CR-09 remain CODE_READY until their required deployed/live consumer proofs exist. The next autonomous code-side target from the canonical consumer-readiness master plan is CR-11 public encrypted Issue-scoped support. Temporary support values remain test configuration only; merchant public location remains deliberately deferred and must not be fabricated. Production referral migrations and Hostinger environment/branch mutations remain separately owner-gated."
+    "decision": "CONTINUE_CR18_CODE_SIDE_WITHOUT_PRODUCTION_SIDE_EFFECTS",
+    "reason": "CR-11 is code-ready and integrated with exact-head and post-merge CI plus Browser QA. Its remaining deployed request-to-owner-reply proof is a later live release gate, not a blocker for the next autonomous code-side consumer-readiness task."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR07_CR09_MERGED_POST_MERGE_GREEN_CR11_NEXT_PRODUCTION_ACTIVATION_GATES_PENDING",
+    "internalWorkStatus": "CR11_CODE_READY_INTEGRATED_CR18_NEXT",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
-      "Require fresh CI, Browser QA when path-applicable, exact release health, live-product and database evidence before launch-success claims.",
+      "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
+      "Require TDD RED before implementation for behavior changes, then exact-head unit/typecheck/lint/build and Browser QA where customer-facing.",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets.",
+      "Do not change the Hostinger selected branch or production environment variables without an explicit owner-gated deployment step.",
       "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan.",
-      "Do not mutate frozen release candidate branches.",
-      "Do not change the current Hostinger hPanel branch selection; prior branch changes reset environment variables.",
       "Keep Printful production confirmation disabled until the explicit manufacturing launch gate.",
       "Do not create real Safepay charges solely for QA.",
       "Do not apply referral migrations 0029, 0034 or 0035 to production without explicit production referral-activation approval.",
-      "Do not send creator launch outreach until referral migrations are live, the intended creator roster is reviewed, provider email configuration is green and the Owner explicitly triggers /ops/referral-launch.",
-      "Do not cut issuedonce.shop until all temporary-host provider, customer-flow and email-deliverability gates are green.",
-      "Treat temporary support mailbox values as test configuration only; do not claim production support identity or live delivery until provider and mailbox evidence exists.",
-      "Do not add or fabricate MERCHANT_PUBLIC_LOCATION while the owner has deferred location; require a truthful value before canonical launch.",
-      "Use docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md as the canonical consumer-readiness ledger and update it after each meaningful CR cycle."
+      "Do not send creator outreach until referral activation and owner launch gates are satisfied.",
+      "Do not fabricate MERCHANT_PUBLIC_LOCATION; truthful merchant identity remains required before canonical launch."
     ]
   },
-  "integratedWork": {
-    "hostingerBrowserQaRepair": {
-      "pullRequest": 16,
-      "status": "MERGED",
-      "mergeCommit": "8566e51726e87d6e1507de7dc5224cc544e880f5"
-    },
-    "safepayReporterRepair": {
-      "pullRequest": 15,
-      "status": "MERGED",
-      "mergeCommit": "5b69a3079a2a05fffa13ee0888c8ec545cfa5290",
-      "realPaymentPerformed": false
-    },
-    "referralLaunchOutreach": {
-      "pullRequest": 17,
-      "status": "MERGED",
-      "mergeCommit": "6023e7f1bb2eb15551d1fed2470fab0131bb7987",
-      "creatorEmailsSent": false
-    },
-    "referralPrivatePayloadV2Repair": {
-      "pullRequest": 18,
-      "status": "MERGED",
-      "mergeCommit": "7586ca4363643bccb81c78cc2abb0dddfbe255e6",
-      "productionApplied": false
-    },
-    "productionProviderEnforcement": {
-      "pullRequest": 19,
-      "status": "MERGED",
-      "mergeCommit": "7d5047726d9cc503226593acac2b53a9d6df0029"
-    },
-    "supportDeliveryCanaryRepair": {
-      "pullRequest": 21,
-      "status": "MERGED",
-      "mergeCommit": "0d52c6cac1c3bd34a20361aa3b8af83245ff8fd6",
-      "verifiedHead": "057b53a74339896dabec44c24bbb00954b7fc28a",
-      "behavior": "Adds an authenticated exact-release support email canary that contains no customer data, sends only to SUPPORT_INBOX_EMAIL and uses release-scoped provider idempotency.",
-      "exactHeadCi": "PASS CI #1526 run 33182636468: 205/205 test files, 589/589 tests, typecheck PASS, lint 0 errors/5 warnings, production build PASS, 56/56 static pages.",
-      "exactHeadBrowserQa": "PASS Browser QA #1392 run 33182636478: 38/38 desktop+mobile; artifact 9690397229; sha256 eb9ac8466b783d3bbf6083004f27b693aed2db332cf910746c4e99438b862a7f.",
-      "productionDeploymentPerformed": false,
-      "providerAcceptanceProvenLive": false,
-      "inboxPlacementProvenLive": false
-    },
-    "supportCanaryLogHardening": {
-      "redAuditPullRequest": 24,
-      "mergePullRequest": 25,
-      "status": "MERGED_AND_POST_MERGE_VERIFIED",
-      "redCommit": "4661aabebc4f4e31fa3e21a25501a7338c36c58f",
-      "greenCommit": "766db97ec479e1b32c2923069a2be413cdc6784e",
-      "mergeCommit": "338b350357a026ca4a6f649d25d7f4dc22b174b4",
-      "behavior": "Support canary failures retain a generic operational log without serializing arbitrary provider error payloads.",
-      "tddEvidence": "RED proved a sensitive sentinel reached server logs while all prior tests passed; GREEN removed only the caught error payload and added the regression test.",
-      "preMergeCi": "PASS CI #1532",
-      "preMergeBrowserQa": "PASS Browser QA #1396",
-      "postMergeCi": "PASS CI #1533",
-      "postMergeBrowserQa": "PASS Browser QA #1397",
-      "productionDeploymentPerformed": false
-    },
-    "privilegedRouteLogHardening": {
-      "redAuditPullRequest": 28,
-      "pullRequest": 29,
-      "status": "MERGED_AND_POST_MERGE_VERIFIED",
-      "redCommit": "fc5f999c78797bd73f2f4f9923db87b863d5ef7d",
-      "greenCommit": "0f165315b7e371f13767a212f70aac06a91fa03c",
-      "mergeCommit": "89a0ec26615ae2f657ba1304b4fc2edb02568c55",
-      "behavior": "Unexpected downstream errors in design approval, background job drain, manufacturing draft creation and manufacturing confirmation retain generic server log labels without serializing raw caught Error payloads; response, auth and Printful safety semantics are unchanged.",
-      "tddEvidence": "RED CI #1538 failed exactly four sentinel assertions with 590 tests passing.",
-      "preMergeCi": "PASS CI #1540",
-      "preMergeBrowserQa": "PASS Browser QA #1401",
-      "wrapperCi": "PASS CI #1541",
-      "wrapperBrowserQa": "PASS Browser QA #1402",
-      "postMergeCi": "PASS CI #1542",
-      "postMergeBrowserQa": "PASS Browser QA #1403",
-      "productionDeploymentPerformed": false
-    },
-    "hostingerQuizRotationGuard": {
-      "redAuditPullRequest": 30,
-      "pullRequest": 31,
-      "status": "MERGED_AND_POST_MERGE_VERIFIED",
-      "redCommit": "79c26f933d6d170284cebe433054225df00024c7",
-      "implementationCommit": "3ae3ee314f4bb1fd5b196b0b587780a0d8d1ca0f",
-      "greenCommit": "ea7fd17192afbde11430c081285d08bf282ee5e8",
-      "mergeCommit": "56590c4d84dfdd05fe6969f2d431bcd79583fcef",
-      "behavior": "Internal quiz-encryption rotation is exposed only in Vercel production or Hostinger production (NODE_ENV=production plus RUNTIME_PROVIDER=hostinger); previews and non-production runtimes remain hidden with 404.",
-      "tddEvidence": "RED CI #1543 produced the sole intended failure: Hostinger production returned 404 instead of 200, with 595/596 tests passing. Final green head includes the vi.stubEnv test-harness correction.",
-      "preMergeCi": "PASS CI #1545",
-      "preMergeBrowserQa": "PASS Browser QA #1405",
-      "wrapperCi": "PASS CI #1546",
-      "wrapperBrowserQa": "PASS Browser QA #1406",
-      "postMergeCi": "PASS CI #1547",
-      "postMergeBrowserQa": "PASS Browser QA #1407",
-      "databaseRotationPerformed": false,
-      "productionDeploymentPerformed": false
-    },
-    "ownerSessionLogHardening": {
-      "redAuditPullRequest": 32,
-      "pullRequest": 33,
-      "status": "MERGED_AND_POST_MERGE_VERIFIED",
-      "initialFalseNegativeCommit": "ac39daca3491c4c6d058435e85762021c35efbc3",
-      "redCommit": "5bb75b780eb74ac2ef8361b2ce108cd4cf7e53f6",
-      "greenCommit": "5b2b5b29dc186cb5d8bdf112d9b15015ea48b312",
-      "mergeCommit": "3fe6f7933d7cfd0cab44d0b017d57e0e9f46cba8",
-      "behavior": "Owner login/logout audit failure paths retain generic server log labels without serializing raw caught Error payloads; login audit failure remains 503 without issuing a cookie and authenticated logout remains 200 while clearing the cookie.",
-      "tddEvidence": "CI #1548 was rejected as a false RED because JSON.stringify(Error) omits messages. Corrected String(...) capture at RED CI #1549 failed exactly two sentinel assertions with 594/596 tests passing.",
-      "preMergeCi": "PASS CI #1550",
-      "preMergeBrowserQa": "PASS Browser QA #1408",
-      "wrapperCi": "PASS CI #1551",
-      "wrapperBrowserQa": "PASS Browser QA #1409",
-      "postMergeCi": "PASS CI #1552",
-      "postMergeBrowserQa": "PASS Browser QA #1410",
-      "productionDeploymentPerformed": false
-    },
-    "contactOtpRequestLogHardening": {
-      "pullRequest": 35,
-      "status": "MERGED_AND_POST_MERGE_VERIFIED",
-      "redCommit": "39cd0446a387508742114e488f52affaede63799",
-      "greenCommit": "189d529f27c85a759ab1d3043d3072bdc425289c",
-      "mergeCommit": "28b9239e4cae53a02f0c7ecf8f8562b0932ad873",
-      "behavior": "Generic OTP-request failures no longer serialize arbitrary caught Error payloads in server logs; customer response, cookie and provider behavior are unchanged.",
-      "tddEvidence": "RED CI #1556 proved exactly one sentinel log leak while the remaining suite passed (601/602).",
-      "preMergeCi": "PASS CI #1557",
-      "preMergeBrowserQa": "PASS Browser QA #1413",
-      "wrapperCi": "PASS CI #1558",
-      "wrapperBrowserQa": "PASS Browser QA #1414",
-      "postMergeCi": "PASS CI #1559",
-      "postMergeBrowserQa": "PASS Browser QA #1415",
-      "productionDeploymentPerformed": false
-    },
-    "contactSiblingLogHardening": {
-      "pullRequest": 36,
-      "status": "MERGED_AND_POST_MERGE_VERIFIED",
-      "redCommit": "f61167250d58a28aeca216ca4567366546c67807",
-      "greenCommit": "b8b31ba11aa630c899fd8ce93c033a5dfa36e900",
-      "mergeCommit": "5425a36757f968cd3cabaae868883a6bf4cec62f",
-      "behavior": "Generic continuity-check, OTP-verification and verified-contact-reuse failures no longer serialize arbitrary caught Error payloads in server logs; customer response, cookie, provider and OTP classification behavior are unchanged.",
-      "tddEvidence": "RED CI #1560 proved exactly three intended sentinel log leaks with 602 passing / 605 total; GREEN removed only the three raw caught-error log arguments.",
-      "preMergeCi": "PASS CI #1562",
-      "preMergeBrowserQa": "PASS Browser QA #1416",
-      "postMergeCi": "PASS CI #1566",
-      "postMergeBrowserQa": "PASS Browser QA #1420",
-      "duplicateAudit": {
-        "draftPullRequest": 37,
-        "normalPullRequest": 38,
-        "redCommit": "39bb8ce8a3b9839b6eaa17e7b250cf809ca859f9",
-        "greenCommit": "61f2dec1c54166a84511ec83736f7b888fa69b36",
-        "redCi": "FAIL CI #1561: exactly three sentinel failures, 602/605 passing",
-        "greenCi": "PASS CI #1565",
-        "greenBrowserQa": "PASS Browser QA #1419",
-        "resolution": "Closed unmerged after PR #36 integrated the same behavior first."
-      },
-      "productionDeploymentPerformed": false
-    },
-    "publicRouteLogHardening": {
-      "initialAuditPullRequest": 41,
-      "correctedRedAuditPullRequest": 43,
-      "pullRequest": 44,
-      "status": "MERGED_AND_POST_MERGE_VERIFIED",
-      "initialRedCommit": "0eb6b97ae0b6fcd7d49643d3221f11424e258737",
-      "initialRedCi": "FAIL CI #1571; rejected as valid RED after exact log inspection exposed a shipping-test classifier collision.",
-      "initialHarnessIssue": "The first shipping sentinel contained the word shipping and therefore matched the route's intentional 409 domain-error classifier instead of exercising the unknown 500 path.",
-      "intermediateGreenCommit": "f0cfadc9f62cb211fe52cab1cc798f26bbf7f949",
-      "intermediateCi": "FAIL CI #1576 only because the shipping sentinel still exercised the 409 classifier; Browser QA #1427 PASS.",
-      "correctedFeatureHead": "f847a8e967cc2bb576e7df9efe9c189ab8f291cc",
-      "correctedRedCommit": "c45c9ac887ba7490d6d6b552a2e75a5bc9adde2d",
-      "correctedRedCi": "FAIL CI #1579 exactly as intended: 5 privacy assertions failed, 605/610 tests passed, 207/208 test files passed; each 500 response contract assertion passed before the sentinel log assertion failed.",
-      "behavior": "Unknown failures in checkout start, payment start, shipping save, referral apply and public interview bootstrap retain generic server log labels without serializing raw caught Error payloads. Existing validation, auth, typed runtime, state-conflict and 500 response semantics are unchanged.",
-      "sourceCorrection": "The live checkout route is src/app/api/checkout/start/route.ts; there is no src/app/api/checkout/route.ts at the verified base.",
-      "featureCi": "PASS CI #1578",
-      "featureBrowserQa": "PASS Browser QA #1428",
-      "normalPrCi": "PASS CI #1580",
-      "normalPrBrowserQa": "PASS Browser QA #1429",
-      "mergeCommit": "b32a850784768ed7e4f3d3732c19e9538b33f96c",
-      "postMergeCi": "PASS CI #1581",
-      "postMergeBrowserQa": "PASS Browser QA #1430",
-      "productionDeploymentPerformed": false,
-      "productionEnvironmentChanged": false
-    },
-    "consumerReadinessResidualLogPrivacy": {
-      "consumerReadinessId": "CR-25",
-      "status": "MERGED_AND_POST_MERGE_VERIFIED",
-      "mergeCommit": "c4a895b5dfbdc7cb5c8391fc1d176a278ea01f61",
-      "behavior": "Residual raw unknown-exception logging class is structurally regression-guarded across audited public/owner route families; newly discovered response-body leaks remain a separate defect class.",
-      "verification": "Exact-head and post-merge CI plus Browser QA passed before integration.",
-      "productionDeploymentPerformed": false,
-      "productionEnvironmentChanged": false
-    },
-    "shippingApplicability": {
-      "consumerReadinessId": "CR-05",
-      "pullRequest": 50,
-      "status": "CODE_READY_MERGED_AND_POST_MERGE_VERIFIED",
-      "mergeCommit": "1c92677008d85ca7ca6b1dec6cb6e922964bf6b0",
-      "behavior": "Server and customer form share destination-aware address requirements; region is mandatory only for US/CA/AU, phone is not globally required, and blank optional Printful fields are omitted.",
-      "verification": "Focused RED covered server/UI/provider boundaries; corrected exact-head CI and Browser QA passed; post-merge CI and Browser QA passed.",
-      "liveSaveProof": false,
-      "productionDeploymentPerformed": false,
-      "productionEnvironmentChanged": false
-    },
-    "safepayReadinessRuntimeParity": {
-      "consumerReadinessId": "CR-24",
-      "pullRequest": 51,
-      "status": "MERGED_AND_POST_MERGE_VERIFIED",
-      "featureHead": "e11568271eaafaa41f54aa07b18400d36cd8f195",
-      "mergeCommit": "0263200e8dfb0f38e9995ec2e8b5fdc4a9728292",
-      "behavior": "Owner readiness consumes the same validated Safepay runtime configuration contract, including SAFEPAY_API_SECRET/SAFEPAY_V1_SECRET, eliminating false-positive readiness caused by duplicated environment approximations.",
-      "verification": "Feature unit/typecheck/lint/build passed; exact merged-head CI and Browser QA passed.",
-      "productionDeploymentPerformed": false,
-      "productionEnvironmentChanged": false
-    },
-    "issueAccessRecovery": {
-      "consumerReadinessIds": [
-        "CR-07",
-        "CR-09"
-      ],
-      "draftPullRequest": 52,
-      "pullRequest": 53,
-      "status": "CODE_READY_MERGED_AND_POST_MERGE_VERIFIED",
-      "finalFeatureHead": "daa59cbafa5f404287ee30dc06e9a55e7f39a432",
-      "mergeCommit": "25495afe78efcb4d0cfebf8917eae1f152c5317f",
-      "featureCi": "PASS run 33419182618: unit tests, typecheck, lint, production build",
-      "featureBrowserQa": "PASS run 33419182637: desktop/mobile browser tests",
-      "postMergeCi": "PASS run 33419570168: unit tests, typecheck, lint, production build",
-      "postMergeBrowserQa": "PASS run 33419570255: desktop/mobile browser tests",
-      "behavior": "One accountless Issue-access boundary supports explicit Issue Code + verified-email + OTP recovery and post-payment handoff while retaining __Host-io_session as the only public credential. Recovery is anti-enumerating and challenges are bound to experienceId. Paid Issue access can rotate after interview expiry without renewing the interview TTL.",
-      "securityFindingAndFix": "Pre-merge review proved provider tracker/payment truth alone must not mint browser ownership. Final payment-return implementation requires the caller's current Issue session and atomically compare-and-swaps the stored session hash before setting a refreshed cookie; no-session/stale-session paid callbacks may still finalize payment truth but cannot mint Issue access.",
-      "livePaidReturnProof": false,
-      "realCrossDeviceOtpProof": false,
-      "productionDeploymentPerformed": false,
-      "productionEnvironmentChanged": false
-    }
+  "lastCompleted": {
+    "consumerReadinessId": "CR-11",
+    "title": "Encrypted Issue-scoped customer support",
+    "status": "CODE_READY_MERGED_AND_POST_MERGE_VERIFIED",
+    "featureBranch": "feat/cr-11-in-app-support",
+    "draftPullRequest": 56,
+    "pullRequest": 57,
+    "featureHead": "d3f4c5bc34741d8bcddd8b7d897a8d4590af8e6d",
+    "mergeCommit": "6485e944e338091a742814c0c2da5354cc32fa4d",
+    "redEvidence": [
+      "CI 33426961266: existing suite green; new IssueSupportForm regression failed because implementation was absent",
+      "CI 33427358886: tightened UI/reference/privacy contract failed as expected",
+      "Browser QA 33427358895: new support flow failed on desktop/mobile because Need help? was absent"
+    ],
+    "greenEvidence": [
+      "CI 33428181290 PASS: unit tests, typecheck, lint, production build",
+      "Browser QA 33428181278 PASS: desktop/mobile",
+      "wrapper CI 33428592576 PASS",
+      "wrapper Browser QA 33428592448 PASS",
+      "post-merge CI 33428935199 PASS on 6485e944e338091a742814c0c2da5354cc32fa4d",
+      "post-merge Browser QA 33428935165 PASS on 6485e944e338091a742814c0c2da5354cc32fa4d"
+    ],
+    "remainingLiveEvidence": "Deploy exact integrated release, create controlled customer support request, observe it in Owner OS support desk, complete owner reply, and prove no cross-customer leakage.",
+    "productionDeploymentPerformed": false,
+    "productionEnvironmentChanged": false
   },
-  "freshDiscovery": {
-    "productionDatabaseReadOnly": {
-      "projectId": "autumn-butterfly-25489215",
-      "branchId": "br-dawn-cloud-axm880q9",
-      "databaseName": "neondb",
-      "referralTablesPresent": false,
-      "productionMutationPerformed": false
-    },
-    "migrationManifest": {
-      "coreAppliedThrough": "0033_owner_identity_settings.sql",
-      "referralAppliedThrough": "NONE",
-      "deferredOrder": [
-        "0029_creator_referrals.sql",
-        "0034_referral_launch_outreach.sql",
-        "0035_referral_private_payload_key_v2.sql"
-      ]
-    },
-    "emailDelivery": {
-      "otpInboxDelivery": "POSITIVE through 2026-08-26",
-      "supportConfiguration": "OWNER_REPORTED_CONFIGURED_WITH_TEMPORARY_TEST_VALUES_ON_2026-08-30",
-      "supportProviderAcceptance": "UNPROVEN_UNTIL_INTEGRATED_CANDIDATE_DEPLOYED_AND_CANARY_RUN",
-      "supportInboxDelivery": "UNPROVEN_UNTIL_CANARY_MAILBOX_EVIDENCE",
-      "futureCanonicalSupportIdentity": "DEFERRED_UNTIL_DOMAIN_RELATED_SUPPORT_EMAIL_IS_READY"
-    },
-    "merchantIdentity": {
-      "publicLocation": "OWNER_DEFERRED_FOR_NOW",
-      "locationFabricatedOrAdded": false,
-      "truthfulLocationRequiredBeforeCanonicalLaunch": true
-    },
-    "supportCanary": {
-      "status": "CODE_READY_NOT_LIVE",
-      "route": "/api/internal/support-canary",
-      "auth": "INTERNAL_OPERATIONS_TOKEN bearer auth",
-      "releaseBinding": "expected release must equal APP_RELEASE_ID",
-      "privacy": "No customer data and no database persistence from the canary path",
-      "logPrivacy": "Provider error payloads are redacted from the route-level server log as of verified integration head b32a850784768ed7e4f3d3732c19e9538b33f96c.",
-      "evidenceMeaning": "HTTP 200 proves provider acceptance only; inbox placement requires mailbox evidence."
-    },
-    "sourceReconciliation": {
-      "status": "EXACT_REPO_EVIDENCE_OVERRIDES_CARRIED_FORWARD_NOTES",
-      "latestIntegratedRuntimeHead": "25495afe78efcb4d0cfebf8917eae1f152c5317f",
-      "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
-      "nextConsumerReadinessTarget": "CR-11",
-      "duplicateContactHardeningResolution": "PR #36 is authoritative; PR #37 and PR #38 are closed unmerged duplicates.",
-      "readyForReviewConnectorIssue": "GitHub ready-for-review GraphQL mutation remains broken on unsupported Repository.fullDatabaseId; verified normal-PR fallback is used without changing code.",
-      "partialGovernanceCheckpoint": "PR #39 merged partial v1.21.0 at 9e13829bc9c20218da3d187d3760ee6c48084985 before the completeness patch landed; v1.22.0 superseded it, v1.23.0 added the verified public-route logging cycle, and v1.24.0 reconciles consumer-readiness through CR-07/CR-09.",
-      "checkoutRouteCorrection": "Exact source confirms the active route is /api/checkout/start at src/app/api/checkout/start/route.ts, not a legacy /api/checkout route."
-    }
+  "activeTask": {
+    "consumerReadinessId": "CR-18",
+    "title": "Explicit production catalog authority",
+    "status": "NEXT",
+    "designBoundary": "Keep boot/default catalog available for development and initialization, but production selling/readiness must fail closed unless owner-published catalog authority exists.",
+    "requiredEvidence": [
+      "RED regression proving production currently falls back to boot/default catalog",
+      "production fail-closed rule when no published catalog exists",
+      "development/non-production boot catalog continuity",
+      "readiness regression reflects the same authority rule",
+      "exact-head CI/typecheck/lint/production build",
+      "Browser QA if customer-facing behavior is affected"
+    ]
   },
-  "productionDatabase": {
-    "projectId": "autumn-butterfly-25489215",
-    "databaseName": "neondb",
-    "branchId": "br-dawn-cloud-axm880q9",
-    "migrations": {
-      "0030": true,
-      "0031": true,
-      "0032": true,
-      "0033": true,
-      "0029": false,
-      "0034": false,
-      "0035": false
-    },
-    "referralActivationApproved": false
+  "standingOwnerGates": {
+    "productionDeploymentOrHostingerBranchMutation": true,
+    "productionReferralMigrations": true,
+    "realSafepayCharge": true,
+    "printfulProductionConfirmation": true,
+    "canonicalDomainCutover": true,
+    "truthfulMerchantPublicLocation": true
   },
   "productionRuntime": {
     "liveRelease": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
@@ -350,29 +99,14 @@
     "productionDeploymentOfIntegratedHead": false,
     "hostingerBranchChanged": false,
     "hostingerEnvironmentChanged": false,
-    "supportVariablesOwnerReportedConfigured": true,
-    "supportVariablesProviderVerified": false,
-    "merchantPublicLocationDeferred": true,
     "realSafepayQaCharge": false,
     "printfulProductionConfirmation": false,
     "referralMigrationsApplied": false,
     "creatorLaunchOutreachSent": false,
     "canonicalDomainCutover": false
   },
-  "launchBlockers": [
-    "Obtain explicit production referral-activation approval before applying 0029, 0034 and 0035 in the verified order.",
-    "Deploy the integrated candidate while preserving Hostinger environment continuity and without an unsafe selected-branch change; then prove exact release health.",
-    "Use truthful merchant public identity before canonical launch; MERCHANT_PUBLIC_LOCATION is deliberately deferred by the owner for now and must not be fabricated.",
-    "SUPPORT_INBOX_EMAIL and related temporary support values are owner-reported configured to a reachable test mailbox; after integrated deployment, run the exact-release support canary and confirm provider acceptance plus mailbox receipt.",
-    "Confirm Safepay production runtime and webhook configuration without creating a QA charge.",
-    "Confirm Printful webhook/runtime configuration while production confirmation remains disabled.",
-    "Confirm OPENAI_API_KEY and ARTWORK_SIGNING_KEY through safe positive design/artwork proof.",
-    "Complete one owner-managed OTP verification and shipping journey that produces verified_contacts.key_version=v2 and shipping_snapshots.key_version=v2.",
-    "After referral schema activation, create/review the intended active creator roster before any launch email is sent.",
-    "Only after temporary-host provider/customer/email gates are green, cut issuedonce.shop and repeat complete live proof."
-  ],
   "nextAction": {
     "actor": "ENGINEERING",
-    "instruction": "Execute CR-11 from the canonical consumer-readiness master plan: expose encrypted Issue-scoped customer support through the current/recovered Issue access boundary, preserving SupportService privacy and Owner OS behavior. Continue autonomously through TDD, CI and Browser QA. Do not mutate production deployment/environment state or trigger provider/factory/payment side effects."
+    "instruction": "Execute CR-18 from the canonical consumer-readiness master plan. Inspect current catalog publication, runtime catalog selection, checkout/quote and readiness paths; create a focused RED regression proving boot/default catalog can become production commercial truth without an owner-published catalog; implement a single shared production-authority rule while preserving development initialization behavior; verify exact-head gates and integrate without production deployment/environment/provider/payment/factory side effects."
   }
 }
