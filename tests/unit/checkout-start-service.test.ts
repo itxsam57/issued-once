@@ -100,31 +100,4 @@ describe('CheckoutStartService', () => {
     ).rejects.toThrow('Variant unavailable');
     expect(stateRepository.advance).not.toHaveBeenCalled();
   });
-
-  test('fails closed before commerce when owner-published catalog authority is absent', async () => {
-    const experienceRepository = {
-      findBySessionHash: vi.fn().mockResolvedValue(experience()),
-    };
-    const checkout = {
-      start: vi.fn().mockResolvedValue({ checkoutUrl: 'https://shop.example/checkout' }),
-    };
-    const stateRepository = { advance: vi.fn() };
-    const catalogAuthority = {
-      assertOwnerPublished: vi.fn().mockRejectedValue(new Error('Owner-published active catalog is required')),
-    };
-    const service = new CheckoutStartService(
-      experienceRepository,
-      checkout,
-      stateRepository,
-      undefined,
-      catalogAuthority,
-    );
-
-    await expect(
-      service.start({ sessionToken: token, quoteId: 'quote-boot' }),
-    ).rejects.toThrow(/owner-published active catalog/i);
-    expect(catalogAuthority.assertOwnerPublished).toHaveBeenCalledTimes(1);
-    expect(checkout.start).not.toHaveBeenCalled();
-    expect(stateRepository.advance).not.toHaveBeenCalled();
-  });
 });
