@@ -114,7 +114,7 @@ test('refuses shipping until the experience has a verified contact', async () =>
   })).rejects.toThrow(/verified contact/i);
 });
 
-test('requires province or state and courier phone at the server boundary', async () => {
+test.each(['US', 'CA', 'AU'])('requires province or state for %s destinations', async (countryCode) => {
   const service = new ShippingService(
     new MemoryExperienceRepository(experience()),
     new MemoryContactRepository(verifiedContact()),
@@ -124,13 +124,29 @@ test('requires province or state and courier phone at the server boundary', asyn
 
   await expect(service.save({
     experienceToken: token,
-    address: { ...validAddress(), region: '   ' },
+    address: { ...validAddress(), countryCode, region: '   ' },
   })).rejects.toThrow(/shipping address is incomplete/i);
+});
+
+test('accepts a valid international address without region or courier phone when the destination does not require them', async () => {
+  const shipping = new MemoryShippingRepository();
+  const service = new ShippingService(
+    new MemoryExperienceRepository(experience()),
+    new MemoryContactRepository(verifiedContact()),
+    shipping,
+    () => now,
+  );
 
   await expect(service.save({
     experienceToken: token,
-    address: { ...validAddress(), phone: '   ' },
-  })).rejects.toThrow(/shipping address is incomplete/i);
+    address: { ...validAddress(), countryCode: 'GB', region: '   ', phone: '   ' },
+  })).resolves.toEqual({ saved: true });
+
+  expect(await decryptPrivatePayload(shipping.record!.encryptedAddress)).toEqual(expect.objectContaining({
+    countryCode: 'GB',
+    region: '',
+    phone: '',
+  }));
 });
 
 test('stores the full shipping address only inside encrypted payload', async () => {
