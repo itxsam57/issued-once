@@ -20,6 +20,7 @@ export type ReadinessCheck = {
 type Dependencies = {
   env?: NodeJS.ProcessEnv;
   databasePing: () => Promise<boolean>;
+  catalogAuthorityPing: () => Promise<boolean>;
   storagePing: () => Promise<boolean>;
   queuePing: () => Promise<boolean>;
   fetchImpl?: typeof fetch;
@@ -186,6 +187,30 @@ export class ReadinessService {
       checks.push({ key: 'catalog', label: 'Retail catalog', state: 'blocked', detail: 'Retail catalog is invalid, uses an unsupported Safepay currency, or is missing a current Issue form.' });
     }
 
+    try {
+      const catalogAuthorityReady = await this.dependencies.catalogAuthorityPing();
+      checks.push(catalogAuthorityReady
+        ? {
+            key: 'catalog-authority',
+            label: 'Catalog authority',
+            state: 'ready',
+            detail: 'An owner-published ACTIVE catalog is authoritative for commerce.',
+          }
+        : {
+            key: 'catalog-authority',
+            label: 'Catalog authority',
+            state: 'missing',
+            detail: 'No owner-published ACTIVE catalog is available for commerce.',
+          });
+    } catch {
+      checks.push({
+        key: 'catalog-authority',
+        label: 'Catalog authority',
+        state: 'blocked',
+        detail: 'Owner-published ACTIVE catalog authority could not be verified.',
+      });
+    }
+
     let safepayEnvironment: SafepayEnvironment | null = null;
     try {
       const safepay = readSafepayRuntimeConfig(this.env, { requireExplicitEnvironment: true });
@@ -318,6 +343,7 @@ export class ReadinessService {
       state('privacy') === 'ready' &&
       state('merchant') === 'ready' &&
       state('catalog') === 'ready' &&
+      state('catalog-authority') === 'ready' &&
       state('safepay') === 'configured' &&
       safepayEnvironment === 'sandbox' &&
       state('resend') === 'configured' &&
