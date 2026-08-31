@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Physical form state conflict' }, { status: 409 });
     }
 
-    console.error('physical object selection failed', error);
+    console.error('physical object selection failed');
     return Response.json({ error: 'Physical form could not be locked' }, { status: 500 });
   }
 }
