@@ -106,7 +106,7 @@ test('Safepay readiness fails closed when the API secret required by the payment
 });
 
 test('Safepay readiness accepts the legacy V1 API secret because the payment runtime accepts it', async () => {
-  const env = { ...completeEnv, SAFEPAY_V1_SECRET: 'hidden-legacy-safepay-secret' };
+  const env: NodeJS.ProcessEnv = { ...completeEnv, SAFEPAY_V1_SECRET: 'hidden-legacy-safepay-secret' };
   delete env.SAFEPAY_API_SECRET;
 
   const result = await new ReadinessService(healthyDependencies(env)).check();
