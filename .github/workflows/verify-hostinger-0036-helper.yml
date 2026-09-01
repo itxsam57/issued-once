@@ -1,0 +1,54 @@
+name: Verify Hostinger 0036 migration helper
+
+on:
+  push:
+    branches:
+      - ops/hostinger-prod-0036-build-20260901
+
+permissions:
+  contents: read
+
+jobs:
+  verify-helper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout helper
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify helper diff is isolated
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only 6b64b3b000cff18db2ac27b8c5494b0c72670211...HEAD | sort > /tmp/actual
+          printf '%s\n' \
+            '.github/workflows/verify-hostinger-0036-helper.yml' \
+            'package.json' \
+            'scripts/apply-approved-0036.mjs' | sort > /tmp/expected
+          diff -u /tmp/expected /tmp/actual
+
+      - name: Verify exact 0036 source contract without DB access
+        run: node scripts/apply-approved-0036.mjs --contract-only
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
