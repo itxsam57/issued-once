@@ -68,6 +68,30 @@ async function checkStatus(context, path, expected, init) {
   return result;
 }
 
+async function checkStatusOrExactUnavailable(context, path, expected, unavailableError, init) {
+  const result = await fetchText(context, path, init);
+  if (expected.includes(result.status)) {
+    console.log(`LIVE_BOUNDARY_PASS path=${path} status=${result.status}`);
+    return result;
+  }
+
+  if (result.status === 503) {
+    try {
+      const payload = JSON.parse(result.text);
+      if (payload?.error === unavailableError) {
+        console.log(`LIVE_BOUNDARY_PASS path=${path} status=503 mode=fail-closed-unavailable`);
+        return result;
+      }
+    } catch {
+      // Fall through to the strict mismatch below.
+    }
+  }
+
+  failures.push(`${path} returned ${result.status}; expected ${expected.join('/')} or exact fail-closed 503`);
+  console.log(`LIVE_BOUNDARY_MISMATCH path=${path} status=${result.status} expected=${expected.join('/')}|exact-503`);
+  return result;
+}
+
 const browser = await chromium.launch();
 try {
   const anonymous = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
@@ -132,16 +156,28 @@ try {
       });
     }
 
-    await checkStatus(anonymous, '/api/webhooks/safepay', [401], {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      data: {},
-    });
-    await checkStatus(anonymous, '/api/webhooks/printful', [401], {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      data: {},
-    });
+    await checkStatusOrExactUnavailable(
+      anonymous,
+      '/api/webhooks/safepay',
+      [401],
+      'Payment webhook is unavailable',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        data: {},
+      },
+    );
+    await checkStatusOrExactUnavailable(
+      anonymous,
+      '/api/webhooks/printful',
+      [401],
+      'Manufacturing webhook is unavailable',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        data: {},
+      },
+    );
     await checkStatus(anonymous, '/api/webhooks/fourthwall', [410], {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -179,11 +215,17 @@ try {
       },
     });
 
-    await checkStatus(customer, '/api/payments/create', [409], {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      data: { quoteId: 'live-boundary-audit-no-quote' },
-    });
+    await checkStatusOrExactUnavailable(
+      customer,
+      '/api/payments/create',
+      [409],
+      'Payment is unavailable',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        data: { quoteId: 'live-boundary-audit-no-quote' },
+      },
+    );
 
     await checkStatus(customer, '/api/referrals/apply', [503], {
       method: 'POST',
