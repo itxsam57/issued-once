@@ -34,14 +34,22 @@ function pngChunk(type: string, data: Buffer): Buffer {
   return Buffer.concat([length, typeBytes, data, checksum]);
 }
 
-function transparentPng(width: number, height: number): Buffer {
+function rgbaPng(width: number, height: number, alpha = 0): Buffer {
   const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(width, 0);
   ihdr.writeUInt32BE(height, 4);
   ihdr[8] = 8;
   ihdr[9] = 6;
-  const scanlines = Buffer.alloc((width * 4 + 1) * height);
+  const stride = width * 4 + 1;
+  const scanlines = Buffer.alloc(stride * height);
+  for (let y = 0; y < height; y += 1) {
+    const row = y * stride;
+    scanlines[row] = 0;
+    for (let x = 0; x < width; x += 1) {
+      scanlines[row + 1 + x * 4 + 3] = alpha;
+    }
+  }
   const idat = deflateSync(scanlines);
   return Buffer.concat([
     signature,
@@ -51,7 +59,7 @@ function transparentPng(width: number, height: number): Buffer {
   ]);
 }
 
-const validPrintPng = transparentPng(1024, 1536);
+const validPrintPng = rgbaPng(1024, 1536);
 
 describe('OpenAIDesignGateway production artwork model', () => {
   test('defaults to a transparency-compatible image model for print artwork', async () => {
@@ -84,11 +92,20 @@ describe('OpenAIDesignGateway production artwork model', () => {
 
   test('rejects a real PNG whose decoded dimensions do not match the printable request', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      data: [{ b64_json: transparentPng(1, 1).toString('base64') }],
+      data: [{ b64_json: rgbaPng(1, 1).toString('base64') }],
     }), { status: 200, headers: { 'content-type': 'application/json' } }));
     const gateway = new OpenAIDesignGateway({ apiKey: 'test-key', fetchImpl });
 
     await expect(gateway.generateArtwork(brief)).rejects.toThrow(/dimensions|1024|1536/i);
+  });
+
+  test('rejects a valid opaque PNG even when the provider request asked for a transparent background', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      data: [{ b64_json: rgbaPng(1024, 1536, 255).toString('base64') }],
+    }), { status: 200, headers: { 'content-type': 'application/json' } }));
+    const gateway = new OpenAIDesignGateway({ apiKey: 'test-key', fetchImpl });
+
+    await expect(gateway.generateArtwork(brief)).rejects.toThrow(/transparent|alpha/i);
   });
 
   test('keeps owner reinterpret feedback separate from the seven answer records', async () => {
