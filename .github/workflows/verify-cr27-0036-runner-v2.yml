@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - ops/cr-27-0036-runner-v2-20260901
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -37,9 +36,16 @@ jobs:
           set -euo pipefail
           git diff --name-only 6b64b3b000cff18db2ac27b8c5494b0c72670211...HEAD | sort > /tmp/actual
           printf '%s\n' \
+            '.engineering/CR27_0036_EXECUTE' \
             '.github/workflows/verify-cr27-0036-runner-v2.yml' \
-            'scripts/apply-approved-0036.mjs' | sort > /tmp/expected
-          diff -u /tmp/expected /tmp/actual
+            'scripts/apply-approved-0036.mjs' | sort > /tmp/allowed
+          if [ -n "$(comm -23 /tmp/actual /tmp/allowed)" ]; then
+            echo 'Unexpected file outside the isolated CR-27 migration runner:' >&2
+            comm -23 /tmp/actual /tmp/allowed >&2
+            exit 1
+          fi
+          grep -Fxq '.github/workflows/verify-cr27-0036-runner-v2.yml' /tmp/actual
+          grep -Fxq 'scripts/apply-approved-0036.mjs' /tmp/actual
 
       - name: Verify exact 0036 source contract without DB access
         run: node scripts/apply-approved-0036.mjs --contract-only
@@ -54,7 +60,10 @@ jobs:
         run: pnpm lint
 
   migrate-0036:
-    if: github.event_name == 'workflow_dispatch'
+    if: >-
+      github.event_name == 'push' &&
+      github.event.head_commit.message == 'ops(cr-27): execute approved 0036 migration' &&
+      contains(github.event.head_commit.added, '.engineering/CR27_0036_EXECUTE')
     needs: verify-runner
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -63,6 +72,13 @@ jobs:
     steps:
       - name: Checkout runner
         uses: actions/checkout@v4
+
+      - name: Verify one-time execution sentinel
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .engineering/CR27_0036_EXECUTE
+          test "$(cat .engineering/CR27_0036_EXECUTE)" = 'APPROVE_PRODUCTION_PREFLIGHT_0036_AND_DEPLOYMENT'
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
