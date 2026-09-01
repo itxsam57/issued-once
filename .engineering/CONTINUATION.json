@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.27.0",
+  "version": "1.28.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-01T06:42:00Z",
+  "updatedAt": "2026-09-01T06:49:22Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -25,12 +25,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "VERIFY_CR13_CR14_IMPLEMENTATION_EXACT_HEAD",
-    "reason": "CR-13/CR-14 RED coverage is now answered by a production implementation that validates actual PNG transparency at both provider and manual-upload ingress, binds manufacturing approval to the exact Printful physical selection, calculates effective DPI from the resolved placement, and persists the resulting checks through the existing DESIGN_APPROVED issue event. Exact-head engineering verification is the next required action; no production deployment or provider/factory side effect is authorized."
+    "decision": "ADVANCE_CR13_CR14_PR_INTEGRATION",
+    "reason": "CR-13/CR-14 production implementation at e62e808f7816a1f87231a328361bfabd3f532091 passed Full Engineering run 33478836227 / job 99763722261: unit tests, typecheck, lint and production build all succeeded. The change is backend/design-runtime only, so repository Browser QA path policy did not require customer UI proof. Provider/live candidate evidence remains required before DONE, but the code cycle is ready for PR integration without any production deployment or provider/factory side effect."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR13_CR14_IMPLEMENTATION_EXACT_HEAD_VERIFICATION_PENDING",
+    "internalWorkStatus": "CR13_CR14_EXACT_HEAD_GREEN_PR_INTEGRATION_READY",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
@@ -74,7 +74,10 @@
   "activeTask": {
     "consumerReadinessId": "CR-13+CR-14",
     "title": "Current artwork provider contract and real printable-image quality gate",
-    "status": "IMPLEMENTATION_COMMITTED_VERIFICATION_PENDING",
+    "status": "EXACT_HEAD_GREEN_PR_INTEGRATION_READY",
+    "featureBranch": "feat/cr-13-artwork-rendering",
+    "pullRequest": 61,
+    "verifiedImplementationHead": "e62e808f7816a1f87231a328361bfabd3f532091",
     "designBoundary": "Keep interpretation/artwork private and provider-replaceable; production generation must use a currently supported provider/model contract, and artwork acceptance must validate actual decoded image bytes and printable transparency/resolution rather than trusting metadata.",
     "requiredEvidence": [
       "inspect current interpretation/image-provider runtime and model assumptions against current supported contracts",
@@ -85,12 +88,25 @@
       "exact-head unit/typecheck/lint/production build and Browser QA only if customer/owner UI changes",
       "real generated candidate/provider proof remains live/provider evidence before DONE"
     ],
+    "redEvidence": [
+      "RED head 4d44c80b2a39c99d9d78066faf01d81000d2933a added provider-opaque, manual-upload-opaque and exact-template/effective-DPI regressions without production changes.",
+      "Full Engineering run 33470739855 failed the intentional RED unit slice on that exact test-only head."
+    ],
     "implementationEvidence": [
-      "Shared PNG validation now reconstructs PNG scanlines for filter types 0-4 and detects actual transparency, including alpha-channel and tRNS semantics, instead of trusting the requested provider background mode.",
+      "Shared PNG validation reconstructs PNG scanlines for filter types 0-4 and detects actual transparency, including alpha-channel and tRNS semantics, instead of trusting requested provider background metadata.",
       "OpenAI generation and owner manual-upload ingress both fail closed when decoded PNG pixels are fully opaque.",
-      "ArtworkQualityGate now requires the exact objectType:sizeCode:colorCode print template and records deterministic template/effective-DPI checks.",
-      "DesignService resolves the selected Printful mapping only at manufacturing approval, and PostgresDesignRepository already persists the returned checks in the DESIGN_APPROVED issue event.",
+      "ArtworkQualityGate requires the exact objectType:sizeCode:colorCode print template and records deterministic template/effective-DPI checks.",
+      "DesignService resolves the selected Printful mapping only at manufacturing approval, and PostgresDesignRepository persists returned checks in the DESIGN_APPROVED issue event.",
       "Design runtime resolves PRINTFUL_VARIANT_MAP_JSON lazily during approval so interpretation/generation does not acquire a new eager Printful configuration dependency."
+    ],
+    "greenEvidence": [
+      "Implementation commit e62e808f7816a1f87231a328361bfabd3f532091 answered the RED slice in production code and added approval-boundary integration regression coverage.",
+      "Full Engineering run 33478836227 / job 99763722261 PASS on exact implementation head: unit tests, typecheck, lint and production build all succeeded.",
+      "Browser QA was not required by repository path policy because this cycle changed backend/design-runtime and unit-test files, not customer or owner UI surfaces."
+    ],
+    "remainingLiveEvidence": [
+      "CR-13 remains CODE_READY until one real production-supported OpenAI interpretation/artwork candidate is generated and recorded without exposing private answers.",
+      "CR-14 remains CODE_READY until a real generated candidate is inspected through the actual selected Printful placement/template and its transparent printable contract is demonstrated end to end."
     ]
   },
   "standingOwnerGates": {
@@ -115,6 +131,6 @@
   },
   "nextAction": {
     "actor": "ENGINEERING",
-    "instruction": "Run the full exact-head engineering gate for the CR-13/CR-14 implementation. If any unit/typecheck/lint/build failure appears, diagnose the first causal failure from logs, fix production code at the root, and repeat exact-head verification. No production deployment, real provider charge, payment, Printful confirmation or Hostinger branch/environment mutation is authorized during this verification cycle."
+    "instruction": "Re-run Full Engineering on the exact documentation descendant, update PR #61 from RED-only wording to truthful implementation/evidence, mark it ready if the exact-head gate is green and mergeability is clean, merge with expected-head protection into infra/hostinger-migration-20260823, verify the resulting integration tree and post-merge CI, then reconcile the master-plan/continuation ledger before advancing to CR-15. No production deployment, real provider charge, payment, Printful confirmation or Hostinger branch/environment mutation is authorized."
   }
 }
