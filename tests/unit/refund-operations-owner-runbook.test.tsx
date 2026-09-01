@@ -47,7 +47,7 @@ test('owner refund runbook exposes provider reference and waits for verified pro
 
   render(<IssueDetailPanel issueId={issue.issueId} />);
 
-  expect(await screen.findByText('trk_refund_123')).toBeInTheDocument();
+  expect(await screen.findByText(/safepay reference:/i)).toHaveTextContent('trk_refund_123');
   expect(screen.getByText(/initiate the refund in safepay/i)).toBeInTheDocument();
   expect(screen.getByText(/verified safepay reconciliation/i)).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /refund|mark refunded/i })).not.toBeInTheDocument();
