@@ -29,3 +29,20 @@ jobs:
         run: pnpm lint
       - name: Production build
         run: pnpm build
+
+  cr27-canonical-domain-readonly:
+    if: github.event_name == 'pull_request' && github.head_ref == 'ops/cr-27-canonical-domain-readonly-proof-20260901'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      LIVE_PRODUCTION_URL: https://issuedonce.shop
+      EXPECTED_RELEASE_ID: 28ff7deb6b1fe7578c271131f1655fc46898cefd
+      LIVE_RELEASE_HEALTH_ATTEMPTS: '3'
+      LIVE_RELEASE_HEALTH_DELAY_MS: '1000'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Read-only canonical-domain release proof
+        run: node tests/e2e/live-release-health.mjs
