@@ -291,6 +291,39 @@ export class SafepayPaymentGateway implements PaymentGateway {
     return trackerCurrency === currency && quote.amount === input.amountMinor;
   }
 
+  async verifyRefundedTracker(input: {
+    providerReference: string;
+    amountMinor: number;
+    currency: string;
+  }): Promise<boolean> {
+    const providerReference = input.providerReference.trim();
+    if (!providerReference.startsWith('track_')) return false;
+    if (!Number.isSafeInteger(input.amountMinor) || input.amountMinor <= 0) return false;
+    const currency = input.currency.trim().toUpperCase();
+    assertCurrency(currency);
+
+    const response = await this.fetchImpl(
+      `${apiBase(this.options.environment)}/reporter/api/v1/payments/${encodeURIComponent(providerReference)}`,
+      { headers: this.secretHeaders(), cache: 'no-store' },
+    );
+    if (!response.ok) throw new Error('Safepay tracker verification failed');
+    const payload = (await response.json()) as TrackerLookupResponse;
+    if (payload.status?.errors?.length) throw new Error('Safepay tracker verification failed');
+    const tracker = unwrapTracker(payload.data);
+    if (!tracker) return false;
+    if (tracker.token?.trim() && tracker.token.trim() !== providerReference) return false;
+    const client = merchantClient(tracker.client);
+    if (client && client !== this.options.apiKey) return false;
+    if (tracker.state?.trim().toUpperCase() !== 'TRACKER_REFUNDED') return false;
+
+    const quote = tracker.purchase_totals?.quote_amount;
+    if (!quote?.currency?.trim() || quote.amount === undefined) return false;
+    if (!Number.isSafeInteger(quote.amount) || quote.amount <= 0) return false;
+    const trackerCurrency = quote.currency.trim().toUpperCase();
+    assertCurrency(trackerCurrency);
+    return trackerCurrency === currency && quote.amount === input.amountMinor;
+  }
+
   verifyWebhook(input: { rawBody: string; headers: Headers }): VerifiedPaymentEvent {
     let parsed: unknown;
     try {

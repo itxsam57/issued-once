@@ -9,6 +9,8 @@ import { createIssueService } from '@/server/issues/runtimeIssues';
 import { createManufacturingService } from '@/server/manufacturing/runtimeManufacturing';
 import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
 import { enqueueIssueNotification } from '@/server/notifications/notificationQueue';
+import { finalizeRefundedAttempt } from '@/server/payments/finalizeRefundedAttempt';
+import { createPaymentService } from '@/server/payments/runtimePayments';
 import { ManualArtworkUploadService } from './ManualArtworkUploadService';
 import { OpsAuditService } from './OpsAuditService';
 import { OpsDesignPolicyService } from './OpsDesignPolicyService';
@@ -17,6 +19,7 @@ import { OpsManufacturingService } from './OpsManufacturingService';
 import { OpsPrivateRevealService } from './OpsPrivateRevealService';
 import { OpsRecoveryService } from './OpsRecoveryService';
 import { OpsReferralService } from './OpsReferralService';
+import { OpsRefundService } from './OpsRefundService';
 import { OpsSupportService } from './OpsSupportService';
 import { OpsWebsiteService, opsCatalogSchema } from './OpsWebsiteService';
 import { PostgresOpsAttentionRepository } from './PostgresOpsAttentionRepository';
@@ -123,6 +126,15 @@ export function createOpsReferralService() {
     repository: new PostgresOpsReferralRepository(executor),
     audit: new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   });
+}
+export function createOpsRefundService() {
+  const executor = sql();
+  return new OpsRefundService(
+    new PostgresOpsIssueDetailRepository(executor),
+    createPaymentService(),
+    finalizeRefundedAttempt,
+    new OpsAuditService(new PostgresOpsAuditRepository(executor)),
+  );
 }
 export function createOpsSupportService() {
   const executor = sql();

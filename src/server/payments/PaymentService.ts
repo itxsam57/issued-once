@@ -186,6 +186,47 @@ export class PaymentService {
     return { kind: 'exception', paymentAttemptId: attempt.id };
   }
 
+  async reconcileRefund(input: { providerReference: string }): Promise<PaymentTruthResult> {
+    const providerReference = input.providerReference.trim();
+    if (!providerReference.startsWith('track_')) return { kind: 'exception' };
+
+    const attempt = await this.dependencies.payments.findByProviderReference(providerReference);
+    if (!attempt) return { kind: 'exception' };
+    if (attempt.status === 'REFUNDED') return { kind: 'refunded', paymentAttemptId: attempt.id };
+    if (attempt.status !== 'PAID') return { kind: 'exception', paymentAttemptId: attempt.id };
+
+    const verifyRefundedTracker = this.dependencies.gateway.verifyRefundedTracker;
+    if (!verifyRefundedTracker) return { kind: 'exception', paymentAttemptId: attempt.id };
+    const verified = await verifyRefundedTracker.call(this.dependencies.gateway, {
+      providerReference,
+      amountMinor: attempt.amountMinor,
+      currency: attempt.currency,
+    });
+    if (!verified) return { kind: 'pending', paymentAttemptId: attempt.id };
+
+    const refundedAt = this.now();
+    await this.dependencies.payments.recordProviderEvent({
+      provider: 'SAFEPAY',
+      providerEventId: `reporter-refund:${providerReference}`,
+      providerReference,
+      state: 'REFUNDED',
+      amountMinor: attempt.amountMinor,
+      currency: attempt.currency,
+      reference: null,
+      receivedAt: refundedAt,
+    });
+    const outcome = await this.dependencies.payments.markRefunded({
+      attemptId: attempt.id,
+      amountMinor: attempt.amountMinor,
+      currency: attempt.currency,
+      refundedAt,
+    });
+    if (outcome === 'refunded' || outcome === 'duplicate') {
+      return { kind: 'refunded', paymentAttemptId: attempt.id };
+    }
+    return { kind: 'exception', paymentAttemptId: attempt.id };
+  }
+
   async handleWebhook(input: { rawBody: string; headers: Headers }): Promise<PaymentTruthResult> {
     const event = this.dependencies.gateway.verifyWebhook(input);
     const attempt = await this.dependencies.payments.findByProviderReference(event.providerReference);
