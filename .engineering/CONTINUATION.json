@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.26.0",
+  "version": "1.28.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-31T21:06:00Z",
+  "updatedAt": "2026-09-01T06:49:22Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -25,12 +25,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "CONTINUE_CR13_CR14_CODE_SIDE_WITHOUT_PRODUCTION_SIDE_EFFECTS",
-    "reason": "CR-18 is code-ready and integrated. Production catalog access now fails closed without an ACTIVE owner publication, readiness exposes the same blocking authority requirement, and preview/dev continues through PreviewCatalogGateway. Deployed owner-published catalog proof remains a later live release gate and does not block the next code-side artwork-provider/quality task."
+    "decision": "ADVANCE_CR13_CR14_PR_INTEGRATION",
+    "reason": "CR-13/CR-14 production implementation at e62e808f7816a1f87231a328361bfabd3f532091 passed Full Engineering run 33478836227 / job 99763722261: unit tests, typecheck, lint and production build all succeeded. The change is backend/design-runtime only, so repository Browser QA path policy did not require customer UI proof. Provider/live candidate evidence remains required before DONE, but the code cycle is ready for PR integration without any production deployment or provider/factory side effect."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR18_CODE_READY_INTEGRATED_CR13_CR14_NEXT",
+    "internalWorkStatus": "CR13_CR14_EXACT_HEAD_GREEN_PR_INTEGRATION_READY",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
@@ -74,7 +74,10 @@
   "activeTask": {
     "consumerReadinessId": "CR-13+CR-14",
     "title": "Current artwork provider contract and real printable-image quality gate",
-    "status": "NEXT",
+    "status": "EXACT_HEAD_GREEN_PR_INTEGRATION_READY",
+    "featureBranch": "feat/cr-13-artwork-rendering",
+    "pullRequest": 61,
+    "verifiedImplementationHead": "e62e808f7816a1f87231a328361bfabd3f532091",
     "designBoundary": "Keep interpretation/artwork private and provider-replaceable; production generation must use a currently supported provider/model contract, and artwork acceptance must validate actual decoded image bytes and printable transparency/resolution rather than trusting metadata.",
     "requiredEvidence": [
       "inspect current interpretation/image-provider runtime and model assumptions against current supported contracts",
@@ -84,6 +87,26 @@
       "private storage/access behavior remains intact",
       "exact-head unit/typecheck/lint/production build and Browser QA only if customer/owner UI changes",
       "real generated candidate/provider proof remains live/provider evidence before DONE"
+    ],
+    "redEvidence": [
+      "RED head 4d44c80b2a39c99d9d78066faf01d81000d2933a added provider-opaque, manual-upload-opaque and exact-template/effective-DPI regressions without production changes.",
+      "Full Engineering run 33470739855 failed the intentional RED unit slice on that exact test-only head."
+    ],
+    "implementationEvidence": [
+      "Shared PNG validation reconstructs PNG scanlines for filter types 0-4 and detects actual transparency, including alpha-channel and tRNS semantics, instead of trusting requested provider background metadata.",
+      "OpenAI generation and owner manual-upload ingress both fail closed when decoded PNG pixels are fully opaque.",
+      "ArtworkQualityGate requires the exact objectType:sizeCode:colorCode print template and records deterministic template/effective-DPI checks.",
+      "DesignService resolves the selected Printful mapping only at manufacturing approval, and PostgresDesignRepository persists returned checks in the DESIGN_APPROVED issue event.",
+      "Design runtime resolves PRINTFUL_VARIANT_MAP_JSON lazily during approval so interpretation/generation does not acquire a new eager Printful configuration dependency."
+    ],
+    "greenEvidence": [
+      "Implementation commit e62e808f7816a1f87231a328361bfabd3f532091 answered the RED slice in production code and added approval-boundary integration regression coverage.",
+      "Full Engineering run 33478836227 / job 99763722261 PASS on exact implementation head: unit tests, typecheck, lint and production build all succeeded.",
+      "Browser QA was not required by repository path policy because this cycle changed backend/design-runtime and unit-test files, not customer or owner UI surfaces."
+    ],
+    "remainingLiveEvidence": [
+      "CR-13 remains CODE_READY until one real production-supported OpenAI interpretation/artwork candidate is generated and recorded without exposing private answers.",
+      "CR-14 remains CODE_READY until a real generated candidate is inspected through the actual selected Printful placement/template and its transparent printable contract is demonstrated end to end."
     ]
   },
   "standingOwnerGates": {
@@ -108,6 +131,6 @@
   },
   "nextAction": {
     "actor": "ENGINEERING",
-    "instruction": "Execute CR-13 + CR-14 from the canonical consumer-readiness master plan. Trace the current interpretation/image-generation provider wiring and ArtworkQualityGate against current supported provider contracts; create focused RED regressions for any obsolete provider/model assumption and for metadata-only acceptance of corrupt, opaque or under-resolution artwork; implement the smallest shared decoded-image quality boundary while preserving private/replaceable provider architecture; verify exact-head gates and integrate without production deployment, provider-charge, payment or factory side effects."
+    "instruction": "Re-run Full Engineering on the exact documentation descendant, update PR #61 from RED-only wording to truthful implementation/evidence, mark it ready if the exact-head gate is green and mergeability is clean, merge with expected-head protection into infra/hostinger-migration-20260823, verify the resulting integration tree and post-merge CI, then reconcile the master-plan/continuation ledger before advancing to CR-15. No production deployment, real provider charge, payment, Printful confirmation or Hostinger branch/environment mutation is authorized."
   }
 }

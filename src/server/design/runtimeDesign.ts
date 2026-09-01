@@ -1,4 +1,6 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
+import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
+import type { ArtworkPrintTemplateResolver } from './ArtworkQualityGate';
 import { DesignService } from './DesignService';
 import { FilesystemArtworkStorage } from './FilesystemArtworkStorage';
 import { OpenAIDesignGateway } from './OpenAIDesignGateway';
@@ -17,6 +19,18 @@ function env(name: string): string {
   return value;
 }
 
+const printTemplateResolver: ArtworkPrintTemplateResolver = {
+  resolve(input) {
+    const mapping = new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON')).resolve(input);
+    return {
+      ...input,
+      placementWidth: mapping.position.width,
+      placementHeight: mapping.position.height,
+      targetDpi: mapping.printArea.dpi,
+    };
+  },
+};
+
 export function createDesignService(): DesignService {
   const sql = createNeonSqlExecutor(env('DATABASE_URL'));
   return new DesignService(
@@ -27,5 +41,9 @@ export function createDesignService(): DesignService {
       imageModel: process.env.OPENAI_IMAGE_MODEL,
     }),
     new FilesystemArtworkStorage(env('ARTWORK_STORAGE_DIR')),
+    undefined,
+    undefined,
+    undefined,
+    printTemplateResolver,
   );
 }

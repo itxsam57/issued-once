@@ -2,6 +2,8 @@ export type ArtworkReviewCandidate = {
   issueId: string;
   designJobId: string;
   objectType: string;
+  sizeCode: string;
+  colorCode: string;
   state: 'QUEUED' | 'INTERPRETING' | 'GENERATING' | 'REVIEW' | 'APPROVED' | 'FAILED';
   artworkUrl: string | null;
   artworkMimeType: string | null;
@@ -9,6 +11,19 @@ export type ArtworkReviewCandidate = {
   width: number | null;
   height: number | null;
 };
+
+export type ArtworkPrintTemplate = {
+  objectType: string;
+  sizeCode: string;
+  colorCode: string;
+  placementWidth: number;
+  placementHeight: number;
+  targetDpi: number;
+};
+
+export interface ArtworkPrintTemplateResolver {
+  resolve(input: { objectType: string; sizeCode: string; colorCode: string }): ArtworkPrintTemplate;
+}
 
 const MIN_DIMENSIONS: Record<string, { width: number; height: number }> = {
   tee: { width: 1024, height: 1536 },
@@ -35,8 +50,28 @@ function validatePrivateArtworkLocator(candidate: ArtworkReviewCandidate): strin
   return 'storage:private-blob';
 }
 
+function exactTemplateKey(input: { objectType: string; sizeCode: string; colorCode: string }): string {
+  return `${input.objectType}:${input.sizeCode}:${input.colorCode}`;
+}
+
+function validateTemplate(candidate: ArtworkReviewCandidate, template: ArtworkPrintTemplate): string {
+  const candidateKey = exactTemplateKey(candidate);
+  const templateKey = exactTemplateKey(template);
+  if (templateKey !== candidateKey) {
+    throw new Error(`Print template mapping ${templateKey} does not match physical selection ${candidateKey}`);
+  }
+  if (
+    !Number.isFinite(template.placementWidth) || template.placementWidth <= 0
+    || !Number.isFinite(template.placementHeight) || template.placementHeight <= 0
+    || !Number.isFinite(template.targetDpi) || template.targetDpi <= 0
+  ) {
+    throw new Error('Print template placement/DPI values are invalid');
+  }
+  return templateKey;
+}
+
 export class ArtworkQualityGate {
-  validate(candidate: ArtworkReviewCandidate): { ok: true; checks: readonly string[] } {
+  validate(candidate: ArtworkReviewCandidate, template: ArtworkPrintTemplate): { ok: true; checks: readonly string[] } {
     const checks: string[] = [];
     if (candidate.state !== 'REVIEW') throw new Error('Artwork must be in review before approval');
     checks.push('state:review');
@@ -55,6 +90,17 @@ export class ArtworkQualityGate {
       throw new Error('Artwork resolution/dimensions are below the approved print profile');
     }
     checks.push(`dimensions:${candidate.width}x${candidate.height}`);
+
+    const templateKey = validateTemplate(candidate, template);
+    checks.push(`template:${templateKey}`);
+
+    const horizontalDpi = (candidate.width * template.targetDpi) / template.placementWidth;
+    const verticalDpi = (candidate.height * template.targetDpi) / template.placementHeight;
+    const effectiveDpi = Math.min(horizontalDpi, verticalDpi);
+    checks.push(`effective-dpi:${effectiveDpi.toFixed(2)}`);
+    if (effectiveDpi < template.targetDpi) {
+      throw new Error(`Artwork effective DPI ${effectiveDpi.toFixed(2)} is below the print placement target ${template.targetDpi}`);
+    }
 
     return { ok: true, checks };
   }

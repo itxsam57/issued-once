@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { decryptPrivatePayload, encryptPrivatePayload } from '@/server/crypto/privatePayload';
 import type { ArtworkStorageGateway } from './ArtworkStorageGateway';
 import { ArtworkQualityGate } from './ArtworkQualityGate';
+import type { ArtworkPrintTemplateResolver } from './ArtworkQualityGate';
 import type { DesignGateway, StructuredDesignBrief } from './DesignGateway';
 import type { DesignJobRecord, DesignRepository } from './DesignRepository';
 
@@ -20,6 +21,7 @@ export class DesignService {
     private readonly idGenerator: () => string = () => randomUUID(),
     private readonly now: () => Date = () => new Date(),
     private readonly qualityGate: ArtworkQualityGate = new ArtworkQualityGate(),
+    private readonly printTemplateResolver?: ArtworkPrintTemplateResolver,
   ) {}
 
   async createForIssue(issueId: string, ownerFeedback?: string): Promise<DesignJobRecord> {
@@ -156,18 +158,26 @@ export class DesignService {
     if (!input || !job) throw new Error('Design review is unavailable');
     if (job.state === 'APPROVED') return job;
     if (input.issueStatus !== 'DESIGN_REVIEW') throw new Error('Issue is not waiting for design approval');
+    if (!this.printTemplateResolver) throw new Error('Print template resolver is unavailable for design approval');
 
+    const template = this.printTemplateResolver.resolve({
+      objectType: input.objectType,
+      sizeCode: input.sizeCode,
+      colorCode: input.colorCode,
+    });
     const quality = this.qualityGate.validate({
       issueId,
       designJobId: job.id,
       objectType: input.objectType,
+      sizeCode: input.sizeCode,
+      colorCode: input.colorCode,
       state: job.state,
       artworkUrl: job.artworkUrl,
       artworkMimeType: job.artworkMimeType,
       artworkBytes: job.artworkBytes,
       width: job.width,
       height: job.height,
-    });
+    }, template);
     return this.repository.approve(job.id, quality.checks, this.now());
   }
 }
