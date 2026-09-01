@@ -1,5 +1,6 @@
 import type { ArtworkStorageGateway } from '@/server/design/ArtworkStorageGateway';
 import type { DesignPolicy } from '@/server/design/DesignPolicy';
+import { readValidatedPngDimensions } from '@/server/design/PngImage';
 import type { OpsAuditService } from './OpsAuditService';
 
 const MIN_DIMENSIONS: Record<string, { width: number; height: number }> = {
@@ -31,17 +32,6 @@ export interface ManualArtworkStore {
   }): Promise<{ candidateId: string }>;
 }
 
-function readPngDimensions(bytes: Buffer) {
-  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-  if (bytes.length < 24 || !bytes.subarray(0, 8).equals(signature) || bytes.subarray(12, 16).toString('ascii') !== 'IHDR') {
-    throw new Error('Manual artwork must be a valid PNG');
-  }
-  const width = bytes.readUInt32BE(16);
-  const height = bytes.readUInt32BE(20);
-  if (!width || !height) throw new Error('Manual artwork PNG dimensions are invalid');
-  return { width, height };
-}
-
 export class ManualArtworkUploadService {
   constructor(
     private readonly policies: ManualArtworkPolicyReader,
@@ -67,7 +57,7 @@ export class ManualArtworkUploadService {
     if (input.bytes.length < 10_000) throw new Error('Manual artwork bytes are empty or implausibly small');
 
     const prepared = await this.store.prepareManualUpload(input.issueId);
-    const { width, height } = readPngDimensions(input.bytes);
+    const { width, height } = readValidatedPngDimensions(input.bytes);
     const minimum = MIN_DIMENSIONS[prepared.objectType];
     if (!minimum) throw new Error('Object type has no approved print profile');
     if (width < minimum.width || height < minimum.height) {
