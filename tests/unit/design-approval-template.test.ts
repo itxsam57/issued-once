@@ -20,7 +20,7 @@ const job: DesignJobRecord = {
   issueId: 'issue-1',
   state: 'REVIEW',
   encryptedBrief: null,
-  artworkUrl: 'fs://issues/issue-1/design/job-1.png',
+  artworkUrl: 'artwork://issue-1/job-1',
   artworkMimeType: 'image/png',
   artworkBytes: 800_000,
   width: 1024,
@@ -50,9 +50,12 @@ function repositoryForApproval() {
 }
 
 const gateway = {} as DesignGateway;
-const storage = {} as ArtworkStorageGateway;
+const storage = {
+  put: vi.fn(async () => { throw new Error('not used'); }),
+  get: vi.fn(async () => ({ bytes: Buffer.alloc(800_000, 7), mimeType: 'image/png' as const })),
+} as unknown as ArtworkStorageGateway;
 
-test('manufacturing approval resolves the exact physical selection and persists template/DPI audit checks', async () => {
+test('manufacturing approval reopens durable bytes, resolves the exact physical selection and persists template/DPI audit checks', async () => {
   const { repository, approve } = repositoryForApproval();
   const resolver: ArtworkPrintTemplateResolver = {
     resolve: vi.fn(() => ({
@@ -67,6 +70,7 @@ test('manufacturing approval resolves the exact physical selection and persists 
   const service = new DesignService(repository, gateway, storage, undefined, undefined, undefined, resolver);
 
   await expect(service.approveForManufacturing('issue-1')).resolves.toMatchObject({ state: 'APPROVED' });
+  expect(storage.get).toHaveBeenCalledWith(job.artworkUrl);
   expect(resolver.resolve).toHaveBeenCalledWith({ objectType: 'tee', sizeCode: 'M', colorCode: 'Black' });
   const checks = approve.mock.calls[0]?.[1] ?? [];
   expect(checks).toContain('template:tee:M:Black');
