@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - ops/cr-27-0036-runner-v2-20260901
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -51,3 +52,36 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+
+  migrate-0036:
+    if: github.event_name == 'workflow_dispatch'
+    needs: verify-runner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Checkout runner
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Production preflight, apply exact 0036, and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "DATABASE_URL GitHub Actions secret is unavailable; no SQL executed." >&2
+            exit 20
+          fi
+          node scripts/apply-approved-0036.mjs
