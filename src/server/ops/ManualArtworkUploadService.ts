@@ -1,6 +1,6 @@
 import type { ArtworkStorageGateway } from '@/server/design/ArtworkStorageGateway';
 import type { DesignPolicy } from '@/server/design/DesignPolicy';
-import { readValidatedPngDimensions } from '@/server/design/PngImage';
+import { readValidatedPngImage } from '@/server/design/PngImage';
 import type { OpsAuditService } from './OpsAuditService';
 
 const MIN_DIMENSIONS: Record<string, { width: number; height: number }> = {
@@ -57,7 +57,8 @@ export class ManualArtworkUploadService {
     if (input.bytes.length < 10_000) throw new Error('Manual artwork bytes are empty or implausibly small');
 
     const prepared = await this.store.prepareManualUpload(input.issueId);
-    const { width, height } = readValidatedPngDimensions(input.bytes);
+    const { width, height, hasTransparency } = readValidatedPngImage(input.bytes);
+    if (!hasTransparency) throw new Error('Manual artwork PNG must contain transparent pixels');
     const minimum = MIN_DIMENSIONS[prepared.objectType];
     if (!minimum) throw new Error('Object type has no approved print profile');
     if (width < minimum.width || height < minimum.height) {

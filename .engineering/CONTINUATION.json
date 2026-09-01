@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.26.0",
+  "version": "1.27.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-31T21:06:00Z",
+  "updatedAt": "2026-09-01T06:42:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -25,12 +25,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "CONTINUE_CR13_CR14_CODE_SIDE_WITHOUT_PRODUCTION_SIDE_EFFECTS",
-    "reason": "CR-18 is code-ready and integrated. Production catalog access now fails closed without an ACTIVE owner publication, readiness exposes the same blocking authority requirement, and preview/dev continues through PreviewCatalogGateway. Deployed owner-published catalog proof remains a later live release gate and does not block the next code-side artwork-provider/quality task."
+    "decision": "VERIFY_CR13_CR14_IMPLEMENTATION_EXACT_HEAD",
+    "reason": "CR-13/CR-14 RED coverage is now answered by a production implementation that validates actual PNG transparency at both provider and manual-upload ingress, binds manufacturing approval to the exact Printful physical selection, calculates effective DPI from the resolved placement, and persists the resulting checks through the existing DESIGN_APPROVED issue event. Exact-head engineering verification is the next required action; no production deployment or provider/factory side effect is authorized."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR18_CODE_READY_INTEGRATED_CR13_CR14_NEXT",
+    "internalWorkStatus": "CR13_CR14_IMPLEMENTATION_EXACT_HEAD_VERIFICATION_PENDING",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
@@ -74,7 +74,7 @@
   "activeTask": {
     "consumerReadinessId": "CR-13+CR-14",
     "title": "Current artwork provider contract and real printable-image quality gate",
-    "status": "NEXT",
+    "status": "IMPLEMENTATION_COMMITTED_VERIFICATION_PENDING",
     "designBoundary": "Keep interpretation/artwork private and provider-replaceable; production generation must use a currently supported provider/model contract, and artwork acceptance must validate actual decoded image bytes and printable transparency/resolution rather than trusting metadata.",
     "requiredEvidence": [
       "inspect current interpretation/image-provider runtime and model assumptions against current supported contracts",
@@ -84,6 +84,13 @@
       "private storage/access behavior remains intact",
       "exact-head unit/typecheck/lint/production build and Browser QA only if customer/owner UI changes",
       "real generated candidate/provider proof remains live/provider evidence before DONE"
+    ],
+    "implementationEvidence": [
+      "Shared PNG validation now reconstructs PNG scanlines for filter types 0-4 and detects actual transparency, including alpha-channel and tRNS semantics, instead of trusting the requested provider background mode.",
+      "OpenAI generation and owner manual-upload ingress both fail closed when decoded PNG pixels are fully opaque.",
+      "ArtworkQualityGate now requires the exact objectType:sizeCode:colorCode print template and records deterministic template/effective-DPI checks.",
+      "DesignService resolves the selected Printful mapping only at manufacturing approval, and PostgresDesignRepository already persists the returned checks in the DESIGN_APPROVED issue event.",
+      "Design runtime resolves PRINTFUL_VARIANT_MAP_JSON lazily during approval so interpretation/generation does not acquire a new eager Printful configuration dependency."
     ]
   },
   "standingOwnerGates": {
@@ -108,6 +115,6 @@
   },
   "nextAction": {
     "actor": "ENGINEERING",
-    "instruction": "Execute CR-13 + CR-14 from the canonical consumer-readiness master plan. Trace the current interpretation/image-generation provider wiring and ArtworkQualityGate against current supported provider contracts; create focused RED regressions for any obsolete provider/model assumption and for metadata-only acceptance of corrupt, opaque or under-resolution artwork; implement the smallest shared decoded-image quality boundary while preserving private/replaceable provider architecture; verify exact-head gates and integrate without production deployment, provider-charge, payment or factory side effects."
+    "instruction": "Run the full exact-head engineering gate for the CR-13/CR-14 implementation. If any unit/typecheck/lint/build failure appears, diagnose the first causal failure from logs, fix production code at the root, and repeat exact-head verification. No production deployment, real provider charge, payment, Printful confirmation or Hostinger branch/environment mutation is authorized during this verification cycle."
   }
 }
