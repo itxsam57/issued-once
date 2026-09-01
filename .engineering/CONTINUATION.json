@@ -1,24 +1,26 @@
 {
   "schemaVersion": 1,
-  "version": "1.32.0",
+  "version": "1.33.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-01T10:47:00Z",
+  "updatedAt": "2026-09-01T11:08:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
+    "currentMigrationBranchHead": "74f6366e15915fd3d738e98cd3c1e757b5e9f447",
     "verifiedRuntimeIntegrationHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "verifiedRuntimeTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
+    "hostingerLinkedBranch": "release/hostinger-v10-candidate-20260825",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "plannedCanonicalDomain": "issuedonce.shop"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
+    "state": "BLOCKED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "CR-22 is code-ready and integrated. The next mapped step is the production preflight/deployment gate, which requires explicit owner approval before applying core migration 0036 or mutating the Hostinger production branch/deployment.",
+    "currentEngineeringStopReason": "Owner approval for production preflight, core migration 0036 and exact-release deployment was received. Read-only production metadata preflight identified the correct Neon project/production branch and confirmed artwork_objects is absent, but the connected Neon SQL/migration wrapper is currently unusable: projectId/branchId/databaseName are exposed by the connector schema while the underlying Neon MCP rejects them and requires project_id/branch_id/database_name. Because the required migration cannot be safely applied through the connected database authority, deployment is intentionally withheld.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -26,23 +28,23 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "STOP_AT_PRODUCTION_PREFLIGHT_GATE",
-    "reason": "CR-22 final runtime integration 6b64b3b000cff18db2ac27b8c5494b0c72670211 is tree-verified against fresh GREEN CI/Browser QA evidence. Refund initiation remains provider-side, full-refund truth is provider-derived, partial refunds are not promoted to REFUNDED, and no production/provider side effect occurred during the code cycle. The readiness master plan now moves next to production migration/deployment and CR-27 live boundary proof, all of which are explicitly owner-gated."
+    "decision": "BLOCK_ON_NEON_CONNECTOR_ARGUMENT_MAPPING",
+    "reason": "CR-27 preflight is partially complete and safe. GitHub integration head remains unchanged; production Neon target is unambiguous; repository migration 0036 is additive and production artwork_objects is absent; the existing Hostinger-linked release branch remains frozen at aa73848e and can fast-forward to verified runtime head 6b64b3b0 without changing hPanel branch selection after the schema gate is satisfied. Direct Neon read/query/migration operations cannot currently cross the connector boundary because of a reproducible argument-schema mismatch, so no migration or deployment mutation was performed."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR22_CODE_READY_INTEGRATED_OWNER_PRODUCTION_GATE",
+    "internalWorkStatus": "CR27_PREFLIGHT_BLOCKED_NEON_CONNECTOR",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
       "Require TDD RED before implementation for behavior changes, then exact-head unit/typecheck/lint/build and Browser QA where customer-facing.",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets.",
-      "Do not change the Hostinger selected branch or production environment variables without an explicit owner-gated deployment step.",
+      "Do not change the Hostinger selected branch or production environment variables; deploy by fast-forwarding the already-selected release branch only after the database schema gate is satisfied.",
       "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan.",
       "Keep Printful production confirmation disabled until the explicit manufacturing launch gate.",
       "Do not create real Safepay charges or refunds solely for QA.",
       "Do not apply referral migrations 0029, 0034 or 0035 to production without explicit production referral-activation approval.",
-      "Do not apply core migration 0036_durable_artwork_objects.sql to production without explicit production-migration approval and a read-only schema/data preflight.",
+      "The owner has approved core migration 0036 for this exact CR-27 release gate, but it must still pass the connected migration workflow and production verification before deployment.",
       "Do not send creator outreach until referral activation and owner launch gates are satisfied.",
       "Do not fabricate MERCHANT_PUBLIC_LOCATION; truthful merchant identity remains required before canonical launch."
     ]
@@ -51,39 +53,12 @@
     "consumerReadinessId": "CR-22",
     "title": "Refund operations and provider-derived reconciliation truth",
     "status": "CODE_READY_MERGED_AND_TREE_VERIFIED",
-    "integrationPullRequests": [68, 69],
-    "providerRedHead": "0247313684c70518a5b7d85cecb58e3287ace937",
-    "wordingRedHead": "b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f",
-    "providerImplementationHead": "3cf79dc4b8cacd3645c05dce2d503647245f1461",
-    "wordingFinalHead": "1b8c3a8fc641c70fb32cd646a167980313c39e7f",
-    "mainMergeCommit": "2daff7d1c4706e0dffed7c64947f27b03e8b9d44",
+    "integrationPullRequests": [
+      68,
+      69
+    ],
     "finalMergeCommit": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "verifiedTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
-    "redEvidence": [
-      "CI run 33497754475 / #1748 on 0247313684c70518a5b7d85cecb58e3287ace937 failed exactly 4 intended refund tests while 683 existing tests passed; Browser QA run 33497754384 / #1538 remained GREEN.",
-      "The missing contracts were PaymentService.reconcileRefund() and SafepayPaymentGateway.verifyRefundedTracker(), including explicit rejection of TRACKER_PARTIAL_REFUND.",
-      "CI run 33496733711 / #1742 on b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f failed the Owner runbook wording contract until full-refund initiation was explicit."
-    ],
-    "greenEvidence": [
-      "Provider final head 3cf79dc4b8cacd3645c05dce2d503647245f1461 passed CI run 33498342341 / #1751 and Browser QA run 33498342363 / #1541.",
-      "Synthetic merge 4522706219285b865751aff16adec1e48e5a4c92 and actual merge 2daff7d1c4706e0dffed7c64947f27b03e8b9d44 share exact tree db2493fc5e228aeb48372d48091fd2ca0d27cef6.",
-      "Refreshed wording head 1b8c3a8fc641c70fb32cd646a167980313c39e7f passed CI run 33498774577 / #1753 and Browser QA run 33498774814 / #1543.",
-      "Synthetic merge c1fdf64490d403ae18b7aa9551b1cf041b808a80 and actual final merge 6b64b3b000cff18db2ac27b8c5494b0c72670211 share exact tree c60126214c2de88731b912c6bdee26b7769d8fd4."
-    ],
-    "implementedContract": [
-      "Safepay Dashboard remains the refund initiator; there is no application refund-initiation endpoint or local mark-refunded button.",
-      "Signed Safepay refund webhook remains the automatic provider-truth path.",
-      "Authenticated Owner reconciliation can query the Issue's stored Safepay tracker through Reporter as a recovery path.",
-      "Only TRACKER_REFUNDED for the exact stored amount/currency can be accepted as a full refund; partial refund state remains pending/non-final.",
-      "The database still enforces exact PAID-to-REFUNDED money/currency matching and idempotent duplicate handling.",
-      "Webhook and Owner reconciliation share refund finalization side effects for Issue quarantine and referral reversal/notification."
-    ],
-    "remainingLiveEvidence": [
-      "Deploy the exact verified integration release after the owner-approved production preflight.",
-      "Execute one controlled real full refund through Safepay and capture provider evidence.",
-      "Prove signed webhook and/or authenticated Reporter reconciliation produces the same idempotent local REFUNDED truth and finalization side effects while partial refund state remains non-final.",
-      "CR-22 remains CODE_READY rather than DONE until that real provider proof exists."
-    ],
     "productionDeploymentPerformed": false,
     "productionEnvironmentChanged": false,
     "realSafepayRefundPerformed": false
@@ -91,16 +66,42 @@
   "activeTask": {
     "consumerReadinessId": "CR-27",
     "title": "Production preflight, exact release deployment and live boundary proof",
-    "status": "OWNER_REQUIRED",
-    "designBoundary": "Do not deploy the integrated release that depends on durable artwork storage until migration 0036 has passed a read-only production preflight and the owner explicitly approves applying it. Do not mutate the Hostinger linked branch or production environment without explicit owner approval.",
-    "requiredEvidence": [
-      "explicit owner approval for production migration 0036 and the production deployment/Hostinger branch mutation",
-      "read-only production schema/data preflight before any migration write",
-      "apply only approved core migration 0036; referral migrations remain untouched",
-      "deploy the exact verified integration release without rotating continuity-sensitive secrets",
-      "verify live release identity and strict CR-27 security/cache headers",
-      "then execute safe live-provider proofs in the master-plan order without creating unapproved real charges or Printful confirmations"
-    ]
+    "status": "BLOCKED",
+    "ownerApproval": {
+      "received": true,
+      "approvalPhrase": "APPROVE_PRODUCTION_PREFLIGHT_0036_AND_DEPLOYMENT",
+      "scope": [
+        "read-only production schema/data preflight",
+        "apply only db/migrations/0036_durable_artwork_objects.sql if safe",
+        "deploy verified runtime integration 6b64b3b000cff18db2ac27b8c5494b0c72670211 through the existing Hostinger selected release branch",
+        "run CR-27 exact-release and strict security/cache boundary proof"
+      ],
+      "doesNotAuthorize": [
+        "referral migrations 0029/0034/0035",
+        "real Safepay charge or refund",
+        "Printful production confirmation",
+        "secret rotation",
+        "Hostinger selected-branch change",
+        "canonical-domain cutover",
+        "creator outreach"
+      ]
+    },
+    "preflightEvidence": [
+      "GitHub active migration branch remained exactly 74f6366e15915fd3d738e98cd3c1e757b5e9f447 when approval execution began.",
+      "Verified runtime deployment target remains 6b64b3b000cff18db2ac27b8c5494b0c72670211 with verified runtime tree c60126214c2de88731b912c6bdee26b7769d8fd4.",
+      "Neon project search resolved a single project named issued once: autumn-butterfly-25489215; its default branch is production br-dawn-cloud-axm880q9 on PostgreSQL 18.",
+      "Read-only Neon production branch metadata resolved neondb and showed issues plus existing core tables; artwork_objects is absent, matching the expected pre-0036 state.",
+      "Repository history proves issues.id is UUID primary key; migration 0036 is create-only for artwork_objects plus its index and has no backfill or destructive statement.",
+      "Hostinger-linked release/hostinger-v10-candidate-20260825 remains exactly aa73848e9ef79905e8239f9fb4cc8fce244e04c6; verified runtime 6b64b3b0 is a clean descendant, so deployment can be a non-force fast-forward without changing hPanel branch selection."
+    ],
+    "blockerEvidence": [
+      "Neon get_database_tables using the connector-declared projectId/branchId arguments was rejected by the underlying MCP because it requires project_id/branch_id.",
+      "Neon run_sql reproduced the same validation mismatch before any SQL reached the database.",
+      "Neon get_connection_string reproduced the same validation mismatch; this is a connector argument-adapter defect rather than a database permission or project-selection error.",
+      "No production SQL write, Hostinger branch mutation, environment change, payment action, Printful action, referral activation or domain cutover occurred."
+    ],
+    "resumeCondition": "Resume when the Neon connector project/branch/database argument mapping is corrected, or after the owner independently applies exactly db/migrations/0036_durable_artwork_objects.sql to the verified production neondb and confirms completion. Before deployment, re-read production schema and verify artwork_objects is present with the expected constraints/index.",
+    "nextSafeDeploymentMutation": "After 0036 verification only, fast-forward release/hostinger-v10-candidate-20260825 from aa73848e9ef79905e8239f9fb4cc8fce244e04c6 to 6b64b3b000cff18db2ac27b8c5494b0c72670211 with force=false; do not change the Hostinger selected branch."
   },
   "standingOwnerGates": {
     "productionDeploymentOrHostingerBranchMutation": true,
@@ -127,7 +128,7 @@
     "canonicalDomainCutover": false
   },
   "nextAction": {
-    "actor": "OWNER",
-    "instruction": "Approve the production preflight/deployment gate if you want engineering to continue: authorize a read-only production schema/data preflight followed, only if safe, by applying core migration 0036_durable_artwork_objects.sql and deploying the exact verified integration release through the Hostinger production path. This approval does not authorize referral migrations, a real Safepay charge/refund, Printful production confirmation, secret rotation, or canonical-domain cutover."
+    "actor": "EXTERNAL_CONNECTOR_OR_OWNER",
+    "instruction": "Restore a working Neon SQL/migration connector path, then rerun the read-only production verification and apply only 0036 through the controlled migration workflow. If the owner instead applies 0036 manually in Neon, confirm only that exact migration was applied. After schema verification, engineering may use the already-granted approval to fast-forward the existing Hostinger release branch to verified runtime head 6b64b3b0 and run CR-27 live boundary proof. Do not deploy before 0036 is verified."
   }
 }
