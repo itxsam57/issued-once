@@ -15,9 +15,9 @@ const legacyBlob = {
   height: 1536,
 };
 
-const hostingerPrivate = {
+const durablePrivate = {
   ...legacyBlob,
-  artworkUrl: 'fs://issues/issue-1/design/job-1.png',
+  artworkUrl: 'artwork://issue-1/job-1',
 };
 
 const matchingTemplate = {
@@ -45,12 +45,14 @@ test('accepts legacy private Blob artwork with enough real production pixels for
   expect(validate(legacyBlob)).toEqual({ ok: true, checks: expect.any(Array) });
 });
 
-test('accepts the canonical Hostinger private filesystem artwork locator', () => {
-  expect(validate(hostingerPrivate)).toEqual({ ok: true, checks: expect.any(Array) });
+test('accepts the canonical durable private artwork locator', () => {
+  const result = validate(durablePrivate);
+  expect(result).toEqual({ ok: true, checks: expect.any(Array) });
+  expect(result.checks).toContain('storage:durable-private');
 });
 
-test('records exact template and effective-DPI evidence for an approvable candidate', () => {
-  const result = validate(hostingerPrivate);
+test('records exact template and effective-DPI evidence for an approvable durable candidate', () => {
+  const result = validate(durablePrivate);
   expect(result.checks).toContain('template:tee:M:Black');
   expect(result.checks.some((check) => check.startsWith('effective-dpi:'))).toBe(true);
 });
@@ -77,6 +79,8 @@ test.each([
   [{ ...legacyBlob, artworkUrl: 'http://unsafe.example/art.png' }, /https|private/i],
   [{ ...legacyBlob, artworkUrl: 'https://abc.public.blob.vercel-storage.com/issues/x.png' }, /private/i],
   [{ ...legacyBlob, artworkUrl: 'https://example.com/issues/issue-1/design/job-1.png' }, /private/i],
+  [{ ...legacyBlob, artworkUrl: 'fs://issues/issue-1/design/job-1.png' }, /durable|private|filesystem/i],
+  [{ ...legacyBlob, artworkUrl: 'artwork://other-issue/job-1' }, /canonical|locator|issue/i],
   [{ ...legacyBlob, artworkMimeType: 'image/jpeg' }, /png/i],
   [{ ...legacyBlob, artworkBytes: 0 }, /empty|bytes/i],
   [{ ...legacyBlob, width: 900, height: 1300 }, /resolution|dimensions|dpi/i],

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "version": "1.29.0",
+  "version": "1.30.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-01T07:05:00Z",
+  "updatedAt": "2026-09-01T08:35:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "405c8f3eb84a879d23c848616d3bfe8a5f159001",
+    "verifiedRuntimeIntegrationHead": "0e16159ce9fb6410c551a3f8925e452523a5d798",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
@@ -25,12 +25,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "ADVANCE_CR15_PERSISTENCE_AUDIT",
-    "reason": "CR-13/CR-14 is code-ready and integrated at 405c8f3eb84a879d23c848616d3bfe8a5f159001. Normal PR #63 carried exact verified head 18c8f4948b4fca6d2ecd788401b9ff8853072586 after the connected draft-to-ready mutation failed on GitHub's GraphQL fullDatabaseId schema mismatch. Wrapper PR CI runs 33479907470 and 33479964438 both passed unit tests, typecheck, lint and production build. The merge commit and verified PR head share exact tree b12d237f90a0daf2d6f64337520b1261af149214, so integrated code is byte-identical to the verified tree. Live/provider candidate proof remains required before DONE, but no owner input is needed to begin CR-15."
+    "decision": "INTEGRATE_CR15_CODE_READY",
+    "reason": "CR-15 code is exact-head green on c0222229633af667983330fb52822eec1a1211f3 after a TDD RED sequence ending at 223bbf80a9ba189e1f7af3c41e2887f2a7ce7730. CI run 33487241096 / job 99790082709 passed 226 test files / 674 tests, typecheck, lint and production build; Browser QA run 33487241103 / job 99790082471 passed. Production runtime now composes Postgres-backed private artwork storage, approval reopens integrity-checked bytes, and signed access no longer depends on deployment-local disk. Migration 0036 is repository/code-ready only and remains production-unapplied; no Hostinger, payment, factory, referral or production environment mutation occurred."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR13_CR14_CODE_READY_INTEGRATED_CR15_NEXT",
+    "internalWorkStatus": "CR15_CODE_READY_PENDING_INTEGRATION",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
@@ -41,6 +41,7 @@
       "Keep Printful production confirmation disabled until the explicit manufacturing launch gate.",
       "Do not create real Safepay charges solely for QA.",
       "Do not apply referral migrations 0029, 0034 or 0035 to production without explicit production referral-activation approval.",
+      "Do not apply core migration 0036_durable_artwork_objects.sql to production without the explicit production-migration approval checkpoint and a schema preflight.",
       "Do not send creator outreach until referral activation and owner launch gates are satisfied.",
       "Do not fabricate MERCHANT_PUBLIC_LOCATION; truthful merchant identity remains required before canonical launch."
     ]
@@ -57,6 +58,7 @@
     "implementationHead": "e62e808f7816a1f87231a328361bfabd3f532091",
     "finalFeatureHead": "18c8f4948b4fca6d2ecd788401b9ff8853072586",
     "mergeCommit": "405c8f3eb84a879d23c848616d3bfe8a5f159001",
+    "reconciliationMerge": "0e16159ce9fb6410c551a3f8925e452523a5d798",
     "verifiedTree": "b12d237f90a0daf2d6f64337520b1261af149214",
     "redEvidence": [
       "RED head 4d44c80b2a39c99d9d78066faf01d81000d2933a added opaque OpenAI/manual-upload and exact-template/effective-DPI regressions without production changes.",
@@ -68,7 +70,7 @@
       "Final feature/evidence head 18c8f4948b4fca6d2ecd788401b9ff8853072586 passed run 33479569299 / job 99765948288.",
       "Normal wrapper PR #63 exact-head runs 33479907470 / job 99766994725 and 33479964438 / job 99767164626 both passed unit tests, typecheck, lint and production build.",
       "Actual integration merge 405c8f3eb84a879d23c848616d3bfe8a5f159001 and verified PR head 18c8f4948b4fca6d2ecd788401b9ff8853072586 share exact tree b12d237f90a0daf2d6f64337520b1261af149214.",
-      "Browser QA was not required by repository path policy because this cycle changed backend/design-runtime and unit-test files, not customer or owner UI surfaces."
+      "Reconciliation PR #64 passed exact-head run 33480734062 and merged as 0e16159ce9fb6410c551a3f8925e452523a5d798."
     ],
     "implementedContract": [
       "Shared PNG validation reconstructs valid PNG scanlines, rejects corrupt structure, and detects real transparency including alpha-channel and tRNS semantics.",
@@ -87,21 +89,48 @@
   "activeTask": {
     "consumerReadinessId": "CR-15",
     "title": "Durable generated-artwork retention across redeploy/restart",
-    "status": "AUDIT_NEXT",
-    "designBoundary": "Generated and manually uploaded artwork must remain retrievable after application process restart and deployment replacement. Durable retention must not depend on ephemeral application filesystem state, must preserve private access semantics, and must remain provider-replaceable.",
-    "requiredEvidence": [
-      "trace every artwork write/read/delete path and identify whether any production path depends on local process filesystem state",
-      "prove current behavior with a focused restart/redeploy-style regression before changing implementation",
-      "select the existing durable storage authority if one already exists; otherwise introduce the smallest durable private storage boundary compatible with current runtime",
-      "preserve private artifact locator semantics and prevent public raw-answer or artwork leakage",
-      "prove generated and manual-uploaded artwork survive storage-gateway recreation and application-service recreation",
-      "prove missing/corrupt durable objects fail closed without silently accepting metadata-only records",
-      "exact-head unit/typecheck/lint/production build; Browser QA only if customer/owner UI changes",
-      "destructive deployed restart/redeploy recovery proof remains live evidence before DONE"
-    ]
+    "status": "CODE_READY_PENDING_INTEGRATION",
+    "featureBranch": "feat/cr-15-durable-artwork-storage",
+    "pullRequest": 65,
+    "baseHead": "0e16159ce9fb6410c551a3f8925e452523a5d798",
+    "redHeads": [
+      "490182a764d57083e9eab04633ee799b966438e9",
+      "5851b60f8f4c8e0cdd735dde0b7bcddcdc872fd4",
+      "223bbf80a9ba189e1f7af3c41e2887f2a7ce7730"
+    ],
+    "codeReadyHead": "c0222229633af667983330fb52822eec1a1211f3",
+    "designBoundary": "Generated and manually uploaded artwork use the existing Postgres durability authority rather than deployment-local filesystem state. Canonical artwork metadata remains private through artwork:// locators; external reads use bounded same-app signed URLs; approval reopens and verifies the durable object before advancing.",
+    "redEvidence": [
+      "Final RED CI run 33485518958 / job 99784566127 failed the intended new durable gateway, signed-access, approval and readiness boundaries before production implementation existed.",
+      "The RED suite proved the pre-change runtime still depended on fs:// locators, ARTWORK_STORAGE_DIR and metadata-only approval."
+    ],
+    "greenEvidence": [
+      "Implementation head 1ddbda386e029fdeb8329e2929e1e51cd0244ac6 replaced production filesystem composition with Postgres-backed durable private artwork storage.",
+      "Realm-safe BYTEA decode fix fce1d01ea09ec6b71bbe3201fa8985a141701ea1 converted the restart/recreation regression to GREEN; its exact CI reached 674/674 tests before exposing only compile-contract errors.",
+      "Code-ready head c0222229633af667983330fb52822eec1a1211f3 passed CI run 33487241096 / job 99790082709: 226 test files / 674 tests, typecheck, lint and production build.",
+      "Code-ready head c0222229633af667983330fb52822eec1a1211f3 passed Browser QA run 33487241103 / job 99790082471."
+    ],
+    "implementedContract": [
+      "Generated and owner-uploaded artwork writes use PostgresArtworkStorage and no production composition path instantiates FilesystemArtworkStorage.",
+      "Canonical private locators are artwork://<issue>/<artifact>; signed app URLs expose only bounded read tokens to the factory/customer boundary.",
+      "Durable reads verify canonical locator, PNG MIME type, byte count and SHA-256 integrity; missing or corrupt records fail closed.",
+      "Manufacturing approval reopens the durable object and rejects missing, corrupt or metadata-mismatched artwork before approval.",
+      "Release readiness checks the durable artwork relation plus safe signing/origin configuration instead of deployment-local filesystem write/read.",
+      "Migration 0036_durable_artwork_objects.sql defines the durable byte authority but is repository-only and not production-applied."
+    ],
+    "remainingEvidence": [
+      "Reverify the final evidence-only branch head, then integrate PR #65 with expected-head protection and verify the integration tree.",
+      "Before deploying code that requires artwork_objects, obtain explicit production-migration approval for 0036 and run a read-only schema/data preflight.",
+      "After approved migration/deployment, create or use a controlled private artwork object and prove the exact bytes survive destructive application restart/redeploy with signed access and integrity checks still working.",
+      "CR-15 must remain CODE_READY, not DONE, until that deployed destructive recovery proof exists."
+    ],
+    "productionMigration0036Applied": false,
+    "productionDeploymentPerformed": false,
+    "productionEnvironmentChanged": false
   },
   "standingOwnerGates": {
     "productionDeploymentOrHostingerBranchMutation": true,
+    "productionCoreMigration0036": true,
     "productionReferralMigrations": true,
     "realSafepayCharge": true,
     "printfulProductionConfirmation": true,
@@ -117,11 +146,12 @@
     "realSafepayQaCharge": false,
     "printfulProductionConfirmation": false,
     "referralMigrationsApplied": false,
+    "coreMigration0036Applied": false,
     "creatorLaunchOutreachSent": false,
     "canonicalDomainCutover": false
   },
   "nextAction": {
     "actor": "ENGINEERING",
-    "instruction": "Integrate this reconciliation through an exact-head green PR, then execute CR-15 autonomously: trace artwork storage write/read/delete and runtime composition from the verified integration head; create the smallest focused RED regression that reproduces loss across storage/service recreation or identifies existing durable proof; fix the root cause without production deployment or provider/factory side effects; verify exact-head gates and update the master-plan/continuation evidence."
+    "instruction": "Require exact-head GREEN CI and Browser QA on the final CR-15 evidence head, review PR #65 for scope/privacy/migration safety, then merge into infra/hostinger-migration-20260823 with expected-head protection. Verify the merge tree and reconcile the continuation/master-plan integration SHA. Do not apply 0036, deploy production, mutate Hostinger, enable Printful confirmation, create a real Safepay charge, or activate referral migrations during integration. After CR-15 code integration, advance autonomously to CR-22 while CR-15 production migration/deployed restart proof remains owner/live-gated."
   }
 }

@@ -32,18 +32,46 @@ const MIN_DIMENSIONS: Record<string, { width: number; height: number }> = {
   hat: { width: 1024, height: 1024 },
 };
 
+const SAFE_DURABLE_SEGMENT = /^[A-Za-z0-9_:-]+$/;
+
+function validateDurableLocator(candidate: ArtworkReviewCandidate, value: string): string {
+  const key = value.slice('artwork://'.length);
+  const segments = key.split('/');
+  if (
+    segments.length !== 2
+    || segments.some((segment) => !segment || !SAFE_DURABLE_SEGMENT.test(segment))
+  ) {
+    throw new Error('Production artwork durable locator is invalid');
+  }
+  const [issueId, artifactId] = segments;
+  if (issueId !== candidate.issueId) {
+    throw new Error('Production artwork durable locator does not match the Issue');
+  }
+  const manualPrefix = `${candidate.designJobId}-owner-upload:`;
+  if (artifactId !== candidate.designJobId && !artifactId.startsWith(manualPrefix)) {
+    throw new Error('Production artwork durable locator is not canonical for this design');
+  }
+  return 'storage:durable-private';
+}
+
 function validatePrivateArtworkLocator(candidate: ArtworkReviewCandidate): string {
   const value = candidate.artworkUrl;
   if (!value) throw new Error('Artwork URL is missing');
 
-  const url = new URL(value);
-  if (url.protocol === 'fs:') {
-    const expected = `fs://issues/${candidate.issueId}/design/${candidate.designJobId}.png`;
-    if (value !== expected) throw new Error('Production artwork must use the canonical private filesystem locator');
-    return 'storage:private-filesystem';
+  if (value.startsWith('artwork://')) {
+    return validateDurableLocator(candidate, value);
+  }
+  if (value.startsWith('fs://')) {
+    throw new Error('Production artwork must use durable private storage, not a deployment filesystem');
   }
 
-  if (url.protocol !== 'https:') throw new Error('Artwork URL must use HTTPS or the private filesystem locator');
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error('Artwork URL must use private durable storage');
+  }
+  if (url.protocol !== 'https:') throw new Error('Artwork URL must use HTTPS or durable private storage');
   if (!url.hostname.endsWith('.private.blob.vercel-storage.com')) {
     throw new Error('Production artwork must use private storage');
   }

@@ -265,19 +265,19 @@ export class ReadinessService {
       }
     }
 
-    const storageConfigured = present(this.env, 'ARTWORK_STORAGE_DIR', 'ARTWORK_SIGNING_KEY', 'APP_ORIGIN');
+    const storageConfigured = present(this.env, 'DATABASE_URL', 'ARTWORK_SIGNING_KEY', 'APP_ORIGIN');
     const storageConfigSafe = hasSafeSecret(this.env.ARTWORK_SIGNING_KEY) && hasHttpsOrigin(this.env.APP_ORIGIN);
     if (!storageConfigured) {
-      checks.push({ key: 'storage', label: 'Private artwork storage', state: 'missing', detail: 'Private artwork directory, signing key, and HTTPS application origin are required.' });
+      checks.push({ key: 'storage', label: 'Private artwork storage', state: 'missing', detail: 'Database authority, artwork signing key, and HTTPS application origin are required.' });
     } else if (!storageConfigSafe) {
       checks.push({ key: 'storage', label: 'Private artwork storage', state: 'blocked', detail: 'Private artwork signing or application-origin configuration is unsafe.' });
     } else {
       try {
         checks.push(await this.dependencies.storagePing()
-          ? { key: 'storage', label: 'Private artwork storage', state: 'ready', detail: 'Private filesystem write/read boundary is available.' }
-          : { key: 'storage', label: 'Private artwork storage', state: 'blocked', detail: 'Private filesystem boundary is unavailable.' });
+          ? { key: 'storage', label: 'Private artwork storage', state: 'ready', detail: 'Durable private artwork database boundary is available.' }
+          : { key: 'storage', label: 'Private artwork storage', state: 'blocked', detail: 'Durable private artwork database boundary is unavailable.' });
       } catch {
-        checks.push({ key: 'storage', label: 'Private artwork storage', state: 'blocked', detail: 'Private filesystem boundary is unavailable.' });
+        checks.push({ key: 'storage', label: 'Private artwork storage', state: 'blocked', detail: 'Durable private artwork database boundary is unavailable.' });
       }
     }
 

@@ -159,6 +159,16 @@ export class DesignService {
     if (job.state === 'APPROVED') return job;
     if (input.issueStatus !== 'DESIGN_REVIEW') throw new Error('Issue is not waiting for design approval');
     if (!this.printTemplateResolver) throw new Error('Print template resolver is unavailable for design approval');
+    if (!job.artworkUrl) throw new Error('Artwork is unavailable');
+
+    const stored = await this.storage.get(job.artworkUrl);
+    if (
+      stored.mimeType !== job.artworkMimeType
+      || !job.artworkBytes
+      || stored.bytes.length !== job.artworkBytes
+    ) {
+      throw new Error('Artwork integrity metadata does not match the durable object');
+    }
 
     const template = this.printTemplateResolver.resolve({
       objectType: input.objectType,

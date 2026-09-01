@@ -26,6 +26,15 @@ export function createStorageReadWritePing(rootValue: string): () => Promise<boo
   };
 }
 
+export function createArtworkStorageSchemaPing(sql: QueryExecutor): () => Promise<boolean> {
+  return async () => {
+    const rows = await sql.query<{ relation_name: string | null }>(
+      "SELECT to_regclass('public.artwork_objects')::text AS relation_name",
+    );
+    return rows[0]?.relation_name === 'artwork_objects';
+  };
+}
+
 export function createQueueSchemaPing(sql: QueryExecutor): () => Promise<boolean> {
   return async () => {
     const rows = await sql.query<{ relation_name: string | null }>(

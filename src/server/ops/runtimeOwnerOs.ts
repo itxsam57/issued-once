@@ -3,7 +3,7 @@ import { createDesignService } from '@/server/design/runtimeDesign';
 import { enqueueDesignIssue } from '@/server/design/designQueue';
 import { dispatchPaidIssueDesign } from '@/server/design/designDispatch';
 import { DesignPolicyWorkflowService } from '@/server/design/DesignPolicyWorkflowService';
-import { FilesystemArtworkStorage } from '@/server/design/FilesystemArtworkStorage';
+import { PostgresArtworkStorage } from '@/server/design/PostgresArtworkStorage';
 import { PostgresDesignPolicyRepository } from '@/server/design/PostgresDesignPolicyRepository';
 import { createIssueService } from '@/server/issues/runtimeIssues';
 import { createManufacturingService } from '@/server/manufacturing/runtimeManufacturing';
@@ -101,7 +101,7 @@ export function createManualArtworkUploadService() {
   return new ManualArtworkUploadService(
     new PostgresDesignPolicyRepository(executor),
     new PostgresOpsDesignerStore(executor),
-    new FilesystemArtworkStorage(env('ARTWORK_STORAGE_DIR')),
+    new PostgresArtworkStorage(executor),
     { approve: (issueId) => createDesignPolicyWorkflowService().afterOwnerApproval(issueId) },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );

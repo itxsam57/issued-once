@@ -2,8 +2,8 @@ import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
 import type { ArtworkPrintTemplateResolver } from './ArtworkQualityGate';
 import { DesignService } from './DesignService';
-import { FilesystemArtworkStorage } from './FilesystemArtworkStorage';
 import { OpenAIDesignGateway } from './OpenAIDesignGateway';
+import { PostgresArtworkStorage } from './PostgresArtworkStorage';
 import { PostgresDesignRepository } from './PostgresDesignRepository';
 
 export class DesignRuntimeUnavailableError extends Error {
@@ -40,7 +40,7 @@ export function createDesignService(): DesignService {
       interpretationModel: process.env.OPENAI_DESIGN_MODEL,
       imageModel: process.env.OPENAI_IMAGE_MODEL,
     }),
-    new FilesystemArtworkStorage(env('ARTWORK_STORAGE_DIR')),
+    new PostgresArtworkStorage(sql),
     undefined,
     undefined,
     undefined,

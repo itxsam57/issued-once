@@ -36,7 +36,7 @@ export class ManualArtworkUploadService {
   constructor(
     private readonly policies: ManualArtworkPolicyReader,
     private readonly store: ManualArtworkStore,
-    private readonly storage: ArtworkStorageGateway,
+    private readonly storage: Pick<ArtworkStorageGateway, 'put'>,
     private readonly actions: { approve(issueId: string): Promise<unknown> },
     private readonly audit: Pick<OpsAuditService, 'record'>,
     private readonly keyGenerator: () => string = () => crypto.randomUUID(),

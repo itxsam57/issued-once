@@ -1,5 +1,5 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
-import { createQueueSchemaPing, createStorageReadWritePing } from '@/server/runtime/releaseBoundaries';
+import { createArtworkStorageSchemaPing, createQueueSchemaPing } from '@/server/runtime/releaseBoundaries';
 import { ReadinessService } from './ReadinessService';
 
 export function createReadinessService() {
@@ -22,9 +22,8 @@ export function createReadinessService() {
       return rows[0]?.ok === 1;
     },
     storagePing: async () => {
-      const root = env.ARTWORK_STORAGE_DIR?.trim();
-      if (!root) return false;
-      return createStorageReadWritePing(root)();
+      if (!sql) return false;
+      return createArtworkStorageSchemaPing(sql)();
     },
     queuePing: async () => {
       if (!sql) return false;
