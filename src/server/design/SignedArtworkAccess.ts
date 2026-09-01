@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 const MAX_READ_WINDOW_MS = 6 * 24 * 60 * 60 * 1000;
-const SAFE_SEGMENT = /^[A-Za-z0-9._-]+$/;
+const SAFE_SEGMENT = /^[A-Za-z0-9._:-]+$/;
 
 export interface ArtworkAccessGateway {
   createReadUrl(canonicalUrl: string, ttlMs: number): Promise<string>;
@@ -26,7 +26,8 @@ function validateKey(key: string): string {
   }
   const segments = key.split('/');
   if (
-    segments.some((segment) => !segment || segment === '.' || segment === '..' || !SAFE_SEGMENT.test(segment))
+    segments.length !== 2
+    || segments.some((segment) => !segment || segment === '.' || segment === '..' || !SAFE_SEGMENT.test(segment))
   ) {
     throw new Error('Artwork locator path is invalid');
   }
@@ -34,8 +35,8 @@ function validateKey(key: string): string {
 }
 
 function keyFromLocator(locator: string): string {
-  if (!locator.startsWith('fs://')) throw new Error('Artwork locator must be private');
-  return validateKey(locator.slice('fs://'.length));
+  if (!locator.startsWith('artwork://')) throw new Error('Artwork locator must use durable private storage');
+  return validateKey(locator.slice('artwork://'.length));
 }
 
 export class SignedArtworkAccess implements ArtworkAccessGateway {
@@ -73,8 +74,8 @@ export class SignedArtworkAccess implements ArtworkAccessGateway {
     const providedBuffer = Buffer.from(signature, 'utf8');
     const expectedBuffer = Buffer.from(expected, 'utf8');
     if (
-      providedBuffer.length !== expectedBuffer.length ||
-      !timingSafeEqual(providedBuffer, expectedBuffer)
+      providedBuffer.length !== expectedBuffer.length
+      || !timingSafeEqual(providedBuffer, expectedBuffer)
     ) {
       throw new Error('Artwork token signature is invalid');
     }
@@ -86,10 +87,10 @@ export class SignedArtworkAccess implements ArtworkAccessGateway {
       throw new Error('Artwork token is invalid');
     }
     if (
-      !parsed ||
-      typeof parsed !== 'object' ||
-      typeof (parsed as TokenPayload).key !== 'string' ||
-      !Number.isSafeInteger((parsed as TokenPayload).expiresAtMs)
+      !parsed
+      || typeof parsed !== 'object'
+      || typeof (parsed as TokenPayload).key !== 'string'
+      || !Number.isSafeInteger((parsed as TokenPayload).expiresAtMs)
     ) {
       throw new Error('Artwork token is invalid');
     }

@@ -1,6 +1,10 @@
-import { readFile } from 'node:fs/promises';
-import { relative, resolve, sep } from 'node:path';
 import { SignedArtworkAccess } from '@/server/design/SignedArtworkAccess';
+import {
+  ArtworkIntegrityError,
+  ArtworkUnavailableError,
+  PostgresArtworkStorage,
+} from '@/server/design/PostgresArtworkStorage';
+import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
 
 function env(name: string): string {
   const value = process.env[name]?.trim();
@@ -8,20 +12,11 @@ function env(name: string): string {
   return value;
 }
 
-function resolvePrivateArtwork(rootValue: string, key: string): string {
-  const root = resolve(rootValue);
-  const target = resolve(root, ...key.split('/'));
-  const rel = relative(root, target);
-  if (!rel || rel === '..' || rel.startsWith(`..${sep}`) || resolve(root, rel) !== target) {
-    throw new Error('Artwork path is invalid');
-  }
-  return target;
-}
-
 export async function GET(
   _request: Request,
   context: { params: Promise<{ token: string }> },
 ) {
+  let key: string;
   try {
     const { token } = await context.params;
     const access = new SignedArtworkAccess(
@@ -29,22 +24,28 @@ export async function GET(
       env('APP_ORIGIN'),
       () => new Date(Date.now()),
     );
-    const verified = access.verifyToken(token);
-    const file = resolvePrivateArtwork(env('ARTWORK_STORAGE_DIR'), verified.key);
-    const bytes = await readFile(file);
-    return new Response(bytes, {
+    key = access.verifyToken(token).key;
+  } catch {
+    return Response.json({ error: 'Artwork access is invalid' }, { status: 401 });
+  }
+
+  try {
+    const storage = new PostgresArtworkStorage(
+      createNeonSqlExecutor(env('DATABASE_URL')),
+    );
+    const artwork = await storage.get(`artwork://${key}`);
+    return new Response(artwork.bytes, {
       status: 200,
       headers: {
-        'content-type': 'image/png',
+        'content-type': artwork.mimeType,
         'cache-control': 'private, no-store, max-age=0',
         'x-content-type-options': 'nosniff',
       },
     });
   } catch (error) {
-    const code = error instanceof Error ? (error as NodeJS.ErrnoException).code : undefined;
-    if (code === 'ENOENT') {
+    if (error instanceof ArtworkUnavailableError || error instanceof ArtworkIntegrityError) {
       return Response.json({ error: 'Artwork is unavailable' }, { status: 404 });
     }
-    return Response.json({ error: 'Artwork access is invalid' }, { status: 401 });
+    return Response.json({ error: 'Artwork is temporarily unavailable' }, { status: 503 });
   }
 }
