@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.35.2",
+  "version": "1.35.3",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-01T16:03:49Z",
+  "updatedAt": "2026-09-01T16:49:01Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -23,7 +23,7 @@
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "CR-27 core migration 0036, exact Hostinger release deployment, strict security/cache proof, and the corrected non-OTP live boundary audit are now verified. The remaining launch-readiness failures are owner-controlled production configuration/data gates: production has no owner-published ACTIVE catalog; Safepay runtime is intentionally fail-closed unavailable; Printful webhook runtime is intentionally fail-closed unavailable; the GitHub live-support proof lacks INTERNAL_OPERATIONS_TOKEN; and canonical-domain cutover remains separately unapproved. Engineering must not fabricate catalog/provider truth, change Hostinger environment variables, or perform a real payment/factory confirmation without the applicable owner gate.",
+    "currentEngineeringStopReason": "The owner supplied the matching INTERNAL_OPERATIONS_TOKEN to GitHub Actions and live support proof attempt 3 reached exact release 28ff7deb, but the request was blocked at HTTP 410 by the legacy internal-route proxy before the authenticated support-canary handler could run. A minimal TDD fix now allows only /api/internal/support-canary in addition to the existing jobs/drain exception while all retired internal surfaces remain locked. The correction is merged into the active migration branch and exact-head/post-merge CI plus Browser QA are GREEN. Production still runs 28ff7deb; promoting this new verified correction through the existing Hostinger-selected branch is a new production deployment mutation and requires explicit owner approval.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -31,12 +31,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "STOP_AT_PRODUCTION_READINESS_OWNER_GATES",
-    "reason": "Fresh production evidence proves deployed release wrapper 28ff7deb has tree c6012621, byte-identical to verified runtime 6b64b3b0. Strict header run 33526755370 job 99920257942 passed. Read-only diagnostic run 33526598947 job 99918918445 proves required production tables exist but catalog rows=0 and ACTIVE catalog rows=0. The original boundary run 33525915578 exposed a stale harness expectation for three provider-gated routes. Isolated read-only proof PR 78 then ran 33527773379 job 99922906669 against exact live release 28ff7deb and passed only when Safepay webhook, Printful webhook, and payment create returned their exact safe 503 unavailable bodies while shipping reached Postgres and returned 409. The corrected harness was integrated via PR 79 at merge 3398a55399b747553bbce9d0bf9bdf820e5d4e14; exact-head and post-merge CI/Browser QA are green. Support rerun job 99919493724 reached exact release then stopped only because GitHub QA has no INTERNAL_OPERATIONS_TOKEN."
+    "decision": "STOP_AT_CR27_SUPPORT_CANARY_FIX_DEPLOYMENT_GATE",
+    "reason": "Support proof run 33525915577 attempt 3 job 99937465228 proved the GitHub secret is present and masked, verified exact live release 28ff7deb, then received HTTP 410 Legacy endpoint is disabled from /api/internal/support-canary. Root cause was src/proxy.ts decommissioning every /api/internal/* path except jobs/drain. Draft PR 82 recorded RED run 33532543723 job 99938956338: exactly the new support-canary reachability test failed 410-versus-200 while 687 existing tests passed. Fix head c4f8f6a6b4af11631f238c143496874c1143c423 passed CI run 33533005008 job 99940495961. Normal PR 83 independently passed CI run 33533417781 job 99941813348 and merged at c51864ad5868cc9d84f57b99794b6223049fca6e. Post-merge CI run 33533745465 job 99942882005 and Browser QA run 33533745468 job 99942881731 are GREEN. No Hostinger branch/environment, provider configuration, catalog, real payment/refund, or manufacturing state was changed."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR27_DEPLOYED_SECURITY_AND_BOUNDARY_PROVEN_OWNER_READINESS_GATES",
+    "internalWorkStatus": "CR27_SUPPORT_CANARY_PROXY_FIX_VERIFIED_DEPLOYMENT_OWNER_GATE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan and CR-27 evidence checkpoint as the release evidence ledger.",
@@ -225,17 +225,19 @@
       "Exact live release identity is proven from multiple independent Actions jobs.",
       "Strict security/cache boundary proof is GREEN.",
       "Corrected live non-OTP boundary audit is GREEN against exact release 28ff7deb, with provider-unavailable responses accepted only under exact privacy-safe 503 contracts.",
-      "The corrected boundary contract is integrated through PR 79 and its exact-head/post-merge CI and Browser QA are GREEN."
+      "The corrected boundary contract is integrated through PR 79 and its exact-head/post-merge CI and Browser QA are GREEN.",
+      "Owner completed the GitHub Actions INTERNAL_OPERATIONS_TOKEN gate; attempt 3 proved the secret is present/masked and reached exact live release 28ff7deb before a proxy-level 410.",
+      "CR-27 support-canary proxy correction is TDD-verified and integrated at c51864ad5868cc9d84f57b99794b6223049fca6e; post-merge CI 33533745465 and Browser QA 33533745468 are GREEN."
     ],
     "remainingOwnerEvidence": [
+      "Approve deployment of the exact verified support-canary proxy correction through the existing Hostinger-selected v2 branch, without changing the selected branch or environment; then rerun the exact live support persistence proof.",
       "Publish/activate an owner-authorized production catalog, then rerun the physical customer smoke.",
       "Inspect/configure Safepay runtime values in Hostinger; rerun non-charge boundary checks. Do not perform a real charge without separate approval.",
       "Inspect/configure Printful webhook runtime values in Hostinger; rerun signature boundary checks. Do not confirm production manufacturing without separate approval.",
-      "Optionally add INTERNAL_OPERATIONS_TOKEN as a GitHub Actions secret to complete the automated live support persistence proof.",
       "Canonical-domain cutover to issuedonce.shop remains a separate owner gate and was not performed."
     ],
-    "resumeCondition": "Resume after the owner completes any one of the remaining production-readiness configuration/data gates and reports only that it is done. Do not ask for secret values. Re-run the corresponding exact live proof after each owner action.",
-    "nextSafeDeploymentMutation": "None required. The verified runtime tree is already live through wrapper 28ff7deb on the existing Hostinger-selected v2 branch.",
+    "resumeCondition": "Resume immediately after the owner explicitly approves the CR-27 support-canary proxy-fix production deployment, or after the owner completes another remaining production-readiness gate. Do not ask for secret values. For the support gate, promote only the exact verified correction through the existing Hostinger-selected branch and rerun the exact live proof.",
+    "nextSafeDeploymentMutation": "OWNER APPROVAL REQUIRED: promote the exact verified support-canary correction integrated at c51864ad5868cc9d84f57b99794b6223049fca6e through the existing Hostinger-selected release/hostinger-v2-candidate-20260824 branch without changing Hostinger environment values or selected branch, then rerun support persistence proof.",
     "executionHistory": {
       "preflightEvidence": [
         "GitHub active migration branch was exactly 74f6366e15915fd3d738e98cd3c1e757b5e9f447 when approval execution began.",
@@ -302,6 +304,42 @@
           "merge": "75212fa5fd15a46d4425cef1a4e7c47cdb4ecddc"
         }
       ]
+    },
+    "supportCanaryProxyCorrection": {
+      "githubActionsTokenGate": "PRESENT_MASKED_MATCHING_VALUE_SUPPLIED_BY_OWNER",
+      "liveProofRun": 33525915577,
+      "liveProofAttempt": 3,
+      "liveProofJob": 99937465228,
+      "verifiedLiveRelease": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
+      "exactReleaseGate": "PASS",
+      "observedFailure": "HTTP 410 with exact body Legacy endpoint is disabled before handler authentication/persistence",
+      "rootCause": "src/proxy.ts decommissioned all /api/internal/* paths except /api/internal/jobs/drain, making the authenticated /api/internal/support-canary handler unreachable",
+      "redDraftPullRequest": 82,
+      "redDraftDisposition": "CLOSED_UNMERGED_AFTER_CONNECTOR_READY_FOR_REVIEW_SCHEMA_FAILURE",
+      "redHead": "cb0ea86e9035028da3b6a7f0037f9ed894fcd7b7",
+      "redRun": 33532543723,
+      "redJob": 99938956338,
+      "redResult": "PASS_AS_RED: exactly 1 intended new failure; 687 existing tests passed",
+      "implementationHead": "c4f8f6a6b4af11631f238c143496874c1143c423",
+      "implementationRun": 33533005008,
+      "implementationJob": 99940495961,
+      "implementationResult": "PASS: 688 tests, typecheck, lint, production build",
+      "integrationPullRequest": 83,
+      "integrationVerificationRun": 33533417781,
+      "integrationVerificationJob": 99941813348,
+      "integrationVerificationResult": "PASS: 688 tests, typecheck, lint, production build",
+      "integrationMerge": "c51864ad5868cc9d84f57b99794b6223049fca6e",
+      "integrationTree": "85e52c1d584cb00dc8cc98619d30deeaf4254378",
+      "postMergeCiRun": 33533745465,
+      "postMergeCiJob": 99942882005,
+      "postMergeCiResult": "PASS: unit tests, typecheck, lint, production build",
+      "postMergeBrowserQaRun": 33533745468,
+      "postMergeBrowserQaJob": 99942881731,
+      "postMergeBrowserQaResult": "PASS",
+      "productionDeploymentPerformed": false,
+      "liveSupportPersistenceProven": false,
+      "hostingerEnvironmentChanged": false,
+      "providerConfigurationChanged": false
     }
   },
   "standingOwnerGates": {
@@ -333,10 +371,13 @@
     "coreMigration0036NewlyCreatedByRunner": false,
     "activeProductionCatalogCount": 0,
     "creatorLaunchOutreachSent": false,
-    "canonicalDomainCutover": false
+    "canonicalDomainCutover": false,
+    "supportCanaryFixIntegrationHead": "c51864ad5868cc9d84f57b99794b6223049fca6e",
+    "supportCanaryFixIntegrationTree": "85e52c1d584cb00dc8cc98619d30deeaf4254378",
+    "supportCanaryFixDeployed": false
   },
   "nextAction": {
     "actor": "OWNER",
-    "instruction": "Choose the next production-readiness gate to satisfy without sharing secrets in chat: (1) publish/activate the production catalog; (2) inspect/configure Safepay runtime values in Hostinger; (3) inspect/configure Printful webhook runtime values in Hostinger; (4) add INTERNAL_OPERATIONS_TOKEN to GitHub Actions for the live support proof; or separately approve/perform the canonical-domain cutover when ready. Engineering will rerun the corresponding live proof after the owner reports completion."
+    "instruction": "Reply exactly APPROVE_CR27_SUPPORT_CANARY_FIX_DEPLOYMENT to authorize promotion of the verified c51864ad support-canary proxy correction through the existing Hostinger-selected v2 branch, with no selected-branch or environment changes. Engineering will then deploy, verify exact live release identity/security, and rerun the support persistence proof. Other catalog/Safepay/Printful/domain gates remain separate."
   }
 }
