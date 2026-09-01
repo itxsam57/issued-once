@@ -1,0 +1,47 @@
+name: CR-27 Live Release Proof
+
+on:
+  push:
+    branches:
+      - ops/cr-27-live-proof-20260901
+
+permissions:
+  contents: read
+
+jobs:
+  live-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
+      EXPECTED_RELEASE_ID: 6b64b3b000cff18db2ac27b8c5494b0c72670211
+      LIVE_RELEASE_HEALTH_ATTEMPTS: '36'
+      LIVE_RELEASE_HEALTH_DELAY_MS: '10000'
+    steps:
+      - name: Checkout isolated proof branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Verify proof diff is isolated from exact release
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git diff --name-only 6b64b3b000cff18db2ac27b8c5494b0c72670211...HEAD)" = '.github/workflows/verify-cr27-live-release.yml'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.23.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: pnpm
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install chromium
+      - name: Prove exact live release and readiness
+        run: node tests/e2e/live-release-health.mjs
+      - name: Enforce strict security and cache headers
+        run: node tests/e2e/live-security-headers.mjs
+      - name: Prove non-OTP live authorization boundaries
+        run: node tests/e2e/live-non-otp-boundaries.mjs
