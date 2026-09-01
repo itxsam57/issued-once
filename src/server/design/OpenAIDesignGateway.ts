@@ -5,6 +5,7 @@ import type {
   DesignRevisionContext,
   StructuredDesignBrief,
 } from './DesignGateway';
+import { readValidatedPngDimensions } from './PngImage';
 
 type Options = {
   apiKey: string;
@@ -178,12 +179,16 @@ export class OpenAIDesignGateway implements DesignGateway {
     if (!encoded) throw new Error('OpenAI artwork response is missing image data');
     const bytes = Buffer.from(encoded, 'base64');
     if (!bytes.length) throw new Error('OpenAI artwork response is empty');
+    const { width, height } = readValidatedPngDimensions(bytes);
+    if (width !== 1024 || height !== 1536) {
+      throw new Error(`OpenAI artwork dimensions must be 1024x1536; got ${width}x${height}`);
+    }
 
     return {
       bytes,
       mimeType: 'image/png' as const,
-      width: 1024,
-      height: 1536,
+      width,
+      height,
       provider: 'OPENAI',
       model: this.imageModel,
     };
