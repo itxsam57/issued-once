@@ -50,7 +50,9 @@ function validateLocator(locator: string): string {
 
 function bytesFromDatabase(value: ArtworkRow['bytes']): Buffer {
   if (Buffer.isBuffer(value)) return Buffer.from(value);
-  if (value instanceof Uint8Array) return Buffer.from(value);
+  if (ArrayBuffer.isView(value)) {
+    return Buffer.from(value.buffer, value.byteOffset, value.byteLength);
+  }
   if (typeof value === 'string' && /^\\x[0-9a-f]*$/i.test(value)) {
     return Buffer.from(value.slice(2), 'hex');
   }
