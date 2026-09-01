@@ -5,6 +5,11 @@ const LEGACY_EXACT_PATHS = new Set([
   '/api/webhooks/fourthwall',
 ]);
 
+const ACTIVE_INTERNAL_PATHS = new Set([
+  '/api/internal/jobs/drain',
+  '/api/internal/support-canary',
+]);
+
 const SECURITY_HEADERS = {
   'strict-transport-security': 'max-age=31536000; includeSubDomains',
   'x-content-type-options': 'nosniff',
@@ -14,7 +19,7 @@ const SECURITY_HEADERS = {
 } as const;
 
 function isDecommissioned(pathname: string) {
-  if (pathname === '/api/internal/jobs/drain') return false;
+  if (ACTIVE_INTERNAL_PATHS.has(pathname)) return false;
   return LEGACY_EXACT_PATHS.has(pathname) || pathname.startsWith('/api/internal/');
 }
 
