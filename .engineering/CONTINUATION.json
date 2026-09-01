@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.34.2",
+  "version": "1.35.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-01T12:41:29Z",
+  "updatedAt": "2026-09-01T15:39:30Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -10,16 +10,20 @@
     "activeMigrationPullRequest": 13,
     "verifiedRuntimeIntegrationHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "verifiedRuntimeTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
-    "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
-    "hostingerLinkedBranch": "release/hostinger-v10-candidate-20260825",
-    "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
+    "liveReleaseHead": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
+    "liveReleaseTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
+    "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
+    "hostingerLinkedBranchHead": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
+    "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
+    "combinedCandidateBranchHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
+    "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "CR-27 production migration 0036 and exact-release deployment remain owner-approved. The connected Neon project-scoped SQL/migration adapter still rejects its declared camelCase arguments before SQL can reach Neon. Engineering fully exercised the isolated one-time GitHub Actions fallback through exact execution head 2c7da6528dfde7f5c87e6585fbe578bfc7c83bf8. Run 33508570582 passed the complete verification gate and the newly-added execution-sentinel proof, then migration job 99859147633 stopped with exit code 20 because the repository Actions secret DATABASE_URL is absent. The log explicitly states no SQL executed. The only preferred owner action remaining is to add the production Neon connection string directly as repository Actions secret DATABASE_URL and report completion; engineering can then rerun the exact failed migration job. Deployment remains intentionally withheld until 0036 postflight verification succeeds.",
+    "currentEngineeringStopReason": "CR-27 core migration 0036, exact Hostinger release deployment, and strict security/cache proof are now verified. The remaining launch-readiness failures are owner-controlled production configuration/data gates: production has no owner-published ACTIVE catalog; Safepay runtime is unavailable; Printful webhook runtime is unavailable; the GitHub live-support proof lacks INTERNAL_OPERATIONS_TOKEN; and canonical-domain cutover remains separately unapproved. Engineering must not fabricate catalog/provider truth, change Hostinger environment variables, or perform a real payment/factory confirmation without the applicable owner gate.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -27,24 +31,25 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "STOP_AT_DATABASE_URL_OWNER_GATE",
-    "reason": "The database target, exact migration source, runtime release and deployment lineage are unambiguous. The retired fallback failed before SQL because Node 20 was incompatible with pnpm 11.23.0 and DATABASE_URL was absent. The replacement runner was based directly on verified runtime 6b64b3b0 and corrected to Node 24. Its first one-time execution attempt at 28372c4a05a902a6fa251e2f3f8729a6286da625 proved GitHub push metadata could not safely attest the newly-added sentinel, so migration was skipped and no SQL ran. The trigger was then fixed at 629d5cc6575d7b756f77954ae4fa55fdeeb856d3 to attest the sentinel from checked-out Git history; run 33508318562 passed all verification with migration skipped on the non-execution commit. The final re-armed execution head 2c7da6528dfde7f5c87e6585fbe578bfc7c83bf8 passed all verification and sentinel checks; migration job 99859147633 reached the database preflight step and failed solely because DATABASE_URL was blank, explicitly before SQL execution."
+    "decision": "STOP_AT_PRODUCTION_READINESS_OWNER_GATES",
+    "reason": "Fresh production evidence proves the deployed release wrapper 28ff7deb has tree c6012621, byte-identical to verified runtime 6b64b3b0. Run 33526755370 latest job 99920257942 proves exact live release identity and strict security/cache headers. Read-only diagnostic run 33526598947 job 99918918445 proves required production tables exist but catalog rows=0 and ACTIVE catalog rows=0. Boundary run 33525915578 reached the exact release and found Safepay webhook 503, Printful webhook 503, and payment create 503, consistent with provider runtimes unavailable. Support rerun job 99919493724 reached exact release then stopped only because GitHub QA has no INTERNAL_OPERATIONS_TOKEN."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR27_0036_EXECUTION_BLOCKED_DATABASE_URL",
+    "internalWorkStatus": "CR27_DEPLOYED_SECURITY_PROVEN_OWNER_READINESS_GATES",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
-      "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
-      "Require TDD RED before implementation for behavior changes, then exact-head unit/typecheck/lint/build and Browser QA where customer-facing.",
+      "Use the consumer-readiness master plan and CR-27 evidence checkpoint as the release evidence ledger.",
+      "Require TDD RED before product behavior changes, then exact-head unit/typecheck/lint/build and Browser QA where customer-facing.",
       "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets.",
-      "Do not change the Hostinger selected branch or production environment variables; deploy by fast-forwarding the already-selected release branch only after the database schema gate is satisfied.",
+      "The actual Hostinger selected/linked branch is release/hostinger-v2-candidate-20260824; release/hostinger-v10-candidate-20260825 is a combined candidate and must not be treated as the deployed branch.",
+      "Do not change the Hostinger selected branch or production environment variables without explicit owner approval.",
       "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan.",
       "Keep Printful production confirmation disabled until the explicit manufacturing launch gate.",
       "Do not create real Safepay charges or refunds solely for QA.",
       "Do not apply referral migrations 0029, 0034 or 0035 to production without explicit production referral-activation approval.",
-      "The owner has approved core migration 0036 for this exact CR-27 release gate, but it must still pass production preflight/postflight verification before deployment.",
-      "Keep the CR-27 0036 fallback isolated on ops/cr-27-0036-runner-v2-20260901. Exact execution commit 2c7da6528dfde7f5c87e6585fbe578bfc7c83bf8 already contains the correctly attested one-time sentinel. After the owner adds DATABASE_URL, rerun failed migration job 99859147633 from run 33508570582 rather than creating another trigger commit.",
+      "Core migration 0036 is production-verified; do not rerun migration trigger commits or broaden migration scope.",
+      "Do not publish or activate catalog truth by direct production mutation without a separate owner-authorized catalog action.",
       "Do not send creator outreach until referral activation and owner launch gates are satisfied.",
       "Do not fabricate MERCHANT_PUBLIC_LOCATION; truthful merchant identity remains required before canonical launch."
     ]
@@ -53,42 +58,16 @@
     "consumerReadinessId": "CR-22",
     "title": "Refund operations and provider-derived reconciliation truth",
     "status": "CODE_READY_MERGED_AND_TREE_VERIFIED",
-    "integrationPullRequests": [68, 69],
-    "providerRedHead": "0247313684c70518a5b7d85cecb58e3287ace937",
-    "wordingRedHead": "b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f",
-    "providerImplementationHead": "3cf79dc4b8cacd3645c05dce2d503647245f1461",
-    "wordingFinalHead": "1b8c3a8fc641c70fb32cd646a167980313c39e7f",
-    "mainMergeCommit": "2daff7d1c4706e0dffed7c64947f27b03e8b9d44",
+    "integrationPullRequests": [
+      68,
+      69
+    ],
     "finalMergeCommit": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "verifiedTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
-    "redEvidence": [
-      "CI run 33497754475 / #1748 on 0247313684c70518a5b7d85cecb58e3287ace937 failed exactly 4 intended refund tests while 683 existing tests passed; Browser QA run 33497754384 / #1538 remained GREEN.",
-      "The missing contracts were PaymentService.reconcileRefund() and SafepayPaymentGateway.verifyRefundedTracker(), including explicit rejection of TRACKER_PARTIAL_REFUND.",
-      "CI run 33496733711 / #1742 on b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f failed the Owner runbook wording contract until full-refund initiation was explicit."
-    ],
-    "greenEvidence": [
-      "Provider final head 3cf79dc4b8cacd3645c05dce2d503647245f1461 passed CI run 33498342341 / #1751 and Browser QA run 33498342363 / #1541.",
-      "Synthetic merge 4522706219285b865751aff16adec1e48e5a4c92 and actual merge 2daff7d1c4706e0dffed7c64947f27b03e8b9d44 share exact tree db2493fc5e228aeb48372d48091fd2ca0d27cef6.",
-      "Refreshed wording head 1b8c3a8fc641c70fb32cd646a167980313c39e7f passed CI run 33498774577 / #1753 and Browser QA run 33498774814 / #1543.",
-      "Synthetic merge c1fdf64490d403ae18b7aa9551b1cf041b808a80 and actual final merge 6b64b3b000cff18db2ac27b8c5494b0c72670211 share exact tree c60126214c2de88731b912c6bdee26b7769d8fd4."
-    ],
-    "implementedContract": [
-      "Safepay Dashboard remains the refund initiator; there is no application refund-initiation endpoint or local mark-refunded button.",
-      "Signed Safepay refund webhook remains the automatic provider-truth path.",
-      "Authenticated Owner reconciliation can query the Issue's stored Safepay tracker through Reporter as a recovery path.",
-      "Only TRACKER_REFUNDED for the exact stored amount/currency can be accepted as a full refund; partial refund state remains pending/non-final.",
-      "The database still enforces exact PAID-to-REFUNDED money/currency matching and idempotent duplicate handling.",
-      "Webhook and Owner reconciliation share refund finalization side effects for Issue quarantine and referral reversal/notification."
-    ],
     "remainingLiveEvidence": [
-      "Deploy the exact verified integration release after the owner-approved production preflight.",
-      "Execute one controlled real full refund through Safepay and capture provider evidence.",
-      "Prove signed webhook and/or authenticated Reporter reconciliation produces the same idempotent local REFUNDED truth and finalization side effects while partial refund state remains non-final.",
-      "CR-22 remains CODE_READY rather than DONE until that real provider proof exists."
-    ],
-    "productionDeploymentPerformed": false,
-    "productionEnvironmentChanged": false,
-    "realSafepayRefundPerformed": false
+      "Execute one controlled real full refund through Safepay only under its separate owner gate.",
+      "Prove signed webhook and/or authenticated Reporter reconciliation produces the same idempotent local REFUNDED truth while partial refund state remains non-final."
+    ]
   },
   "activeTask": {
     "consumerReadinessId": "CR-27",
@@ -113,75 +92,121 @@
         "creator outreach"
       ]
     },
-    "preflightEvidence": [
-      "GitHub active migration branch was exactly 74f6366e15915fd3d738e98cd3c1e757b5e9f447 when approval execution began.",
-      "Verified runtime deployment target remains 6b64b3b000cff18db2ac27b8c5494b0c72670211 with verified runtime tree c60126214c2de88731b912c6bdee26b7769d8fd4.",
-      "Neon project search resolved a single project named issued once: autumn-butterfly-25489215; its default branch is production br-dawn-cloud-axm880q9 on PostgreSQL 18.",
-      "Read-only Neon production branch metadata resolved neondb and showed issues plus existing core tables; artwork_objects is absent, matching the expected pre-0036 state.",
-      "Repository history proves issues.id is UUID primary key; migration 0036 is create-only for artwork_objects plus its index and has no backfill or destructive statement.",
-      "Hostinger-linked release/hostinger-v10-candidate-20260825 remains exactly aa73848e9ef79905e8239f9fb4cc8fce244e04c6; verified runtime 6b64b3b0 is a clean descendant, and fresh compare evidence shows 281 commits ahead and 0 behind with aa73848e as the merge base, so deployment remains a non-force fast-forward after the schema gate.",
-      "Current-session Neon describe_project again reproduced the connector camelCase-to-snake_case argument mismatch before any database operation.",
-      "The retired GitHub Actions fallback run 33501588310 failed before SQL: Node 20 was incompatible with pnpm 11.23.0 and DATABASE_URL was empty; install/migration steps never executed.",
-      "Replacement branch ops/cr-27-0036-runner-v2-20260901 was created directly from exact verified runtime 6b64b3b000cff18db2ac27b8c5494b0c72670211 and contains only the exact-0036 helper plus guarded workflow infrastructure and the one-time execution sentinel.",
-      "First one-time execution head 28372c4a05a902a6fa251e2f3f8729a6286da625 / run 33508091342 passed the complete verification gate but migration was skipped because github.event.head_commit.added did not reliably attest the sentinel; no SQL executed.",
-      "Trigger-fix head 629d5cc6575d7b756f77954ae4fa55fdeeb856d3 replaced push-payload sentinel detection with checked-out Git-history verification. Run 33508318562 passed isolated diff, exact 0036 contract, unit tests, typecheck and lint; migration skipped on the non-execution commit.",
-      "Final execution head 2c7da6528dfde7f5c87e6585fbe578bfc7c83bf8 / run 33508570582 passed verification job 99858440402 completely. Migration job 99859147633 passed checkout, newly-added sentinel verification, Node 24 setup and locked dependency installation before reaching the database step."
-    ],
-    "blockerEvidence": [
-      "Neon get_database_tables using the connector-declared projectId/branchId arguments was rejected by the underlying MCP because it requires project_id/branch_id.",
-      "Neon run_sql reproduced the same validation mismatch before any SQL reached the database.",
-      "Neon get_connection_string reproduced the same validation mismatch; this is a connector argument-adapter defect rather than a database permission or project-selection error.",
-      "Current-session Neon describe_project reproduced the same adapter defect again on 2026-09-01 immediately before the final GitHub fallback execution.",
-      "Migration job 99859147633 from run 33508570582 showed DATABASE_URL blank in the Actions environment and exited with code 20 at the explicit credential preflight. Its log states: DATABASE_URL GitHub Actions secret is unavailable; no SQL executed.",
-      "No production SQL write, Hostinger branch mutation, environment change, payment action, Printful action, referral activation or domain cutover occurred."
-    ],
     "migrationRunner": {
       "branch": "ops/cr-27-0036-runner-v2-20260901",
-      "baseRuntimeHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
-      "workflowHead": "629d5cc6575d7b756f77954ae4fa55fdeeb856d3",
       "executionHead": "2c7da6528dfde7f5c87e6585fbe578bfc7c83bf8",
       "workflow": ".github/workflows/verify-cr27-0036-runner-v2.yml",
       "helper": "scripts/apply-approved-0036.mjs",
-      "verificationRun": 33508570582,
-      "verificationJob": 99858440402,
+      "run": 33508570582,
+      "verificationJobInitial": 99858440402,
+      "migrationJobInitialBlocked": 99859147633,
+      "migrationJobSuccessfulRerun": 99911484696,
       "verificationResult": "PASS",
-      "migrationJob": 99859147633,
-      "migrationResult": "BLOCKED_NO_DATABASE_URL_EXIT_20",
+      "migrationResult": "PASS_ALREADY_COMPATIBLE_INDEX_PRESENT",
+      "preflight": "issues=present artwork_objects=present-compatible",
+      "postflight": "artwork_objects=already-compatible index=present",
       "sentinelVerification": "PASS",
-      "sqlExecuted": false,
-      "productionMutationTrigger": "newly_added_.engineering/CR27_0036_EXECUTE_with_exact_commit_message",
-      "requiredTriggerFileContent": "APPROVE_PRODUCTION_PREFLIGHT_0036_AND_DEPLOYMENT",
-      "requiredTriggerCommitMessage": "ops(cr-27): execute approved 0036 migration",
+      "sqlExecuted": true,
+      "newSchemaObjectCreatedByRerun": false,
       "requiredSecret": "DATABASE_URL",
-      "secretPresent": false,
-      "ownerMustManuallyRunWorkflow": false,
-      "resumeAction": "Rerun failed migration job 99859147633 after owner adds DATABASE_URL; no new trigger commit is required."
+      "secretPresent": true,
+      "resumeAction": "None. The 0036 production schema gate is satisfied."
     },
-    "previousGovernanceCheckpoint": {
-      "pullRequest": 74,
-      "head": "6be4f69c7a6d199a53e13b610279c78f0157f791",
-      "ciRun": 33506462445,
-      "ciRunNumber": 1765,
-      "ciResult": "PASS: unit tests, typecheck, lint and production build all succeeded",
-      "actualMerge": "1342f8436d4acd5041177b225b466e44dc5d7ecb",
-      "verifiedTree": "0a810868aed4b14b930462774d7ad653a7116014"
+    "deploymentEvidence": {
+      "initialIncorrectGovernanceBranch": "release/hostinger-v10-candidate-20260825",
+      "actualHostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
+      "previousActualLiveHead": "da03726503e1308a8703db0ced94941ae2be9582",
+      "rootCause": "Historical governance explicitly identified v2 as Hostinger-linked and v10 as the combined candidate. Later continuation drift mislabeled v10 as linked. Live health independently returned da037265, proving v2 remained selected.",
+      "previousLiveHeadRelationToVerifiedRuntime": "da037265 is three commits ahead of verified runtime 6b64b3b0; only the Hostinger 0036 helper/workflow and build-hook ops delta were added.",
+      "releaseWrapper": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
+      "releaseWrapperParent": "da03726503e1308a8703db0ced94941ae2be9582",
+      "releaseWrapperTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
+      "verifiedRuntimeTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
+      "treeIdentity": "PASS",
+      "linkedBranchFastForwarded": true,
+      "forceUsed": false,
+      "hostingerSelectedBranchChanged": false,
+      "hostingerEnvironmentChanged": false,
+      "liveIdentityEvidence": [
+        "Hostinger Live Boundary Audit run 33525915578 reached LIVE_RELEASE_HEALTH_PASS provider=hostinger release=28ff7deb6b1fe7578c271131f1655fc46898cefd version=0.1.0.",
+        "Hostinger Temporary Release Proof run 33525915658 reached the same exact live release before its customer-flow finding.",
+        "Support proof rerun job 99919493724 reached the same exact live release before its GitHub QA token gate.",
+        "Strict header rerun job 99920257942 reached the same exact live release."
+      ]
     },
-    "governanceCheckpoint": {
-      "pullRequest": 75,
-      "head": "5266448712586865cfe4753805a339afc4bc2133",
-      "ciRun": 33507263438,
-      "ciRunNumber": 1767,
-      "ciResult": "PASS: unit tests, typecheck, lint and production build all succeeded",
-      "actualMerge": "4d0ffda0b2d519115973fa0cad71b77bd5ee50c5",
-      "verifiedTree": "7ff0efa1b91dc514fc2e8e1f542ed5b90bc3e806",
-      "treeIdentity": "PR head 52664487 and merge 4d0ffda0 share exact tree 7ff0efa1."
+    "securityCacheProof": {
+      "proofBranch": "engineering/live-header-proof-20260826",
+      "proofHead": "2d5fbaa0f1f45e49aa6db77b4de5644ffb6c70d2",
+      "run": 33526755370,
+      "successfulJob": 99920257942,
+      "result": "PASS",
+      "evidence": "LIVE_SECURITY_HEADER_PASS bare-home exact-baseline no-powered-by no-store no-s-maxage"
     },
-    "resumeCondition": "Resume immediately after the owner adds the production Neon connection string directly as GitHub Actions repository secret DATABASE_URL and says it is added. Do not ask for or accept the secret value in chat. Engineering should rerun exact failed migration job 99859147633 from run 33508570582. If migration and postflight verification succeed, verify production artwork_objects again, then fast-forward the existing Hostinger release branch to 6b64b3b0 with force=false and continue CR-27 live boundary proof. Alternative resume paths are a repaired Neon connector or owner manual application of exactly db/migrations/0036_durable_artwork_objects.sql.",
-    "nextSafeDeploymentMutation": "After 0036 postflight verification only, fast-forward release/hostinger-v10-candidate-20260825 from aa73848e9ef79905e8239f9fb4cc8fce244e04c6 to 6b64b3b000cff18db2ac27b8c5494b0c72670211 with force=false; do not change the Hostinger selected branch."
+    "readOnlyProductionDiagnostics": {
+      "branch": "ops/cr27-live-readonly-diagnostics-20260901",
+      "head": "ef6a9bb86b65333b85508ac4682ed96f96352479",
+      "run": 33526598947,
+      "job": 99918918445,
+      "result": "PASS",
+      "relations": {
+        "experiences": true,
+        "experience_physical_selection": true,
+        "ops_website_config_versions": true,
+        "payment_attempts": true
+      },
+      "catalogRows": 0,
+      "activeCatalogRows": 0,
+      "physicalConstraintIncludesTote": true,
+      "writesPerformed": false
+    },
+    "liveBoundaryFindings": [
+      {
+        "surface": "physical form selection",
+        "observed": "HTTP 500 Physical form could not be locked",
+        "rootCause": "Production catalog authority is fail-closed and there is no owner-published ACTIVE catalog; read-only diagnostic proves zero catalog rows.",
+        "ownerGate": "Publish/activate a truthful production catalog through the owner-authorized catalog path."
+      },
+      {
+        "surface": "Safepay webhook and payment create",
+        "observed": "HTTP 503 runtime unavailable",
+        "rootCause": "Payment runtime construction is unavailable before request-specific authentication/state validation; DATABASE_URL is healthy, so Safepay runtime configuration must be inspected/configured by the owner.",
+        "ownerGate": "Inspect/configure Hostinger Safepay runtime values without sharing secrets in chat; no real charge is authorized."
+      },
+      {
+        "surface": "Printful webhook",
+        "observed": "HTTP 503 runtime unavailable",
+        "rootCause": "Manufacturing webhook runtime is unavailable before signature validation; DATABASE_URL is healthy, so Printful webhook runtime configuration must be inspected/configured by the owner.",
+        "ownerGate": "Inspect/configure Hostinger Printful webhook runtime values without sharing secrets in chat; production confirmation remains disabled."
+      },
+      {
+        "surface": "live support persistence proof",
+        "observed": "Exact live release PASS, proof stopped before request because INTERNAL_OPERATIONS_TOKEN was blank in GitHub Actions.",
+        "rootCause": "QA credential is absent from GitHub Actions; this is not a live support API failure.",
+        "ownerGate": "Add INTERNAL_OPERATIONS_TOKEN to GitHub Actions only if owner wants the full support persistence proof automated; do not paste the token in chat."
+      }
+    ],
+    "completedEvidence": [
+      "Core migration 0036 production preflight/postflight is verified.",
+      "The actual existing Hostinger selected branch was preserved and fast-forwarded without force.",
+      "The live wrapper tree is byte-identical to verified integration runtime tree c6012621.",
+      "Exact live release identity is proven from multiple independent Actions jobs.",
+      "Strict security/cache boundary proof is GREEN."
+    ],
+    "remainingOwnerEvidence": [
+      "Publish/activate an owner-authorized production catalog, then rerun the physical customer smoke.",
+      "Inspect/configure Safepay runtime values in Hostinger; rerun non-charge boundary checks. Do not perform a real charge without separate approval.",
+      "Inspect/configure Printful webhook runtime values in Hostinger; rerun signature boundary checks. Do not confirm production manufacturing without separate approval.",
+      "Optionally add INTERNAL_OPERATIONS_TOKEN as a GitHub Actions secret to complete the automated live support persistence proof.",
+      "Canonical-domain cutover to issuedonce.shop remains a separate owner gate and was not performed."
+    ],
+    "resumeCondition": "Resume after the owner completes any one of the remaining production-readiness configuration/data gates and reports only that it is done. Do not ask for secret values. Re-run the corresponding exact live proof after each owner action.",
+    "nextSafeDeploymentMutation": "None required. The verified runtime tree is already live through wrapper 28ff7deb on the existing Hostinger-selected v2 branch."
   },
   "standingOwnerGates": {
     "productionDeploymentOrHostingerBranchMutation": true,
     "productionCoreMigration0036": true,
+    "productionCatalogPublication": true,
+    "productionProviderRuntimeConfiguration": true,
     "productionReferralMigrations": true,
     "realSafepayCharge": true,
     "realSafepayRefund": true,
@@ -190,21 +215,26 @@
     "truthfulMerchantPublicLocation": true
   },
   "productionRuntime": {
-    "liveRelease": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
+    "liveRelease": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
+    "liveTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
     "runtimeProvider": "hostinger",
-    "productionDeploymentOfIntegratedHead": false,
-    "hostingerBranchChanged": false,
+    "productionDeploymentOfIntegratedTree": true,
+    "hostingerSelectedBranch": "release/hostinger-v2-candidate-20260824",
+    "hostingerSelectedBranchChanged": false,
+    "hostingerLinkedBranchFastForwarded": true,
     "hostingerEnvironmentChanged": false,
     "realSafepayQaCharge": false,
     "realSafepayRefundProof": false,
     "printfulProductionConfirmation": false,
     "referralMigrationsApplied": false,
-    "coreMigration0036Applied": false,
+    "coreMigration0036Verified": true,
+    "coreMigration0036NewlyCreatedByRunner": false,
+    "activeProductionCatalogCount": 0,
     "creatorLaunchOutreachSent": false,
     "canonicalDomainCutover": false
   },
   "nextAction": {
     "actor": "OWNER",
-    "instruction": "In GitHub repository Settings -> Secrets and variables -> Actions, add the production Neon connection string as a repository secret named exactly DATABASE_URL. Do not paste the value into chat. Then tell engineering only: DATABASE_URL added. Engineering will rerun exact failed migration job 99859147633 from run 33508570582; no new code or trigger commit is required. Do not deploy before 0036 postflight verification succeeds."
+    "instruction": "Choose the next production-readiness gate to satisfy without sharing secrets in chat: (1) publish/activate the production catalog; (2) inspect/configure Safepay runtime values in Hostinger; (3) inspect/configure Printful webhook runtime values in Hostinger; (4) add INTERNAL_OPERATIONS_TOKEN to GitHub Actions for the live support proof; or separately approve/perform the canonical-domain cutover when ready. Engineering will rerun the corresponding live proof after the owner reports completion."
   }
 }
