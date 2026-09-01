@@ -9,9 +9,9 @@ Actual Hostinger-linked branch: `release/hostinger-v2-candidate-20260824`
 
 ## Result
 
-CR-27 has completed its owner-approved core migration, exact-release deployment, and strict security/cache proof. The deployed wrapper is a forward-only child of the previously live Hostinger head and points to the exact verified integration tree, so the production application bytes are identical to the verified `6b64b3b0...` runtime tree while preserving Hostinger's already-selected branch and environment.
+CR-27 has completed its owner-approved core migration, exact-release deployment, strict security/cache proof, and corrected non-OTP live boundary proof. The deployed wrapper is a forward-only child of the previously live Hostinger head and points to the exact verified integration tree, so the production application bytes are identical to the verified `6b64b3b0...` runtime tree while preserving Hostinger's already-selected branch and environment.
 
-CR-27 is not a claim that the store is fully consumer-ready. Fresh live tests exposed separate owner-controlled production-readiness gates: no ACTIVE production catalog, unavailable Safepay runtime, unavailable Printful webhook runtime, and an absent GitHub QA operations token for the full support persistence proof. Canonical-domain cutover is also still separately gated.
+CR-27 is not a claim that the store is fully consumer-ready. Fresh live tests exposed separate owner-controlled production-readiness gates: no ACTIVE production catalog, fail-closed unavailable Safepay runtime, fail-closed unavailable Printful webhook runtime, and an absent GitHub QA operations token for the full support persistence proof. Canonical-domain cutover is also still separately gated.
 
 ## Migration 0036
 
@@ -47,6 +47,7 @@ Multiple independent jobs observed the same live release identity:
 - Hostinger Temporary Release Proof run `33525915658` reached the same exact release before its physical-form finding.
 - Live support rerun job `99919493724` reached the same exact release before its GitHub QA token gate.
 - Strict header rerun job `99920257942` reached the same exact release.
+- Isolated corrected-boundary proof run `33527773379`, job `99922906669`, reached the same exact release and completed the full non-OTP boundary audit.
 
 ## Security and cache proof
 
@@ -73,13 +74,32 @@ Because the connected Neon project-scoped adapter still rejects its declared cam
 - ACTIVE production catalog rows: `0`
 - physical-selection constraint includes TOTE: yes
 
+## Corrected fail-closed live boundary proof
+
+The first exact-live boundary run `33525915578` was useful RED evidence: it reached the correct Hostinger release but the harness still assumed Safepay and Printful were configured. It therefore expected `401`, `401`, and `409` from Safepay webhook, Printful webhook, and payment-create respectively, while the deployed routes correctly returned provider-unavailable `503` responses before request-specific authentication/state checks.
+
+The correction was proven without changing production:
+
+- isolated proof PR `#78`, head `3eb74d7223c7acf6d61d59dbc513fd51b52b69d7`, targeted the already-deployed Hostinger branch and was intentionally closed unmerged;
+- isolated GREEN run `33527773379`, job `99922906669`, verified exact release `28ff7deb6b1fe7578c271131f1655fc46898cefd`;
+- Safepay webhook was accepted as unavailable only for HTTP `503` with exact JSON error `Payment webhook is unavailable`;
+- Printful webhook was accepted as unavailable only for HTTP `503` with exact JSON error `Manufacturing webhook is unavailable`;
+- payment creation was accepted as unavailable only for HTTP `503` with exact JSON error `Payment is unavailable`;
+- arbitrary `500`/`503` responses remain failures;
+- `/api/shipping` returned the expected `409` in the same customer session, proving the database-backed runtime path reached Postgres rather than failing from a global `DATABASE_URL` outage;
+- the corrected harness finished with `LIVE_NON_OTP_BOUNDARY_AUDIT_PASS`.
+
+Only the proven harness correction was then integrated through PR `#79`, head `cab9dc6ab8557fc57186c1c18687cec4de61c4fb`, merge `3398a55399b747553bbce9d0bf9bdf820e5d4e14`. Exact-head CI run `33528245008` and Browser QA run `33528245001` passed. Post-merge CI run `33528600109` / job `99925681096` passed unit tests, typecheck, lint and production build; post-merge Browser QA run `33528600181` / job `99925681708` passed.
+
+This proof does not configure either provider and does not authorize a real Safepay charge/refund or Printful production confirmation. It proves only that the current unconfigured-provider state fails closed with the intended privacy-safe response contracts.
+
 ## Live findings and owner gates
 
 | Surface | Fresh evidence | Root cause / gate |
 |---|---|---|
 | Physical selection | `/api/experience/object` returned HTTP 500 after seven successful answers | Schema is present and correct, but production has zero catalog rows and zero ACTIVE publications. Production catalog authority correctly refuses boot/default commercial truth. Owner must publish/activate a real production catalog before rerunning the physical smoke. |
-| Safepay webhook + payment create | HTTP 503 | `DATABASE_URL` is healthy; payment runtime is unavailable before signature/state checks. Owner must inspect/configure the required Safepay runtime values in Hostinger. No real charge is authorized by this checkpoint. |
-| Printful webhook | HTTP 503 | Manufacturing webhook runtime is unavailable before signature validation. Owner must inspect/configure Printful webhook runtime values in Hostinger. Production manufacturing confirmation remains disabled and separately gated. |
+| Safepay webhook + payment create | Exact fail-closed HTTP 503 contracts proven in run `33527773379` | Database-backed shipping reaches Postgres, while payment runtime remains intentionally unavailable until owner-configured Safepay runtime values exist. No real charge is authorized by this checkpoint. |
+| Printful webhook | Exact fail-closed HTTP 503 contract proven in run `33527773379` | Manufacturing webhook runtime remains intentionally unavailable until owner-configured Printful webhook runtime values exist. Production manufacturing confirmation remains disabled and separately gated. |
 | Live support persistence proof | Exact release health PASS, then QA stopped with `INTERNAL_OPERATIONS_TOKEN is required` | GitHub Actions does not currently have the QA operations token. This is not evidence that the deployed support API failed. Owner may add the token as a GitHub Actions secret to automate the full persistence proof; never paste it into chat. |
 | Canonical domain | Not cut over | Separate explicit owner gate; no DNS/domain mutation was performed. |
 
@@ -91,7 +111,9 @@ Proven now:
 - exact verified integration tree deployed through the actual existing Hostinger-linked branch;
 - no force update and no Hostinger selected-branch/environment change;
 - exact live release identity;
-- strict security/cache boundary.
+- strict security/cache boundary;
+- corrected non-OTP live boundary audit, including strict exact-body fail-closed provider-unavailable contracts;
+- corrected live-boundary harness integrated with exact-head and post-merge CI/Browser QA green.
 
 Still owner-gated:
 
