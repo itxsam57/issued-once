@@ -118,6 +118,29 @@ test('verifies trackers through Safepay Reporter v1', async () => {
   })).resolves.toBe(true);
 });
 
+test('verifies only a full original-quote refund through Safepay Reporter v1', async () => {
+  const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
+    data: {
+      tracker: {
+        token: 'track_paid_1',
+        client: 'sec_live',
+        state: 'TRACKER_REFUNDED',
+        purchase_totals: {
+          quote_amount: { currency: 'USD', amount: 3200 },
+          base_amount: { currency: 'PKR', amount: 880056 },
+        },
+      },
+    },
+    status: { errors: [], message: 'success' },
+  }), { status: 200, headers: { 'content-type': 'application/json' } }));
+
+  await expect(gateway({ fetchImpl: fetchImpl as typeof fetch }).verifyRefundedTracker({
+    providerReference: 'track_paid_1',
+    amountMinor: 3200,
+    currency: 'USD',
+  })).resolves.toBe(true);
+});
+
 test('explicitly enables Safepay webhooks on every hosted checkout URL', async () => {
   const fetchImpl = vi.fn()
     .mockResolvedValueOnce(new Response(JSON.stringify({
