@@ -1,23 +1,24 @@
 {
   "schemaVersion": 1,
-  "version": "1.31.0",
+  "version": "1.32.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-01T08:42:00Z",
+  "updatedAt": "2026-09-01T10:47:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "fc3be93445a3538cac473146df8557077c35a6ef",
+    "verifiedRuntimeIntegrationHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
+    "verifiedRuntimeTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "plannedCanonicalDomain": "issuedonce.shop"
   },
   "continuationGovernor": {
-    "state": "CONTINUE_AUTONOMOUSLY",
-    "currentEngineeringStopRequired": false,
-    "currentEngineeringStopReason": null,
+    "state": "OWNER_REQUIRED",
+    "currentEngineeringStopRequired": true,
+    "currentEngineeringStopReason": "CR-22 is code-ready and integrated. The next mapped step is the production preflight/deployment gate, which requires explicit owner approval before applying core migration 0036 or mutating the Hostinger production branch/deployment.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -25,12 +26,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "ADVANCE_CR22_REFUND_OPERATIONS_AUDIT",
-    "reason": "CR-15 final evidence head fa12c4df1bd8ba7dbe17954a675a6a945c9afd72 passed exact-head CI run 33487813705 / job 99791902923 and Browser QA run 33487813744 / job 99791903106. PR #65 merged as fc3be93445a3538cac473146df8557077c35a6ef; the verified head and merge share exact tree bc6c913337f6a88a4f496af33a14fa1060d43353. Migration 0036 remains production-unapplied and no Hostinger production branch/environment, payment, factory confirmation, referral activation or production deployment state changed. CR-15 is therefore CODE_READY and integrated, while its production migration and destructive deployed restart proof remain owner/live-gated."
+    "decision": "STOP_AT_PRODUCTION_PREFLIGHT_GATE",
+    "reason": "CR-22 final runtime integration 6b64b3b000cff18db2ac27b8c5494b0c72670211 is tree-verified against fresh GREEN CI/Browser QA evidence. Refund initiation remains provider-side, full-refund truth is provider-derived, partial refunds are not promoted to REFUNDED, and no production/provider side effect occurred during the code cycle. The readiness master plan now moves next to production migration/deployment and CR-27 live boundary proof, all of which are explicitly owner-gated."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR15_CODE_READY_INTEGRATED_CR22_NEXT",
+    "internalWorkStatus": "CR22_CODE_READY_INTEGRATED_OWNER_PRODUCTION_GATE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
@@ -39,71 +40,66 @@
       "Do not change the Hostinger selected branch or production environment variables without an explicit owner-gated deployment step.",
       "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan.",
       "Keep Printful production confirmation disabled until the explicit manufacturing launch gate.",
-      "Do not create real Safepay charges solely for QA.",
+      "Do not create real Safepay charges or refunds solely for QA.",
       "Do not apply referral migrations 0029, 0034 or 0035 to production without explicit production referral-activation approval.",
-      "Do not apply core migration 0036_durable_artwork_objects.sql to production without the explicit production-migration approval checkpoint and a schema preflight.",
+      "Do not apply core migration 0036_durable_artwork_objects.sql to production without explicit production-migration approval and a read-only schema/data preflight.",
       "Do not send creator outreach until referral activation and owner launch gates are satisfied.",
       "Do not fabricate MERCHANT_PUBLIC_LOCATION; truthful merchant identity remains required before canonical launch."
     ]
   },
   "lastCompleted": {
-    "consumerReadinessId": "CR-15",
-    "title": "Durable generated-artwork retention across redeploy/restart",
-    "status": "CODE_READY_MERGED_AND_TREE_VERIFIED",
-    "featureBranch": "feat/cr-15-durable-artwork-storage",
-    "integrationPullRequest": 65,
-    "baseHead": "0e16159ce9fb6410c551a3f8925e452523a5d798",
-    "redHeads": [
-      "490182a764d57083e9eab04633ee799b966438e9",
-      "5851b60f8f4c8e0cdd735dde0b7bcddcdc872fd4",
-      "223bbf80a9ba189e1f7af3c41e2887f2a7ce7730"
-    ],
-    "implementationHead": "1ddbda386e029fdeb8329e2929e1e51cd0244ac6",
-    "finalEvidenceHead": "fa12c4df1bd8ba7dbe17954a675a6a945c9afd72",
-    "mergeCommit": "fc3be93445a3538cac473146df8557077c35a6ef",
-    "verifiedTree": "bc6c913337f6a88a4f496af33a14fa1060d43353",
-    "redEvidence": [
-      "Final RED CI run 33485518958 / job 99784566127 failed the intended durable gateway, signed-access, approval and readiness boundaries before production implementation existed.",
-      "The RED suite proved pre-change production still depended on fs:// locators, ARTWORK_STORAGE_DIR and metadata-only approval."
-    ],
-    "greenEvidence": [
-      "Implementation head 1ddbda386e029fdeb8329e2929e1e51cd0244ac6 replaced production filesystem composition with Postgres-backed durable private artwork storage.",
-      "Realm-safe BYTEA decode fix fce1d01ea09ec6b71bbe3201fa8985a141701ea1 converted the restart/recreation regression to GREEN.",
-      "Code head c0222229633af667983330fb52822eec1a1211f3 passed CI run 33487241096 / job 99790082709: 226 test files / 674 tests, typecheck, lint and production build; Browser QA run 33487241103 / job 99790082471 passed.",
-      "Final evidence head fa12c4df1bd8ba7dbe17954a675a6a945c9afd72 passed CI run 33487813705 / job 99791902923 and Browser QA run 33487813744 / job 99791903106.",
-      "PR #65 merge fc3be93445a3538cac473146df8557077c35a6ef and verified head fa12c4df1bd8ba7dbe17954a675a6a945c9afd72 share exact tree bc6c913337f6a88a4f496af33a14fa1060d43353."
-    ],
-    "implementedContract": [
-      "Generated and owner-uploaded artwork writes use PostgresArtworkStorage and production composition no longer instantiates FilesystemArtworkStorage.",
-      "Canonical private locators are artwork://<issue>/<artifact>; bounded signed same-app URLs expose controlled reads without making raw durable locators public.",
-      "Durable reads verify canonical locator, PNG MIME type, byte count and SHA-256 integrity; missing or corrupt records fail closed.",
-      "Manufacturing approval reopens the durable object and rejects missing, corrupt or metadata-mismatched artwork before approval.",
-      "Release readiness checks the durable artwork relation plus signing/origin safety instead of deployment-local filesystem write/read.",
-      "Migration 0036_durable_artwork_objects.sql defines the durable byte authority but remains repository-only and production-unapplied."
-    ],
-    "remainingLiveEvidence": [
-      "Before deploying code that requires artwork_objects, obtain explicit production-migration approval for 0036 and run a read-only schema/data preflight.",
-      "After approved migration/deployment, create or use a controlled private artwork object and prove the exact bytes survive destructive application restart/redeploy with signed access and integrity checks still working.",
-      "CR-15 remains CODE_READY rather than DONE until that deployed destructive recovery proof exists."
-    ],
-    "productionMigration0036Applied": false,
-    "productionDeploymentPerformed": false,
-    "productionEnvironmentChanged": false
-  },
-  "activeTask": {
     "consumerReadinessId": "CR-22",
     "title": "Refund operations and provider-derived reconciliation truth",
-    "status": "AUDIT_NEXT",
-    "designBoundary": "A refund must never become application truth merely because an owner clicked a browser control. The operational path must be provider-derived, auditable and safe for duplicate/replayed provider events. For MVP, either implement a verified provider refund operation through the payment adapter or formally bind an owner runbook to provider-dashboard initiation with automatic provider reconciliation.",
+    "status": "CODE_READY_MERGED_AND_TREE_VERIFIED",
+    "integrationPullRequests": [68, 69],
+    "providerRedHead": "0247313684c70518a5b7d85cecb58e3287ace937",
+    "wordingRedHead": "b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f",
+    "providerImplementationHead": "3cf79dc4b8cacd3645c05dce2d503647245f1461",
+    "wordingFinalHead": "1b8c3a8fc641c70fb32cd646a167980313c39e7f",
+    "mainMergeCommit": "2daff7d1c4706e0dffed7c64947f27b03e8b9d44",
+    "finalMergeCommit": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
+    "verifiedTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
+    "redEvidence": [
+      "CI run 33497754475 / #1748 on 0247313684c70518a5b7d85cecb58e3287ace937 failed exactly 4 intended refund tests while 683 existing tests passed; Browser QA run 33497754384 / #1538 remained GREEN.",
+      "The missing contracts were PaymentService.reconcileRefund() and SafepayPaymentGateway.verifyRefundedTracker(), including explicit rejection of TRACKER_PARTIAL_REFUND.",
+      "CI run 33496733711 / #1742 on b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f failed the Owner runbook wording contract until full-refund initiation was explicit."
+    ],
+    "greenEvidence": [
+      "Provider final head 3cf79dc4b8cacd3645c05dce2d503647245f1461 passed CI run 33498342341 / #1751 and Browser QA run 33498342363 / #1541.",
+      "Synthetic merge 4522706219285b865751aff16adec1e48e5a4c92 and actual merge 2daff7d1c4706e0dffed7c64947f27b03e8b9d44 share exact tree db2493fc5e228aeb48372d48091fd2ca0d27cef6.",
+      "Refreshed wording head 1b8c3a8fc641c70fb32cd646a167980313c39e7f passed CI run 33498774577 / #1753 and Browser QA run 33498774814 / #1543.",
+      "Synthetic merge c1fdf64490d403ae18b7aa9551b1cf041b808a80 and actual final merge 6b64b3b000cff18db2ac27b8c5494b0c72670211 share exact tree c60126214c2de88731b912c6bdee26b7769d8fd4."
+    ],
+    "implementedContract": [
+      "Safepay Dashboard remains the refund initiator; there is no application refund-initiation endpoint or local mark-refunded button.",
+      "Signed Safepay refund webhook remains the automatic provider-truth path.",
+      "Authenticated Owner reconciliation can query the Issue's stored Safepay tracker through Reporter as a recovery path.",
+      "Only TRACKER_REFUNDED for the exact stored amount/currency can be accepted as a full refund; partial refund state remains pending/non-final.",
+      "The database still enforces exact PAID-to-REFUNDED money/currency matching and idempotent duplicate handling.",
+      "Webhook and Owner reconciliation share refund finalization side effects for Issue quarantine and referral reversal/notification."
+    ],
+    "remainingLiveEvidence": [
+      "Deploy the exact verified integration release after the owner-approved production preflight.",
+      "Execute one controlled real full refund through Safepay and capture provider evidence.",
+      "Prove signed webhook and/or authenticated Reporter reconciliation produces the same idempotent local REFUNDED truth and finalization side effects while partial refund state remains non-final.",
+      "CR-22 remains CODE_READY rather than DONE until that real provider proof exists."
+    ],
+    "productionDeploymentPerformed": false,
+    "productionEnvironmentChanged": false,
+    "realSafepayRefundPerformed": false
+  },
+  "activeTask": {
+    "consumerReadinessId": "CR-27",
+    "title": "Production preflight, exact release deployment and live boundary proof",
+    "status": "OWNER_REQUIRED",
+    "designBoundary": "Do not deploy the integrated release that depends on durable artwork storage until migration 0036 has passed a read-only production preflight and the owner explicitly approves applying it. Do not mutate the Hostinger linked branch or production environment without explicit owner approval.",
     "requiredEvidence": [
-      "trace every refund/cancel/reversal write, read, webhook and Owner OS path from payment provider truth into Issue/order lifecycle state",
-      "identify whether a first-class refund adapter already exists and whether current UI can create local refund truth without provider proof",
-      "create focused TDD RED coverage for the smallest missing operational/refund invariant before behavior changes",
-      "preserve idempotency and prevent duplicate/refund replay from creating conflicting commercial truth",
-      "preserve customer/privacy boundaries and never log provider secrets or customer private payloads",
-      "keep real Safepay charge/refund side effects disabled during code verification unless an explicit owner live-provider gate is reached",
-      "verify exact-head unit/typecheck/lint/production build and Browser QA for any Owner OS/customer UI behavior",
-      "record any remaining live provider refund proof separately before DONE"
+      "explicit owner approval for production migration 0036 and the production deployment/Hostinger branch mutation",
+      "read-only production schema/data preflight before any migration write",
+      "apply only approved core migration 0036; referral migrations remain untouched",
+      "deploy the exact verified integration release without rotating continuity-sensitive secrets",
+      "verify live release identity and strict CR-27 security/cache headers",
+      "then execute safe live-provider proofs in the master-plan order without creating unapproved real charges or Printful confirmations"
     ]
   },
   "standingOwnerGates": {
@@ -111,6 +107,7 @@
     "productionCoreMigration0036": true,
     "productionReferralMigrations": true,
     "realSafepayCharge": true,
+    "realSafepayRefund": true,
     "printfulProductionConfirmation": true,
     "canonicalDomainCutover": true,
     "truthfulMerchantPublicLocation": true
@@ -122,6 +119,7 @@
     "hostingerBranchChanged": false,
     "hostingerEnvironmentChanged": false,
     "realSafepayQaCharge": false,
+    "realSafepayRefundProof": false,
     "printfulProductionConfirmation": false,
     "referralMigrationsApplied": false,
     "coreMigration0036Applied": false,
@@ -129,7 +127,7 @@
     "canonicalDomainCutover": false
   },
   "nextAction": {
-    "actor": "ENGINEERING",
-    "instruction": "Integrate this CR-15 reconciliation through an exact-head green docs PR, then execute CR-22 autonomously from the verified integration head: audit provider/refund/reversal/webhook/Owner OS paths, create the smallest RED regression for the first proven refund-operations gap, implement only the root-cause boundary, and reverify exact-head gates. Do not create a real Safepay charge/refund, apply 0036, deploy production, mutate Hostinger, enable Printful confirmation or activate referral migrations during the code-side cycle."
+    "actor": "OWNER",
+    "instruction": "Approve the production preflight/deployment gate if you want engineering to continue: authorize a read-only production schema/data preflight followed, only if safe, by applying core migration 0036_durable_artwork_objects.sql and deploying the exact verified integration release through the Hostinger production path. This approval does not authorize referral migrations, a real Safepay charge/refund, Printful production confirmation, secret rotation, or canonical-domain cutover."
   }
 }
