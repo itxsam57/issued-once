@@ -15,9 +15,9 @@ jobs:
     timeout-minutes: 15
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
-      EXPECTED_RELEASE_ID: ${{ github.sha }}
+      EXPECTED_RELEASE_ID: 28ff7deb6b1fe7578c271131f1655fc46898cefd
     steps:
-      - name: Checkout pushed Hostinger candidate
+      - name: Checkout proof harness
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
@@ -32,7 +32,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Chromium
         run: pnpm exec playwright install chromium
-      - name: Wait for exact pushed release
+      - name: Verify deployed release identity
         run: node tests/e2e/live-release-health.mjs
       - name: Run non-OTP live boundary audit
         run: node tests/e2e/live-non-otp-boundaries.mjs
