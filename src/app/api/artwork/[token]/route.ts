@@ -34,7 +34,7 @@ export async function GET(
       createNeonSqlExecutor(env('DATABASE_URL')),
     );
     const artwork = await storage.get(`artwork://${key}`);
-    return new Response(artwork.bytes, {
+    return new Response(new Uint8Array(artwork.bytes), {
       status: 200,
       headers: {
         'content-type': artwork.mimeType,
