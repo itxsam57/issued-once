@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.35.0",
+  "version": "1.35.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-01T15:39:30Z",
+  "updatedAt": "2026-09-01T15:57:43Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -23,7 +23,7 @@
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "CR-27 core migration 0036, exact Hostinger release deployment, and strict security/cache proof are now verified. The remaining launch-readiness failures are owner-controlled production configuration/data gates: production has no owner-published ACTIVE catalog; Safepay runtime is unavailable; Printful webhook runtime is unavailable; the GitHub live-support proof lacks INTERNAL_OPERATIONS_TOKEN; and canonical-domain cutover remains separately unapproved. Engineering must not fabricate catalog/provider truth, change Hostinger environment variables, or perform a real payment/factory confirmation without the applicable owner gate.",
+    "currentEngineeringStopReason": "CR-27 core migration 0036, exact Hostinger release deployment, strict security/cache proof, and the corrected non-OTP live boundary audit are now verified. The remaining launch-readiness failures are owner-controlled production configuration/data gates: production has no owner-published ACTIVE catalog; Safepay runtime is intentionally fail-closed unavailable; Printful webhook runtime is intentionally fail-closed unavailable; the GitHub live-support proof lacks INTERNAL_OPERATIONS_TOKEN; and canonical-domain cutover remains separately unapproved. Engineering must not fabricate catalog/provider truth, change Hostinger environment variables, or perform a real payment/factory confirmation without the applicable owner gate.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -32,11 +32,11 @@
       "COMPLETE"
     ],
     "decision": "STOP_AT_PRODUCTION_READINESS_OWNER_GATES",
-    "reason": "Fresh production evidence proves the deployed release wrapper 28ff7deb has tree c6012621, byte-identical to verified runtime 6b64b3b0. Run 33526755370 latest job 99920257942 proves exact live release identity and strict security/cache headers. Read-only diagnostic run 33526598947 job 99918918445 proves required production tables exist but catalog rows=0 and ACTIVE catalog rows=0. Boundary run 33525915578 reached the exact release and found Safepay webhook 503, Printful webhook 503, and payment create 503, consistent with provider runtimes unavailable. Support rerun job 99919493724 reached exact release then stopped only because GitHub QA has no INTERNAL_OPERATIONS_TOKEN."
+    "reason": "Fresh production evidence proves deployed release wrapper 28ff7deb has tree c6012621, byte-identical to verified runtime 6b64b3b0. Strict header run 33526755370 job 99920257942 passed. Read-only diagnostic run 33526598947 job 99918918445 proves required production tables exist but catalog rows=0 and ACTIVE catalog rows=0. The original boundary run 33525915578 exposed a stale harness expectation for three provider-gated routes. Isolated read-only proof PR 78 then ran 33527773379 job 99922906669 against exact live release 28ff7deb and passed only when Safepay webhook, Printful webhook, and payment create returned their exact safe 503 unavailable bodies while shipping reached Postgres and returned 409. The corrected harness was integrated via PR 79 at merge 3398a55399b747553bbce9d0bf9bdf820e5d4e14; exact-head and post-merge CI/Browser QA are green. Support rerun job 99919493724 reached exact release then stopped only because GitHub QA has no INTERNAL_OPERATIONS_TOKEN."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR27_DEPLOYED_SECURITY_PROVEN_OWNER_READINESS_GATES",
+    "internalWorkStatus": "CR27_DEPLOYED_SECURITY_AND_BOUNDARY_PROVEN_OWNER_READINESS_GATES",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan and CR-27 evidence checkpoint as the release evidence ledger.",
@@ -50,6 +50,7 @@
       "Do not apply referral migrations 0029, 0034 or 0035 to production without explicit production referral-activation approval.",
       "Core migration 0036 is production-verified; do not rerun migration trigger commits or broaden migration scope.",
       "Do not publish or activate catalog truth by direct production mutation without a separate owner-authorized catalog action.",
+      "For provider-gated live boundary checks, an unavailable 503 is acceptable only when the response body exactly matches the route's known privacy-safe unavailable contract; never accept arbitrary 503 or 500 responses as healthy.",
       "Do not send creator outreach until referral activation and owner launch gates are satisfied.",
       "Do not fabricate MERCHANT_PUBLIC_LOCATION; truthful merchant identity remains required before canonical launch."
     ]
@@ -62,12 +63,41 @@
       68,
       69
     ],
+    "providerRedHead": "0247313684c70518a5b7d85cecb58e3287ace937",
+    "wordingRedHead": "b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f",
+    "providerImplementationHead": "3cf79dc4b8cacd3645c05dce2d503647245f1461",
+    "wordingFinalHead": "1b8c3a8fc641c70fb32cd646a167980313c39e7f",
+    "mainMergeCommit": "2daff7d1c4706e0dffed7c64947f27b03e8b9d44",
     "finalMergeCommit": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "verifiedTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
+    "redEvidence": [
+      "CI run 33497754475 / #1748 on 0247313684c70518a5b7d85cecb58e3287ace937 failed exactly 4 intended refund tests while 683 existing tests passed; Browser QA run 33497754384 / #1538 remained GREEN.",
+      "The missing contracts were PaymentService.reconcileRefund() and SafepayPaymentGateway.verifyRefundedTracker(), including explicit rejection of TRACKER_PARTIAL_REFUND.",
+      "CI run 33496733711 / #1742 on b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f failed the Owner runbook wording contract until full-refund initiation was explicit."
+    ],
+    "greenEvidence": [
+      "Provider final head 3cf79dc4b8cacd3645c05dce2d503647245f1461 passed CI run 33498342341 / #1751 and Browser QA run 33498342363 / #1541.",
+      "Synthetic merge 4522706219285b865751aff16adec1e48e5a4c92 and actual merge 2daff7d1c4706e0dffed7c64947f27b03e8b9d44 share exact tree db2493fc5e228aeb48372d48091fd2ca0d27cef6.",
+      "Refreshed wording head 1b8c3a8fc641c70fb32cd646a167980313c39e7f passed CI run 33498774577 / #1753 and Browser QA run 33498774814 / #1543.",
+      "Synthetic merge c1fdf64490d403ae18b7aa9551b1cf041b808a80 and actual final merge 6b64b3b000cff18db2ac27b8c5494b0c72670211 share exact tree c60126214c2de88731b912c6bdee26b7769d8fd4."
+    ],
+    "implementedContract": [
+      "Safepay Dashboard remains the refund initiator; there is no application refund-initiation endpoint or local mark-refunded button.",
+      "Signed Safepay refund webhook remains the automatic provider-truth path.",
+      "Authenticated Owner reconciliation can query the Issue's stored Safepay tracker through Reporter as a recovery path.",
+      "Only TRACKER_REFUNDED for the exact stored amount/currency can be accepted as a full refund; partial refund state remains pending/non-final.",
+      "The database still enforces exact PAID-to-REFUNDED money/currency matching and idempotent duplicate handling.",
+      "Webhook and Owner reconciliation share refund finalization side effects for Issue quarantine and referral reversal/notification."
+    ],
     "remainingLiveEvidence": [
-      "Execute one controlled real full refund through Safepay only under its separate owner gate.",
-      "Prove signed webhook and/or authenticated Reporter reconciliation produces the same idempotent local REFUNDED truth while partial refund state remains non-final."
-    ]
+      "The exact verified integration runtime tree is now deployed; provider refund proof remains outstanding.",
+      "Execute one controlled real full refund through Safepay only under its separate owner gate and capture provider evidence.",
+      "Prove signed webhook and/or authenticated Reporter reconciliation produces the same idempotent local REFUNDED truth and finalization side effects while partial refund state remains non-final.",
+      "CR-22 remains CODE_READY rather than DONE until that real provider proof exists."
+    ],
+    "productionDeploymentPerformed": true,
+    "productionEnvironmentChanged": false,
+    "realSafepayRefundPerformed": false
   },
   "activeTask": {
     "consumerReadinessId": "CR-27",
@@ -92,72 +122,75 @@
         "creator outreach"
       ]
     },
-    "migrationRunner": {
-      "branch": "ops/cr-27-0036-runner-v2-20260901",
+    "migration0036": {
+      "runnerBranch": "ops/cr-27-0036-runner-v2-20260901",
       "executionHead": "2c7da6528dfde7f5c87e6585fbe578bfc7c83bf8",
-      "workflow": ".github/workflows/verify-cr27-0036-runner-v2.yml",
-      "helper": "scripts/apply-approved-0036.mjs",
       "run": 33508570582,
-      "verificationJobInitial": 99858440402,
-      "migrationJobInitialBlocked": 99859147633,
-      "migrationJobSuccessfulRerun": 99911484696,
+      "successfulMigrationJob": 99911484696,
       "verificationResult": "PASS",
       "migrationResult": "PASS_ALREADY_COMPATIBLE_INDEX_PRESENT",
       "preflight": "issues=present artwork_objects=present-compatible",
       "postflight": "artwork_objects=already-compatible index=present",
-      "sentinelVerification": "PASS",
       "sqlExecuted": true,
       "newSchemaObjectCreatedByRerun": false,
-      "requiredSecret": "DATABASE_URL",
-      "secretPresent": true,
-      "resumeAction": "None. The 0036 production schema gate is satisfied."
+      "scope": "0036 only; referral migrations untouched"
     },
-    "deploymentEvidence": {
-      "initialIncorrectGovernanceBranch": "release/hostinger-v10-candidate-20260825",
+    "deployment": {
       "actualHostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-      "previousActualLiveHead": "da03726503e1308a8703db0ced94941ae2be9582",
-      "rootCause": "Historical governance explicitly identified v2 as Hostinger-linked and v10 as the combined candidate. Later continuation drift mislabeled v10 as linked. Live health independently returned da037265, proving v2 remained selected.",
-      "previousLiveHeadRelationToVerifiedRuntime": "da037265 is three commits ahead of verified runtime 6b64b3b0; only the Hostinger 0036 helper/workflow and build-hook ops delta were added.",
+      "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
       "releaseWrapper": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
-      "releaseWrapperParent": "da03726503e1308a8703db0ced94941ae2be9582",
       "releaseWrapperTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
       "verifiedRuntimeTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
       "treeIdentity": "PASS",
-      "linkedBranchFastForwarded": true,
       "forceUsed": false,
       "hostingerSelectedBranchChanged": false,
       "hostingerEnvironmentChanged": false,
-      "liveIdentityEvidence": [
-        "Hostinger Live Boundary Audit run 33525915578 reached LIVE_RELEASE_HEALTH_PASS provider=hostinger release=28ff7deb6b1fe7578c271131f1655fc46898cefd version=0.1.0.",
-        "Hostinger Temporary Release Proof run 33525915658 reached the same exact live release before its customer-flow finding.",
-        "Support proof rerun job 99919493724 reached the same exact live release before its GitHub QA token gate.",
-        "Strict header rerun job 99920257942 reached the same exact live release."
-      ]
-    },
-    "securityCacheProof": {
-      "proofBranch": "engineering/live-header-proof-20260826",
-      "proofHead": "2d5fbaa0f1f45e49aa6db77b4de5644ffb6c70d2",
-      "run": 33526755370,
-      "successfulJob": 99920257942,
-      "result": "PASS",
-      "evidence": "LIVE_SECURITY_HEADER_PASS bare-home exact-baseline no-powered-by no-store no-s-maxage"
+      "strictSecurityProof": {
+        "run": 33526755370,
+        "job": 99920257942,
+        "result": "PASS",
+        "evidence": "LIVE_SECURITY_HEADER_PASS bare-home exact-baseline no-powered-by no-store no-s-maxage"
+      }
     },
     "readOnlyProductionDiagnostics": {
-      "branch": "ops/cr27-live-readonly-diagnostics-20260901",
-      "head": "ef6a9bb86b65333b85508ac4682ed96f96352479",
       "run": 33526598947,
       "job": 99918918445,
       "result": "PASS",
-      "relations": {
-        "experiences": true,
-        "experience_physical_selection": true,
-        "ops_website_config_versions": true,
-        "payment_attempts": true
-      },
       "catalogRows": 0,
       "activeCatalogRows": 0,
+      "coreRelationsPresent": true,
       "physicalConstraintIncludesTote": true,
       "writesPerformed": false
+    },
+    "liveBoundaryProof": {
+      "redRun": 33525915578,
+      "redFinding": "The old harness expected configured-provider 401/401/409 responses while the live release intentionally returned fail-closed provider-unavailable 503 responses.",
+      "isolatedProofPullRequest": 78,
+      "isolatedProofDisposition": "CLOSED_UNMERGED_READ_ONLY",
+      "isolatedProofHead": "3eb74d7223c7acf6d61d59dbc513fd51b52b69d7",
+      "greenRun": 33527773379,
+      "greenJob": 99922906669,
+      "greenResult": "PASS",
+      "verifiedLiveRelease": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
+      "strictUnavailableContract": {
+        "safepayWebhook": "503 only with exact error Payment webhook is unavailable",
+        "printfulWebhook": "503 only with exact error Manufacturing webhook is unavailable",
+        "paymentCreate": "503 only with exact error Payment is unavailable"
+      },
+      "databaseReachabilityControl": "shipping returned expected 409 from the same customer session, proving the database-backed runtime path was reached rather than a global DATABASE_URL outage",
+      "integrationPullRequest": 79,
+      "integrationHead": "cab9dc6ab8557fc57186c1c18687cec4de61c4fb",
+      "integrationMerge": "3398a55399b747553bbce9d0bf9bdf820e5d4e14",
+      "exactHeadCiRun": 33528245008,
+      "exactHeadCiResult": "PASS: unit tests, typecheck, lint, production build",
+      "exactHeadBrowserQaRun": 33528245001,
+      "exactHeadBrowserQaResult": "PASS",
+      "postMergeCiRun": 33528600109,
+      "postMergeCiJob": 99925681096,
+      "postMergeCiResult": "PASS: unit tests, typecheck, lint, production build",
+      "postMergeBrowserQaRun": 33528600181,
+      "postMergeBrowserQaJob": 99925681708,
+      "postMergeBrowserQaResult": "PASS"
     },
     "liveBoundaryFindings": [
       {
@@ -168,14 +201,14 @@
       },
       {
         "surface": "Safepay webhook and payment create",
-        "observed": "HTTP 503 runtime unavailable",
-        "rootCause": "Payment runtime construction is unavailable before request-specific authentication/state validation; DATABASE_URL is healthy, so Safepay runtime configuration must be inspected/configured by the owner.",
+        "observed": "HTTP 503 with the exact privacy-safe unavailable contract",
+        "rootCause": "Payment runtime construction is unavailable before request-specific authentication/state validation while the database-backed shipping control reaches Postgres. This is the intended fail-closed state until Safepay production runtime values are owner-configured.",
         "ownerGate": "Inspect/configure Hostinger Safepay runtime values without sharing secrets in chat; no real charge is authorized."
       },
       {
         "surface": "Printful webhook",
-        "observed": "HTTP 503 runtime unavailable",
-        "rootCause": "Manufacturing webhook runtime is unavailable before signature validation; DATABASE_URL is healthy, so Printful webhook runtime configuration must be inspected/configured by the owner.",
+        "observed": "HTTP 503 with the exact privacy-safe unavailable contract",
+        "rootCause": "Manufacturing webhook runtime is unavailable before signature validation while core database paths are healthy. This is the intended fail-closed state until Printful webhook runtime values are owner-configured.",
         "ownerGate": "Inspect/configure Hostinger Printful webhook runtime values without sharing secrets in chat; production confirmation remains disabled."
       },
       {
@@ -190,7 +223,9 @@
       "The actual existing Hostinger selected branch was preserved and fast-forwarded without force.",
       "The live wrapper tree is byte-identical to verified integration runtime tree c6012621.",
       "Exact live release identity is proven from multiple independent Actions jobs.",
-      "Strict security/cache boundary proof is GREEN."
+      "Strict security/cache boundary proof is GREEN.",
+      "Corrected live non-OTP boundary audit is GREEN against exact release 28ff7deb, with provider-unavailable responses accepted only under exact privacy-safe 503 contracts.",
+      "The corrected boundary contract is integrated through PR 79 and its exact-head/post-merge CI and Browser QA are GREEN."
     ],
     "remainingOwnerEvidence": [
       "Publish/activate an owner-authorized production catalog, then rerun the physical customer smoke.",
