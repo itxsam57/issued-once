@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.34.0",
+  "version": "1.34.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-01T12:14:00Z",
+  "updatedAt": "2026-09-01T12:24:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -19,7 +19,7 @@
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "CR-27 production migration 0036 and exact-release deployment remain owner-approved, but the connected Neon project-scoped SQL/migration adapter still rejects its declared camelCase arguments before SQL can reach Neon. Engineering has now built and freshly verified an isolated manual GitHub Actions fallback on exact runtime head 6b64b3b0. The fallback cannot execute until the owner places the production Neon DATABASE_URL directly into the repository Actions secret and manually dispatches the verified workflow, or until the Neon connector adapter is repaired. Deployment remains intentionally withheld until post-migration schema verification succeeds.",
+    "currentEngineeringStopReason": "CR-27 production migration 0036 and exact-release deployment remain owner-approved. The connected Neon project-scoped SQL/migration adapter still rejects its declared camelCase arguments before SQL can reach Neon. Engineering has now built and freshly verified an isolated one-time GitHub Actions fallback on exact runtime head 6b64b3b0. The only preferred owner action remaining is to place the production Neon DATABASE_URL directly into the repository Actions secret and report completion; engineering can then create the exact one-time execution sentinel itself. Deployment remains intentionally withheld until post-migration schema verification succeeds.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -28,11 +28,11 @@
       "COMPLETE"
     ],
     "decision": "STOP_AT_DATABASE_CREDENTIAL_OR_CONNECTOR_GATE",
-    "reason": "The database target, exact migration source, runtime release and deployment lineage are all unambiguous. The old GitHub fallback was proven incapable of running SQL because it used Node 20 with pnpm 11.23.0 and had no DATABASE_URL secret; its migration step was skipped. A replacement runner based directly on verified runtime 6b64b3b0 uses Node 24, validates only repository migration 0036, performs preflight/postflight schema checks, and is gated so ordinary pushes can never execute the migration. Fresh run 33506120933 passed its complete verification path while migrate-0036 was SKIPPED. No production mutation has occurred."
+    "reason": "The database target, exact migration source, runtime release and deployment lineage are unambiguous. The retired fallback failed before SQL because Node 20 was incompatible with pnpm 11.23.0 and DATABASE_URL was absent. The corrected runner is based directly on verified runtime 6b64b3b0, uses Node 24, validates only repository migration 0036, performs preflight/postflight schema checks, and can execute production SQL only when an exact one-time sentinel is newly added in a commit whose exact message is ops(cr-27): execute approved 0036 migration. Fresh run 33506916237 on c8f60b44ff90f419cac285e3bfc7bd334455e409 passed all verification while migrate-0036 was SKIPPED. No production mutation has occurred."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR27_0036_RUNNER_VERIFIED_OWNER_SECRET_GATE",
+    "internalWorkStatus": "CR27_0036_ONE_TIME_RUNNER_VERIFIED_OWNER_SECRET_GATE",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
@@ -44,7 +44,7 @@
       "Do not create real Safepay charges or refunds solely for QA.",
       "Do not apply referral migrations 0029, 0034 or 0035 to production without explicit production referral-activation approval.",
       "The owner has approved core migration 0036 for this exact CR-27 release gate, but it must still pass production preflight/postflight verification before deployment.",
-      "The CR-27 0036 fallback runner must remain manual-dispatch-only for production mutation; ordinary pushes may verify it but must skip migrate-0036.",
+      "The CR-27 0036 fallback runner must remain isolated on ops/cr-27-0036-runner-v2-20260901. Ordinary pushes must skip migrate-0036. Production migration may execute only after the owner confirms DATABASE_URL is present and engineering adds the exact one-time CR27_0036_EXECUTE sentinel with the exact guarded commit message.",
       "Do not send creator outreach until referral activation and owner launch gates are satisfied.",
       "Do not fabricate MERCHANT_PUBLIC_LOCATION; truthful merchant identity remains required before canonical launch."
     ]
@@ -122,31 +122,35 @@
       "Hostinger-linked release/hostinger-v10-candidate-20260825 remains exactly aa73848e9ef79905e8239f9fb4cc8fce244e04c6; verified runtime 6b64b3b0 is a clean descendant, so deployment can be a non-force fast-forward without changing hPanel branch selection.",
       "Current-session Neon organization/project listing still succeeds and resolves the same issued once project, but project-scoped describe_project reproduced the connector argument mismatch before any database operation.",
       "The retired GitHub Actions fallback run 33501588310 failed before SQL: Node 20 was incompatible with pnpm 11.23.0 and DATABASE_URL was empty; install/migration steps never executed.",
-      "Replacement branch ops/cr-27-0036-runner-v2-20260901 was created directly from exact verified runtime 6b64b3b000cff18db2ac27b8c5494b0c72670211 and contains only the exact-0036 helper plus its gated workflow.",
-      "Fresh runner head 0eb875340ddf57bdc5ba9acd7ed8c3d124cdd458 passed workflow run 33506120933: isolated diff PASS, exact 0036 contract PASS, unit tests PASS, typecheck PASS, lint PASS; migrate-0036 was SKIPPED for the push event as designed."
+      "Replacement branch ops/cr-27-0036-runner-v2-20260901 was created directly from exact verified runtime 6b64b3b000cff18db2ac27b8c5494b0c72670211 and contains only the exact-0036 helper plus guarded workflow infrastructure.",
+      "Runner head 0eb875340ddf57bdc5ba9acd7ed8c3d124cdd458 passed workflow run 33506120933 with migrate-0036 skipped on push.",
+      "Final one-time-trigger runner head c8f60b44ff90f419cac285e3bfc7bd334455e409 passed workflow run 33506916237: isolated diff PASS, exact 0036 contract PASS, unit tests PASS, typecheck PASS, lint PASS; migrate-0036 was SKIPPED because no execution sentinel was newly added."
     ],
     "blockerEvidence": [
       "Neon get_database_tables using the connector-declared projectId/branchId arguments was rejected by the underlying MCP because it requires project_id/branch_id.",
       "Neon run_sql reproduced the same validation mismatch before any SQL reached the database.",
       "Neon get_connection_string reproduced the same validation mismatch; this is a connector argument-adapter defect rather than a database permission or project-selection error.",
       "Current-session Neon describe_project again reproduced the same camelCase-to-snake_case adapter defect.",
-      "GitHub Actions does not currently expose a DATABASE_URL repository secret to the migration workflow; prior logs showed the value empty, so a production migration cannot be dispatched safely until the owner adds it directly in GitHub or the Neon connector is repaired.",
+      "GitHub Actions does not currently expose a DATABASE_URL repository secret to the migration workflow; prior logs showed the value empty, so the production migration cannot be triggered safely until the owner adds it directly in GitHub or the Neon connector is repaired.",
       "No production SQL write, Hostinger branch mutation, environment change, payment action, Printful action, referral activation or domain cutover occurred."
     ],
     "migrationRunner": {
       "branch": "ops/cr-27-0036-runner-v2-20260901",
       "baseRuntimeHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
-      "verifiedHead": "0eb875340ddf57bdc5ba9acd7ed8c3d124cdd458",
+      "verifiedHead": "c8f60b44ff90f419cac285e3bfc7bd334455e409",
       "workflow": ".github/workflows/verify-cr27-0036-runner-v2.yml",
       "helper": "scripts/apply-approved-0036.mjs",
-      "verificationRun": 33506120933,
+      "verificationRun": 33506916237,
       "verificationResult": "PASS",
-      "productionMutationTrigger": "workflow_dispatch_only",
-      "pushMigrationResult": "SKIPPED",
+      "productionMutationTrigger": "newly_added_.engineering/CR27_0036_EXECUTE_with_exact_commit_message",
+      "requiredTriggerFileContent": "APPROVE_PRODUCTION_PREFLIGHT_0036_AND_DEPLOYMENT",
+      "requiredTriggerCommitMessage": "ops(cr-27): execute approved 0036 migration",
+      "ordinaryPushMigrationResult": "SKIPPED",
       "requiredSecret": "DATABASE_URL",
-      "secretPresent": false
+      "secretPresent": false,
+      "ownerMustManuallyRunWorkflow": false
     },
-    "governanceCheckpoint": {
+    "previousGovernanceCheckpoint": {
       "pullRequest": 72,
       "head": "902f9b3bd7d6abdb726baff440fe0f10651d165a",
       "ciRun": 33501155560,
@@ -156,7 +160,17 @@
       "actualMerge": "785da1ec4d68d4ac79b9ee94adec7db74b49db26",
       "verifiedTree": "3ee342b2f0378ab99d5613bd402fed74cf793965"
     },
-    "resumeCondition": "Resume immediately after either: (1) the owner adds the production Neon DATABASE_URL directly as a GitHub Actions repository secret and manually dispatches Verify CR-27 0036 runner v2 on branch ops/cr-27-0036-runner-v2-20260901; (2) the Neon connector project/branch/database argument mapping is corrected; or (3) the owner independently applies exactly db/migrations/0036_durable_artwork_objects.sql to verified production neondb and confirms completion. Before deployment, re-read production schema and verify artwork_objects has the exact expected constraints/index.",
+    "governanceCheckpoint": {
+      "pullRequest": 74,
+      "head": "6be4f69c7a6d199a53e13b610279c78f0157f791",
+      "ciRun": 33506462445,
+      "ciRunNumber": 1765,
+      "ciResult": "PASS: unit tests, typecheck, lint and production build all succeeded",
+      "actualMerge": "1342f8436d4acd5041177b225b466e44dc5d7ecb",
+      "verifiedTree": "0a810868aed4b14b930462774d7ad653a7116014",
+      "treeIdentity": "PR head 6be4f69c and merge 1342f843 share exact tree 0a810868"
+    },
+    "resumeCondition": "Preferred path: resume immediately after the owner adds the production Neon connection string directly as GitHub Actions repository secret DATABASE_URL and says it is done. Engineering then creates .engineering/CR27_0036_EXECUTE on ops/cr-27-0036-runner-v2-20260901 with content APPROVE_PRODUCTION_PREFLIGHT_0036_AND_DEPLOYMENT using the exact commit message ops(cr-27): execute approved 0036 migration; the workflow reruns all verification first and only then may execute exact migration 0036. Alternative resume paths are a repaired Neon connector or owner manual application of exactly db/migrations/0036_durable_artwork_objects.sql. Before deployment, re-read production schema and verify artwork_objects has the exact expected constraints/index.",
     "nextSafeDeploymentMutation": "After 0036 postflight verification only, fast-forward release/hostinger-v10-candidate-20260825 from aa73848e9ef79905e8239f9fb4cc8fce244e04c6 to 6b64b3b000cff18db2ac27b8c5494b0c72670211 with force=false; do not change the Hostinger selected branch."
   },
   "standingOwnerGates": {
@@ -185,6 +199,6 @@
   },
   "nextAction": {
     "actor": "OWNER_OR_EXTERNAL_CONNECTOR",
-    "instruction": "Preferred owner path: in GitHub repository Settings -> Secrets and variables -> Actions, add the production Neon connection string as repository secret DATABASE_URL without pasting it into chat, then manually run workflow Verify CR-27 0036 runner v2 on branch ops/cr-27-0036-runner-v2-20260901. The workflow will rerun all verification first and only then execute exact migration 0036 with preflight/postflight checks. Alternative: restore the Neon connector adapter or manually apply only repository migration 0036 in Neon. After successful schema verification, engineering may use the already-granted approval to fast-forward the existing Hostinger release branch to verified runtime head 6b64b3b0 and run CR-27 live boundary proof. Do not deploy before 0036 is verified."
+    "instruction": "Preferred owner action only: in GitHub repository Settings -> Secrets and variables -> Actions, add the production Neon connection string as repository secret DATABASE_URL. Do not paste the value into chat. Then tell engineering only that DATABASE_URL is added. Engineering will create the already-approved one-time execution sentinel and monitor the exact migration/postflight. Alternative: restore the Neon connector adapter or manually apply only repository migration 0036 in Neon. After successful schema verification, engineering may use the already-granted approval to fast-forward the existing Hostinger release branch to verified runtime head 6b64b3b0 and run CR-27 live boundary proof. Do not deploy before 0036 is verified."
   }
 }
