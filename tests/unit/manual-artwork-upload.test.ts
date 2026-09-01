@@ -24,7 +24,7 @@ function pngChunk(type: string, data: Buffer): Buffer {
   return Buffer.concat([length, typeBytes, data, checksum]);
 }
 
-function png(width: number, height: number): Buffer {
+function png(width: number, height: number, ancillaryTextBytes = 0): Buffer {
   const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(width, 0);
@@ -32,9 +32,13 @@ function png(width: number, height: number): Buffer {
   ihdr[8] = 8;
   ihdr[9] = 6;
   const scanlines = Buffer.alloc((width * 4 + 1) * height);
+  const ancillary = ancillaryTextBytes > 0
+    ? [pngChunk('tEXt', Buffer.concat([Buffer.from('qa\0', 'latin1'), Buffer.alloc(ancillaryTextBytes, 0x78)]))]
+    : [];
   return Buffer.concat([
     signature,
     pngChunk('IHDR', ihdr),
+    ...ancillary,
     pngChunk('IDAT', deflateSync(scanlines)),
     pngChunk('IEND', Buffer.alloc(0)),
   ]);
@@ -95,7 +99,7 @@ test('rejects an undersized PNG before storing it', async () => {
     issueId: '11111111-1111-4111-8111-111111111111',
     fileName: 'small.png',
     mimeType: 'image/png',
-    bytes: png(500, 500),
+    bytes: png(500, 500, 12_000),
     reason: 'manual alternative',
   })).rejects.toThrow(/dimensions/i);
   expect(stored).toBe(false);
