@@ -91,6 +91,11 @@ export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
       <div><span>TRACKING</span><strong>{detail.trackingNumber ?? 'NOT YET'}</strong></div>
     </div>
     {detail.paymentExceptionCode ? <p className={styles.alert}>PAYMENT EXCEPTION / {detail.paymentExceptionCode}</p> : null}
+    {detail.paymentProvider === 'SAFEPAY' && detail.paymentProviderReference ? <section>
+      <h3>Refund operations</h3>
+      <p>Safepay reference: {detail.paymentProviderReference}</p>
+      <p>Initiate the refund in Safepay. ISSUED ONCE keeps local payment truth unchanged until verified Safepay reconciliation confirms the refund.</p>
+    </section> : null}
     <section><h3>Private data</h3><p className={styles.privacyFlags}>{detail.privacy.verifiedEmail ? 'EMAIL STORED' : 'NO EMAIL'} · {detail.privacy.shipping ? 'SHIPPING STORED' : 'NO SHIPPING'} · {detail.privacy.answers ? 'ANSWERS STORED' : 'NO ANSWERS'} · {detail.privacy.privateBrief ? 'BRIEF STORED' : 'NO BRIEF'}</p><p>Plaintext stays hidden until an audited reveal is requested.</p>
       <div className={styles.revealButtons}>{revealOptions.filter((option) => option.available).map((option) => <button key={option.category} type="button" onClick={() => openReveal(option.category)}>{option.label}</button>)}</div>
     </section>
