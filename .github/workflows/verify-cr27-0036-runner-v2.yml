@@ -62,8 +62,7 @@ jobs:
   migrate-0036:
     if: >-
       github.event_name == 'push' &&
-      github.event.head_commit.message == 'ops(cr-27): execute approved 0036 migration' &&
-      contains(github.event.head_commit.added, '.engineering/CR27_0036_EXECUTE')
+      github.event.head_commit.message == 'ops(cr-27): execute approved 0036 migration'
     needs: verify-runner
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -72,13 +71,17 @@ jobs:
     steps:
       - name: Checkout runner
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-      - name: Verify one-time execution sentinel
+      - name: Verify one-time execution sentinel was newly added
         shell: bash
         run: |
           set -euo pipefail
           test -f .engineering/CR27_0036_EXECUTE
           test "$(cat .engineering/CR27_0036_EXECUTE)" = 'APPROVE_PRODUCTION_PREFLIGHT_0036_AND_DEPLOYMENT'
+          git diff --diff-filter=A --name-only HEAD^ HEAD | grep -Fxq '.engineering/CR27_0036_EXECUTE'
+          test "$(git log -1 --pretty=%B)" = 'ops(cr-27): execute approved 0036 migration'
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
