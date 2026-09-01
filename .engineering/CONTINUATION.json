@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "version": "1.28.0",
+  "version": "1.29.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-01T06:49:22Z",
+  "updatedAt": "2026-09-01T07:05:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "8fd418dd09fea083e188c01e86e01fcaa57240bc",
+    "verifiedRuntimeIntegrationHead": "405c8f3eb84a879d23c848616d3bfe8a5f159001",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
@@ -25,12 +25,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "ADVANCE_CR13_CR14_PR_INTEGRATION",
-    "reason": "CR-13/CR-14 production implementation at e62e808f7816a1f87231a328361bfabd3f532091 passed Full Engineering run 33478836227 / job 99763722261: unit tests, typecheck, lint and production build all succeeded. The change is backend/design-runtime only, so repository Browser QA path policy did not require customer UI proof. Provider/live candidate evidence remains required before DONE, but the code cycle is ready for PR integration without any production deployment or provider/factory side effect."
+    "decision": "ADVANCE_CR15_PERSISTENCE_AUDIT",
+    "reason": "CR-13/CR-14 is code-ready and integrated at 405c8f3eb84a879d23c848616d3bfe8a5f159001. Normal PR #63 carried exact verified head 18c8f4948b4fca6d2ecd788401b9ff8853072586 after the connected draft-to-ready mutation failed on GitHub's GraphQL fullDatabaseId schema mismatch. Wrapper PR CI runs 33479907470 and 33479964438 both passed unit tests, typecheck, lint and production build. The merge commit and verified PR head share exact tree b12d237f90a0daf2d6f64337520b1261af149214, so integrated code is byte-identical to the verified tree. Live/provider candidate proof remains required before DONE, but no owner input is needed to begin CR-15."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR13_CR14_EXACT_HEAD_GREEN_PR_INTEGRATION_READY",
+    "internalWorkStatus": "CR13_CR14_CODE_READY_INTEGRATED_CR15_NEXT",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
@@ -46,67 +46,58 @@
     ]
   },
   "lastCompleted": {
-    "consumerReadinessId": "CR-18",
-    "title": "Explicit production catalog authority",
+    "consumerReadinessId": "CR-13+CR-14",
+    "title": "Current artwork provider contract and real printable-image quality gate",
     "status": "CODE_READY_MERGED_AND_TREE_VERIFIED",
-    "featureBranch": "feat/cr-18-catalog-authority",
-    "pullRequest": 59,
-    "featureHead": "43008c64fa7cc1d73d4a9b343d53819e48df6905",
-    "verifiedPullRequestMergeRef": "5654c41f3768a2acaf208a40bc8ea2d754ca753d",
-    "mergeCommit": "8fd418dd09fea083e188c01e86e01fcaa57240bc",
-    "verifiedTree": "ca99250c755ab9712f5c9117736ae963abd4351d",
+    "featureBranch": "feat/cr-13-artwork-rendering",
+    "draftPullRequest": 61,
+    "integrationWrapperBranch": "feat/cr-13-artwork-rendering-integration",
+    "integrationPullRequest": 63,
+    "redHead": "4d44c80b2a39c99d9d78066faf01d81000d2933a",
+    "implementationHead": "e62e808f7816a1f87231a328361bfabd3f532091",
+    "finalFeatureHead": "18c8f4948b4fca6d2ecd788401b9ff8853072586",
+    "mergeCommit": "405c8f3eb84a879d23c848616d3bfe8a5f159001",
+    "verifiedTree": "b12d237f90a0daf2d6f64337520b1261af149214",
     "redEvidence": [
-      "Commit 9620bdd750971994a9792b77f0938cf3ab864ce3 added focused CR-18 regressions that failed because missing ACTIVE publication still allowed boot/default commercial truth and readiness lacked catalog_authority.",
-      "Commit a67207b17a6387e0e56171935a025b59e2a2d45b moved the authority contract to the shared Postgres quote/catalog boundary rather than a checkout-only patch."
+      "RED head 4d44c80b2a39c99d9d78066faf01d81000d2933a added opaque OpenAI/manual-upload and exact-template/effective-DPI regressions without production changes.",
+      "Full Engineering run 33470739855 failed the intentional RED unit slice on that exact test-only head."
     ],
     "greenEvidence": [
-      "PR #59 merge-ref CI run 33438840018 PASS: 222 files / 656 tests, typecheck, lint with 0 errors and 5 pre-existing warnings, production build.",
-      "tests/unit/postgres-issued-once-catalog-authority.test.ts PASS: missing ACTIVE publication fails closed; explicitly published empty catalog remains authoritative.",
-      "tests/unit/readiness-service.test.ts PASS: blocking catalog_authority readiness contract is explicit and mandatory.",
-      "Synthetic PR merge 5654c41f3768a2acaf208a40bc8ea2d754ca753d and actual integration merge 8fd418dd09fea083e188c01e86e01fcaa57240bc share exact tree ca99250c755ab9712f5c9117736ae963abd4351d.",
-      "Browser QA was not triggered because repository browser-qa.yml path filters do not include the backend-only CR-18 files.",
-      "Vercel preview failure was confirmed pre-existing on the prior CR-11 green head, including hobby-plan deployment rate limiting; production remains Hostinger."
+      "Implementation head e62e808f7816a1f87231a328361bfabd3f532091 passed Full Engineering run 33478836227 / job 99763722261: unit tests, typecheck, lint and production build.",
+      "Continuation evidence head be855b67b8519bc88e9f92e4086c39499010e940 passed run 33479425584 / job 99765500032.",
+      "Final feature/evidence head 18c8f4948b4fca6d2ecd788401b9ff8853072586 passed run 33479569299 / job 99765948288.",
+      "Normal wrapper PR #63 exact-head runs 33479907470 / job 99766994725 and 33479964438 / job 99767164626 both passed unit tests, typecheck, lint and production build.",
+      "Actual integration merge 405c8f3eb84a879d23c848616d3bfe8a5f159001 and verified PR head 18c8f4948b4fca6d2ecd788401b9ff8853072586 share exact tree b12d237f90a0daf2d6f64337520b1261af149214.",
+      "Browser QA was not required by repository path policy because this cycle changed backend/design-runtime and unit-test files, not customer or owner UI surfaces."
     ],
-    "remainingLiveEvidence": "Deploy the exact integrated release, publish/confirm an owner-authorized production catalog, verify catalog_authority readiness is green, and prove the live commercial quote/selection path uses that publication rather than boot defaults.",
+    "implementedContract": [
+      "Shared PNG validation reconstructs valid PNG scanlines, rejects corrupt structure, and detects real transparency including alpha-channel and tRNS semantics.",
+      "OpenAI generation and manual owner upload fail closed on fully opaque PNG artwork.",
+      "Manufacturing approval resolves the exact selected objectType:sizeCode:colorCode Printful mapping and enforces effective DPI against that placement.",
+      "DESIGN_APPROVED audit evidence persists exact template and effective-DPI checks through the existing issue-event path.",
+      "Printful variant configuration stays lazy until manufacturing approval."
+    ],
+    "remainingLiveEvidence": [
+      "CR-13 requires one real supported-provider interpretation/artwork candidate generated without exposing private answers.",
+      "CR-14 requires that real candidate to pass the actual selected Printful placement/template end to end."
+    ],
     "productionDeploymentPerformed": false,
     "productionEnvironmentChanged": false
   },
   "activeTask": {
-    "consumerReadinessId": "CR-13+CR-14",
-    "title": "Current artwork provider contract and real printable-image quality gate",
-    "status": "EXACT_HEAD_GREEN_PR_INTEGRATION_READY",
-    "featureBranch": "feat/cr-13-artwork-rendering",
-    "pullRequest": 61,
-    "verifiedImplementationHead": "e62e808f7816a1f87231a328361bfabd3f532091",
-    "designBoundary": "Keep interpretation/artwork private and provider-replaceable; production generation must use a currently supported provider/model contract, and artwork acceptance must validate actual decoded image bytes and printable transparency/resolution rather than trusting metadata.",
+    "consumerReadinessId": "CR-15",
+    "title": "Durable generated-artwork retention across redeploy/restart",
+    "status": "AUDIT_NEXT",
+    "designBoundary": "Generated and manually uploaded artwork must remain retrievable after application process restart and deployment replacement. Durable retention must not depend on ephemeral application filesystem state, must preserve private access semantics, and must remain provider-replaceable.",
     "requiredEvidence": [
-      "inspect current interpretation/image-provider runtime and model assumptions against current supported contracts",
-      "RED regressions for obsolete/unsupported provider assumptions where present",
-      "RED regressions proving corrupt/non-PNG/no-alpha/insufficient-effective-resolution artwork cannot pass metadata-only QA",
-      "single shared decoded-image quality contract covering corruption, dimensions, alpha/transparency, placement/template applicability and effective DPI",
-      "private storage/access behavior remains intact",
-      "exact-head unit/typecheck/lint/production build and Browser QA only if customer/owner UI changes",
-      "real generated candidate/provider proof remains live/provider evidence before DONE"
-    ],
-    "redEvidence": [
-      "RED head 4d44c80b2a39c99d9d78066faf01d81000d2933a added provider-opaque, manual-upload-opaque and exact-template/effective-DPI regressions without production changes.",
-      "Full Engineering run 33470739855 failed the intentional RED unit slice on that exact test-only head."
-    ],
-    "implementationEvidence": [
-      "Shared PNG validation reconstructs PNG scanlines for filter types 0-4 and detects actual transparency, including alpha-channel and tRNS semantics, instead of trusting requested provider background metadata.",
-      "OpenAI generation and owner manual-upload ingress both fail closed when decoded PNG pixels are fully opaque.",
-      "ArtworkQualityGate requires the exact objectType:sizeCode:colorCode print template and records deterministic template/effective-DPI checks.",
-      "DesignService resolves the selected Printful mapping only at manufacturing approval, and PostgresDesignRepository persists returned checks in the DESIGN_APPROVED issue event.",
-      "Design runtime resolves PRINTFUL_VARIANT_MAP_JSON lazily during approval so interpretation/generation does not acquire a new eager Printful configuration dependency."
-    ],
-    "greenEvidence": [
-      "Implementation commit e62e808f7816a1f87231a328361bfabd3f532091 answered the RED slice in production code and added approval-boundary integration regression coverage.",
-      "Full Engineering run 33478836227 / job 99763722261 PASS on exact implementation head: unit tests, typecheck, lint and production build all succeeded.",
-      "Browser QA was not required by repository path policy because this cycle changed backend/design-runtime and unit-test files, not customer or owner UI surfaces."
-    ],
-    "remainingLiveEvidence": [
-      "CR-13 remains CODE_READY until one real production-supported OpenAI interpretation/artwork candidate is generated and recorded without exposing private answers.",
-      "CR-14 remains CODE_READY until a real generated candidate is inspected through the actual selected Printful placement/template and its transparent printable contract is demonstrated end to end."
+      "trace every artwork write/read/delete path and identify whether any production path depends on local process filesystem state",
+      "prove current behavior with a focused restart/redeploy-style regression before changing implementation",
+      "select the existing durable storage authority if one already exists; otherwise introduce the smallest durable private storage boundary compatible with current runtime",
+      "preserve private artifact locator semantics and prevent public raw-answer or artwork leakage",
+      "prove generated and manual-uploaded artwork survive storage-gateway recreation and application-service recreation",
+      "prove missing/corrupt durable objects fail closed without silently accepting metadata-only records",
+      "exact-head unit/typecheck/lint/production build; Browser QA only if customer/owner UI changes",
+      "destructive deployed restart/redeploy recovery proof remains live evidence before DONE"
     ]
   },
   "standingOwnerGates": {
@@ -131,6 +122,6 @@
   },
   "nextAction": {
     "actor": "ENGINEERING",
-    "instruction": "Re-run Full Engineering on the exact documentation descendant, update PR #61 from RED-only wording to truthful implementation/evidence, mark it ready if the exact-head gate is green and mergeability is clean, merge with expected-head protection into infra/hostinger-migration-20260823, verify the resulting integration tree and post-merge CI, then reconcile the master-plan/continuation ledger before advancing to CR-15. No production deployment, real provider charge, payment, Printful confirmation or Hostinger branch/environment mutation is authorized."
+    "instruction": "Integrate this reconciliation through an exact-head green PR, then execute CR-15 autonomously: trace artwork storage write/read/delete and runtime composition from the verified integration head; create the smallest focused RED regression that reproduces loss across storage/service recreation or identifies existing durable proof; fix the root cause without production deployment or provider/factory side effects; verify exact-head gates and update the master-plan/continuation evidence."
   }
 }
