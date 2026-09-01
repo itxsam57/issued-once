@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "version": "1.32.0",
+  "version": "1.32.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-01T10:43:00Z",
+  "updatedAt": "2026-09-01T10:52:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "2daff7d1c4706e0dffed7c64947f27b03e8b9d44",
+    "verifiedRuntimeIntegrationHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "liveReleaseHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "hostingerLinkedBranchHead": "aa73848e9ef79905e8239f9fb4cc8fce244e04c6",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
@@ -26,11 +26,11 @@
       "COMPLETE"
     ],
     "decision": "OWNER_APPROVAL_REQUIRED_FOR_0036_AND_EXACT_INTEGRATION_DEPLOYMENT",
-    "reason": "CR-22 feature head 3cf79dc4b8cacd3645c05dce2d503647245f1461 passed CI run 33498342341 and Browser QA run 33498342363, then PR #68 merged as 2daff7d1c4706e0dffed7c64947f27b03e8b9d44. Post-merge CI run 33498686839 passed unit tests, typecheck, lint and production build, and Browser QA run 33498686863 passed. Refund truth remains provider-derived: Safepay Dashboard initiates the refund, signed webhook remains automatic truth, Owner OS can only verify/reconcile the stored tracker after exact typed Issue confirmation, partial refunds are not promoted to full-refund truth, and shared finalization preserves Issue quarantine plus referral reversal/notification behavior. The master execution order now reaches production deployment/live proof; migration 0036 is still recorded as production-unapplied and the verified integration release contains durable-artwork code that expects that schema. No production environment, Hostinger branch, Safepay charge/refund, Printful confirmation or referral activation was changed during CR-22."
+    "reason": "CR-22 feature head 3cf79dc4b8cacd3645c05dce2d503647245f1461 passed CI run 33498342341 and Browser QA run 33498342363, then PR #68 merged as 2daff7d1c4706e0dffed7c64947f27b03e8b9d44 and passed post-merge CI run 33498686839 plus Browser QA run 33498686863. Follow-up PR #69 made the Owner runbook explicitly full-refund-only and merged as 6b64b3b000cff18db2ac27b8c5494b0c72670211; exact-head CI run 33499009895 and Browser QA run 33499010036 both passed. Refund truth remains provider-derived: Safepay Dashboard initiates only the full refund described by the runbook, signed webhook remains automatic truth, Owner OS can only verify/reconcile the stored tracker after exact typed Issue confirmation, partial refunds are not promoted to full-refund truth, and shared finalization preserves Issue quarantine plus referral reversal/notification behavior. The master execution order now reaches production deployment/live proof; migration 0036 is still recorded as production-unapplied and the verified integration release contains durable-artwork code that expects that schema. No production environment, Hostinger branch, Safepay charge/refund, Printful confirmation or referral activation was changed during CR-22."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR22_CODE_READY_MERGED_NEXT_OWNER_GATED_DEPLOYMENT",
+    "internalWorkStatus": "CR22_CODE_READY_HARDENED_NEXT_OWNER_GATED_DEPLOYMENT",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan as the detailed evidence ledger and update it after every meaningful CR cycle.",
@@ -49,12 +49,14 @@
   "lastCompleted": {
     "consumerReadinessId": "CR-22",
     "title": "Refund operations and provider-derived reconciliation truth",
-    "status": "CODE_READY_MERGED_AND_POST_MERGE_VERIFIED",
+    "status": "CODE_READY_MERGED_HARDENED_AND_POST_MERGE_VERIFIED",
     "featureBranch": "feat/cr-22-refund-reconciliation",
     "integrationPullRequest": 68,
+    "hardeningPullRequest": 69,
     "finalEvidenceHead": "3cf79dc4b8cacd3645c05dce2d503647245f1461",
-    "mergeCommit": "2daff7d1c4706e0dffed7c64947f27b03e8b9d44",
-    "verifiedTree": "db2493fc5e228aeb48372d48091fd2ca0d27cef6",
+    "initialMergeCommit": "2daff7d1c4706e0dffed7c64947f27b03e8b9d44",
+    "mergeCommit": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
+    "verifiedTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
     "redEvidence": [
       "RED service-boundary run 33497416050 failed only the two new payment-refund reconciliation tests because PaymentService.reconcileRefund was absent while 230 existing suites / 683 existing tests remained green.",
       "Expanded RED run 33497754475 failed exactly four new assertions: two for the missing PaymentService.reconcileRefund seam and two for the missing Safepay full-refund verifier; 230 existing suites / 683 existing tests remained green."
@@ -64,10 +66,11 @@
       "Safepay reconciliation verifies only the stored payment tracker and stored amount/currency; TRACKER_PARTIAL_REFUND is not accepted as full-refund truth.",
       "Authenticated Owner OS reconciliation requires exact VERIFY SAFEPAY <Issue Code> confirmation and does not accept browser-supplied money or provider-reference authority.",
       "Final feature head 3cf79dc4b8cacd3645c05dce2d503647245f1461 passed CI run 33498342341 and Browser QA run 33498342363.",
-      "Integration merge 2daff7d1c4706e0dffed7c64947f27b03e8b9d44 passed post-merge CI run 33498686839 and Browser QA run 33498686863."
+      "Initial integration merge 2daff7d1c4706e0dffed7c64947f27b03e8b9d44 passed post-merge CI run 33498686839 and Browser QA run 33498686863.",
+      "Full-refund runbook hardening merge 6b64b3b000cff18db2ac27b8c5494b0c72670211 passed exact-head CI run 33499009895 and Browser QA run 33499010036."
     ],
     "implementedContract": [
-      "ISSUED ONCE does not expose a browser endpoint that initiates or fabricates a refund; the owner initiates the financial refund in Safepay Dashboard.",
+      "ISSUED ONCE does not expose a browser endpoint that initiates or fabricates a refund; the owner initiates the full financial refund in Safepay Dashboard.",
       "Signed Safepay refund webhook remains the automatic production source of refund truth.",
       "Owner OS fallback can verify/reconcile the stored Safepay tracker only after authenticated exact Issue confirmation.",
       "Full refund reconciliation accepts provider-confirmed TRACKER_REFUNDED for the exact stored original amount/currency and rejects partial-refund state.",
@@ -75,7 +78,7 @@
       "Duplicate/replayed refund evidence stays idempotent and browser input cannot override stored commercial money truth."
     ],
     "remainingLiveEvidence": [
-      "After deployment, perform one controlled Safepay Dashboard refund and prove the signed webhook or Owner OS provider reconciliation moves exactly the intended paid attempt to REFUNDED without cross-Issue effects.",
+      "After deployment, perform one controlled full Safepay Dashboard refund and prove the signed webhook or Owner OS provider reconciliation moves exactly the intended paid attempt to REFUNDED without cross-Issue effects.",
       "Do not create a real charge/refund solely for automated QA without the explicit owner live-provider gate."
     ],
     "productionDeploymentPerformed": false,
@@ -126,6 +129,6 @@
   },
   "nextAction": {
     "actor": "OWNER",
-    "instruction": "Approve production migration 0036_durable_artwork_objects.sql and deployment of the exact verified integration release lineage beginning at 2daff7d1c4706e0dffed7c64947f27b03e8b9d44 to Hostinger. This approval does not authorize referral migrations, real Safepay QA charges/refunds, Printful production confirmation, key rotation, environment-variable deletion, or canonical-domain cutover. After approval, engineering must rerun the production schema preflight, apply only 0036, verify it, deploy while preserving production variables, and execute CR-27/live non-charge proofs."
+    "instruction": "Approve production migration 0036_durable_artwork_objects.sql and deployment of the exact verified integration release lineage beginning at 6b64b3b000cff18db2ac27b8c5494b0c72670211 to Hostinger. This approval does not authorize referral migrations, real Safepay QA charges/refunds, Printful production confirmation, key rotation, environment-variable deletion, or canonical-domain cutover. After approval, engineering must rerun the production schema preflight, apply only 0036, verify it, deploy while preserving production variables, and execute CR-27/live non-charge proofs."
   }
 }
