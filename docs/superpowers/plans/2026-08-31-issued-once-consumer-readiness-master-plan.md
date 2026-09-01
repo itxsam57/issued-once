@@ -53,8 +53,8 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 | CR-10 | Customer status shows safe lifecycle/tracking without private-data leakage | CODE_READY | recovery-linked live status + shipment projection proof |
 | CR-11 | Public support can be opened from the customer Issue without relying only on mailto | CODE_READY | Issue-scoped support UI + encrypted request are integrated; deployed customer request -> owner reply proof still required |
 | CR-12 | Customer lifecycle email notifications are idempotent and deliver from verified sender | CODE_READY | real PAYMENT_RECEIVED/IN_PRODUCTION/SHIPPED/DELIVERED email proof |
-| CR-13 | AI interpretation and artwork generation are provider-backed, private and replaceable | CODE_READY | current supported production models + one real generated candidate proof |
-| CR-14 | Artwork quality gate proves an actually printable transparent PNG, not metadata alone | MISSING | decode/alpha/corruption/template/effective-DPI tests + real candidate proof |
+| CR-13 | AI interpretation and artwork generation are provider-backed, private and replaceable | CODE_READY | exact-head provider/runtime hardening is green; one real supported-provider generated candidate proof still required |
+| CR-14 | Artwork quality gate proves an actually printable transparent PNG, not metadata alone | CODE_READY | decoded corruption/alpha/template/effective-DPI contract is exact-head green; real selected-template candidate proof still required |
 | CR-15 | Generated artwork is durably retained across application redeploy/restart boundary | MISSING | persistence design + destructive redeploy/restart recovery proof |
 | CR-16 | Owner reviews/approves/rejects/regenerates/uploads design with audited private-data reveals | CODE_READY | deployed Owner OS browser proof on a real controlled Issue |
 | CR-17 | Catalog publication cannot sell a variant without a factory mapping | CODE_READY | exact-head regression + Owner OS publish rejection proof |
@@ -153,6 +153,24 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 - Production deployment/environment mutation: none.
 - Master-plan state: `CODE_READY`.
 
+### CR-13 + CR-14 — provider-backed printable artwork contract
+
+- Feature branch: `feat/cr-13-artwork-rendering`.
+- Draft integration PR: #61.
+- RED head: `4d44c80b2a39c99d9d78066faf01d81000d2933a`; focused tests proved fully opaque provider/manual-upload PNGs and mismatched/under-DPI physical templates were still accepted before the production fix.
+- RED CI: run `33470739855` failed the intentional unit slice on the exact test-only head.
+- Implementation head: `e62e808f7816a1f87231a328361bfabd3f532091`.
+- Exact implementation CI: run `33478836227`, job `99763722261` PASS — unit tests, typecheck, lint and production build.
+- Actual-image contract: PNG bytes are signature/chunk/CRC/IHDR/IDAT/raster validated; scanlines are reconstructed for PNG filters 0-4 and Adam7; real transparency is detected from alpha samples or valid `tRNS` semantics rather than provider metadata.
+- Ingress contract: both OpenAI artwork generation and owner manual upload fail closed when the decoded image is fully opaque.
+- Manufacturing contract: approval resolves the exact selected `objectType:sizeCode:colorCode` through `PrintfulVariantMap`, calculates effective DPI from actual artwork dimensions and the mapped placement, rejects a mismatched/under-target template, and stores `template:*` plus `effective-dpi:*` in the existing audited `DESIGN_APPROVED` issue event.
+- Runtime boundary: `PRINTFUL_VARIANT_MAP_JSON` remains lazy at manufacturing approval, so interpretation/generation does not acquire an eager factory configuration dependency.
+- Browser QA: not required by repository path policy because the cycle changes backend/design runtime and tests, not customer/owner UI surfaces.
+- Remaining CR-13 evidence: one real candidate generated through the currently supported production OpenAI contract without exposing private answers.
+- Remaining CR-14 evidence: the real candidate must pass the actual selected Printful placement/template and printable transparency/effective-DPI proof end to end.
+- Production deployment/environment/provider/factory mutation: none.
+- Master-plan state: both `CODE_READY`; neither is `DONE` until the live/provider evidence above exists.
+
 ## Audit findings that must remain in scope
 
 ### A. Post-payment handoff and recovery
@@ -185,9 +203,11 @@ Remaining completion target: deploy the exact integrated release, confirm an own
 
 ### E. Artwork provider and quality
 
-The design pipeline is real, but launch must not rely on an obsolete/deprecated image-provider assumption or metadata-only image QA. Artwork acceptance must decode the actual file and prove the printable contract.
+**Code-side CR-13/CR-14 contract is exact-head green on `e62e808f7816a1f87231a328361bfabd3f532091`; provider/live candidate proof remains.**
 
-Root-cause completion target: current supported image provider contract, actual PNG decode, alpha/transparency requirement, corruption rejection, mapped placement/effective-resolution checks, and durable asset retention.
+The design pipeline now validates the actual decoded PNG rather than trusting requested background metadata, requires real transparent pixels at both automated and manual ingress, and binds manufacturing approval to the exact selected Printful template with calculated effective DPI and audited evidence.
+
+Remaining completion target: one real supported-provider generation plus actual selected-template/placement proof. Durable artwork retention remains separately tracked by CR-15.
 
 ### F. Public support
 
@@ -223,8 +243,8 @@ Root-cause completion target: expand controlled live QA in stages. Never charge 
 4. `CR-07` + `CR-09` unified Issue access/recovery — **code-ready and integrated; deployed paid-return/real-OTP proof pending**.
 5. `CR-11` encrypted Issue-scoped customer support — **code-ready and integrated; deployed owner-reply proof pending**.
 6. `CR-18` require explicit production catalog authority — **code-ready and integrated; deployed owner-published catalog proof pending**.
-7. `CR-13` + `CR-14` move artwork generation/QA to a current, proven production contract — **NEXT**.
-8. `CR-15` prove or replace runtime filesystem persistence.
+7. `CR-13` + `CR-14` current provider + actual printable-image contract — **code-ready; integration and live/provider candidate proof pending**.
+8. `CR-15` prove or replace runtime filesystem persistence — **NEXT CODE-SIDE CYCLE after CR-13/14 integration**.
 9. `CR-22` finish refund operations/runbook truth.
 10. Deploy the exact verified integration release; run `CR-27` live boundary/security proof.
 11. Automate all safe live provider tests: real OTP, shipping, payment sandbox/controlled production return, email, design generation and Printful draft.
