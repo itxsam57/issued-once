@@ -141,6 +141,29 @@ test('verifies only a full original-quote refund through Safepay Reporter v1', a
   })).resolves.toBe(true);
 });
 
+test('does not treat a Safepay partial refund as full refund truth', async () => {
+  const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
+    data: {
+      tracker: {
+        token: 'track_paid_1',
+        client: 'sec_live',
+        state: 'TRACKER_PARTIAL_REFUND',
+        purchase_totals: {
+          quote_amount: { currency: 'USD', amount: 3200 },
+          base_amount: { currency: 'PKR', amount: 880056 },
+        },
+      },
+    },
+    status: { errors: [], message: 'success' },
+  }), { status: 200, headers: { 'content-type': 'application/json' } }));
+
+  await expect(gateway({ fetchImpl: fetchImpl as typeof fetch }).verifyRefundedTracker({
+    providerReference: 'track_paid_1',
+    amountMinor: 3200,
+    currency: 'USD',
+  })).resolves.toBe(false);
+});
+
 test('explicitly enables Safepay webhooks on every hosted checkout URL', async () => {
   const fetchImpl = vi.fn()
     .mockResolvedValueOnce(new Response(JSON.stringify({
