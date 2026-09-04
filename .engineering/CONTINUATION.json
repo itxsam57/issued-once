@@ -102,7 +102,7 @@
     "productionEnvironmentChanged": false,
     "realSafepayRefundPerformed": false,
     "ownerOsRevalidation20260904": {
-      "status": "CODE_READY_AWAITING_PR_AND_INDEPENDENT_EXACT_HEAD_VERIFICATION",
+      "status": "CODE_READY_PR_86_AWAITING_EXACT_HEAD_GATES_AND_INDEPENDENT_OPENCLAW_VERIFICATION",
       "branch": "fix/cr22-owner-refund-reconciliation-control-20260904",
       "baseIntegrationHead": "cc270d09d088c0c02bfcab5877800e4caa3b0c2b",
       "baseIntegrationTree": "b33c57b48b6671ef9ead0f154b66e2482cf3b6b3",
@@ -133,7 +133,10 @@
         "browserQa": "PASS: Playwright final status passed, failedTests empty, 44 desktop/mobile tests; initial local attempt was infrastructure-only failure until workflow-required Chromium binary was installed"
       },
       "remainingLiveEvidence": "Unchanged: one owner-authorized real Safepay full refund on the deployed release remains required before CR-22 can become DONE. No real charge/refund was created in this task.",
-      "nextState": "Open a focused PR to infra/hostinger-migration-20260823, require exact-head CI and Browser QA green, then wait for independent OpenClaw exact-head verification before any merge."
+      "nextState": "Require exact-head local/GitHub CI and Browser QA green on PR #86, then wait for independent OpenClaw exact-head verification before any merge.",
+      "pullRequest": 86,
+      "pullRequestBase": "infra/hostinger-migration-20260823",
+      "prePrEvidenceHead": "6512e567e108a5b8d29792f49482613e81fda0c8"
     }
   },
   "activeTask": {
