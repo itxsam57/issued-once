@@ -27,6 +27,25 @@ const ownerCookie = setCookie.split(';', 1)[0];
 if (!/^io_ops=/.test(ownerCookie)) throw new Error('Owner session cookie was not issued');
 console.log('CATALOG_GATE_OWNER_AUTH_PASS');
 
+async function printSafeReadiness() {
+  const response = await fetch(`${baseUrl}/ops/api/readiness`, {
+    headers: { cookie: ownerCookie },
+    cache: 'no-store',
+  });
+  const payload = await json(response);
+  if (response.status !== 200 || !Array.isArray(payload?.checks)) {
+    throw new Error(`Owner readiness returned ${response.status}`);
+  }
+  for (const check of payload.checks) {
+    if (['catalog', 'catalog-authority', 'safepay', 'printful', 'merchant', 'resend', 'storage', 'database', 'privacy'].includes(check.key)) {
+      console.log(`READINESS_BEFORE ${check.key}=${check.state} detail=${String(check.detail).replace(/\s+/g, ' ')}`);
+    }
+  }
+  return payload;
+}
+
+await printSafeReadiness();
+
 async function getWebsite() {
   const response = await fetch(`${baseUrl}/ops/api/website`, {
     headers: { cookie: ownerCookie },
