@@ -8,6 +8,7 @@ import { PostgresDesignPolicyRepository } from '@/server/design/PostgresDesignPo
 import { createIssueService } from '@/server/issues/runtimeIssues';
 import { createManufacturingService } from '@/server/manufacturing/runtimeManufacturing';
 import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
+import { ISSUED_ONCE_BOOT_CATALOG_JSON } from '@/server/physical/bootCatalog';
 import { enqueueIssueNotification } from '@/server/notifications/notificationQueue';
 import { finalizeRefundedAttempt } from '@/server/payments/finalizeRefundedAttempt';
 import { createPaymentService } from '@/server/payments/runtimePayments';
@@ -147,7 +148,7 @@ export function createOpsSupportService() {
 }
 export function createOpsWebsiteService() {
   const executor = sql();
-  const bootJson = env('ISSUED_ONCE_CATALOG_JSON');
+  const bootJson = process.env.ISSUED_ONCE_CATALOG_JSON?.trim() || ISSUED_ONCE_BOOT_CATALOG_JSON;
   const boot = opsCatalogSchema.parse(JSON.parse(bootJson));
   return new OpsWebsiteService(
     new PostgresOpsWebsiteStore(executor, boot),
