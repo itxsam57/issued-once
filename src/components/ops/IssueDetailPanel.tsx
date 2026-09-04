@@ -15,6 +15,7 @@ type Detail = {
   support: Array<{ requestId: string; status: string; createdAt: string; updatedAt: string }>;
 };
 type LoadState = { issueId: string | null; detail: Detail | null; error: string | null };
+type RefundReconcileState = { issueId: string | null; confirmation: string; working: boolean; message: string | null; error: string | null };
 
 async function fetchIssueDetail(issueId: string): Promise<Detail> {
   const response = await fetch(`/ops/api/issues/${encodeURIComponent(issueId)}`, { credentials: 'same-origin', cache: 'no-store' });
@@ -31,6 +32,7 @@ export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
   const [revealed, setRevealed] = useState<unknown>(null);
   const [revealError, setRevealError] = useState<string | null>(null);
   const [revealing, setRevealing] = useState(false);
+  const [refundReconcile, setRefundReconcile] = useState<RefundReconcileState>({ issueId: null, confirmation: '', working: false, message: null, error: null });
 
   useEffect(() => {
     if (!issueId) return;
@@ -54,6 +56,51 @@ export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
       setRevealed(payload.value ?? null);
     } catch (cause) { setRevealError(cause instanceof Error ? cause.message : 'Private reveal failed'); }
     finally { setRevealing(false); }
+  }
+
+  async function reconcileRefund() {
+    if (!issueId || load.issueId !== issueId || !load.detail) return;
+    const current = refundReconcile.issueId === issueId ? refundReconcile : null;
+    const expected = `VERIFY SAFEPAY ${load.detail.issueCode}`;
+    if (!current || current.working || current.confirmation !== expected) return;
+
+    const targetIssueId = issueId;
+    setRefundReconcile({ ...current, working: true, message: null, error: null });
+    try {
+      const response = await fetch(`/ops/api/issues/${encodeURIComponent(targetIssueId)}/refund/reconcile`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ confirmation: expected }),
+      });
+      const payload = await response.json() as { kind?: 'pending' | 'refunded'; error?: string };
+      if (!response.ok || (payload.kind !== 'pending' && payload.kind !== 'refunded')) {
+        throw new Error(payload.error || 'Safepay reconciliation failed');
+      }
+
+      const refreshed = await fetchIssueDetail(targetIssueId);
+      setLoad((state) => state.issueId === targetIssueId
+        ? { issueId: targetIssueId, detail: refreshed, error: null }
+        : state);
+      setRefundReconcile({
+        issueId: targetIssueId,
+        confirmation: '',
+        working: false,
+        message: payload.kind === 'refunded'
+          ? 'Safepay confirmed the full refund. Local payment truth was reconciled from provider evidence.'
+          : 'Safepay has not confirmed a full refund. Local payment truth is unchanged.',
+        error: null,
+      });
+    } catch (cause) {
+      setRefundReconcile({
+        issueId: targetIssueId,
+        confirmation: current.confirmation,
+        working: false,
+        message: null,
+        error: cause instanceof Error ? cause.message : 'Safepay reconciliation failed',
+      });
+    }
   }
 
   function openReveal(category: RevealCategory) {
@@ -95,6 +142,25 @@ export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
       <h3>Refund operations</h3>
       <p>Safepay reference: {detail.paymentProviderReference}</p>
       <p>Initiate the full refund in Safepay. ISSUED ONCE keeps local payment truth unchanged until verified Safepay reconciliation confirms the full refund.</p>
+      {(detail.paymentStatus === 'PAID' || detail.paymentStatus === 'REFUNDED') ? <div className={styles.revealBox}>
+        <strong>TYPE: VERIFY SAFEPAY {detail.issueCode}</strong>
+        <label>Safepay reconciliation confirmation<input
+          value={refundReconcile.issueId === issueId ? refundReconcile.confirmation : ''}
+          onChange={(event) => setRefundReconcile({ issueId, confirmation: event.target.value, working: false, message: null, error: null })}
+          autoComplete="off"
+          disabled={refundReconcile.issueId === issueId && refundReconcile.working}
+        /></label>
+        <button
+          type="button"
+          disabled={
+            (refundReconcile.issueId === issueId && refundReconcile.working) ||
+            (refundReconcile.issueId === issueId ? refundReconcile.confirmation : '') !== `VERIFY SAFEPAY ${detail.issueCode}`
+          }
+          onClick={() => void reconcileRefund()}
+        >{refundReconcile.issueId === issueId && refundReconcile.working ? 'VERIFYING SAFEPAY' : 'VERIFY SAFEPAY TRUTH'}</button>
+        {refundReconcile.issueId === issueId && refundReconcile.error ? <p role="alert">{refundReconcile.error}</p> : null}
+        {refundReconcile.issueId === issueId && refundReconcile.message ? <p>{refundReconcile.message}</p> : null}
+      </div> : null}
     </section> : null}
     <section><h3>Private data</h3><p className={styles.privacyFlags}>{detail.privacy.verifiedEmail ? 'EMAIL STORED' : 'NO EMAIL'} · {detail.privacy.shipping ? 'SHIPPING STORED' : 'NO SHIPPING'} · {detail.privacy.answers ? 'ANSWERS STORED' : 'NO ANSWERS'} · {detail.privacy.privateBrief ? 'BRIEF STORED' : 'NO BRIEF'}</p><p>Plaintext stays hidden until an audited reveal is requested.</p>
       <div className={styles.revealButtons}>{revealOptions.filter((option) => option.available).map((option) => <button key={option.category} type="button" onClick={() => openReveal(option.category)}>{option.label}</button>)}</div>
