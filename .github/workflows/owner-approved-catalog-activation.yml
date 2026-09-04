@@ -1,0 +1,25 @@
+name: Owner Approved Catalog Activation
+
+on:
+  push:
+    branches:
+      - ops/owner-approved-catalog-activation-20260904
+
+permissions:
+  contents: read
+
+jobs:
+  activate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
+      EXPECTED_RELEASE_ID: b77338902c5824a8151068c987a7e90e4a3717cc
+      INTERNAL_OPERATIONS_TOKEN: ${{ secrets.INTERNAL_OPERATIONS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Activate only the deployed catalog already exposed by Owner OS
+        run: node scripts/owner-approved-catalog-activation.mjs
