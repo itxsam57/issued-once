@@ -2,7 +2,7 @@
 
 Date: 2026-08-31
 Original audited integration base: `ad9f388c33121b1225cc7a387b038940edfd389b`
-Current reconciled integration head: `fc3be93445a3538cac473146df8557077c35a6ef`
+Current reconciled integration head: `f7c54175e58291bdfe25be1b23f3ebb961588076`
 Parent implementation plan: `docs/superpowers/plans/2026-08-19-issued-once-final-commercial-cycle.md`
 Owner OS design: `docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md`
 
@@ -62,7 +62,7 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 | CR-19 | Printful draft creation is exact, idempotent and cannot charge automatically | CODE_READY | real Printful draft proof on controlled Issue |
 | CR-20 | Printful confirmation requires owner session + independent kill switch + exact typed Issue confirmation | CODE_READY | controlled owner confirmation proof when owner deliberately authorizes first charge |
 | CR-21 | Signed Printful webhook updates production/shipped/delivered truth without cross-linking Issues | CODE_READY | real signed webhook/shipment proof + duplicate/cross-link regression |
-| CR-22 | Refund truth is provider-derived and an owner has a documented operational resolution path | IN_PROGRESS | first-class owner refund/reconciliation workflow or explicit runbook + provider proof |
+| CR-22 | Refund truth is provider-derived and an owner has a documented operational resolution path | CODE_READY | provider-derived Owner reconciliation + exact-confirmation Owner OS verification control + explicit full-refund runbook are code-ready; real Safepay full-refund proof on the deployed release still required |
 | CR-23 | Owner OS customer, Issue, support, sales, audit and recovery views are bounded, paginated and privacy-preserving | CODE_READY | deployed Owner OS browser proof + scale/query gate |
 | CR-24 | Owner System readiness mirrors every real runtime requirement and cannot show false-positive provider readiness | DONE | runtime/readiness config parity is integrated and exact-head full gates are green, including Safepay API-secret requirement |
 | CR-25 | Unknown exceptions never serialize private/provider/database details into server logs | DONE | complete route sentinel class is integrated and exact-head/post-merge full gates are green |
@@ -183,12 +183,36 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 - Integration merge: `fc3be93445a3538cac473146df8557077c35a6ef`. The verified final head and merge share exact tree `bc6c913337f6a88a4f496af33a14fa1060d43353`, so integrated CR-15 code is byte-identical to the verified tree.
 - Durable authority: generated and owner-uploaded PNG bytes now use the existing Neon/Postgres authority through `PostgresArtworkStorage`; production runtime no longer composes `FilesystemArtworkStorage` or requires `ARTWORK_STORAGE_DIR` for artwork retention.
 - Private locator/access contract: canonical metadata stores only `artwork://<issue>/<artifact>` locators; external factory reads use bounded same-app signed `/api/artwork/<token>` URLs, and the durable raw locator is not exposed as a public object URL.
-- Integrity contract: durable reads revalidate canonical locator, PNG MIME, byte count and SHA-256; missing or corrupt objects fail closed. Manufacturing approval reopens the durable object and rejects metadata-only/mismatched records before approval.
+- Integrity contract: durable reads revalidate canonical locator, PNG MIME type, byte count and SHA-256; missing or corrupt objects fail closed. Manufacturing approval reopens the durable object and rejects metadata-only/mismatched records before approval.
 - Readiness contract: storage readiness verifies the durable Postgres relation plus signing/origin safety instead of probing deployment-local disk.
 - Schema: `0036_durable_artwork_objects.sql` is repository/code-ready only. **It has not been applied to production.** Referral migrations remain separately deferred and untouched.
 - Remaining CR-15 evidence before `DONE`: obtain explicit production-migration approval for `0036`; preflight/apply only that approved core migration; perform a controlled private durable write/read and destructive application restart/redeploy; prove the same bytes remain retrievable and integrity-checked afterward on the deployed release identity.
 - Production deployment/environment/provider/factory mutation: none.
 - Master-plan state: `CODE_READY`, integrated and tree-verified; not `DONE`.
+
+### CR-22 — provider-derived refund reconciliation and owner runbook
+
+- Main implementation PR: #68 (`feat/cr-22-refund-reconciliation`); wording follow-up PR: #69 (`fix/cr-22-full-refund-runbook`).
+- RED provider boundary: head `0247313684c70518a5b7d85cecb58e3287ace937`; CI run `33497754475` / #1748 failed exactly 4 intended tests while 683 existing tests passed. The missing contracts were `PaymentService.reconcileRefund()` and `SafepayPaymentGateway.verifyRefundedTracker()`; Browser QA run `33497754384` / #1538 stayed GREEN.
+- RED wording boundary: head `b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f`; CI run `33496733711` / #1742 failed because the Owner runbook did not explicitly limit initiation to a full Safepay refund.
+- Provider contract: Safepay Dashboard remains the only refund initiator. The application never accepts caller-supplied refund money or a browser instruction as refund truth.
+- Reporter fallback: authenticated Owner reconciliation uses the Issue's stored Safepay tracker, verifies provider state through Safepay Reporter, accepts only `TRACKER_REFUNDED`, rejects partial-refund state, and compares the exact stored amount/currency before attempting the local transition.
+- Persistence invariant: `PostgresPaymentRepository.markRefunded()` still row-locks the attempt and permits only exact PAID -> REFUNDED with matching stored amount/currency; non-refunded mismatches become EXCEPTION, and an already-refunded attempt is idempotent.
+- Finalization invariant: both signed refund webhooks and Owner reconciliation share `finalizeRefundedAttempt()`, preserving Issue quarantine plus referral reversal/notification behavior.
+- Owner UX: the Issue panel exposes the provider reference and explicitly instructs the owner to initiate the **full refund** in Safepay; no local refund or mark-refunded button exists. Owner OS now also exposes a separate provider-verification action gated by the exact phrase `VERIFY SAFEPAY <Issue Code>`; it posts only that confirmation to the existing authenticated reconciliation route and reloads canonical Issue truth afterward.
+- Main final evidence head `3cf79dc4b8cacd3645c05dce2d503647245f1461` passed CI run `33498342341` / #1751 (unit tests, typecheck, lint, production build) and Browser QA run `33498342363` / #1541. Its tested synthetic merge `4522706219285b865751aff16adec1e48e5a4c92` and actual integration merge `2daff7d1c4706e0dffed7c64947f27b03e8b9d44` share exact tree `db2493fc5e228aeb48372d48091fd2ca0d27cef6`.
+- Wording refresh head `1b8c3a8fc641c70fb32cd646a167980313c39e7f` passed CI run `33498774577` / #1753 and Browser QA run `33498774814` / #1543 after rebasing/merging onto the CR-22 integration. Its tested synthetic merge `c1fdf64490d403ae18b7aa9551b1cf041b808a80` and actual final integration merge `6b64b3b000cff18db2ac27b8c5494b0c72670211` share exact tree `c60126214c2de88731b912c6bdee26b7769d8fd4`.
+- Production deployment/environment/payment mutation: none. No real Safepay charge or refund was created for QA.
+- Remaining evidence before `DONE`: deploy the exact verified integration release, execute one controlled real full refund through Safepay, and prove the signed webhook and/or authenticated Reporter reconciliation yields the same idempotent local REFUNDED truth and side effects without accepting partial-refund state.
+- Master-plan state: `CODE_READY`, integrated and tree-verified; not `DONE` until real provider refund proof exists.
+- 2026-09-04 continuation revalidation: fresh GitHub/repository reconciliation established `infra/hostinger-migration-20260823` at `cc270d09d088c0c02bfcab5877800e4caa3b0c2b` / tree `b33c57b48b6671ef9ead0f154b66e2482cf3b6b3` as the latest engineering integration checkpoint; the Hostinger-linked release branch remained separate and untouched. No refund/payment/Issue behavior had changed since the prior CR-22 verified tree.
+- 2026-09-04 root gap: the safe Owner Reporter reconciliation route/service already existed, but `IssueDetailPanel` exposed only instructions/reference and could not invoke that recovery path. RED commit `ca14b5bb5f0a9cd9935205d6e1a5cc7f6a438b27` proved the missing exact-confirmation Owner control before behavior changed; implementation head `64c8992e9cd0f551cf5fa019f7226be2ba45a01a` added only the UI-to-existing-boundary bridge.
+- 2026-09-04 local evidence at implementation head: focused refund gate **7 files / 15 tests PASS**; full unit **232 files / 689 tests PASS**; typecheck PASS; lint PASS with 0 errors / 5 pre-existing warnings; production build PASS; repository Browser QA PASS with Playwright final `status=passed`, no failed tests, across all **44 desktop/mobile tests** after installing the Chromium binary that the repository workflow installs on cache miss.
+- 2026-09-04 safety audit: the browser still supplies no refund amount/currency/status/provider reference, cannot create local REFUNDED truth, and receives no provider secrets/private payloads. Payment writes remain centralized and row-safe; signed webhook and Owner Reporter reconciliation retain shared idempotent finalization. Distinct Safepay reversal/void states were not guessed or collapsed into full-refund truth; `TRACKER_REFUNDED` remains the accepted full-refund Reporter state.
+- 2026-09-04 live boundary: unchanged. No production deployment/environment mutation, Safepay charge/refund, Printful confirmation, referral activation, or canonical-domain cutover occurred. The controlled real Safepay full-refund proof remains parked behind its owner/live-provider gate.
+- 2026-09-04 exact-head gate: PR #86 final head `270f67f0a4d89c6df0e15fdd8388951d78d5e20e` passed CI run `33875026138` and Browser QA run `33875026131`.
+- 2026-09-04 integration result: PR #86 merged into `infra/hostinger-migration-20260823` as `f7c54175e58291bdfe25be1b23f3ebb961588076`, tree `8516431c48752af89bd7e6f180f1619e81e3d4eb`. Post-merge CI run `33879515737` / job `101044453840` passed unit tests, typecheck, lint and production build; post-merge Browser QA run `33879515582` / job `101044453320` passed.
+- 2026-09-04 final code-side state: the Owner OS provider-verification control is merged and verified. CR-22 remains `CODE_READY`, not `DONE`, because one owner-authorized real Safepay full-refund/provider-reconciliation proof is still required; no provider or production mutation was performed by this reconciliation.
 
 ## Audit findings that must remain in scope
 
@@ -238,9 +262,11 @@ Remaining completion target: deployed customer request -> owner desk receipt -> 
 
 ### G. Refund operations
 
-Refund events are reconciled from provider truth, but Owner OS does not yet provide a first-class refund initiation/reconciliation workflow. Do not invent browser refund truth.
+**Code-side root cause resolved through integrations `2daff7d1c4706e0dffed7c64947f27b03e8b9d44` and `6b64b3b000cff18db2ac27b8c5494b0c72670211`; real provider proof remains.**
 
-Root-cause completion target: either implement a verified provider refund operation through the payment adapter or explicitly bind the owner runbook to provider-dashboard refund initiation and automatic webhook reconciliation for MVP.
+Refund initiation stays in Safepay. Signed webhooks remain the automatic provider-truth path, while authenticated Owner reconciliation can query the stored tracker through Safepay Reporter when operational recovery is needed. Owner OS can request that verification only after the exact `VERIFY SAFEPAY <Issue Code>` phrase and sends no browser money/state truth. Only a provider-confirmed full refund for the exact stored payment money can move a PAID attempt to REFUNDED; partial refunds remain non-final and no browser control can manufacture refund truth.
+
+Remaining completion target: after the exact verified release is deployed, perform one controlled real Safepay full refund and capture provider + application evidence for the idempotent REFUNDED transition and shared finalization side effects.
 
 ### H. Residual log privacy
 
@@ -264,8 +290,8 @@ Root-cause completion target: expand controlled live QA in stages. Never charge 
 6. `CR-18` require explicit production catalog authority — **code-ready and integrated; deployed owner-published catalog proof pending**.
 7. `CR-13` + `CR-14` current provider + actual printable-image contract — **code-ready and integrated; live/provider candidate proof pending**.
 8. `CR-15` durable artwork retention — **code-ready and integrated/tree-verified at `fc3be93445a3538cac473146df8557077c35a6ef`; production `0036` + destructive deployed recovery proof remain owner/live-gated**.
-9. `CR-22` finish refund operations/runbook truth — **NEXT CODE-SIDE CYCLE**; CR-15 live proof executes later at the approved migration/deployment gate.
-10. Deploy the exact verified integration release; run `CR-27` live boundary/security proof.
+9. `CR-22` refund operations/runbook truth — **code-ready and integrated/tree-verified at `6b64b3b000cff18db2ac27b8c5494b0c72670211`; real Safepay full-refund proof pending**.
+10. Owner-gated production preflight: approve/apply required core migration `0036` before deploying code that depends on `artwork_objects`; deploy the exact verified integration release; run `CR-27` live boundary/security proof.
 11. Automate all safe live provider tests: real OTP, shipping, payment sandbox/controlled production return, email, design generation and Printful draft.
 12. Owner-only irreversible gate: first real Safepay charge if needed and first Printful confirmation.
 13. Run `CR-28`: one complete controlled order plus a second deliberately different customer/session to prove no cross-customer data mixing.

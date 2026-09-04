@@ -22,3 +22,7 @@ test('active Safepay and /ops routes are not decommissioned by the proxy', () =>
 test('Hostinger cron drain remains reachable so its dedicated CRON_SECRET guard can run', () => {
   expect(proxy(new NextRequest('https://issuedonce.shop/api/internal/jobs/drain')).status).toBe(200);
 });
+
+test('support delivery canary remains reachable so its dedicated internal token guard can run', () => {
+  expect(proxy(new NextRequest('https://issuedonce.shop/api/internal/support-canary')).status).toBe(200);
+});
