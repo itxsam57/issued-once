@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 10
     env:
       LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
-      EXPECTED_RELEASE_ID: b77338902c5824a8151068c987a7e90e4a3717cc
+      EXPECTED_RELEASE_ID: 909d84832b345ecd05b03ec30ad06e5c32000908
       INTERNAL_OPERATIONS_TOKEN: ${{ secrets.INTERNAL_OPERATIONS_TOKEN }}
     steps:
       - uses: actions/checkout@v4

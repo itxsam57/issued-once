@@ -90,7 +90,7 @@ if (initialSource === 'BOOT') {
   });
   const publishPayload = await json(publishResponse);
   if (publishResponse.status !== 200 || publishPayload?.ok !== true || !Number.isInteger(publishPayload?.version) || publishPayload.version < 1) {
-    throw new Error(`Catalog publication returned ${publishResponse.status}`);
+    throw new Error(`Catalog publication returned ${publishResponse.status}: ${String(publishPayload?.error ?? 'unknown')}`);
   }
   console.log(`CATALOG_GATE_PUBLICATION_ACCEPTED version=${publishPayload.version}`);
 } else if (initialSource !== 'ACTIVE') {
