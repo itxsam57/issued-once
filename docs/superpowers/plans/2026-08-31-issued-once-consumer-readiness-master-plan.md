@@ -2,7 +2,7 @@
 
 Date: 2026-08-31
 Original audited integration base: `ad9f388c33121b1225cc7a387b038940edfd389b`
-Current reconciled integration head: `6b64b3b000cff18db2ac27b8c5494b0c72670211`
+Current reconciled integration head: `f7c54175e58291bdfe25be1b23f3ebb961588076`
 Parent implementation plan: `docs/superpowers/plans/2026-08-19-issued-once-final-commercial-cycle.md`
 Owner OS design: `docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md`
 
@@ -210,6 +210,9 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 - 2026-09-04 local evidence at implementation head: focused refund gate **7 files / 15 tests PASS**; full unit **232 files / 689 tests PASS**; typecheck PASS; lint PASS with 0 errors / 5 pre-existing warnings; production build PASS; repository Browser QA PASS with Playwright final `status=passed`, no failed tests, across all **44 desktop/mobile tests** after installing the Chromium binary that the repository workflow installs on cache miss.
 - 2026-09-04 safety audit: the browser still supplies no refund amount/currency/status/provider reference, cannot create local REFUNDED truth, and receives no provider secrets/private payloads. Payment writes remain centralized and row-safe; signed webhook and Owner Reporter reconciliation retain shared idempotent finalization. Distinct Safepay reversal/void states were not guessed or collapsed into full-refund truth; `TRACKER_REFUNDED` remains the accepted full-refund Reporter state.
 - 2026-09-04 live boundary: unchanged. No production deployment/environment mutation, Safepay charge/refund, Printful confirmation, referral activation, or canonical-domain cutover occurred. The controlled real Safepay full-refund proof remains parked behind its owner/live-provider gate.
+- 2026-09-04 exact-head gate: PR #86 final head `270f67f0a4d89c6df0e15fdd8388951d78d5e20e` passed CI run `33875026138` and Browser QA run `33875026131`.
+- 2026-09-04 integration result: PR #86 merged into `infra/hostinger-migration-20260823` as `f7c54175e58291bdfe25be1b23f3ebb961588076`, tree `8516431c48752af89bd7e6f180f1619e81e3d4eb`. Post-merge CI run `33879515737` / job `101044453840` passed unit tests, typecheck, lint and production build; post-merge Browser QA run `33879515582` / job `101044453320` passed.
+- 2026-09-04 final code-side state: the Owner OS provider-verification control is merged and verified. CR-22 remains `CODE_READY`, not `DONE`, because one owner-authorized real Safepay full-refund/provider-reconciliation proof is still required; no provider or production mutation was performed by this reconciliation.
 
 ## Audit findings that must remain in scope
 
