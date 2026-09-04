@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.35.3",
+  "version": "1.35.4",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-04T12:49:55Z",
+  "updatedAt": "2026-09-04T20:06:00Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -19,9 +19,9 @@
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop",
-    "latestEngineeringIntegrationHead": "cc270d09d088c0c02bfcab5877800e4caa3b0c2b",
-    "latestEngineeringIntegrationTree": "b33c57b48b6671ef9ead0f154b66e2482cf3b6b3",
-    "latestEngineeringIntegrationVerifiedAt": "2026-09-04T12:49:55Z"
+    "latestEngineeringIntegrationHead": "f7c54175e58291bdfe25be1b23f3ebb961588076",
+    "latestEngineeringIntegrationTree": "8516431c48752af89bd7e6f180f1619e81e3d4eb",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-04T13:45:14Z"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
@@ -35,11 +35,11 @@
       "COMPLETE"
     ],
     "decision": "STOP_AT_PRODUCTION_READINESS_OWNER_GATES",
-    "reason": "Fresh production evidence proves deployed release wrapper 28ff7deb has tree c6012621, byte-identical to verified runtime 6b64b3b0. Strict header run 33526755370 job 99920257942 passed. Read-only diagnostic run 33526598947 job 99918918445 proves required production tables exist but catalog rows=0 and ACTIVE catalog rows=0. The original boundary run 33525915578 exposed a stale harness expectation for three provider-gated routes. Isolated read-only proof PR 78 then ran 33527773379 job 99922906669 against exact live release 28ff7deb and passed only when Safepay webhook, Printful webhook, and payment create returned their exact safe 503 unavailable bodies while shipping reached Postgres and returned 409. The corrected harness was integrated via PR 79 at merge 3398a55399b747553bbce9d0bf9bdf820e5d4e14; exact-head and post-merge CI/Browser QA are green. Support rerun job 99919493724 reached exact release then stopped only because GitHub QA has no INTERNAL_OPERATIONS_TOKEN."
+    "reason": "Fresh production evidence proves deployed release wrapper 28ff7deb has tree c6012621, byte-identical to verified runtime 6b64b3b0. Strict header run 33526755370 job 99920257942 passed. Read-only diagnostic run 33526598947 job 99918918445 proves required production tables exist but catalog rows=0 and ACTIVE catalog rows=0. The original boundary run 33525915578 exposed a stale harness expectation for three provider-gated routes. Isolated read-only proof PR 78 then ran 33527773379 job 99922906669 against exact live release 28ff7deb and passed only when Safepay webhook, Printful webhook, and payment create returned their exact safe 503 unavailable bodies while shipping reached Postgres and returned 409. The corrected harness was integrated via PR 79 at merge 3398a55399b747553bbce9d0bf9bdf820e5d4e14; exact-head and post-merge CI/Browser QA are green. Support rerun job 99919493724 reached exact release then stopped only because GitHub QA has no INTERNAL_OPERATIONS_TOKEN. CR-22 Owner OS provider-verification bridge PR #86 subsequently merged into the engineering integration line as f7c54175e58291bdfe25be1b23f3ebb961588076 (tree 8516431c48752af89bd7e6f180f1619e81e3d4eb); post-merge CI run 33879515737 / job 101044453840 and Browser QA run 33879515582 / job 101044453320 both passed. This closes the remaining engineering-safe CR-22 Owner OS reachability gap without changing production/provider state; the real Safepay full-refund proof remains owner/live-gated."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR27_DEPLOYED_SECURITY_AND_BOUNDARY_PROVEN_OWNER_READINESS_GATES",
+    "internalWorkStatus": "CR22_OWNER_OS_BRIDGE_MERGED_VERIFIED_CR27_OWNER_READINESS_GATES",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan and CR-27 evidence checkpoint as the release evidence ledger.",
@@ -64,7 +64,8 @@
     "status": "CODE_READY_MERGED_AND_TREE_VERIFIED",
     "integrationPullRequests": [
       68,
-      69
+      69,
+      86
     ],
     "providerRedHead": "0247313684c70518a5b7d85cecb58e3287ace937",
     "wordingRedHead": "b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f",
@@ -102,7 +103,7 @@
     "productionEnvironmentChanged": false,
     "realSafepayRefundPerformed": false,
     "ownerOsRevalidation20260904": {
-      "status": "CODE_READY_PR_86_AWAITING_EXACT_HEAD_GATES_AND_INDEPENDENT_OPENCLAW_VERIFICATION",
+      "status": "CODE_READY_MERGED_AND_POST_MERGE_VERIFIED",
       "branch": "fix/cr22-owner-refund-reconciliation-control-20260904",
       "baseIntegrationHead": "cc270d09d088c0c02bfcab5877800e4caa3b0c2b",
       "baseIntegrationTree": "b33c57b48b6671ef9ead0f154b66e2482cf3b6b3",
@@ -133,10 +134,23 @@
         "browserQa": "PASS: Playwright final status passed, failedTests empty, 44 desktop/mobile tests; initial local attempt was infrastructure-only failure until workflow-required Chromium binary was installed"
       },
       "remainingLiveEvidence": "Unchanged: one owner-authorized real Safepay full refund on the deployed release remains required before CR-22 can become DONE. No real charge/refund was created in this task.",
-      "nextState": "Require exact-head local/GitHub CI and Browser QA green on PR #86, then wait for independent OpenClaw exact-head verification before any merge.",
+      "nextState": "STOP_OWNER_REQUIRED: CR-22 code-side Owner reconciliation is merged and verified; one owner-authorized real Safepay full-refund proof plus the existing CR-27 production configuration/data gates remain live/owner work.",
       "pullRequest": 86,
       "pullRequestBase": "infra/hostinger-migration-20260823",
-      "prePrEvidenceHead": "6512e567e108a5b8d29792f49482613e81fda0c8"
+      "prePrEvidenceHead": "6512e567e108a5b8d29792f49482613e81fda0c8",
+      "finalHead": "270f67f0a4d89c6df0e15fdd8388951d78d5e20e",
+      "mergeCommit": "f7c54175e58291bdfe25be1b23f3ebb961588076",
+      "mergeTree": "8516431c48752af89bd7e6f180f1619e81e3d4eb",
+      "exactHeadCiRun": 33875026138,
+      "exactHeadCiResult": "PASS: unit tests, typecheck, lint, production build",
+      "exactHeadBrowserQaRun": 33875026131,
+      "exactHeadBrowserQaResult": "PASS",
+      "postMergeCiRun": 33879515737,
+      "postMergeCiJob": 101044453840,
+      "postMergeCiResult": "PASS: unit tests, typecheck, lint, production build",
+      "postMergeBrowserQaRun": 33879515582,
+      "postMergeBrowserQaJob": 101044453320,
+      "postMergeBrowserQaResult": "PASS"
     }
   },
   "activeTask": {
