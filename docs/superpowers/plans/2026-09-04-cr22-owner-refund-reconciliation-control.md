@@ -34,11 +34,11 @@
 - Consumes: `POST /ops/api/issues/[issueId]/refund/reconcile` with body `{ confirmation: string }` and exact phrase `VERIFY SAFEPAY <Issue Code>`.
 - Produces: an Owner OS control that can only request Safepay verification, displays only safe outcome text, and refreshes Issue detail from the server after a successful reconciliation response.
 
-- [ ] **Step 1: Write the failing UI regression**
+- [x] **Step 1: Write the failing UI regression**
 
 Extend `tests/unit/refund-operations-owner-runbook.test.tsx` to require an exact-confirmation input and a `VERIFY SAFEPAY TRUTH` button. Assert the button is disabled before the exact phrase, becomes enabled only for `VERIFY SAFEPAY IO-ABCD-EFGH`, and posts only `{ confirmation: 'VERIFY SAFEPAY IO-ABCD-EFGH' }` to the existing Issue-scoped reconciliation route. Assert no browser-supplied amount, currency, status, or provider payload enters the request.
 
-- [ ] **Step 2: Run the regression and prove RED**
+- [x] **Step 2: Run the regression and prove RED**
 
 Run:
 
@@ -48,11 +48,11 @@ corepack pnpm exec vitest run tests/unit/refund-operations-owner-runbook.test.ts
 
 Expected: FAIL because `IssueDetailPanel` currently exposes only the Safepay reference/runbook text and no executable reconciliation control.
 
-- [ ] **Step 3: Implement the minimum Owner OS bridge**
+- [x] **Step 3: Implement the minimum Owner OS bridge**
 
 In `IssueDetailPanel`, add component-local reconciliation state keyed to the selected Issue. Require the exact phrase `VERIFY SAFEPAY ${detail.issueCode}` before enabling the action. POST only that confirmation to `/ops/api/issues/${encodeURIComponent(issueId)}/refund/reconcile`. On a successful `pending` result, state that local payment truth is unchanged; on `refunded`, state that provider-confirmed truth was reconciled. Reload Issue detail from the existing GET route after success. Do not accept or calculate refund money in the browser.
 
-- [ ] **Step 4: Run focused refund gates**
+- [x] **Step 4: Run focused refund gates**
 
 Run:
 
@@ -62,11 +62,11 @@ corepack pnpm exec vitest run tests/unit/refund-operations-owner-runbook.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 5: Run repository acceptance gates**
+- [x] **Step 5: Run repository acceptance gates**
 
 Run unit tests, typecheck, lint, production build, and Playwright Browser QA using the same commands as `.github/workflows/ci.yml` and `.github/workflows/browser-qa.yml`.
 
-- [ ] **Step 6: Record exact evidence**
+- [x] **Step 6: Record exact evidence**
 
 Update `docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md` and `.engineering/CONTINUATION.json` without changing CR-22 from `CODE_READY`: record the newly closed Owner OS execution gap, exact RED/GREEN commits and gate evidence, keep real Safepay full-refund proof parked as the remaining live boundary, and preserve the current later readiness/CR-27 state.
 

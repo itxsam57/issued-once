@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.35.2",
+  "version": "1.35.3",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-01T16:03:49Z",
+  "updatedAt": "2026-09-04T12:49:55Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -18,7 +18,10 @@
     "combinedCandidateBranchHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
-    "plannedCanonicalDomain": "issuedonce.shop"
+    "plannedCanonicalDomain": "issuedonce.shop",
+    "latestEngineeringIntegrationHead": "cc270d09d088c0c02bfcab5877800e4caa3b0c2b",
+    "latestEngineeringIntegrationTree": "b33c57b48b6671ef9ead0f154b66e2482cf3b6b3",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-04T12:49:55Z"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
@@ -97,7 +100,41 @@
     ],
     "productionDeploymentPerformed": true,
     "productionEnvironmentChanged": false,
-    "realSafepayRefundPerformed": false
+    "realSafepayRefundPerformed": false,
+    "ownerOsRevalidation20260904": {
+      "status": "CODE_READY_AWAITING_PR_AND_INDEPENDENT_EXACT_HEAD_VERIFICATION",
+      "branch": "fix/cr22-owner-refund-reconciliation-control-20260904",
+      "baseIntegrationHead": "cc270d09d088c0c02bfcab5877800e4caa3b0c2b",
+      "baseIntegrationTree": "b33c57b48b6671ef9ead0f154b66e2482cf3b6b3",
+      "redHead": "ca14b5bb5f0a9cd9935205d6e1a5cc7f6a438b27",
+      "implementationHead": "64c8992e9cd0f551cf5fa019f7226be2ba45a01a",
+      "rootGap": "The authenticated provider-derived Owner refund reconciliation route and service existed, but IssueDetailPanel exposed only the Safepay runbook/reference, leaving that safe recovery path unreachable from Owner OS.",
+      "implementedBoundary": [
+        "Owner OS requires the exact phrase VERIFY SAFEPAY <Issue Code> before requesting reconciliation.",
+        "The browser sends only the typed confirmation to the existing Issue-scoped authenticated reconciliation route; it supplies no amount, currency, status or provider reference.",
+        "Safepay remains the only refund initiator and the UI cannot mark a payment refunded locally.",
+        "After a pending/refunded provider result, Owner OS reloads canonical Issue detail from the server and keeps reconciliation state keyed to the selected Issue.",
+        "No provider secret or private provider payload is returned to or rendered by the browser."
+      ],
+      "auditFindings": [
+        "All application payment_attempt writes remain centralized in PostgresPaymentRepository; no alternate local REFUNDED write path was found.",
+        "Signed Safepay webhook and authenticated Owner Reporter reconciliation still converge on the same row-safe markRefunded and finalizeRefundedAttempt path.",
+        "Printful manufacturing cancellation is separate signed provider truth and referral reversal remains idempotent; neither is a browser refund authority.",
+        "Safepay full refund truth remains TRACKER_REFUNDED for exact stored money. Distinct reversal/void provider states were not reclassified as REFUNDED without a documented compatible event contract."
+      ],
+      "localEvidence": {
+        "redCommand": "corepack pnpm exec vitest run tests/unit/refund-operations-owner-runbook.test.tsx",
+        "redResult": "PASS existing runbook test + FAIL intended new Owner reconciliation control test because the confirmation control was absent",
+        "focusedGreen": "7 test files / 15 tests passed",
+        "fullUnit": "232 test files / 689 tests passed",
+        "typecheck": "PASS",
+        "lint": "PASS with 0 errors and 5 pre-existing warnings",
+        "build": "PASS",
+        "browserQa": "PASS: Playwright final status passed, failedTests empty, 44 desktop/mobile tests; initial local attempt was infrastructure-only failure until workflow-required Chromium binary was installed"
+      },
+      "remainingLiveEvidence": "Unchanged: one owner-authorized real Safepay full refund on the deployed release remains required before CR-22 can become DONE. No real charge/refund was created in this task.",
+      "nextState": "Open a focused PR to infra/hostinger-migration-20260823, require exact-head CI and Browser QA green, then wait for independent OpenClaw exact-head verification before any merge."
+    }
   },
   "activeTask": {
     "consumerReadinessId": "CR-27",
