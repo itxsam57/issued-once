@@ -49,12 +49,15 @@ try {
       data: { token: internalToken },
     });
     if (loginResponse.status() !== 200) throw new Error(`Owner session login returned ${loginResponse.status()}`);
-    const ownerCookies = await context.cookies(baseUrl);
-    if (!ownerCookies.some((cookie) => cookie.name === 'io_ops' && cookie.value)) throw new Error('Owner session cookie was not issued');
+    const setCookie = loginResponse.headers()['set-cookie'] ?? '';
+    const ownerCookie = setCookie.split(';', 1)[0];
+    if (!/^io_ops=/.test(ownerCookie)) throw new Error('Owner session cookie was not issued');
     console.log('CATALOG_GATE_OWNER_AUTH_PASS');
 
     async function readReadiness(prefix) {
-      const response = await request.get(`${baseUrl}/ops/api/readiness`, { headers: { 'cache-control': 'no-store' } });
+      const response = await request.get(`${baseUrl}/ops/api/readiness`, {
+        headers: { cookie: ownerCookie, 'cache-control': 'no-store' },
+      });
       const payload = await json(response);
       if (response.status() !== 200 || !Array.isArray(payload?.checks)) {
         throw new Error(`Owner readiness returned ${response.status()}`);
@@ -70,7 +73,9 @@ try {
     await readReadiness('READINESS_BEFORE');
 
     async function getWebsite() {
-      const response = await request.get(`${baseUrl}/ops/api/website`, { headers: { 'cache-control': 'no-store' } });
+      const response = await request.get(`${baseUrl}/ops/api/website`, {
+        headers: { cookie: ownerCookie, 'cache-control': 'no-store' },
+      });
       const payload = await json(response);
       if (response.status() !== 200) throw new Error(`Owner website state returned ${response.status()}`);
       return payload;
@@ -88,7 +93,7 @@ try {
 
     if (initialSource === 'BOOT') {
       const publishResponse = await request.post(`${baseUrl}/ops/api/website/catalog`, {
-        headers: { 'content-type': 'application/json' },
+        headers: { cookie: ownerCookie, 'content-type': 'application/json' },
         data: catalogPayload,
       });
       const publishPayload = await json(publishResponse);
