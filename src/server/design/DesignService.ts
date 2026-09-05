@@ -73,7 +73,7 @@ export class DesignService {
         questions,
         ...(feedback ? { ownerFeedback: feedback } : {}),
       });
-      const artwork = await this.gateway.generateArtwork(brief);
+      const artwork = await this.gateway.generateArtwork(brief, { objectType: input.objectType });
       const completionInput = await this.repository.loadInput(issueId);
       if (!completionInput || completionInput.issueStatus !== 'BEING_INTERPRETED') {
         throw new Error('Issue is no longer eligible for design completion');
@@ -121,7 +121,10 @@ export class DesignService {
 
     try {
       const brief = await decryptPrivatePayload<StructuredDesignBrief>(initialJob.encryptedBrief);
-      const artwork = await this.gateway.generateArtwork(brief, feedback ? { ownerFeedback: feedback } : undefined);
+      const artwork = await this.gateway.generateArtwork(brief, {
+        objectType: input.objectType,
+        ...(feedback ? { ownerFeedback: feedback } : {}),
+      });
       const completionInput = await this.repository.loadInput(issueId);
       if (!completionInput || completionInput.issueStatus !== 'BEING_INTERPRETED') {
         throw new Error('Issue is no longer eligible for design completion');
