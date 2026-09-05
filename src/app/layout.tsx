@@ -5,6 +5,7 @@ import './object-stage.css';
 import './size-stage.css';
 import './base-stage.css';
 import './commitment-stage.css';
+import './secret-motion.css';
 
 export const metadata: Metadata = PUBLIC_METADATA;
 
