@@ -81,9 +81,14 @@ try {
     console.log('LIVE_OWNER_PAGINATION_PASS limit=2');
 
     const page = await context.newPage();
+    const hydratedDashboard = page.waitForResponse((response) => {
+      try { return new URL(response.url()).pathname === '/ops/api/dashboard' && response.status() === 200; }
+      catch { return false; }
+    }, { timeout: 20_000 });
     const ops = await page.goto(`${baseUrl}/ops`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
     if (!ops?.ok()) throw new Error(`/ops returned ${ops?.status() ?? 'NO_RESPONSE'}`);
     await page.getByText('OWNER OS').waitFor({ timeout: 10_000 });
+    await hydratedDashboard;
 
     const sections = ['Home', 'Issues', 'Designer', 'Manufacturing', 'Sales', 'Referrals', 'Customers', 'Support', 'Website', 'System', 'Audit'];
     for (const section of sections) {
