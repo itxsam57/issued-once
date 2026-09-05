@@ -2,7 +2,7 @@
 
 Date: 2026-08-31
 Original audited integration base: `ad9f388c33121b1225cc7a387b038940edfd389b`
-Current reconciled integration head: `18c5dd08464352f1b75588473868b0f8a79dfcb6`
+Current reconciled integration head: `c8e7041447ae9f36804158f9c0fec7cb082c7612`
 Parent implementation plan: `docs/superpowers/plans/2026-08-19-issued-once-final-commercial-cycle.md`
 Owner OS design: `docs/superpowers/specs/2026-08-19-issued-once-owner-os-design.md`
 
@@ -67,7 +67,7 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 | CR-24 | Owner System readiness mirrors every real runtime requirement and cannot show false-positive provider readiness | DONE | runtime/readiness config parity is integrated and exact-head full gates are green, including Safepay API-secret requirement |
 | CR-25 | Unknown exceptions never serialize private/provider/database details into server logs | DONE | complete route sentinel class is integrated and exact-head/post-merge full gates are green |
 | CR-26 | Merchant name, support address and truthful public location/legal disclosure are configured before public launch | OWNER_REQUIRED | configured disclosure + live page proof are verified; owner must attest the public merchant/legal values are truthful |
-| CR-27 | Canonical domain serves exact integration release with required security/cache headers | CODE_READY | deploy current verified integration head + strict live boundary audit |
+| CR-27 | Canonical domain serves exact integration release with required security/cache headers | DONE | exact verified integration tree is live through the existing Hostinger-linked branch; exact release health, non-OTP live boundary audit, and strict security/cache-header proof are green |
 | CR-28 | Full commercial cycle works from seven answers through verified payment, Issue, design, Printful, tracking, support and customer recovery | MISSING | live composite proof is absent; one controlled full live order plus a second isolated customer proof is required after owner/provider gates |
 | CR-29 | Repeat-order reuse/fresh-answer flow preserves contact/profile boundaries | CODE_READY | deployed repeat-order browser proof after a real paid Issue |
 | CR-30 | Referral feature cannot affect checkout unless explicitly enabled; enabled flow is reversible on refund/delivery lifecycle | CODE_READY (launch-disabled) | only required before referral launch; non-referral checkout must remain green |
@@ -83,9 +83,23 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 - Finish-v4 code audit reproduced the five residual CI lint warnings and found no missing commerce behavior behind them. PR #89 removed the warnings without changing Owner polling, payment outcomes, or provider/fail-closed contracts. Candidate `d2d1058571003974deb646029edfe23fba689471` passed 19 focused tests, the full 233-file/690-test unit suite, typecheck, warning-free lint, production build, and all 44 desktop/mobile Browser QA tests. PR #89 merged normally as `845f9740573d50ba33e5359e73166245c26add18`.
 - CR-23 read-only production audit run `33941209257`, job `101238878633`, authenticated against exact deployed release `909d84832b345ecd05b03ec30ad06e5c32000908`. Dashboard, Attention, Issues, Designer, Sales, Customers, Support, Website, Readiness and Audit GETs were HTTP 200/no-store; the Issue ledger passed adjacent cursor pagination at `limit=2`; browser navigation covered all 11 Owner OS rooms with zero horizontal overflow. Referrals returned the expected launch-disabled 503 because its deferred migrations remain unapplied. The audit also exposed one real code defect: the Manufacturing read queue returned 503 because `createOpsManufacturingService()` eagerly constructed the unconfigured Printful mutation runtime.
 - TDD reproduced that Manufacturing coupling, and a static sibling audit found the same latent pattern in Support: read-only Support construction unnecessarily required Resend reply credentials even though production currently has them. PR #90 head `078013785e40beb47f6305131061cff6c5ae3b5a` defers Printful construction until draft/confirm mutation and Resend construction until an Owner reply send. Focused verification was 6 files / 14 tests; full local verification was 234 files / 692 tests, typecheck, warning-free lint, production build, and 44/44 Browser QA. PR #90 merged normally as `18c5dd08464352f1b75588473868b0f8a79dfcb6`, tree `e2c3cacc9e6546a7af806ffea75a778e6c9c21d1`; exact-head CI run `33941405484` / job `101239440795` passed; post-merge CI run `33941570876` / job `101239909593` and Browser QA run `33941570872` / job `101239909604` both passed on exact merge `18c5dd08464352f1b75588473868b0f8a79dfcb6`. No provider configuration or mutation was performed.
-- Because PR #89 and PR #90 advance the engineering tree beyond the currently deployed Hostinger tree, CR-23 and CR-27 remain `CODE_READY` at the exact-current-head standard; deployment of the newest verified integration is an owner/production mutation gate. Canonical-domain cutover remains separately unapproved.
+- The owner subsequently approved production-ready deployment. Integration `c8e7041447ae9f36804158f9c0fec7cb082c7612` (tree `24768225100fa77cc8f728dcc09b39bb0a9376bd`) was deployed through forward-only Hostinger wrapper `c1af0cdc336a2ad7710697297763e064c8d54b4f` on the already-selected `release/hostinger-v2-candidate-20260824` branch. No force push, Hostinger selected-branch change, environment mutation, provider secret change, catalog publication, payment/refund, Printful confirmation, or DNS cutover occurred. CR-27 is now `DONE`; CR-23 remains `CODE_READY` until the exact-current-release Owner read/browser proof is rerun.
 - No real Safepay charge/refund, Printful production confirmation, production catalog publication, secret rotation, referral activation, canonical-domain cutover, or other irreversible provider action occurred in finish-v4.
 - After PR #90 and the CR-23 audit, there is no known unfinished engineering-safe consumer-readiness code/test/read-only verification item. CR-28 remains `MISSING` only because its required live composite evidence cannot start until the recorded production configuration/provider gates are satisfied.
+
+
+### 2026-09-05 owner-approved production deployment
+
+- Approval scope: deploy the latest verified production-ready build; owner will perform the remaining product/provider tests separately.
+- Pre-deployment verified integration: `c8e7041447ae9f36804158f9c0fec7cb082c7612`, tree `24768225100fa77cc8f728dcc09b39bb0a9376bd`. Exact-head CI run `33943284502` and Browser QA run `33943284428` passed.
+- Deployment mechanism: forward-only wrapper `c1af0cdc336a2ad7710697297763e064c8d54b4f`, parent `909d84832b345ecd05b03ec30ad06e5c32000908`, exact same tree `24768225100fa77cc8f728dcc09b39bb0a9376bd`; non-force fast-forward of the existing Hostinger-linked branch only.
+- Exact live health: PASS on `c1af0cdc336a2ad7710697297763e064c8d54b4f`; `databaseReady=true`, `queueReady=true`, `storageReady=true`.
+- Hostinger Live Boundary Audit run `33947722256`: PASS with `LIVE_NON_OTP_BOUNDARY_AUDIT_PASS` on the exact release. Safepay/Printful remain intentionally fail-closed unavailable and referrals remain launch-disabled.
+- Strict header proof on the exact release: `LIVE_SECURITY_HEADER_PASS bare-home exact-baseline no-powered-by no-store no-s-maxage`.
+- Temporary customer smoke run `33947722303`: seven answer POSTs returned HTTP 200, then physical selection failed closed with `Physical form could not be locked` because no ACTIVE production catalog exists. This is the same known gate, not a deployment regression.
+- CR-27 state: `DONE` for exact verified deployment + security/cache/boundary evidence. Canonical-domain cutover remains separately unapproved and is not required to recognize the temporary Hostinger production release proof.
+- Remaining gates are unchanged except that deployment itself is no longer pending: production privacy keys, Safepay runtime, Printful API/exact variant map/signed webhook runtime, ACTIVE catalog publication after mapping validation, truthful merchant/legal attestation, and row-specific live provider/commercial evidence.
+- No real Safepay charge/refund, Printful production confirmation, catalog publication, referral activation, provider secret mutation, or canonical-domain cutover was performed.
 
 ## 2026-08-31 execution checkpoint
 

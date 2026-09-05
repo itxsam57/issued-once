@@ -26,3 +26,7 @@ test('Hostinger cron drain remains reachable so its dedicated CRON_SECRET guard 
 test('support delivery canary remains reachable so its dedicated internal token guard can run', () => {
   expect(proxy(new NextRequest('https://issuedonce.shop/api/internal/support-canary')).status).toBe(200);
 });
+
+test('read-only Printful catalog inspector remains reachable so its internal token guard can run', () => {
+  expect(proxy(new NextRequest('https://issuedonce.shop/api/internal/printful/catalog')).status).toBe(200);
+});

@@ -8,6 +8,7 @@ const LEGACY_EXACT_PATHS = new Set([
 const ACTIVE_INTERNAL_PATHS = new Set([
   '/api/internal/jobs/drain',
   '/api/internal/support-canary',
+  '/api/internal/printful/catalog',
 ]);
 
 const SECURITY_HEADERS = {
