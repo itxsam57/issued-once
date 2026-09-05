@@ -17,12 +17,12 @@
 .back:hover,.back:focus-visible,.footer a:hover,.footer a:focus-visible,.inlineLink:hover,.inlineLink:focus-visible { color:var(--signal); border-color:currentColor; outline:none; }
 .hero { max-width:1200px; padding:clamp(105px,15vh,195px) 0 clamp(74px,10vh,136px); }
 .kicker,.sectionLabel,.meta { margin:0; color:var(--muted); font-size:9px; letter-spacing:.22em; text-transform:uppercase; }
-.hero h1 { max-width:1080px; margin:30px 0 0; font-family:Arial,Helvetica,sans-serif; font-size:clamp(62px,9vw,146px); font-weight:800; letter-spacing:-.068em; line-height:.84; text-transform:uppercase; text-wrap:balance; }
+.hero h1 { max-width:1080px; margin:30px 0 0; font-family:Arial,Helvetica,sans-serif; font-size:clamp(62px,9vw,146px); font-weight:800; letter-spacing:-.068em; line-height:.84; text-transform:uppercase; text-wrap:balance; overflow-wrap:anywhere; }
 .intro { max-width:680px; margin:38px 0 0; color:var(--muted); font-size:clamp(14px,1.2vw,18px); line-height:1.72; }
 .grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); border-top:1px solid var(--hairline); }
 .section { grid-column:1 / 9; padding:clamp(52px,6vw,92px) 0; border-bottom:1px solid var(--hairline); }
 .section:nth-child(even) { grid-column:4 / 13; }
-.section h2 { max-width:840px; margin:20px 0 0; font-family:Arial,Helvetica,sans-serif; font-size:clamp(36px,4.7vw,70px); font-weight:800; letter-spacing:-.05em; line-height:.94; text-transform:uppercase; }
+.section h2 { max-width:840px; margin:20px 0 0; font-family:Arial,Helvetica,sans-serif; font-size:clamp(36px,4.7vw,70px); font-weight:800; letter-spacing:-.05em; line-height:.94; text-transform:uppercase; overflow-wrap:anywhere; }
 .section p,.section li { max-width:720px; color:var(--muted); font-size:15px; line-height:1.78; }
 .section p { margin:22px 0 0; }
 .section ul { margin:24px 0 0; padding-left:1.2em; }
@@ -36,10 +36,10 @@
   .page { padding:22px 20px 28px; }
   .topbar { align-items:flex-start; }
   .hero { padding:112px 0 76px; }
-  .hero h1 { font-size:clamp(58px,17vw,90px); }
+  .hero h1 { font-size:clamp(50px,15vw,64px); }
   .grid { display:block; }
   .section,.section:nth-child(even) { padding:52px 0; }
-  .section h2 { font-size:clamp(40px,11vw,60px); }
+  .section h2 { font-size:clamp(36px,10vw,54px); }
   .priceRow,.identityRow { grid-template-columns:1fr; gap:7px; }
   .priceRow strong,.identityRow strong { text-align:left; }
   .footer { min-height:32svh; flex-direction:column; align-items:flex-start; justify-content:flex-end; }
