@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
-  "version": "1.36.2",
+  "version": "1.36.3",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-05T03:55:19Z",
+  "updatedAt": "2026-09-05T05:43:15Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "4ea10081cb0de2f5de49eb46f973649a5fba3a51",
-    "verifiedRuntimeTree": "409710dac112739ca8dc787c1e2b7db552b86188",
-    "liveReleaseHead": "909d84832b345ecd05b03ec30ad06e5c32000908",
-    "liveReleaseTree": "409710dac112739ca8dc787c1e2b7db552b86188",
+    "verifiedRuntimeIntegrationHead": "c8e7041447ae9f36804158f9c0fec7cb082c7612",
+    "verifiedRuntimeTree": "24768225100fa77cc8f728dcc09b39bb0a9376bd",
+    "liveReleaseHead": "c1af0cdc336a2ad7710697297763e064c8d54b4f",
+    "liveReleaseTree": "24768225100fa77cc8f728dcc09b39bb0a9376bd",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-    "hostingerLinkedBranchHead": "909d84832b345ecd05b03ec30ad06e5c32000908",
+    "hostingerLinkedBranchHead": "c1af0cdc336a2ad7710697297763e064c8d54b4f",
     "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
     "combinedCandidateBranchHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
@@ -26,7 +26,7 @@
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "Finish-v4 reconciled every consumer-readiness row and exhausted the remaining safe CR-23 live-read opportunity. The exact deployed Hostinger release 909d84832b345ecd05b03ec30ad06e5c32000908 passed required Owner API reads, bounded Issue pagination and 11-room browser navigation; PR #90 root-fixed the read-only Manufacturing/Support provider coupling that audit exposed. A final independent post-audit then found one stale canonical contradiction: CR-15 master-plan prose still instructed re-applying production migration 0036 although the higher-priority continuation and CR-27 production evidence already mark that schema gate verified. PR #92 corrects that ledger state and adds a regression locking it to the verified continuation. No product/runtime behavior is changed. After this correction there is no known engineering-safe consumer-readiness code/test/read-only verification item left. Hostinger is still on 909d8483/tree 409710da, so deploying the latest integration remains an owner production mutation gate. Production also still requires owner-controlled privacy keys, Safepay runtime, Printful API/variant-map/signed-webhook configuration, ACTIVE catalog publication after mapping validation, merchant/legal truth attestation, and row-specific real-provider/commercial-cycle evidence.",
+    "currentEngineeringStopReason": "The owner-approved Hostinger production deployment is complete: verified integration c8e7041447ae9f36804158f9c0fec7cb082c7612 was deployed through forward-only wrapper c1af0cdc336a2ad7710697297763e064c8d54b4f with exact tree 24768225100fa77cc8f728dcc09b39bb0a9376bd. Exact live health, non-OTP boundary audit, and strict security/cache-header proof are green. The customer smoke again reaches seven answers and then fails closed at physical selection because no ACTIVE catalog exists, matching the pre-existing owner/provider gate. No new engineering-safe consumer-readiness code/test/read-only gap was introduced. Remaining work is owner/provider configuration, catalog/legal truth, or row-specific live commercial proof.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -35,7 +35,7 @@
       "COMPLETE"
     ],
     "decision": "STOP_AT_PRODUCTION_READINESS_OWNER_GATES",
-    "reason": "Latest product code remains fully verified; the post-audit governance correction is additionally locked by a dedicated RED/GREEN ledger-consistency regression, full 235-file/693-test unit suite, typecheck, warning-free lint, production build and 44/44 local Chromium Browser QA. Migration 0036 is already production-verified and must not be re-run as a remaining gate. Referrals remain intentionally launch-disabled under CR-30. Remaining work is owner/configuration/deployment, truthful owner data, real-provider proof, or irreversible/spend gates."
+    "reason": "Production now serves the exact verified integration tree through the existing Hostinger-linked branch without force-push, selected-branch change, or environment mutation. CR-27 deployment/security evidence is complete. CR-28 remains OWNER_REQUIRED/MISSING_LIVE_COMPOSITE_EVIDENCE until the remaining provider/catalog/legal gates and user-run live commercial proofs are completed."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -176,10 +176,10 @@
     "printfulVariantMapConfiguration": true
   },
   "productionRuntime": {
-    "liveRelease": "909d84832b345ecd05b03ec30ad06e5c32000908",
-    "liveTree": "409710dac112739ca8dc787c1e2b7db552b86188",
+    "liveRelease": "c1af0cdc336a2ad7710697297763e064c8d54b4f",
+    "liveTree": "24768225100fa77cc8f728dcc09b39bb0a9376bd",
     "runtimeProvider": "hostinger",
-    "productionDeploymentOfIntegratedTree": false,
+    "productionDeploymentOfIntegratedTree": true,
     "hostingerSelectedBranch": "release/hostinger-v2-candidate-20260824",
     "hostingerSelectedBranchChanged": false,
     "hostingerLinkedBranchFastForwarded": true,
@@ -198,7 +198,7 @@
   },
   "nextAction": {
     "actor": "OWNER",
-    "instruction": "Complete production-readiness gates without sharing secret values in chat: deploy the latest verified engineering integration when approved; configure the production privacy keys, Safepay runtime, and Printful API/variant-map/signed-webhook runtime; attest the configured public merchant/legal disclosure is truthful; then rerun the already-authorized catalog publication only after exact factory mapping is valid. Real Safepay charge/refund, Printful production confirmation, and canonical-domain cutover remain separately gated. Engineering resumes the corresponding exact live proofs after each owner action."
+    "instruction": "Production-ready code is deployed. The owner may perform the remaining live product tests. When desired, complete the still-separate production gates without sharing secret values in chat: privacy keys, Safepay runtime, Printful API/variant-map/signed-webhook runtime, truthful merchant/legal attestation, and ACTIVE catalog publication after exact mapping validation. Real Safepay charge/refund, Printful production confirmation, referral activation, and canonical-domain cutover remain separately gated."
   },
   "consumerReadinessFinishV4": {
     "taskId": "issued-once-consumer-ready-finish-v4",
@@ -268,10 +268,10 @@
       "CR-01": "DONE: exact-tree gates + real seven-answer Hostinger smoke",
       "CR-26": "OWNER_REQUIRED: live configured disclosure is proven; factual truth requires owner attestation",
       "CR-28": "MISSING live composite evidence only; no known engineering-safe implementation/test/read-only gap remains after PR #90",
-      "CR-23": "CODE_READY: deployed ancestor read/browser/pagination proof is green; latest integration includes provider-independent read fix and must be deployed/re-proven for exact-current-head DONE"
+      "CR-23": "CODE_READY: deployed ancestor read/browser/pagination proof is green; latest integration includes provider-independent read fix and must be deployed/re-proven for exact-current-head DONE",
+      "CR-27": "DONE: owner-approved latest verified integration tree deployed through forward-only Hostinger wrapper; exact live health, non-OTP boundary audit, and strict security/cache-header proof passed"
     },
     "remainingOwnerOrProviderGates": [
-      "deploy latest verified engineering integration to Hostinger",
       "configure production privacy V1/V2 encryption keys and identity-HMAC key",
       "configure Safepay production runtime",
       "configure Printful API, exact variant mapping and signed-webhook runtime",
@@ -331,6 +331,30 @@
       "verifiedProjectBaseDiffCheck": "PASS: git diff --check 4ea10081cb0de2f5de49eb46f973649a5fba3a51...HEAD",
       "productionMutationPerformed": false,
       "remainingState": "No migration 0036 owner action remains. Latest engineering integration deployment and the recorded production/provider/irreversible gates remain unchanged."
+    },
+    "productionDeployment": {
+      "ownerApproved": true,
+      "approvedScope": "Deploy latest verified production-ready integration to existing Hostinger production branch only",
+      "verifiedIntegrationHead": "c8e7041447ae9f36804158f9c0fec7cb082c7612",
+      "verifiedIntegrationTree": "24768225100fa77cc8f728dcc09b39bb0a9376bd",
+      "releaseWrapper": "c1af0cdc336a2ad7710697297763e064c8d54b4f",
+      "previousRelease": "909d84832b345ecd05b03ec30ad06e5c32000908",
+      "branch": "release/hostinger-v2-candidate-20260824",
+      "fastForwardOnly": true,
+      "selectedBranchChanged": false,
+      "environmentChanged": false,
+      "liveHealth": "PASS: exact release, databaseReady=true, queueReady=true, storageReady=true",
+      "boundaryAuditRun": 33947722256,
+      "boundaryAuditResult": "PASS: exact release + LIVE_NON_OTP_BOUNDARY_AUDIT_PASS",
+      "customerSmokeRun": 33947722303,
+      "customerSmokeResult": "Expected gate: seven answer POSTs HTTP 200; physical selection failed closed because ACTIVE catalog is absent",
+      "strictHeaderResult": "PASS: exact-baseline, no-powered-by, no-store, no-s-maxage",
+      "realSafepayChargePerformed": false,
+      "realSafepayRefundPerformed": false,
+      "printfulProductionConfirmationPerformed": false,
+      "catalogPublicationPerformed": false,
+      "providerSecretsChanged": false,
+      "canonicalDomainCutoverPerformed": false
     }
   },
   "cr27HistoricalContinuationEvidence": {
