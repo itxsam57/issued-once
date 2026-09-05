@@ -9,7 +9,7 @@ import { ManufacturingService } from './ManufacturingService';
 import { PostgresManufacturingEventRepository } from './PostgresManufacturingEventRepository';
 import { PostgresManufacturingRepository } from './PostgresManufacturingRepository';
 import { PrintfulGateway } from './PrintfulGateway';
-import { PrintfulVariantMap } from './PrintfulVariantMap';
+import { PrintfulVariantMap, readPrintfulVariantMapJson } from './PrintfulVariantMap';
 import { PrintfulWebhookVerifier } from './PrintfulWebhookVerifier';
 
 export class ManufacturingRuntimeUnavailableError extends Error {
@@ -33,7 +33,7 @@ export function createManufacturingService(): ManufacturingService {
       token: env('PRINTFUL_API_TOKEN'),
       storeId: process.env.PRINTFUL_STORE_ID?.trim() || undefined,
     }),
-    new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON')),
+    new PrintfulVariantMap(readPrintfulVariantMapJson(process.env)),
     new SignedArtworkAccess(env('ARTWORK_SIGNING_KEY'), env('APP_ORIGIN')),
   );
 }

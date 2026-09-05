@@ -146,6 +146,20 @@ test('uses the audited boot catalog when the deployment override is absent', asy
   }));
 });
 
+test('Printful readiness uses the audited built-in 34-variant map when the environment override is absent', async () => {
+  const env = { ...completeEnv };
+  delete env.PRINTFUL_VARIANT_MAP_JSON;
+  delete env.ISSUED_ONCE_CATALOG_JSON;
+
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'printful',
+    state: 'ready',
+    detail: expect.stringMatching(/34 sellable placement/i),
+  }));
+});
+
 test('fails release readiness closed when no owner-published ACTIVE catalog exists', async () => {
   const dependencies = healthyDependencies(completeEnv);
   dependencies.catalogAuthorityPing.mockResolvedValue(false);

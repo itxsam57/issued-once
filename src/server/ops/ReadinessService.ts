@@ -1,5 +1,5 @@
 import { readPublicMerchant } from '@/brand/publicMerchant';
-import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
+import { PrintfulVariantMap, readPrintfulVariantMapJson } from '@/server/manufacturing/PrintfulVariantMap';
 import {
   readSafepayRuntimeConfig,
   SafepayConfigurationError,
@@ -313,17 +313,16 @@ export class ReadinessService {
     const printfulConfigured = present(
       this.env,
       'PRINTFUL_API_TOKEN',
-      'PRINTFUL_VARIANT_MAP_JSON',
       'PRINTFUL_WEBHOOK_PUBLIC_KEY',
       'PRINTFUL_WEBHOOK_SECRET_HEX',
     );
     if (!printfulConfigured) {
-      checks.push({ key: 'printful', label: 'Printful', state: 'missing', detail: 'Printful API, mapping, and signed-webhook configuration are required.' });
+      checks.push({ key: 'printful', label: 'Printful', state: 'missing', detail: 'Printful API and signed-webhook configuration are required; the audited 34-variant map is built in.' });
     } else if (!isValidHexSecret(this.env.PRINTFUL_WEBHOOK_SECRET_HEX)) {
       checks.push({ key: 'printful', label: 'Printful', state: 'blocked', detail: 'Printful webhook secret must be non-empty, even-length hexadecimal.' });
     } else {
       try {
-        const map = new PrintfulVariantMap(this.env.PRINTFUL_VARIANT_MAP_JSON!);
+        const map = new PrintfulVariantMap(readPrintfulVariantMapJson(this.env));
         for (const key of availableFactoryKeys) {
           const [objectType, sizeCode, ...colorParts] = key.split(':');
           map.resolve({ objectType, sizeCode, colorCode: colorParts.join(':') });
