@@ -112,10 +112,12 @@ export function createManualArtworkUploadService() {
 }
 export function createOpsManufacturingService() {
   const executor = sql();
-  const manufacturing = createManufacturingService();
   return new OpsManufacturingService(
     new PostgresOpsManufacturingStore(executor),
-    { createDraft: (issueId) => manufacturing.createDraft(issueId), confirmDraft: (issueId) => manufacturing.confirmDraft(issueId) },
+    {
+      createDraft: (issueId) => createManufacturingService().createDraft(issueId),
+      confirmDraft: (issueId) => createManufacturingService().confirmDraft(issueId),
+    },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
 }
@@ -141,7 +143,12 @@ export function createOpsSupportService() {
   const executor = sql();
   return new OpsSupportService(
     new PostgresOpsSupportStore(executor),
-    new ResendOpsSupportReplyGateway({ apiKey: env('RESEND_API_KEY'), from: env('RESEND_FROM_EMAIL') }),
+    {
+      send: (input) => new ResendOpsSupportReplyGateway({
+        apiKey: env('RESEND_API_KEY'),
+        from: env('RESEND_FROM_EMAIL'),
+      }).send(input),
+    },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
     { enqueue: (issueId, eventKey, attemptKey) => enqueueIssueNotification(issueId, eventKey, attemptKey) },
   );

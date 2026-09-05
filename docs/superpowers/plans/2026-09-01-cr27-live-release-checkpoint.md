@@ -125,3 +125,48 @@ Still owner-gated:
 - all previously separate real-charge/refund/Printful-confirmation/referral/merchant-identity gates.
 
 No real Safepay charge/refund, Printful production confirmation, referral migration, creator outreach, secret rotation, or canonical-domain cutover was performed in this cycle.
+
+## 2026-09-05 descendant reconciliation — consumer-readiness finish v4
+
+This section supersedes only the stale current-state claims above; the 2026-09-01 evidence remains historical proof of that deployment cycle.
+
+### Reconciled repository and deployment identity
+
+- Engineering integration after PR #88: `4ea10081cb0de2f5de49eb46f973649a5fba3a51`, tree `409710dac112739ca8dc787c1e2b7db552b86188`.
+- Hostinger-linked release after the Owner catalog-publication fix: `909d84832b345ecd05b03ec30ad06e5c32000908`, tree `409710dac112739ca8dc787c1e2b7db552b86188`.
+- Those two refs were byte-identical when the fresh live proofs below ran.
+- Finish-v4 PR #89 subsequently merged warning-free verification hygiene as `845f9740573d50ba33e5359e73166245c26add18`, tree `76feab88d9dad9c4d5fbe9800630243f14210145`.
+- Therefore the newest engineering integration is no longer byte-identical to the currently deployed Hostinger release. No Hostinger branch/environment mutation was performed in finish-v4. Deployment of the newest verified integration remains a production/owner gate.
+
+### Fresh live evidence on release `909d8483...`
+
+- Hostinger Live Boundary Audit run `33918092912`, job `101169838141`: PASS on exact release `909d84832b345ecd05b03ec30ad06e5c32000908`.
+- Live support proof run `33918093008`, job `101169838613`: exact-release health PASS, pre-paid support fail-closed PASS, and authenticated Resend delivery canary accepted. The earlier `INTERNAL_OPERATIONS_TOKEN` GitHub Actions blocker is therefore resolved. This canary does not replace CR-11's paid customer request -> Owner desk -> Owner reply proof.
+- Temporary production smoke run `33918092923`, job `101169837569`: all seven real customer answer POSTs returned HTTP 200 and form unlock was reached. Physical form locking then failed closed because there was no ACTIVE production catalog. This is fresh production evidence for CR-01 and not a physical-selection implementation regression.
+- Owner-approved catalog activation run `33918244323`, job `101170313072`: Owner authentication and website read succeeded; the audited boot catalog exposed 34 logical sellable variants. Publication was rejected with HTTP 409 because `PRINTFUL_VARIANT_MAP_JSON` is absent. No catalog publication occurred.
+- That same activation run reported database ready, merchant disclosure ready, audited catalog ready, durable storage ready and Resend configured, while production privacy keys, ACTIVE catalog authority, Safepay runtime, and Printful API/mapping/signed-webhook configuration remained missing.
+- A separate read-only Playwright audit on the exact live release verified `/store-info`, `/contact`, `/terms`, and `/returns` returned HTTP 200, rendered expected headings without mobile horizontal overflow, and displayed configured merchant/contact disclosure instead of fallback placeholders. Engineering cannot independently attest the factual truth of merchant/legal values; that owner-attestation gate remains.
+
+### Updated owner/provider gates
+
+The stale `INTERNAL_OPERATIONS_TOKEN` gate above is resolved. Current gates are:
+
+- deploy the newest verified engineering integration after owner approval for the production mutation;
+- configure production privacy V1/V2 encryption keys plus the identity-HMAC key without exposing them in chat;
+- configure Safepay production runtime values and obtain the row-specific signed/real provider proofs; no real charge/refund is authorized by this checkpoint;
+- configure Printful API, exact variant mapping, and signed-webhook runtime values before publishing a sellable catalog; no manufacturing confirmation is authorized by this checkpoint;
+- publish/activate an owner-authorized catalog only after exact factory mapping validation succeeds;
+- owner attestation that configured public merchant/legal disclosure is factually truthful;
+- canonical-domain cutover remains separately unapproved;
+- real payment/refund/factory/tracking/support/recovery proofs remain row-specific owner/provider evidence, including CR-28's complete two-customer commercial cycle.
+
+No real Safepay charge/refund, Printful production confirmation, production catalog publication, secret rotation, referral activation, canonical-domain cutover, or other irreversible provider action occurred in finish-v4.
+
+### CR-23 finish-v4 read audit and provider-independent Owner reads
+
+- Isolated read-only proof branch `test/cr23-live-owner-read-20260905` was never deployed and is not production authority; its workflow pinned `EXPECTED_RELEASE_ID=909d84832b345ecd05b03ec30ad06e5c32000908` so the proof could not mistake the audit branch for the live release.
+- Final audit run `33941209257`, job `101238878633`, passed exact-release health, authenticated Owner session creation, required read APIs, Issue pagination (`limit=2` with non-repeating adjacent cursors), and browser navigation across all 11 rooms with `overflow=0`.
+- The deployed Manufacturing GET returned exact safe `503 Manufacturing queue unavailable`. Root cause was code-side eager construction of `createManufacturingService()`, which required absent Printful mutation configuration before `listQueue()` could query Postgres. Referrals also returned exact launch-disabled 503 because referral migrations remain intentionally deferred; this is governed by CR-30 and is not a CR-23 consumer launch blocker.
+- TDD RED reproduced the Manufacturing coupling. A sibling static audit then reproduced Support construction requiring absent Resend reply configuration even for a read-only list; production currently has Resend, but the architecture was regression-prone.
+- Clean fix PR #90 head `078013785e40beb47f6305131061cff6c5ae3b5a` defers Printful construction until draft/confirm and Resend gateway construction until reply send. Local full gate: 234 test files / 692 tests, typecheck, lint with zero warnings, production build, and 44/44 Browser QA passed. Exact-head CI `33941405484` / `101239440795` passed. Merge: `18c5dd08464352f1b75588473868b0f8a79dfcb6`, tree `e2c3cacc9e6546a7af806ffea75a778e6c9c21d1`. Post-merge CI `33941570876` / `101239909593` and Browser QA `33941570872` / `101239909604` both passed on the exact merge.
+- No Hostinger/provider/environment mutation occurred. The live release remains `909d84832b345ecd05b03ec30ad06e5c32000908`, so exact-current-head live reproof after deployment remains an owner gate.
