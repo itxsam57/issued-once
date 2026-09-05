@@ -29,3 +29,16 @@ test('read-only Owner manufacturing queue does not require Printful mutation run
   expect(queryMock).toHaveBeenCalledTimes(1);
   expect(createManufacturingServiceMock).not.toHaveBeenCalled();
 });
+
+test('read-only Owner support queue does not require Resend reply runtime', async () => {
+  process.env.DATABASE_URL = 'postgresql://example.invalid/test';
+  delete process.env.RESEND_API_KEY;
+  delete process.env.RESEND_FROM_EMAIL;
+
+  const { createOpsSupportService } = await import('@/server/ops/runtimeOwnerOs');
+  const service = createOpsSupportService();
+  const queue = await service.list(null, 2);
+
+  expect(queue).toEqual([]);
+  expect(queryMock).toHaveBeenCalledTimes(1);
+});

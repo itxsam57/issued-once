@@ -52,6 +52,14 @@ try {
           console.log('LIVE_OWNER_API_KNOWN_DEFECT path=/ops/api/manufacturing status=503');
           continue;
         }
+        if (path === '/ops/api/referrals' && response.status() === 503) {
+          const payload = await response.json().catch(() => ({}));
+          if (payload?.error !== 'Referral data unavailable') {
+            throw new Error(`Owner referrals read returned unexpected 503 body`);
+          }
+          console.log('LIVE_OWNER_API_LAUNCH_DISABLED path=/ops/api/referrals status=503');
+          continue;
+        }
         throw new Error(`Owner read ${path} returned ${response.status()}`);
       }
       const cacheControl = response.headers()['cache-control'] ?? '';

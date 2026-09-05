@@ -143,7 +143,12 @@ export function createOpsSupportService() {
   const executor = sql();
   return new OpsSupportService(
     new PostgresOpsSupportStore(executor),
-    new ResendOpsSupportReplyGateway({ apiKey: env('RESEND_API_KEY'), from: env('RESEND_FROM_EMAIL') }),
+    {
+      send: (input) => new ResendOpsSupportReplyGateway({
+        apiKey: env('RESEND_API_KEY'),
+        from: env('RESEND_FROM_EMAIL'),
+      }).send(input),
+    },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
     { enqueue: (issueId, eventKey, attemptKey) => enqueueIssueNotification(issueId, eventKey, attemptKey) },
   );
