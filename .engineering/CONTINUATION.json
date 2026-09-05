@@ -1,32 +1,32 @@
 {
   "schemaVersion": 1,
-  "version": "1.35.4",
+  "version": "1.36.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-04T20:06:00Z",
+  "updatedAt": "2026-09-05T03:23:59Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
-    "verifiedRuntimeTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
-    "liveReleaseHead": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
-    "liveReleaseTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
+    "verifiedRuntimeIntegrationHead": "4ea10081cb0de2f5de49eb46f973649a5fba3a51",
+    "verifiedRuntimeTree": "409710dac112739ca8dc787c1e2b7db552b86188",
+    "liveReleaseHead": "909d84832b345ecd05b03ec30ad06e5c32000908",
+    "liveReleaseTree": "409710dac112739ca8dc787c1e2b7db552b86188",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-    "hostingerLinkedBranchHead": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
+    "hostingerLinkedBranchHead": "909d84832b345ecd05b03ec30ad06e5c32000908",
     "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
     "combinedCandidateBranchHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop",
-    "latestEngineeringIntegrationHead": "f7c54175e58291bdfe25be1b23f3ebb961588076",
-    "latestEngineeringIntegrationTree": "8516431c48752af89bd7e6f180f1619e81e3d4eb",
-    "latestEngineeringIntegrationVerifiedAt": "2026-09-04T13:45:14Z"
+    "latestEngineeringIntegrationHead": "18c5dd08464352f1b75588473868b0f8a79dfcb6",
+    "latestEngineeringIntegrationTree": "e2c3cacc9e6546a7af806ffea75a778e6c9c21d1",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-05T03:23:59Z"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "CR-27 core migration 0036, exact Hostinger release deployment, strict security/cache proof, and the corrected non-OTP live boundary audit are now verified. The remaining launch-readiness failures are owner-controlled production configuration/data gates: production has no owner-published ACTIVE catalog; Safepay runtime is intentionally fail-closed unavailable; Printful webhook runtime is intentionally fail-closed unavailable; the GitHub live-support proof lacks INTERNAL_OPERATIONS_TOKEN; and canonical-domain cutover remains separately unapproved. Engineering must not fabricate catalog/provider truth, change Hostinger environment variables, or perform a real payment/factory confirmation without the applicable owner gate.",
+    "currentEngineeringStopReason": "Finish-v4 reconciled every consumer-readiness row, then exhausted the remaining safe CR-23 live-read opportunity. The exact deployed Hostinger release 909d84832b345ecd05b03ec30ad06e5c32000908 passed required Owner API reads, bounded Issue pagination and 11-room browser navigation. That audit exposed an eager Printful dependency in the read-only Manufacturing queue; TDD plus a sibling audit also found eager Resend reply configuration in read-only Support construction. PR #90 root-fixed both by deferring mutation-provider construction and merged as 18c5dd08464352f1b75588473868b0f8a79dfcb6 after exact-head CI and full local Browser QA passed. Post-merge CI and Browser QA are green; no known engineering-safe consumer-readiness code/test/read-only verification item remains. Hostinger is still on 909d8483/tree 409710da, so deploying the latest integration remains an owner production mutation gate. Production also still requires owner-controlled privacy keys, Safepay runtime, Printful API/variant-map/signed-webhook configuration, ACTIVE catalog publication after mapping validation, merchant/legal truth attestation, and row-specific real-provider/commercial-cycle evidence.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -35,7 +35,7 @@
       "COMPLETE"
     ],
     "decision": "STOP_AT_PRODUCTION_READINESS_OWNER_GATES",
-    "reason": "Fresh production evidence proves deployed release wrapper 28ff7deb has tree c6012621, byte-identical to verified runtime 6b64b3b0. Strict header run 33526755370 job 99920257942 passed. Read-only diagnostic run 33526598947 job 99918918445 proves required production tables exist but catalog rows=0 and ACTIVE catalog rows=0. The original boundary run 33525915578 exposed a stale harness expectation for three provider-gated routes. Isolated read-only proof PR 78 then ran 33527773379 job 99922906669 against exact live release 28ff7deb and passed only when Safepay webhook, Printful webhook, and payment create returned their exact safe 503 unavailable bodies while shipping reached Postgres and returned 409. The corrected harness was integrated via PR 79 at merge 3398a55399b747553bbce9d0bf9bdf820e5d4e14; exact-head and post-merge CI/Browser QA are green. Support rerun job 99919493724 reached exact release then stopped only because GitHub QA has no INTERNAL_OPERATIONS_TOKEN. CR-22 Owner OS provider-verification bridge PR #86 subsequently merged into the engineering integration line as f7c54175e58291bdfe25be1b23f3ebb961588076 (tree 8516431c48752af89bd7e6f180f1619e81e3d4eb); post-merge CI run 33879515737 / job 101044453840 and Browser QA run 33879515582 / job 101044453320 both passed. This closes the remaining engineering-safe CR-22 Owner OS reachability gap without changing production/provider state; the real Safepay full-refund proof remains owner/live-gated."
+    "reason": "Latest code is locally verified at 234 test files / 692 tests, typecheck, warning-free lint, production build and 44/44 Browser QA. PR #90 exact-head CI run 33941405484 passed. Live CR-23 audit run 33941209257 passed exact release identity, required Owner reads, pagination and browser navigation; the live Manufacturing 503 root cause is fixed in the not-yet-deployed integration. Referrals remain intentionally launch-disabled under CR-30. Remaining work is owner/configuration/deployment, truthful owner data, real-provider proof, or irreversible/spend gates."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -154,6 +154,166 @@
     }
   },
   "activeTask": {
+    "consumerReadinessId": "CR-28",
+    "title": "Consumer-readiness finish v4 and full commercial-cycle proof",
+    "status": "OWNER_REQUIRED",
+    "engineeringSafeWork": "COMPLETE",
+    "masterPlanRowState": "MISSING_LIVE_COMPOSITE_EVIDENCE",
+    "note": "CR-28 is not missing known application code. Its completion contract requires one controlled full live order plus a second isolated customer after the recorded production/provider gates are satisfied."
+  },
+  "standingOwnerGates": {
+    "productionDeploymentOrHostingerBranchMutation": true,
+    "productionCoreMigration0036": false,
+    "productionCatalogPublication": true,
+    "productionProviderRuntimeConfiguration": true,
+    "productionReferralMigrations": true,
+    "realSafepayCharge": true,
+    "realSafepayRefund": true,
+    "printfulProductionConfirmation": true,
+    "canonicalDomainCutover": true,
+    "truthfulMerchantPublicLocation": true,
+    "productionPrivacyKeyConfiguration": true,
+    "printfulVariantMapConfiguration": true
+  },
+  "productionRuntime": {
+    "liveRelease": "909d84832b345ecd05b03ec30ad06e5c32000908",
+    "liveTree": "409710dac112739ca8dc787c1e2b7db552b86188",
+    "runtimeProvider": "hostinger",
+    "productionDeploymentOfIntegratedTree": false,
+    "hostingerSelectedBranch": "release/hostinger-v2-candidate-20260824",
+    "hostingerSelectedBranchChanged": false,
+    "hostingerLinkedBranchFastForwarded": true,
+    "hostingerEnvironmentChanged": false,
+    "realSafepayQaCharge": false,
+    "realSafepayRefundProof": false,
+    "printfulProductionConfirmation": false,
+    "referralMigrationsApplied": false,
+    "coreMigration0036Verified": true,
+    "coreMigration0036NewlyCreatedByRunner": false,
+    "activeProductionCatalogCount": 0,
+    "creatorLaunchOutreachSent": false,
+    "canonicalDomainCutover": false,
+    "merchantDisclosureConfigured": true,
+    "internalOperationsTokenQaAvailable": true
+  },
+  "nextAction": {
+    "actor": "OWNER",
+    "instruction": "Complete production-readiness gates without sharing secret values in chat: deploy the latest verified engineering integration when approved; configure the production privacy keys, Safepay runtime, and Printful API/variant-map/signed-webhook runtime; attest the configured public merchant/legal disclosure is truthful; then rerun the already-authorized catalog publication only after exact factory mapping is valid. Real Safepay charge/refund, Printful production confirmation, and canonical-domain cutover remain separately gated. Engineering resumes the corresponding exact live proofs after each owner action."
+  },
+  "consumerReadinessFinishV4": {
+    "taskId": "issued-once-consumer-ready-finish-v4",
+    "auditedEngineeringBase": "4ea10081cb0de2f5de49eb46f973649a5fba3a51",
+    "auditedBaseTree": "409710dac112739ca8dc787c1e2b7db552b86188",
+    "liveReleaseAtAudit": "909d84832b345ecd05b03ec30ad06e5c32000908",
+    "liveTreeAtAudit": "409710dac112739ca8dc787c1e2b7db552b86188",
+    "warningCleanup": {
+      "pullRequest": 89,
+      "candidateHead": "d2d1058571003974deb646029edfe23fba689471",
+      "candidateTree": "76feab88d9dad9c4d5fbe9800630243f14210145",
+      "mergeCommit": "845f9740573d50ba33e5359e73166245c26add18",
+      "mergeTree": "76feab88d9dad9c4d5fbe9800630243f14210145",
+      "red": "pnpm lint: exactly 5 warnings / 0 errors",
+      "focusedGreen": "4 files / 19 tests passed",
+      "fullUnit": "233 test files / 690 tests passed",
+      "typecheck": "PASS",
+      "lint": "PASS: 0 warnings / 0 errors",
+      "productionBuild": "PASS",
+      "browserQa": "PASS: 44 / 44 desktop+mobile tests",
+      "exactHeadCiRun": 33939882313,
+      "exactHeadCiJob": 101235081183,
+      "exactHeadCiResult": "PASS",
+      "exactHeadBrowserQaRun": 33939882304,
+      "exactHeadBrowserQaJob": 101235081200,
+      "exactHeadBrowserQaResult": "PASS",
+      "postMergeCiRun": 33940046220,
+      "postMergeCiJob": 101235540993,
+      "postMergeCiResult": "PASS",
+      "postMergeBrowserQaRun": 33940046226,
+      "postMergeBrowserQaJob": 101235541058,
+      "postMergeBrowserQaResult": "PASS"
+    },
+    "freshLiveEvidence": {
+      "boundaryAudit": {
+        "run": 33918092912,
+        "job": 101169838141,
+        "release": "909d84832b345ecd05b03ec30ad06e5c32000908",
+        "result": "PASS"
+      },
+      "supportProof": {
+        "run": 33918093008,
+        "job": 101169838613,
+        "result": "PASS: exact release + pre-paid fail-closed + authenticated Resend delivery canary",
+        "internalOperationsTokenGateResolved": true,
+        "paidCustomerOwnerReplyProof": false
+      },
+      "customerSmoke": {
+        "run": 33918092923,
+        "job": 101169837569,
+        "result": "Seven answer POSTs HTTP 200 and form unlock reached; physical selection then failed closed because ACTIVE catalog is absent"
+      },
+      "catalogActivation": {
+        "run": 33918244323,
+        "job": 101170313072,
+        "result": "Owner auth/read PASS; publication rejected HTTP 409 because PRINTFUL_VARIANT_MAP_JSON is absent; no catalog published",
+        "bootCatalogLogicalVariants": 34
+      },
+      "merchantPages": "PASS: exact live release; /store-info, /contact, /terms, /returns HTTP 200, expected headings, mobile overflow=0, configured merchant/contact disclosure rendered",
+      "ownerReadAudit": {
+        "run": 33941209257,
+        "job": 101238878633,
+        "result": "PASS on exact live release: required read APIs no-store, Issue pagination limit=2, 11 Owner OS rooms, overflow=0; current Manufacturing 503 isolated and root-fixed in PR #90; referrals launch-disabled"
+      }
+    },
+    "rowReconciliation": {
+      "CR-01": "DONE: exact-tree gates + real seven-answer Hostinger smoke",
+      "CR-26": "OWNER_REQUIRED: live configured disclosure is proven; factual truth requires owner attestation",
+      "CR-28": "MISSING live composite evidence only; no known engineering-safe implementation/test/read-only gap remains after PR #90",
+      "CR-23": "CODE_READY: deployed ancestor read/browser/pagination proof is green; latest integration includes provider-independent read fix and must be deployed/re-proven for exact-current-head DONE"
+    },
+    "remainingOwnerOrProviderGates": [
+      "deploy latest verified engineering integration to Hostinger",
+      "configure production privacy V1/V2 encryption keys and identity-HMAC key",
+      "configure Safepay production runtime",
+      "configure Printful API, exact variant mapping and signed-webhook runtime",
+      "publish/activate an owner-authorized ACTIVE catalog after factory mapping validation",
+      "attest truthful public merchant/legal disclosure",
+      "complete row-specific real OTP/payment/design/Printful/tracking/support/recovery/refund proofs",
+      "complete CR-28 one controlled full live order plus a second isolated customer proof",
+      "canonical-domain cutover remains separately unapproved"
+    ],
+    "irreversibleActionsPerformed": [],
+    "ownerReadProviderIndependence": {
+      "liveAuditBranch": "test/cr23-live-owner-read-20260905",
+      "liveAuditHead": "b284a995b20aeef89b58556b897c2857021e8c8c",
+      "liveAuditRun": 33941209257,
+      "liveAuditJob": 101238878633,
+      "liveRelease": "909d84832b345ecd05b03ec30ad06e5c32000908",
+      "liveResult": "PASS required Owner reads + Issue pagination limit=2 + 11-room browser navigation overflow=0; Manufacturing exact 503 exposed eager Printful coupling; referrals exact 503 classified launch-disabled",
+      "manufacturingRed": "Live /ops/api/manufacturing returned 503; unit RED proved createOpsManufacturingService eagerly constructed Printful runtime before listQueue",
+      "supportRed": "Unit RED proved createOpsSupportService required Resend reply credentials before read-only list even though reply was not requested",
+      "pullRequest": 90,
+      "candidateHead": "078013785e40beb47f6305131061cff6c5ae3b5a",
+      "mergeCommit": "18c5dd08464352f1b75588473868b0f8a79dfcb6",
+      "mergeTree": "e2c3cacc9e6546a7af806ffea75a778e6c9c21d1",
+      "focusedGreen": "6 test files / 14 tests passed",
+      "fullUnit": "234 test files / 692 tests passed",
+      "typecheck": "PASS",
+      "lint": "PASS: 0 warnings / 0 errors",
+      "productionBuild": "PASS",
+      "localBrowserQa": "PASS: 44 / 44 desktop+mobile tests",
+      "exactHeadCiRun": 33941405484,
+      "exactHeadCiJob": 101239440795,
+      "exactHeadCiResult": "PASS",
+      "postMergeCiRun": 33941570876,
+      "postMergeCiJob": 101239909593,
+      "postMergeCiResult": "PASS",
+      "postMergeBrowserQaRun": 33941570872,
+      "postMergeBrowserQaJob": 101239909604,
+      "postMergeBrowserQaResult": "PASS",
+      "productionMutationPerformed": false
+    }
+  },
+  "cr27HistoricalContinuationEvidence": {
     "consumerReadinessId": "CR-27",
     "title": "Production preflight, exact release deployment and live boundary proof",
     "status": "OWNER_REQUIRED",
@@ -357,40 +517,5 @@
         }
       ]
     }
-  },
-  "standingOwnerGates": {
-    "productionDeploymentOrHostingerBranchMutation": true,
-    "productionCoreMigration0036": true,
-    "productionCatalogPublication": true,
-    "productionProviderRuntimeConfiguration": true,
-    "productionReferralMigrations": true,
-    "realSafepayCharge": true,
-    "realSafepayRefund": true,
-    "printfulProductionConfirmation": true,
-    "canonicalDomainCutover": true,
-    "truthfulMerchantPublicLocation": true
-  },
-  "productionRuntime": {
-    "liveRelease": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
-    "liveTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
-    "runtimeProvider": "hostinger",
-    "productionDeploymentOfIntegratedTree": true,
-    "hostingerSelectedBranch": "release/hostinger-v2-candidate-20260824",
-    "hostingerSelectedBranchChanged": false,
-    "hostingerLinkedBranchFastForwarded": true,
-    "hostingerEnvironmentChanged": false,
-    "realSafepayQaCharge": false,
-    "realSafepayRefundProof": false,
-    "printfulProductionConfirmation": false,
-    "referralMigrationsApplied": false,
-    "coreMigration0036Verified": true,
-    "coreMigration0036NewlyCreatedByRunner": false,
-    "activeProductionCatalogCount": 0,
-    "creatorLaunchOutreachSent": false,
-    "canonicalDomainCutover": false
-  },
-  "nextAction": {
-    "actor": "OWNER",
-    "instruction": "Choose the next production-readiness gate to satisfy without sharing secrets in chat: (1) publish/activate the production catalog; (2) inspect/configure Safepay runtime values in Hostinger; (3) inspect/configure Printful webhook runtime values in Hostinger; (4) add INTERNAL_OPERATIONS_TOKEN to GitHub Actions for the live support proof; or separately approve/perform the canonical-domain cutover when ready. Engineering will rerun the corresponding live proof after the owner reports completion."
   }
 }
