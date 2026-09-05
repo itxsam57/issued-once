@@ -7,7 +7,7 @@ import { PostgresArtworkStorage } from '@/server/design/PostgresArtworkStorage';
 import { PostgresDesignPolicyRepository } from '@/server/design/PostgresDesignPolicyRepository';
 import { createIssueService } from '@/server/issues/runtimeIssues';
 import { createManufacturingService } from '@/server/manufacturing/runtimeManufacturing';
-import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
+import { PrintfulVariantMap, readPrintfulVariantMapJson } from '@/server/manufacturing/PrintfulVariantMap';
 import { ISSUED_ONCE_BOOT_CATALOG_JSON } from '@/server/physical/bootCatalog';
 import { enqueueIssueNotification } from '@/server/notifications/notificationQueue';
 import { finalizeRefundedAttempt } from '@/server/payments/finalizeRefundedAttempt';
@@ -46,8 +46,7 @@ function env(name: string) {
 }
 function sql() { return createNeonSqlExecutor(env('DATABASE_URL')); }
 function factoryMappingKeys(): string[] {
-  const serialized = process.env.PRINTFUL_VARIANT_MAP_JSON?.trim();
-  if (!serialized) return [];
+  const serialized = readPrintfulVariantMapJson(process.env);
   try {
     const parsed = JSON.parse(serialized) as unknown;
     return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? Object.keys(parsed) : [];
@@ -159,7 +158,7 @@ export function createOpsWebsiteService() {
   const boot = opsCatalogSchema.parse(JSON.parse(bootJson));
   return new OpsWebsiteService(
     new PostgresOpsWebsiteStore(executor, boot),
-    { bootCatalogJson: bootJson, assertFactoryMapping: (input) => { new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON')).resolve(input); } },
+    { bootCatalogJson: bootJson, assertFactoryMapping: (input) => { new PrintfulVariantMap(readPrintfulVariantMapJson(process.env)).resolve(input); } },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
 }
