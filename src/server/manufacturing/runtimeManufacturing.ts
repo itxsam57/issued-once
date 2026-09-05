@@ -1,12 +1,15 @@
-import { VercelBlobArtworkAccess } from '@/server/design/VercelBlobArtworkAccess';
+import { SignedArtworkAccess } from '@/server/design/SignedArtworkAccess';
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
-import { createReferralConversionService } from '@/server/referrals/runtimeReferrals';
+import {
+  createReferralConversionService,
+  referralsAreEnabled,
+} from '@/server/referrals/runtimeReferrals';
 import { ManufacturingEventService } from './ManufacturingEventService';
 import { ManufacturingService } from './ManufacturingService';
 import { PostgresManufacturingEventRepository } from './PostgresManufacturingEventRepository';
 import { PostgresManufacturingRepository } from './PostgresManufacturingRepository';
 import { PrintfulGateway } from './PrintfulGateway';
-import { PrintfulVariantMap } from './PrintfulVariantMap';
+import { PrintfulVariantMap, readPrintfulVariantMapJson } from './PrintfulVariantMap';
 import { PrintfulWebhookVerifier } from './PrintfulWebhookVerifier';
 
 export class ManufacturingRuntimeUnavailableError extends Error {
@@ -24,15 +27,14 @@ function env(name: string): string {
 
 export function createManufacturingService(): ManufacturingService {
   const sql = createNeonSqlExecutor(env('DATABASE_URL'));
-  const blobToken = env('BLOB_READ_WRITE_TOKEN');
   return new ManufacturingService(
     new PostgresManufacturingRepository(sql),
     new PrintfulGateway({
       token: env('PRINTFUL_API_TOKEN'),
       storeId: process.env.PRINTFUL_STORE_ID?.trim() || undefined,
     }),
-    new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON')),
-    new VercelBlobArtworkAccess(blobToken),
+    new PrintfulVariantMap(readPrintfulVariantMapJson(process.env)),
+    new SignedArtworkAccess(env('ARTWORK_SIGNING_KEY'), env('APP_ORIGIN')),
   );
 }
 
@@ -44,6 +46,6 @@ export function createManufacturingEventService(): ManufacturingEventService {
       secretKeyHex: env('PRINTFUL_WEBHOOK_SECRET_HEX'),
     }),
     new PostgresManufacturingEventRepository(sql),
-    createReferralConversionService(),
+    referralsAreEnabled() ? createReferralConversionService() : undefined,
   );
 }

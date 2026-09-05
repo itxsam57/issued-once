@@ -11,6 +11,7 @@ const completeEnv: NodeJS.ProcessEnv = {
   NODE_ENV: 'test',
   DATABASE_URL: 'postgresql://hidden',
   QUIZ_ENCRYPTION_KEY_V1: Buffer.alloc(32, 1).toString('base64'),
+  QUIZ_ENCRYPTION_KEY_V2: Buffer.alloc(32, 3).toString('base64'),
   IDENTITY_HMAC_KEY: Buffer.alloc(32, 2).toString('base64'),
   MERCHANT_PUBLIC_NAME: 'ISSUED ONCE',
   MERCHANT_SUPPORT_EMAIL: 'support@issuedonce.shop',
@@ -25,6 +26,7 @@ const completeEnv: NodeJS.ProcessEnv = {
   }),
   SAFEPAY_ENVIRONMENT: 'sandbox',
   SAFEPAY_API_KEY: 'hidden-safepay',
+  SAFEPAY_API_SECRET: 'hidden-safepay-secret',
   SAFEPAY_WEBHOOK_SECRET: 'hidden-webhook',
   RESEND_API_KEY: 'hidden-resend',
   RESEND_FROM_EMAIL: 'ISSUED ONCE <issue@issuedonce.shop>',
@@ -32,7 +34,10 @@ const completeEnv: NodeJS.ProcessEnv = {
   OPENAI_API_KEY: 'hidden-openai',
   OPENAI_DESIGN_MODEL: 'gpt-5.6-terra',
   OPENAI_IMAGE_MODEL: 'gpt-image-1.5',
-  BLOB_READ_WRITE_TOKEN: 'hidden-blob',
+  ARTWORK_STORAGE_DIR: '/private/artwork',
+  ARTWORK_SIGNING_KEY: 'artwork-signing-key-that-is-long-enough',
+  APP_ORIGIN: 'https://issuedonce.shop',
+  CRON_SECRET: 'cron-secret-that-is-long-enough',
   PRINTFUL_API_TOKEN: 'hidden-printful',
   PRINTFUL_STORE_ID: '123',
   PRINTFUL_WEBHOOK_PUBLIC_KEY: 'hidden-public-key',
@@ -48,7 +53,9 @@ function healthyDependencies(env: NodeJS.ProcessEnv) {
   return {
     env,
     databasePing: vi.fn(async () => true),
-    blobPing: vi.fn(async () => true),
+    catalogAuthorityPing: vi.fn(async () => true),
+    storagePing: vi.fn(async () => true),
+    queuePing: vi.fn(async () => true),
     fetchImpl: vi.fn(async (url: string) => {
       if (url.startsWith('https://api.openai.com/v1/models/')) {
         return new Response(JSON.stringify({ id: url.split('/').at(-1), object: 'model' }), { status: 200 });
@@ -69,8 +76,10 @@ test('reports live/read-only boundaries separately from configured-only and safe
     expect.objectContaining({ key: 'database', state: 'ready' }),
     expect.objectContaining({ key: 'privacy', state: 'ready' }),
     expect.objectContaining({ key: 'merchant', state: 'ready' }),
+    expect.objectContaining({ key: 'catalog-authority', state: 'ready' }),
     expect.objectContaining({ key: 'openai', state: 'ready' }),
-    expect.objectContaining({ key: 'blob', state: 'ready' }),
+    expect.objectContaining({ key: 'storage', state: 'ready' }),
+    expect.objectContaining({ key: 'queues', state: 'ready' }),
     expect.objectContaining({ key: 'printful', state: 'ready' }),
     expect.objectContaining({ key: 'safepay', state: 'configured' }),
     expect.objectContaining({ key: 'resend', state: 'configured' }),
@@ -81,6 +90,31 @@ test('reports live/read-only boundaries separately from configured-only and safe
   expect(JSON.stringify(result)).not.toContain('Lahore, Punjab, Pakistan');
   expect(result.readyForSandbox).toBe(true);
   expect(result.readyForProduction).toBe(false);
+});
+
+test('Safepay readiness fails closed when the API secret required by the payment runtime is missing', async () => {
+  const env = { ...completeEnv };
+  delete env.SAFEPAY_API_SECRET;
+  delete env.SAFEPAY_V1_SECRET;
+
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'safepay',
+    state: 'missing',
+    detail: expect.stringMatching(/api secret/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
+test('Safepay readiness accepts the legacy V1 API secret because the payment runtime accepts it', async () => {
+  const env: NodeJS.ProcessEnv = { ...completeEnv, SAFEPAY_V1_SECRET: 'hidden-legacy-safepay-secret' };
+  delete env.SAFEPAY_API_SECRET;
+
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'safepay', state: 'configured' }));
+  expect(result.readyForSandbox).toBe(true);
 });
 
 test('merchant disclosure fails sandbox readiness closed when required public identity is missing', async () => {
@@ -103,9 +137,7 @@ test('merchant disclosure fails sandbox readiness closed when required public id
 test('uses the audited boot catalog when the deployment override is absent', async () => {
   const env = { ...completeEnv };
   delete env.ISSUED_ONCE_CATALOG_JSON;
-  const service = new ReadinessService(healthyDependencies(env));
-
-  const result = await service.check();
+  const result = await new ReadinessService(healthyDependencies(env)).check();
 
   expect(result.checks).toContainEqual(expect.objectContaining({
     key: 'catalog',
@@ -114,13 +146,40 @@ test('uses the audited boot catalog when the deployment override is absent', asy
   }));
 });
 
+test('Printful readiness uses the audited built-in 34-variant map when the environment override is absent', async () => {
+  const env = { ...completeEnv };
+  delete env.PRINTFUL_VARIANT_MAP_JSON;
+  delete env.ISSUED_ONCE_CATALOG_JSON;
+
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'printful',
+    state: 'ready',
+    detail: expect.stringMatching(/34 sellable placement/i),
+  }));
+});
+
+test('fails release readiness closed when no owner-published ACTIVE catalog exists', async () => {
+  const dependencies = healthyDependencies(completeEnv);
+  dependencies.catalogAuthorityPing.mockResolvedValue(false);
+
+  const result = await new ReadinessService(dependencies).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'catalog-authority',
+    state: 'missing',
+    detail: expect.stringMatching(/owner-published|active catalog/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
+  expect(result.readyForProduction).toBe(false);
+});
+
 test('uses the same transparency-compatible default image model as the design runtime', async () => {
   const env = { ...completeEnv };
   delete env.OPENAI_IMAGE_MODEL;
   const dependencies = healthyDependencies(env);
-  const service = new ReadinessService(dependencies);
-
-  const result = await service.check();
+  const result = await new ReadinessService(dependencies).check();
 
   expect(result.checks).toContainEqual(expect.objectContaining({ key: 'openai', state: 'ready' }));
   expect(dependencies.fetchImpl).toHaveBeenCalledWith(
@@ -130,12 +189,10 @@ test('uses the same transparency-compatible default image model as the design ru
 });
 
 test('blocks GPT Image 2 readiness while transparent production artwork is required', async () => {
-  const service = new ReadinessService(healthyDependencies({
+  const result = await new ReadinessService(healthyDependencies({
     ...completeEnv,
     OPENAI_IMAGE_MODEL: 'gpt-image-2',
-  }));
-
-  const result = await service.check();
+  })).check();
 
   expect(result.checks).toContainEqual(expect.objectContaining({
     key: 'openai',
@@ -145,36 +202,60 @@ test('blocks GPT Image 2 readiness while transparent production artwork is requi
   expect(result.readyForSandbox).toBe(false);
 });
 
+test('privacy readiness does not require the legacy V1 key when no V1 payloads remain', async () => {
+  const env = { ...completeEnv };
+  delete env.QUIZ_ENCRYPTION_KEY_V1;
+
+  const result = await new ReadinessService({
+    ...healthyDependencies(env),
+    legacyPrivacyPayloadsExist: vi.fn(async () => false),
+  }).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'privacy', state: 'ready' }));
+  expect(result.readyForSandbox).toBe(true);
+});
+
+test('privacy readiness blocks when the database still rejects V2 design briefs', async () => {
+  const result = await new ReadinessService({
+    ...healthyDependencies(completeEnv),
+    legacyPrivacyPayloadsExist: vi.fn(async () => false),
+    privacySchemaPing: vi.fn(async () => false),
+  }).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'privacy',
+    state: 'blocked',
+    detail: expect.stringMatching(/schema|v2 design brief/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
 test('malformed privacy key material is blocked instead of treated as configured', async () => {
-  const service = new ReadinessService({
-    env: { ...completeEnv, QUIZ_ENCRYPTION_KEY_V1: 'not-a-32-byte-key' },
-    databasePing: vi.fn(async () => true),
-    blobPing: vi.fn(async () => true),
-    fetchImpl: vi.fn(async (url: string) => {
-      if (url.startsWith('https://api.openai.com/')) return new Response('{}', { status: 200 });
-      if (url === 'https://api.printful.com/stores') return new Response(JSON.stringify({ result: [{ id: 123 }] }), { status: 200 });
-      return new Response(null, { status: 404 });
-    }) as typeof fetch,
-  });
-  const result = await service.check();
+  const result = await new ReadinessService({
+    ...healthyDependencies({ ...completeEnv, QUIZ_ENCRYPTION_KEY_V1: 'not-a-32-byte-key' }),
+  }).check();
   expect(result.checks).toContainEqual(expect.objectContaining({ key: 'privacy', state: 'blocked' }));
   expect(result.readyForSandbox).toBe(false);
 });
 
 test('missing boundaries fail closed and never report production ready', async () => {
-  const service = new ReadinessService({
+  const result = await new ReadinessService({
     env: { NODE_ENV: 'test', SAFEPAY_ENVIRONMENT: 'production', PRINTFUL_ALLOW_CONFIRM: 'true' },
     databasePing: vi.fn(async () => false),
-    blobPing: vi.fn(async () => false),
+    catalogAuthorityPing: vi.fn(async () => false),
+    storagePing: vi.fn(async () => false),
+    queuePing: vi.fn(async () => false),
     fetchImpl: vi.fn() as typeof fetch,
-  });
-  const result = await service.check();
+  }).check();
   expect(result.readyForSandbox).toBe(false);
   expect(result.readyForProduction).toBe(false);
   expect(result.checks).toEqual(expect.arrayContaining([
     expect.objectContaining({ key: 'database', state: 'missing' }),
+    expect.objectContaining({ key: 'catalog-authority', state: 'missing' }),
     expect.objectContaining({ key: 'merchant', state: 'missing' }),
     expect.objectContaining({ key: 'openai', state: 'missing' }),
+    expect.objectContaining({ key: 'storage', state: 'missing' }),
+    expect.objectContaining({ key: 'queues', state: 'missing' }),
     expect.objectContaining({ key: 'factory-confirm', state: 'armed' }),
   ]));
 });

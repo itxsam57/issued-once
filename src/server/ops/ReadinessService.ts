@@ -1,5 +1,10 @@
 import { readPublicMerchant } from '@/brand/publicMerchant';
-import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
+import { PrintfulVariantMap, readPrintfulVariantMapJson } from '@/server/manufacturing/PrintfulVariantMap';
+import {
+  readSafepayRuntimeConfig,
+  SafepayConfigurationError,
+  type SafepayEnvironment,
+} from '@/server/payments/safepayRuntimeConfig';
 import { IssuedOnceCatalogGateway } from '@/server/physical/IssuedOnceCatalogGateway';
 import { ISSUED_ONCE_BOOT_CATALOG_JSON } from '@/server/physical/bootCatalog';
 
@@ -15,7 +20,11 @@ export type ReadinessCheck = {
 type Dependencies = {
   env?: NodeJS.ProcessEnv;
   databasePing: () => Promise<boolean>;
-  blobPing: () => Promise<boolean>;
+  catalogAuthorityPing: () => Promise<boolean>;
+  storagePing: () => Promise<boolean>;
+  queuePing: () => Promise<boolean>;
+  legacyPrivacyPayloadsExist?: () => Promise<boolean>;
+  privacySchemaPing?: () => Promise<boolean>;
   fetchImpl?: typeof fetch;
 };
 
@@ -38,8 +47,38 @@ function isValidHexSecret(value: string | undefined) {
   return Buffer.from(secret, 'hex').length > 0;
 }
 
+function hasSafeSecret(value: string | undefined) {
+  return (value?.trim().length ?? 0) >= 24;
+}
+
+function hasHttpsOrigin(value: string | undefined) {
+  try {
+    return new URL(value?.trim() ?? '').protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function safeFetchError(response: Response) {
   return `HTTP ${response.status}`;
+}
+
+function safepayReadinessFailure(error: SafepayConfigurationError): ReadinessCheck {
+  const invalid = error.code === 'INVALID_ENVIRONMENT';
+  return {
+    key: 'safepay',
+    label: 'Safepay',
+    state: invalid ? 'blocked' : 'missing',
+    detail: error.code === 'MISSING_API_SECRET'
+      ? 'Safepay API secret is required (SAFEPAY_API_SECRET or SAFEPAY_V1_SECRET).'
+      : error.code === 'MISSING_API_KEY'
+        ? 'Safepay API key is required.'
+        : error.code === 'MISSING_WEBHOOK_SECRET'
+          ? 'Safepay webhook secret is required.'
+          : error.code === 'MISSING_ENVIRONMENT'
+            ? 'Safepay environment is required.'
+            : 'Safepay environment must be sandbox or production.',
+  };
 }
 
 export class ReadinessService {
@@ -59,11 +98,13 @@ export class ReadinessService {
   }> {
     const checks: ReadinessCheck[] = [];
 
+    let databaseReady = false;
     if (!this.env.DATABASE_URL?.trim()) {
       checks.push({ key: 'database', label: 'Neon database', state: 'missing', detail: 'DATABASE_URL is not configured.' });
     } else {
       try {
-        checks.push(await this.dependencies.databasePing()
+        databaseReady = await this.dependencies.databasePing();
+        checks.push(databaseReady
           ? { key: 'database', label: 'Neon database', state: 'ready', detail: 'Read-only database ping succeeded.' }
           : { key: 'database', label: 'Neon database', state: 'blocked', detail: 'Database ping failed.' });
       } catch {
@@ -71,15 +112,63 @@ export class ReadinessService {
       }
     }
 
-    const hasPrivacyValues = present(this.env, 'QUIZ_ENCRYPTION_KEY_V1', 'IDENTITY_HMAC_KEY');
-    const privacyKeysValid =
-      isBase64Key32(this.env.QUIZ_ENCRYPTION_KEY_V1) &&
-      isBase64Key32(this.env.IDENTITY_HMAC_KEY);
-    checks.push(!hasPrivacyValues
-      ? { key: 'privacy', label: 'Privacy keys', state: 'missing', detail: 'Encryption and identity-HMAC keys are required.' }
-      : privacyKeysValid
-        ? { key: 'privacy', label: 'Privacy keys', state: 'ready', detail: 'Both privacy keys decode to the required 32 bytes.' }
-        : { key: 'privacy', label: 'Privacy keys', state: 'blocked', detail: 'Privacy keys are present but do not decode to exactly 32 bytes.' });
+    let legacyPrivacyPayloadsExist = true;
+    let privacySchemaReady = true;
+    let privacyEvidenceReady = true;
+    try {
+      if (this.dependencies.legacyPrivacyPayloadsExist) {
+        legacyPrivacyPayloadsExist = await this.dependencies.legacyPrivacyPayloadsExist();
+      }
+      if (this.dependencies.privacySchemaPing) {
+        privacySchemaReady = await this.dependencies.privacySchemaPing();
+      }
+    } catch {
+      privacyEvidenceReady = false;
+    }
+
+    const requiredPrivacyKeys = legacyPrivacyPayloadsExist
+      ? ['QUIZ_ENCRYPTION_KEY_V1', 'QUIZ_ENCRYPTION_KEY_V2', 'IDENTITY_HMAC_KEY']
+      : ['QUIZ_ENCRYPTION_KEY_V2', 'IDENTITY_HMAC_KEY'];
+    const hasPrivacyValues = present(this.env, ...requiredPrivacyKeys);
+    const privacyKeysValid = requiredPrivacyKeys.every((name) => isBase64Key32(this.env[name]));
+    const privacyKeyLabel = legacyPrivacyPayloadsExist ? 'V1/V2 encryption keys' : 'V2 encryption key';
+
+    checks.push(!privacyEvidenceReady
+      ? {
+          key: 'privacy',
+          label: 'Privacy keys',
+          state: 'blocked',
+          detail: 'Legacy privacy-key usage or V2 design-brief schema could not be verified.',
+        }
+      : !privacySchemaReady
+        ? {
+            key: 'privacy',
+            label: 'Privacy keys',
+            state: 'blocked',
+            detail: 'Database privacy schema does not yet accept current V2 design briefs.',
+          }
+        : !hasPrivacyValues
+          ? {
+              key: 'privacy',
+              label: 'Privacy keys',
+              state: 'missing',
+              detail: legacyPrivacyPayloadsExist
+                ? 'V1 and V2 encryption keys plus the identity-HMAC key are required while legacy V1 payloads remain.'
+                : 'V2 encryption key plus the identity-HMAC key are required.',
+            }
+          : privacyKeysValid
+            ? {
+                key: 'privacy',
+                label: 'Privacy keys',
+                state: 'ready',
+                detail: `${privacyKeyLabel} and the identity-HMAC key decode to the required 32 bytes.`,
+              }
+            : {
+                key: 'privacy',
+                label: 'Privacy keys',
+                state: 'blocked',
+                detail: `${privacyKeyLabel} and the identity-HMAC key must each decode to exactly 32 bytes.`,
+              });
 
     const merchant = readPublicMerchant(this.env);
     checks.push(merchant.ready
@@ -127,18 +216,46 @@ export class ReadinessService {
       checks.push({ key: 'catalog', label: 'Retail catalog', state: 'blocked', detail: 'Retail catalog is invalid, uses an unsupported Safepay currency, or is missing a current Issue form.' });
     }
 
-    const safepayEnvironment = this.env.SAFEPAY_ENVIRONMENT?.trim().toLowerCase();
-    if (!present(this.env, 'SAFEPAY_API_KEY', 'SAFEPAY_WEBHOOK_SECRET') || !['sandbox', 'production'].includes(safepayEnvironment ?? '')) {
-      checks.push({ key: 'safepay', label: 'Safepay', state: 'missing', detail: 'Safepay environment, API key, and webhook secret are required.' });
-    } else {
+    try {
+      const catalogAuthorityReady = await this.dependencies.catalogAuthorityPing();
+      checks.push(catalogAuthorityReady
+        ? {
+            key: 'catalog-authority',
+            label: 'Catalog authority',
+            state: 'ready',
+            detail: 'An owner-published ACTIVE catalog is authoritative for commerce.',
+          }
+        : {
+            key: 'catalog-authority',
+            label: 'Catalog authority',
+            state: 'missing',
+            detail: 'No owner-published ACTIVE catalog is available for commerce.',
+          });
+    } catch {
+      checks.push({
+        key: 'catalog-authority',
+        label: 'Catalog authority',
+        state: 'blocked',
+        detail: 'Owner-published ACTIVE catalog authority could not be verified.',
+      });
+    }
+
+    let safepayEnvironment: SafepayEnvironment | null = null;
+    try {
+      const safepay = readSafepayRuntimeConfig(this.env, { requireExplicitEnvironment: true });
+      safepayEnvironment = safepay.environment;
       checks.push({
         key: 'safepay',
         label: 'Safepay',
         state: 'configured',
-        detail: safepayEnvironment === 'sandbox'
+        detail: safepay.environment === 'sandbox'
           ? 'Sandbox credentials are configured; signed payment proof still requires a real sandbox cycle.'
           : 'Production credentials are configured; production payment still requires explicit owner launch proof.',
       });
+    } catch (error) {
+      checks.push(error instanceof SafepayConfigurationError
+        ? safepayReadinessFailure(error)
+        : { key: 'safepay', label: 'Safepay', state: 'blocked', detail: 'Safepay configuration could not be validated.' });
     }
 
     if (!present(this.env, 'RESEND_API_KEY', 'RESEND_FROM_EMAIL', 'SUPPORT_INBOX_EMAIL')) {
@@ -177,32 +294,35 @@ export class ReadinessService {
       }
     }
 
-    if (!this.env.BLOB_READ_WRITE_TOKEN?.trim()) {
-      checks.push({ key: 'blob', label: 'Private artwork storage', state: 'missing', detail: 'BLOB_READ_WRITE_TOKEN is not configured.' });
+    const storageConfigured = present(this.env, 'DATABASE_URL', 'ARTWORK_SIGNING_KEY', 'APP_ORIGIN');
+    const storageConfigSafe = hasSafeSecret(this.env.ARTWORK_SIGNING_KEY) && hasHttpsOrigin(this.env.APP_ORIGIN);
+    if (!storageConfigured) {
+      checks.push({ key: 'storage', label: 'Private artwork storage', state: 'missing', detail: 'Database authority, artwork signing key, and HTTPS application origin are required.' });
+    } else if (!storageConfigSafe) {
+      checks.push({ key: 'storage', label: 'Private artwork storage', state: 'blocked', detail: 'Private artwork signing or application-origin configuration is unsafe.' });
     } else {
       try {
-        checks.push(await this.dependencies.blobPing()
-          ? { key: 'blob', label: 'Private artwork storage', state: 'ready', detail: 'Private Blob signing check succeeded.' }
-          : { key: 'blob', label: 'Private artwork storage', state: 'blocked', detail: 'Private Blob signing check failed.' });
+        checks.push(await this.dependencies.storagePing()
+          ? { key: 'storage', label: 'Private artwork storage', state: 'ready', detail: 'Durable private artwork database boundary is available.' }
+          : { key: 'storage', label: 'Private artwork storage', state: 'blocked', detail: 'Durable private artwork database boundary is unavailable.' });
       } catch {
-        checks.push({ key: 'blob', label: 'Private artwork storage', state: 'blocked', detail: 'Private Blob signing check failed.' });
+        checks.push({ key: 'storage', label: 'Private artwork storage', state: 'blocked', detail: 'Durable private artwork database boundary is unavailable.' });
       }
     }
 
     const printfulConfigured = present(
       this.env,
       'PRINTFUL_API_TOKEN',
-      'PRINTFUL_VARIANT_MAP_JSON',
       'PRINTFUL_WEBHOOK_PUBLIC_KEY',
       'PRINTFUL_WEBHOOK_SECRET_HEX',
     );
     if (!printfulConfigured) {
-      checks.push({ key: 'printful', label: 'Printful', state: 'missing', detail: 'Printful API, mapping, and signed-webhook configuration are required.' });
+      checks.push({ key: 'printful', label: 'Printful', state: 'missing', detail: 'Printful API and signed-webhook configuration are required; the audited 34-variant map is built in.' });
     } else if (!isValidHexSecret(this.env.PRINTFUL_WEBHOOK_SECRET_HEX)) {
       checks.push({ key: 'printful', label: 'Printful', state: 'blocked', detail: 'Printful webhook secret must be non-empty, even-length hexadecimal.' });
     } else {
       try {
-        const map = new PrintfulVariantMap(this.env.PRINTFUL_VARIANT_MAP_JSON!);
+        const map = new PrintfulVariantMap(readPrintfulVariantMapJson(this.env));
         for (const key of availableFactoryKeys) {
           const [objectType, sizeCode, ...colorParts] = key.split(':');
           map.resolve({ objectType, sizeCode, colorCode: colorParts.join(':') });
@@ -227,12 +347,19 @@ export class ReadinessService {
       }
     }
 
-    checks.push({
-      key: 'queues',
-      label: 'Durable queues',
-      state: 'configured',
-      detail: 'Design and notification consumers are declared in deployment config; deployed-account registration must still be observed.',
-    });
+    if (!hasSafeSecret(this.env.CRON_SECRET)) {
+      checks.push({ key: 'queues', label: 'Durable jobs', state: 'missing', detail: 'A protected cron secret is required to drain durable background jobs.' });
+    } else if (!databaseReady) {
+      checks.push({ key: 'queues', label: 'Durable jobs', state: 'blocked', detail: 'Durable jobs require a healthy database.' });
+    } else {
+      try {
+        checks.push(await this.dependencies.queuePing()
+          ? { key: 'queues', label: 'Durable jobs', state: 'ready', detail: 'Postgres background-job schema is present and the protected drain is configured.' }
+          : { key: 'queues', label: 'Durable jobs', state: 'blocked', detail: 'Postgres background-job schema is unavailable.' });
+      } catch {
+        checks.push({ key: 'queues', label: 'Durable jobs', state: 'blocked', detail: 'Postgres background-job schema is unavailable.' });
+      }
+    }
 
     checks.push(this.env.PRINTFUL_ALLOW_CONFIRM === 'true'
       ? { key: 'factory-confirm', label: 'Factory charge switch', state: 'armed', detail: 'PRINTFUL_ALLOW_CONFIRM is armed. Keep this deliberate and temporary.' }
@@ -244,19 +371,21 @@ export class ReadinessService {
       state('privacy') === 'ready' &&
       state('merchant') === 'ready' &&
       state('catalog') === 'ready' &&
+      state('catalog-authority') === 'ready' &&
       state('safepay') === 'configured' &&
       safepayEnvironment === 'sandbox' &&
       state('resend') === 'configured' &&
       state('openai') === 'ready' &&
-      state('blob') === 'ready' &&
+      state('storage') === 'ready' &&
       state('printful') === 'ready' &&
+      state('queues') === 'ready' &&
       state('factory-confirm') === 'safe';
 
     return {
       checkedAt: new Date().toISOString(),
       checks,
       readyForSandbox,
-      // Production still requires observed signed payment/email/queue/factory proofs and an owner launch decision.
+      // Production still requires observed signed payment/email/job/factory proofs and an owner launch decision.
       readyForProduction: false,
     };
   }

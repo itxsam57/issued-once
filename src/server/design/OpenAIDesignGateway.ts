@@ -5,6 +5,7 @@ import type {
   DesignRevisionContext,
   StructuredDesignBrief,
 } from './DesignGateway';
+import { readValidatedPngImage } from './PngImage';
 
 type Options = {
   apiKey: string;
@@ -140,6 +141,10 @@ export class OpenAIDesignGateway implements DesignGateway {
 
   async generateArtwork(brief: StructuredDesignBrief, context?: DesignRevisionContext) {
     const revision = ownerFeedback(context?.ownerFeedback);
+    const artworkSize = context?.objectType === 'hat' ? '1536x1024' : '1024x1536';
+    const expectedDimensions = context?.objectType === 'hat'
+      ? { width: 1536, height: 1024 }
+      : { width: 1024, height: 1536 };
     const prompt = [
       'Create one original production artwork for a premium fashion object.',
       'Transparent background. No mockup, no garment, no human model, no border around the canvas.',
@@ -164,7 +169,7 @@ export class OpenAIDesignGateway implements DesignGateway {
       body: JSON.stringify({
         model: this.imageModel,
         prompt,
-        size: '1024x1536',
+        size: artworkSize,
         quality: 'high',
         background: 'transparent',
         output_format: 'png',
@@ -178,12 +183,19 @@ export class OpenAIDesignGateway implements DesignGateway {
     if (!encoded) throw new Error('OpenAI artwork response is missing image data');
     const bytes = Buffer.from(encoded, 'base64');
     if (!bytes.length) throw new Error('OpenAI artwork response is empty');
+    const { width, height, hasTransparency } = readValidatedPngImage(bytes);
+    if (width !== expectedDimensions.width || height !== expectedDimensions.height) {
+      throw new Error(`OpenAI artwork dimensions must be ${expectedDimensions.width}x${expectedDimensions.height}; got ${width}x${height}`);
+    }
+    if (!hasTransparency) {
+      throw new Error('OpenAI artwork PNG must contain transparent pixels');
+    }
 
     return {
       bytes,
       mimeType: 'image/png' as const,
-      width: 1024,
-      height: 1536,
+      width,
+      height,
       provider: 'OPENAI',
       model: this.imageModel,
     };

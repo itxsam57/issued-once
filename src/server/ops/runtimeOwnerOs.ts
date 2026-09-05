@@ -3,12 +3,15 @@ import { createDesignService } from '@/server/design/runtimeDesign';
 import { enqueueDesignIssue } from '@/server/design/designQueue';
 import { dispatchPaidIssueDesign } from '@/server/design/designDispatch';
 import { DesignPolicyWorkflowService } from '@/server/design/DesignPolicyWorkflowService';
+import { PostgresArtworkStorage } from '@/server/design/PostgresArtworkStorage';
 import { PostgresDesignPolicyRepository } from '@/server/design/PostgresDesignPolicyRepository';
-import { VercelBlobArtworkStorage } from '@/server/design/VercelBlobArtworkStorage';
 import { createIssueService } from '@/server/issues/runtimeIssues';
 import { createManufacturingService } from '@/server/manufacturing/runtimeManufacturing';
-import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
+import { PrintfulVariantMap, readPrintfulVariantMapJson } from '@/server/manufacturing/PrintfulVariantMap';
+import { ISSUED_ONCE_BOOT_CATALOG_JSON } from '@/server/physical/bootCatalog';
 import { enqueueIssueNotification } from '@/server/notifications/notificationQueue';
+import { finalizeRefundedAttempt } from '@/server/payments/finalizeRefundedAttempt';
+import { createPaymentService } from '@/server/payments/runtimePayments';
 import { ManualArtworkUploadService } from './ManualArtworkUploadService';
 import { OpsAuditService } from './OpsAuditService';
 import { OpsDesignPolicyService } from './OpsDesignPolicyService';
@@ -17,6 +20,7 @@ import { OpsManufacturingService } from './OpsManufacturingService';
 import { OpsPrivateRevealService } from './OpsPrivateRevealService';
 import { OpsRecoveryService } from './OpsRecoveryService';
 import { OpsReferralService } from './OpsReferralService';
+import { OpsRefundService } from './OpsRefundService';
 import { OpsSupportService } from './OpsSupportService';
 import { OpsWebsiteService, opsCatalogSchema } from './OpsWebsiteService';
 import { PostgresOpsAttentionRepository } from './PostgresOpsAttentionRepository';
@@ -42,8 +46,7 @@ function env(name: string) {
 }
 function sql() { return createNeonSqlExecutor(env('DATABASE_URL')); }
 function factoryMappingKeys(): string[] {
-  const serialized = process.env.PRINTFUL_VARIANT_MAP_JSON?.trim();
-  if (!serialized) return [];
+  const serialized = readPrintfulVariantMapJson(process.env);
   try {
     const parsed = JSON.parse(serialized) as unknown;
     return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? Object.keys(parsed) : [];
@@ -101,17 +104,19 @@ export function createManualArtworkUploadService() {
   return new ManualArtworkUploadService(
     new PostgresDesignPolicyRepository(executor),
     new PostgresOpsDesignerStore(executor),
-    new VercelBlobArtworkStorage(env('BLOB_READ_WRITE_TOKEN')),
+    new PostgresArtworkStorage(executor),
     { approve: (issueId) => createDesignPolicyWorkflowService().afterOwnerApproval(issueId) },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
 }
 export function createOpsManufacturingService() {
   const executor = sql();
-  const manufacturing = createManufacturingService();
   return new OpsManufacturingService(
     new PostgresOpsManufacturingStore(executor),
-    { createDraft: (issueId) => manufacturing.createDraft(issueId), confirmDraft: (issueId) => manufacturing.confirmDraft(issueId) },
+    {
+      createDraft: (issueId) => createManufacturingService().createDraft(issueId),
+      confirmDraft: (issueId) => createManufacturingService().confirmDraft(issueId),
+    },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
 }
@@ -124,22 +129,36 @@ export function createOpsReferralService() {
     audit: new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   });
 }
+export function createOpsRefundService() {
+  const executor = sql();
+  return new OpsRefundService(
+    new PostgresOpsIssueDetailRepository(executor),
+    createPaymentService(),
+    finalizeRefundedAttempt,
+    new OpsAuditService(new PostgresOpsAuditRepository(executor)),
+  );
+}
 export function createOpsSupportService() {
   const executor = sql();
   return new OpsSupportService(
     new PostgresOpsSupportStore(executor),
-    new ResendOpsSupportReplyGateway({ apiKey: env('RESEND_API_KEY'), from: env('RESEND_FROM_EMAIL') }),
+    {
+      send: (input) => new ResendOpsSupportReplyGateway({
+        apiKey: env('RESEND_API_KEY'),
+        from: env('RESEND_FROM_EMAIL'),
+      }).send(input),
+    },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
     { enqueue: (issueId, eventKey, attemptKey) => enqueueIssueNotification(issueId, eventKey, attemptKey) },
   );
 }
 export function createOpsWebsiteService() {
   const executor = sql();
-  const bootJson = env('ISSUED_ONCE_CATALOG_JSON');
+  const bootJson = process.env.ISSUED_ONCE_CATALOG_JSON?.trim() || ISSUED_ONCE_BOOT_CATALOG_JSON;
   const boot = opsCatalogSchema.parse(JSON.parse(bootJson));
   return new OpsWebsiteService(
     new PostgresOpsWebsiteStore(executor, boot),
-    { bootCatalogJson: bootJson, assertFactoryMapping: (input) => { new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON')).resolve(input); } },
+    { bootCatalogJson: bootJson, assertFactoryMapping: (input) => { new PrintfulVariantMap(readPrintfulVariantMapJson(process.env)).resolve(input); } },
     new OpsAuditService(new PostgresOpsAuditRepository(executor)),
   );
 }

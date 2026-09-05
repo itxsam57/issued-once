@@ -1,4 +1,8 @@
 import { randomUUID } from 'node:crypto';
+import {
+  normalizeShippingCountryCode,
+  shippingAddressRequirements,
+} from '@/domain/shipping/addressRequirements';
 import { encryptPrivatePayload } from '@/server/crypto/privatePayload';
 import type { ExperienceRepository } from '@/server/experience/ExperienceRepository';
 import { hashSessionToken } from '@/server/http/sessionToken';
@@ -13,7 +17,7 @@ function clean(value: string, max: number): string {
 }
 
 function normalizeAddress(input: ShippingAddress): ShippingAddress {
-  const countryCode = input.countryCode.trim().toUpperCase();
+  const countryCode = normalizeShippingCountryCode(input.countryCode);
   if (!/^[A-Z]{2}$/.test(countryCode)) throw new Error('Shipping country is invalid');
 
   const address: ShippingAddress = {
@@ -26,14 +30,14 @@ function normalizeAddress(input: ShippingAddress): ShippingAddress {
     countryCode,
     phone: clean(input.phone, 40),
   };
+  const requirements = shippingAddressRequirements(countryCode);
 
   if (
     !address.recipientName ||
     !address.line1 ||
     !address.city ||
-    !address.region ||
     !address.postalCode ||
-    !address.phone
+    (requirements.regionRequired && !address.region)
   ) {
     throw new Error('Shipping address is incomplete');
   }

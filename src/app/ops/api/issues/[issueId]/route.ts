@@ -33,7 +33,7 @@ export async function GET(
     if (error instanceof OpsRuntimeUnavailableError) {
       return Response.json({ error: 'Owner operations are unavailable' }, { status: 503 });
     }
-    console.error('owner Issue detail failed', error);
+    console.error('owner Issue detail failed');
     return Response.json({ error: 'Owner Issue detail failed' }, { status: 500 });
   }
 }

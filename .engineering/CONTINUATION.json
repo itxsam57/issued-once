@@ -1,24 +1,32 @@
 {
   "schemaVersion": 1,
+  "version": "1.36.4",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-08-23T16:41:00+05:00",
+  "updatedAt": "2026-09-05T15:50:56Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
-    "branch": "feat/mystery-foundation",
-    "pullRequest": 3,
-    "pullRequestState": "DRAFT",
-    "lastFullyDeployedApplicationHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
-    "canonicalCodeHeadPendingDeployment": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
-    "workflowRepairPullRequest": 11,
-    "toteRepairPullRequest": 12,
-    "toteRepairHead": "7a1962a2d46335bb0fa517623fd01312770dc366",
-    "toteRepairMergeHead": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
-    "productionMigrationHead": "0028_design_controls.sql",
-    "nextRepositoryMigration": "0029_creator_referrals.sql"
+    "canonicalBranch": "feat/mystery-foundation",
+    "activeMigrationBranch": "infra/hostinger-migration-20260823",
+    "activeMigrationPullRequest": 13,
+    "verifiedRuntimeIntegrationHead": "c5d78630581fc3992fe26a8a08000d8565f8e6a2",
+    "verifiedRuntimeTree": "d6d40b172836ac1393a624e833b403735ffd4734",
+    "liveReleaseHead": "dbf2fc15cd5be0397034777897e254f6c845469c",
+    "liveReleaseTree": "d6d40b172836ac1393a624e833b403735ffd4734",
+    "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
+    "hostingerLinkedBranchHead": "dbf2fc15cd5be0397034777897e254f6c845469c",
+    "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
+    "combinedCandidateBranchHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
+    "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
+    "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
+    "plannedCanonicalDomain": "issuedonce.shop",
+    "latestEngineeringIntegrationHead": "c5d78630581fc3992fe26a8a08000d8565f8e6a2",
+    "latestEngineeringIntegrationTree": "d6d40b172836ac1393a624e833b403735ffd4734",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-05T15:50:56Z"
   },
   "continuationGovernor": {
-    "state": "WAIT_EXTERNAL",
-    "decision": "TOTE_PRODUCTION_FIX_MERGED_AWAITING_VERCEL_DEPLOYMENT_AND_LIVE_REPROOF",
+    "state": "OWNER_REQUIRED",
+    "currentEngineeringStopRequired": true,
+    "currentEngineeringStopReason": "The live Hostinger runtime is exact release dbf2fc15cd5be0397034777897e254f6c845469c with tree d6d40b172836ac1393a624e833b403735ffd4734. Printful provider truth is now read from the real API: Bella + Canvas 3001 (30 variants), Yupoong 6245CM (2), and Econscious EC8000 (2). The exact 34-entry PRINTFUL_VARIANT_MAP_JSON has been generated and validated, the production Printful token is configured, and provider-backed storefront swatches/cap artwork geometry are merged and verified. The remaining immediate gate is authenticated Hostinger hPanel access to configure the generated mapping; ACTIVE catalog publication remains blocked until that configuration is present. Production migration 0037 and signed Printful webhook configuration remain separate gates.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -26,100 +34,675 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "stopReason": "Owner production testing exposed a Tote-only PostgreSQL deserialization defect. PR 12 fixed the exact root cause and is merged into canonical with full pre-merge CI and Browser QA green, and canonical CI is green. The required canonical live production matrix ran before the new canonical Vercel deployment because Vercel rejected commit 33cc9119 with its free-tier build-rate limit. The live matrix therefore hit the prior deployment: Tee M/Bone and Hat OS/Bone passed, while Tote OS reproduced the old 500. Do not call the Tote production path fixed until Vercel deploys the canonical repair and the live Tee/Hat/Tote matrix is rerun successfully."
+    "decision": "STOP_AT_HOSTINGER_AUTH_FOR_PRINTFUL_MAPPING",
+    "reason": "No further code or UI change is needed to construct the current 34-variant catalog. The next action requires the owner to complete Hostinger authentication in Opera so the already-generated non-secret mapping can be stored as an environment variable. Do not fabricate provider IDs, rotate privacy keys, confirm manufacturing, or publish an ACTIVE catalog before readiness validates."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "TOTE_ROOT_CAUSE_FIXED_MERGED_WAITING_EXTERNAL_DEPLOYMENT",
+    "internalWorkStatus": "PRINTFUL_CATALOG_PROVIDER_TRUTH_READY_AWAITING_HOSTINGER_ENV",
     "rules": [
-      "Treat feat/mystery-foundation as canonical until final release promotion",
-      "Use TDD RED before behavior changes",
-      "Require fresh CI, build, browser, production and database evidence before success claims",
-      "Preview-only product matrix evidence is insufficient for production physical-gate claims",
-      "Canonical live smoke must exercise Tee, Hat and Tote through object, size and base APIs",
-      "Browser navigation is never payment proof",
-      "Never expose secrets, OTPs, session tokens, raw private answers, addresses or payout details",
-      "Never apply production database migrations without exact owner approval",
-      "Do not configure REFERRAL_ATTRIBUTION_SIGNING_KEY before migration 0029 is applied and verified",
-      "Keep Printful production confirmation disabled until its independent owner release gate",
-      "Do not create real charges solely for QA; use non-payment test paths"
+      "Treat feat/mystery-foundation as canonical until final release promotion.",
+      "Use the consumer-readiness master plan and CR-27 evidence checkpoint as the release evidence ledger.",
+      "Require TDD RED before product behavior changes, then exact-head unit/typecheck/lint/build and Browser QA where customer-facing.",
+      "Never expose encryption keys, OTPs, sessions, raw answers, addresses, database credentials, payment secrets or provider secrets.",
+      "The actual Hostinger selected/linked branch is release/hostinger-v2-candidate-20260824; release/hostinger-v10-candidate-20260825 is a combined candidate and must not be treated as the deployed branch.",
+      "Do not change the Hostinger selected branch or production environment variables without explicit owner approval.",
+      "Do not rotate QUIZ_ENCRYPTION_KEY_V2 or IDENTITY_HMAC_KEY without an explicit continuity plan.",
+      "Keep Printful production confirmation disabled until the explicit manufacturing launch gate.",
+      "Do not create real Safepay charges or refunds solely for QA.",
+      "Do not apply referral migrations 0029, 0034 or 0035 to production without explicit production referral-activation approval.",
+      "Core migration 0036 is production-verified; do not rerun migration trigger commits or broaden migration scope.",
+      "Do not publish or activate catalog truth by direct production mutation without a separate owner-authorized catalog action.",
+      "For provider-gated live boundary checks, an unavailable 503 is acceptable only when the response body exactly matches the route's known privacy-safe unavailable contract; never accept arbitrary 503 or 500 responses as healthy.",
+      "Do not send creator outreach until referral activation and owner launch gates are satisfied.",
+      "Do not fabricate MERCHANT_PUBLIC_LOCATION; truthful merchant identity remains required before canonical launch.",
+      "Before any future customer-facing UI/UX change, stop and ask the owner for explicit UI approval."
     ]
   },
-  "workflowAuditRepair": {
-    "status": "MERGED_DEPLOYED_CANONICAL_VERIFIED",
-    "pullRequest": 11,
-    "mergeHead": "1775abd5f55b7beef9c45b866b064d636a10cc98",
-    "canonicalCi": 1237,
-    "canonicalBrowserQa": 1152
-  },
-  "toteProductionRepair": {
-    "status": "MERGED_CI_VERIFIED_DEPLOYMENT_BLOCKED",
-    "ownerObservedSymptom": "TOTE reached OS size confirmation then displayed The next step could not be saved.",
-    "productionRootCause": "PostgresPhysicalSelectionRepository accepted tee, hoodie and hat when deserializing persisted physical selections but omitted the canonical tote ObjectType. A valid persisted tote/io-tote row was therefore rejected on the following size request as Stored physical object is invalid.",
-    "productionChange": "Add tote to the persisted physical-object validator; no schema, payment, manufacturing or catalog redesign required.",
-    "tdd": {
-      "redCommit": "8b652cfdec85d81dfbd5a34b0a4227b4d7e9418b",
-      "redCiRun": 1238,
-      "redResult": "1_FAILED_482_PASSED_EXPECTED_STORED_PHYSICAL_OBJECT_IS_INVALID",
-      "greenRepairHead": "7a1962a2d46335bb0fa517623fd01312770dc366",
-      "preMergeCiRun": 1242,
-      "preMergeCiResult": "PASS_UNIT_TYPECHECK_LINT_BUILD",
-      "preMergeBrowserQaRun": 1154,
-      "preMergeBrowserQaResult": "PASS"
-    },
-    "merge": {
-      "pullRequest": 12,
-      "canonicalMergeHead": "33cc91196cb61bfefbaa17fdbc7a7281454321ba",
-      "canonicalCiRun": 1243,
-      "canonicalCiResult": "PASS"
-    },
-    "testGapClosed": {
-      "oldGap": "Tee/Hat/Tote matrix used preview repository while canonical live production smoke exercised Tee only.",
-      "newGate": "Canonical live production smoke independently requires successful /api/experience/object, /api/experience/size and /api/experience/base for Tee M/Bone, Hat OS/Bone and Tote OS/Bone before passing."
-    },
-    "canonicalLiveAttempt": {
-      "browserQaRun": 1155,
-      "result": "FAIL_EXPECTED_OLD_DEPLOYMENT",
-      "tee": "PASS_M_BONE_COMMITMENT_READY",
-      "hat": "PASS_OS_BONE_COMMITMENT_READY",
-      "tote": "OLD_DEPLOYMENT_SIZE_HTTP_500_OBJECT_SELECTED",
-      "deploymentEvidence": "GitHub combined status for 33cc9119 reports Vercel=failure with build-rate-limit target; PR3 Vercel Ready comment remained on the previous 2026-08-23T10:54Z deployment during the 11:39Z live run."
-    },
-    "ownerOriginalToteSession": {
-      "preserved": true,
-      "stage": "OBJECT_SELECTED",
-      "object": "tote",
-      "productSlug": "io-tote",
-      "sizeCode": null,
-      "expiresAt": "2026-09-22T11:17:39.197Z",
-      "retryInstructionAfterDeployment": "Use the existing browser session and press CONFIRM SIZE again; questionnaire restart should not be required."
+  "lastCompleted": {
+    "consumerReadinessId": "CR-22",
+    "title": "Refund operations and provider-derived reconciliation truth",
+    "status": "CODE_READY_MERGED_AND_TREE_VERIFIED",
+    "integrationPullRequests": [
+      68,
+      69,
+      86
+    ],
+    "providerRedHead": "0247313684c70518a5b7d85cecb58e3287ace937",
+    "wordingRedHead": "b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f",
+    "providerImplementationHead": "3cf79dc4b8cacd3645c05dce2d503647245f1461",
+    "wordingFinalHead": "1b8c3a8fc641c70fb32cd646a167980313c39e7f",
+    "mainMergeCommit": "2daff7d1c4706e0dffed7c64947f27b03e8b9d44",
+    "finalMergeCommit": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
+    "verifiedTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
+    "redEvidence": [
+      "CI run 33497754475 / #1748 on 0247313684c70518a5b7d85cecb58e3287ace937 failed exactly 4 intended refund tests while 683 existing tests passed; Browser QA run 33497754384 / #1538 remained GREEN.",
+      "The missing contracts were PaymentService.reconcileRefund() and SafepayPaymentGateway.verifyRefundedTracker(), including explicit rejection of TRACKER_PARTIAL_REFUND.",
+      "CI run 33496733711 / #1742 on b6bcb82b4a83d0d5aaf81c8d4bedd7e21db6e92f failed the Owner runbook wording contract until full-refund initiation was explicit."
+    ],
+    "greenEvidence": [
+      "Provider final head 3cf79dc4b8cacd3645c05dce2d503647245f1461 passed CI run 33498342341 / #1751 and Browser QA run 33498342363 / #1541.",
+      "Synthetic merge 4522706219285b865751aff16adec1e48e5a4c92 and actual merge 2daff7d1c4706e0dffed7c64947f27b03e8b9d44 share exact tree db2493fc5e228aeb48372d48091fd2ca0d27cef6.",
+      "Refreshed wording head 1b8c3a8fc641c70fb32cd646a167980313c39e7f passed CI run 33498774577 / #1753 and Browser QA run 33498774814 / #1543.",
+      "Synthetic merge c1fdf64490d403ae18b7aa9551b1cf041b808a80 and actual final merge 6b64b3b000cff18db2ac27b8c5494b0c72670211 share exact tree c60126214c2de88731b912c6bdee26b7769d8fd4."
+    ],
+    "implementedContract": [
+      "Safepay Dashboard remains the refund initiator; there is no application refund-initiation endpoint or local mark-refunded button.",
+      "Signed Safepay refund webhook remains the automatic provider-truth path.",
+      "Authenticated Owner reconciliation can query the Issue's stored Safepay tracker through Reporter as a recovery path.",
+      "Only TRACKER_REFUNDED for the exact stored amount/currency can be accepted as a full refund; partial refund state remains pending/non-final.",
+      "The database still enforces exact PAID-to-REFUNDED money/currency matching and idempotent duplicate handling.",
+      "Webhook and Owner reconciliation share refund finalization side effects for Issue quarantine and referral reversal/notification."
+    ],
+    "remainingLiveEvidence": [
+      "The exact verified integration runtime tree is now deployed; provider refund proof remains outstanding.",
+      "Execute one controlled real full refund through Safepay only under its separate owner gate and capture provider evidence.",
+      "Prove signed webhook and/or authenticated Reporter reconciliation produces the same idempotent local REFUNDED truth and finalization side effects while partial refund state remains non-final.",
+      "CR-22 remains CODE_READY rather than DONE until that real provider proof exists."
+    ],
+    "productionDeploymentPerformed": true,
+    "productionEnvironmentChanged": false,
+    "realSafepayRefundPerformed": false,
+    "ownerOsRevalidation20260904": {
+      "status": "CODE_READY_MERGED_AND_POST_MERGE_VERIFIED",
+      "branch": "fix/cr22-owner-refund-reconciliation-control-20260904",
+      "baseIntegrationHead": "cc270d09d088c0c02bfcab5877800e4caa3b0c2b",
+      "baseIntegrationTree": "b33c57b48b6671ef9ead0f154b66e2482cf3b6b3",
+      "redHead": "ca14b5bb5f0a9cd9935205d6e1a5cc7f6a438b27",
+      "implementationHead": "64c8992e9cd0f551cf5fa019f7226be2ba45a01a",
+      "rootGap": "The authenticated provider-derived Owner refund reconciliation route and service existed, but IssueDetailPanel exposed only the Safepay runbook/reference, leaving that safe recovery path unreachable from Owner OS.",
+      "implementedBoundary": [
+        "Owner OS requires the exact phrase VERIFY SAFEPAY <Issue Code> before requesting reconciliation.",
+        "The browser sends only the typed confirmation to the existing Issue-scoped authenticated reconciliation route; it supplies no amount, currency, status or provider reference.",
+        "Safepay remains the only refund initiator and the UI cannot mark a payment refunded locally.",
+        "After a pending/refunded provider result, Owner OS reloads canonical Issue detail from the server and keeps reconciliation state keyed to the selected Issue.",
+        "No provider secret or private provider payload is returned to or rendered by the browser."
+      ],
+      "auditFindings": [
+        "All application payment_attempt writes remain centralized in PostgresPaymentRepository; no alternate local REFUNDED write path was found.",
+        "Signed Safepay webhook and authenticated Owner Reporter reconciliation still converge on the same row-safe markRefunded and finalizeRefundedAttempt path.",
+        "Printful manufacturing cancellation is separate signed provider truth and referral reversal remains idempotent; neither is a browser refund authority.",
+        "Safepay full refund truth remains TRACKER_REFUNDED for exact stored money. Distinct reversal/void provider states were not reclassified as REFUNDED without a documented compatible event contract."
+      ],
+      "localEvidence": {
+        "redCommand": "corepack pnpm exec vitest run tests/unit/refund-operations-owner-runbook.test.tsx",
+        "redResult": "PASS existing runbook test + FAIL intended new Owner reconciliation control test because the confirmation control was absent",
+        "focusedGreen": "7 test files / 15 tests passed",
+        "fullUnit": "232 test files / 689 tests passed",
+        "typecheck": "PASS",
+        "lint": "PASS with 0 errors and 5 pre-existing warnings",
+        "build": "PASS",
+        "browserQa": "PASS: Playwright final status passed, failedTests empty, 44 desktop/mobile tests; initial local attempt was infrastructure-only failure until workflow-required Chromium binary was installed"
+      },
+      "remainingLiveEvidence": "Unchanged: one owner-authorized real Safepay full refund on the deployed release remains required before CR-22 can become DONE. No real charge/refund was created in this task.",
+      "nextState": "STOP_OWNER_REQUIRED: CR-22 code-side Owner reconciliation is merged and verified; one owner-authorized real Safepay full-refund proof plus the existing CR-27 production configuration/data gates remain live/owner work.",
+      "pullRequest": 86,
+      "pullRequestBase": "infra/hostinger-migration-20260823",
+      "prePrEvidenceHead": "6512e567e108a5b8d29792f49482613e81fda0c8",
+      "finalHead": "270f67f0a4d89c6df0e15fdd8388951d78d5e20e",
+      "mergeCommit": "f7c54175e58291bdfe25be1b23f3ebb961588076",
+      "mergeTree": "8516431c48752af89bd7e6f180f1619e81e3d4eb",
+      "exactHeadCiRun": 33875026138,
+      "exactHeadCiResult": "PASS: unit tests, typecheck, lint, production build",
+      "exactHeadBrowserQaRun": 33875026131,
+      "exactHeadBrowserQaResult": "PASS",
+      "postMergeCiRun": 33879515737,
+      "postMergeCiJob": 101044453840,
+      "postMergeCiResult": "PASS: unit tests, typecheck, lint, production build",
+      "postMergeBrowserQaRun": 33879515582,
+      "postMergeBrowserQaJob": 101044453320,
+      "postMergeBrowserQaResult": "PASS"
     }
   },
-  "productionDatabase": {
-    "projectId": "autumn-butterfly-25489215",
-    "databaseName": "neondb",
-    "branchId": "br-dawn-cloud-axm880q9",
-    "manufacturingJobCount": 0,
-    "manufacturingProviderEventCount": 0,
-    "referralCreatorsTablePresent": false,
-    "referralConversionsTablePresent": false,
-    "checkoutQuoteReferralCreatorColumnPresent": false,
-    "migration0029Applied": false
+  "activeTask": {
+    "consumerReadinessId": "CR-28",
+    "title": "Consumer-readiness finish v4 and full commercial-cycle proof",
+    "status": "OWNER_REQUIRED",
+    "engineeringSafeWork": "COMPLETE",
+    "masterPlanRowState": "MISSING_LIVE_COMPOSITE_EVIDENCE",
+    "note": "CR-28 is not missing known application code. Its completion contract requires one controlled full live order plus a second isolated customer after the recorded production/provider gates are satisfied."
   },
-  "safetyGates": {
-    "realQaPayment": "NOT_PERFORMED",
-    "printfulProductionConfirmation": "DISABLED",
-    "migration0029": "NOT_APPLIED",
-    "referralSigningKeyRollout": "NOT_PERFORMED"
+  "standingOwnerGates": {
+    "productionDeploymentOrHostingerBranchMutation": true,
+    "productionCoreMigration0036": false,
+    "productionCatalogPublication": true,
+    "productionProviderRuntimeConfiguration": true,
+    "productionReferralMigrations": true,
+    "realSafepayCharge": true,
+    "realSafepayRefund": true,
+    "printfulProductionConfirmation": true,
+    "canonicalDomainCutover": true,
+    "truthfulMerchantPublicLocation": true,
+    "productionPrivacyKeyConfiguration": true,
+    "printfulVariantMapConfiguration": true,
+    "productionDesignBriefV2Migration0037": true,
+    "hostingerAuthenticationForProviderConfig": true
   },
-  "nextActions": [
-    "SYSTEM: when Vercel build-rate capacity is available, verify the latest feat/mystery-foundation deployment includes the Tote repair",
-    "SYSTEM: rerun canonical Browser QA 1155 failed job or equivalent against the newly deployed issuedonce.shop",
-    "SYSTEM: require LIVE_PRODUCTION_TEE_PHYSICAL_GATE_PASS, LIVE_PRODUCTION_HAT_PHYSICAL_GATE_PASS and LIVE_PRODUCTION_TOTE_PHYSICAL_GATE_PASS with HTTP 200 for object/size/base",
-    "SYSTEM: verify the newest production Tote smoke row reaches COMMITMENT_READY with size OS and a locked base color",
-    "SYSTEM: re-read manufacturing/referral invariants and keep them unchanged",
-    "OWNER: after live proof passes, retry CONFIRM SIZE in the existing Tote browser session; no questionnaire restart should be needed",
-    "OWNER/SYSTEM: only after this repair is live-proven return to the separate design-provider, Printful draft, referral migration and final-release gates"
-  ],
-  "nextOwnerAction": "NONE_UNTIL_VERCEL_DEPLOYS_REPAIR; EXISTING_TOTE_SESSION_CAN_RETRY_AFTER_LIVE_PROOF"
+  "productionRuntime": {
+    "liveRelease": "dbf2fc15cd5be0397034777897e254f6c845469c",
+    "liveTree": "d6d40b172836ac1393a624e833b403735ffd4734",
+    "runtimeProvider": "hostinger",
+    "productionDeploymentOfIntegratedTree": true,
+    "hostingerSelectedBranch": "release/hostinger-v2-candidate-20260824",
+    "hostingerSelectedBranchChanged": false,
+    "hostingerLinkedBranchFastForwarded": true,
+    "hostingerEnvironmentChanged": true,
+    "realSafepayQaCharge": false,
+    "realSafepayRefundProof": false,
+    "printfulProductionConfirmation": false,
+    "referralMigrationsApplied": false,
+    "coreMigration0036Verified": true,
+    "coreMigration0036NewlyCreatedByRunner": false,
+    "activeProductionCatalogCount": 0,
+    "creatorLaunchOutreachSent": false,
+    "canonicalDomainCutover": false,
+    "merchantDisclosureConfigured": true,
+    "internalOperationsTokenQaAvailable": true,
+    "printfulApiTokenConfigured": true,
+    "printfulVariantMapConfigured": false,
+    "printfulSignedWebhookConfigured": false,
+    "productionMigration0037Applied": false,
+    "legacyV1EncryptedPayloadRows": 0,
+    "retainedV2ExperienceAnswerRows": 560,
+    "retainedV2OtpRows": 24
+  },
+  "nextAction": {
+    "actor": "OWNER",
+    "instruction": "In the Opera Hostinger sign-in tab, select the Google account that owns the ISSUED ONCE Hostinger account. After hPanel opens, resume assistant control. The next operation is to add the already-generated 34-entry PRINTFUL_VARIANT_MAP_JSON without exposing secrets, redeploy/restart as Hostinger requires, rerun readiness, and only then publish the exact owner-approved boot catalog through Owner OS. Do not enable PRINTFUL_ALLOW_CONFIRM. Migration 0037, Printful signed-webhook values, real Safepay charge/refund, manufacturing confirmation, referral activation, V2 cleanup, and canonical-domain cutover remain separately gated."
+  },
+  "consumerReadinessFinishV4": {
+    "taskId": "issued-once-consumer-ready-finish-v4",
+    "auditedEngineeringBase": "4ea10081cb0de2f5de49eb46f973649a5fba3a51",
+    "auditedBaseTree": "409710dac112739ca8dc787c1e2b7db552b86188",
+    "liveReleaseAtAudit": "909d84832b345ecd05b03ec30ad06e5c32000908",
+    "liveTreeAtAudit": "409710dac112739ca8dc787c1e2b7db552b86188",
+    "warningCleanup": {
+      "pullRequest": 89,
+      "candidateHead": "d2d1058571003974deb646029edfe23fba689471",
+      "candidateTree": "76feab88d9dad9c4d5fbe9800630243f14210145",
+      "mergeCommit": "845f9740573d50ba33e5359e73166245c26add18",
+      "mergeTree": "76feab88d9dad9c4d5fbe9800630243f14210145",
+      "red": "pnpm lint: exactly 5 warnings / 0 errors",
+      "focusedGreen": "4 files / 19 tests passed",
+      "fullUnit": "233 test files / 690 tests passed",
+      "typecheck": "PASS",
+      "lint": "PASS: 0 warnings / 0 errors",
+      "productionBuild": "PASS",
+      "browserQa": "PASS: 44 / 44 desktop+mobile tests",
+      "exactHeadCiRun": 33939882313,
+      "exactHeadCiJob": 101235081183,
+      "exactHeadCiResult": "PASS",
+      "exactHeadBrowserQaRun": 33939882304,
+      "exactHeadBrowserQaJob": 101235081200,
+      "exactHeadBrowserQaResult": "PASS",
+      "postMergeCiRun": 33940046220,
+      "postMergeCiJob": 101235540993,
+      "postMergeCiResult": "PASS",
+      "postMergeBrowserQaRun": 33940046226,
+      "postMergeBrowserQaJob": 101235541058,
+      "postMergeBrowserQaResult": "PASS"
+    },
+    "freshLiveEvidence": {
+      "boundaryAudit": {
+        "run": 33918092912,
+        "job": 101169838141,
+        "release": "909d84832b345ecd05b03ec30ad06e5c32000908",
+        "result": "PASS"
+      },
+      "supportProof": {
+        "run": 33918093008,
+        "job": 101169838613,
+        "result": "PASS: exact release + pre-paid fail-closed + authenticated Resend delivery canary",
+        "internalOperationsTokenGateResolved": true,
+        "paidCustomerOwnerReplyProof": false
+      },
+      "customerSmoke": {
+        "run": 33918092923,
+        "job": 101169837569,
+        "result": "Seven answer POSTs HTTP 200 and form unlock reached; physical selection then failed closed because ACTIVE catalog is absent"
+      },
+      "catalogActivation": {
+        "run": 33918244323,
+        "job": 101170313072,
+        "result": "Owner auth/read PASS; publication rejected HTTP 409 because PRINTFUL_VARIANT_MAP_JSON is absent; no catalog published",
+        "bootCatalogLogicalVariants": 34
+      },
+      "merchantPages": "PASS: exact live release; /store-info, /contact, /terms, /returns HTTP 200, expected headings, mobile overflow=0, configured merchant/contact disclosure rendered",
+      "ownerReadAudit": {
+        "run": 33941209257,
+        "job": 101238878633,
+        "result": "PASS on exact live release: required read APIs no-store, Issue pagination limit=2, 11 Owner OS rooms, overflow=0; current Manufacturing 503 isolated and root-fixed in PR #90; referrals launch-disabled"
+      },
+      "printfulCatalog20260905": {
+        "integration": "c5d78630581fc3992fe26a8a08000d8565f8e6a2",
+        "liveRelease": "dbf2fc15cd5be0397034777897e254f6c845469c",
+        "providerVariants": "34/34 verified from live Printful API",
+        "mapping": "generated + parser validated; Hostinger env pending",
+        "activeCatalogCount": 0
+      }
+    },
+    "rowReconciliation": {
+      "CR-01": "DONE: exact-tree gates + real seven-answer Hostinger smoke",
+      "CR-26": "OWNER_REQUIRED: live configured disclosure is proven; factual truth requires owner attestation",
+      "CR-28": "MISSING live composite evidence only; no known engineering-safe implementation/test/read-only gap remains after PR #90",
+      "CR-23": "CODE_READY: deployed ancestor read/browser/pagination proof is green; latest integration includes provider-independent read fix and must be deployed/re-proven for exact-current-head DONE",
+      "CR-27": "DONE: owner-approved latest verified integration tree deployed through forward-only Hostinger wrapper; exact live health, non-OTP boundary audit, and strict security/cache-header proof passed"
+    },
+    "remainingOwnerOrProviderGates": [
+      "configure production privacy V1/V2 encryption keys and identity-HMAC key",
+      "configure Safepay production runtime",
+      "configure Printful API, exact variant mapping and signed-webhook runtime",
+      "publish/activate an owner-authorized ACTIVE catalog after factory mapping validation",
+      "attest truthful public merchant/legal disclosure",
+      "complete row-specific real OTP/payment/design/Printful/tracking/support/recovery/refund proofs",
+      "complete CR-28 one controlled full live order plus a second isolated customer proof",
+      "canonical-domain cutover remains separately unapproved"
+    ],
+    "irreversibleActionsPerformed": [],
+    "ownerReadProviderIndependence": {
+      "liveAuditBranch": "test/cr23-live-owner-read-20260905",
+      "liveAuditHead": "b284a995b20aeef89b58556b897c2857021e8c8c",
+      "liveAuditRun": 33941209257,
+      "liveAuditJob": 101238878633,
+      "liveRelease": "909d84832b345ecd05b03ec30ad06e5c32000908",
+      "liveResult": "PASS required Owner reads + Issue pagination limit=2 + 11-room browser navigation overflow=0; Manufacturing exact 503 exposed eager Printful coupling; referrals exact 503 classified launch-disabled",
+      "manufacturingRed": "Live /ops/api/manufacturing returned 503; unit RED proved createOpsManufacturingService eagerly constructed Printful runtime before listQueue",
+      "supportRed": "Unit RED proved createOpsSupportService required Resend reply credentials before read-only list even though reply was not requested",
+      "pullRequest": 90,
+      "candidateHead": "078013785e40beb47f6305131061cff6c5ae3b5a",
+      "mergeCommit": "18c5dd08464352f1b75588473868b0f8a79dfcb6",
+      "mergeTree": "e2c3cacc9e6546a7af806ffea75a778e6c9c21d1",
+      "focusedGreen": "6 test files / 14 tests passed",
+      "fullUnit": "234 test files / 692 tests passed",
+      "typecheck": "PASS",
+      "lint": "PASS: 0 warnings / 0 errors",
+      "productionBuild": "PASS",
+      "localBrowserQa": "PASS: 44 / 44 desktop+mobile tests",
+      "exactHeadCiRun": 33941405484,
+      "exactHeadCiJob": 101239440795,
+      "exactHeadCiResult": "PASS",
+      "postMergeCiRun": 33941570876,
+      "postMergeCiJob": 101239909593,
+      "postMergeCiResult": "PASS",
+      "postMergeBrowserQaRun": 33941570872,
+      "postMergeBrowserQaJob": 101239909604,
+      "postMergeBrowserQaResult": "PASS",
+      "productionMutationPerformed": false
+    },
+    "postAuditLedgerConsistency": {
+      "finding": "Independent finish-v4 reconciliation found stale CR-15 master-plan prose that still treated production migration 0036 as unapplied/owner-gated even though the higher-priority continuation and CR-27 production checkpoint record the schema gate as verified.",
+      "rootCorrection": "CR-15 now treats migration 0036 as already production-verified and leaves only destructive deployed retention plus real provider/template proof as live evidence. A unit regression locks the master-plan wording to standingOwnerGates.productionCoreMigration0036=false and productionRuntime.coreMigration0036Verified=true.",
+      "pullRequest": 92,
+      "pullRequestBase": "infra/hostinger-migration-20260823",
+      "baseHead": "a3544ac741fb5097636d60acbd257df5021e41db",
+      "initialCorrectionHead": "f5e9b5a5251bacd644cdfa0aefec30c2fe63aa8b",
+      "initialCorrectionTree": "a2012aba6206d524f79de1ab8d65af6a0431c4a6",
+      "redCommand": "corepack pnpm exec vitest run tests/unit/consumer-readiness-ledger-consistency.test.ts",
+      "redResult": "FAIL intended ledger-consistency assertion because CR-15 still instructed applying migration 0036",
+      "focusedGreen": "1 test file / 1 test passed",
+      "fullUnit": "235 test files / 693 tests passed",
+      "typecheck": "PASS",
+      "lint": "PASS: 0 warnings / 0 errors",
+      "productionBuild": "PASS",
+      "localBrowserQa": "PASS: 44 / 44 desktop+mobile Chromium tests",
+      "verifiedProjectBaseDiffCheck": "PASS: git diff --check 4ea10081cb0de2f5de49eb46f973649a5fba3a51...HEAD",
+      "productionMutationPerformed": false,
+      "remainingState": "No migration 0036 owner action remains. Latest engineering integration deployment and the recorded production/provider/irreversible gates remain unchanged."
+    },
+    "productionDeployment": {
+      "ownerApproved": true,
+      "approvedScope": "Deploy latest verified production-ready integration to existing Hostinger production branch only",
+      "verifiedIntegrationHead": "c8e7041447ae9f36804158f9c0fec7cb082c7612",
+      "verifiedIntegrationTree": "24768225100fa77cc8f728dcc09b39bb0a9376bd",
+      "releaseWrapper": "c1af0cdc336a2ad7710697297763e064c8d54b4f",
+      "previousRelease": "909d84832b345ecd05b03ec30ad06e5c32000908",
+      "branch": "release/hostinger-v2-candidate-20260824",
+      "fastForwardOnly": true,
+      "selectedBranchChanged": false,
+      "environmentChanged": false,
+      "liveHealth": "PASS: exact release, databaseReady=true, queueReady=true, storageReady=true",
+      "boundaryAuditRun": 33947722256,
+      "boundaryAuditResult": "PASS: exact release + LIVE_NON_OTP_BOUNDARY_AUDIT_PASS",
+      "customerSmokeRun": 33947722303,
+      "customerSmokeResult": "Expected gate: seven answer POSTs HTTP 200; physical selection failed closed because ACTIVE catalog is absent",
+      "strictHeaderResult": "PASS: exact-baseline, no-powered-by, no-store, no-s-maxage",
+      "realSafepayChargePerformed": false,
+      "realSafepayRefundPerformed": false,
+      "printfulProductionConfirmationPerformed": false,
+      "catalogPublicationPerformed": false,
+      "providerSecretsChanged": false,
+      "canonicalDomainCutoverPerformed": false
+    }
+  },
+  "cr27HistoricalContinuationEvidence": {
+    "consumerReadinessId": "CR-27",
+    "title": "Production preflight, exact release deployment and live boundary proof",
+    "status": "OWNER_REQUIRED",
+    "ownerApproval": {
+      "received": true,
+      "approvalPhrase": "APPROVE_PRODUCTION_PREFLIGHT_0036_AND_DEPLOYMENT",
+      "scope": [
+        "read-only production schema/data preflight",
+        "apply only db/migrations/0036_durable_artwork_objects.sql if safe",
+        "deploy verified runtime integration 6b64b3b000cff18db2ac27b8c5494b0c72670211 through the existing Hostinger selected release branch",
+        "run CR-27 exact-release and strict security/cache boundary proof"
+      ],
+      "doesNotAuthorize": [
+        "referral migrations 0029/0034/0035",
+        "real Safepay charge or refund",
+        "Printful production confirmation",
+        "secret rotation",
+        "Hostinger selected-branch change",
+        "canonical-domain cutover",
+        "creator outreach"
+      ]
+    },
+    "migration0036": {
+      "runnerBranch": "ops/cr-27-0036-runner-v2-20260901",
+      "executionHead": "2c7da6528dfde7f5c87e6585fbe578bfc7c83bf8",
+      "run": 33508570582,
+      "successfulMigrationJob": 99911484696,
+      "verificationResult": "PASS",
+      "migrationResult": "PASS_ALREADY_COMPATIBLE_INDEX_PRESENT",
+      "preflight": "issues=present artwork_objects=present-compatible",
+      "postflight": "artwork_objects=already-compatible index=present",
+      "sqlExecuted": true,
+      "newSchemaObjectCreatedByRerun": false,
+      "scope": "0036 only; referral migrations untouched"
+    },
+    "deployment": {
+      "actualHostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
+      "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
+      "releaseWrapper": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
+      "releaseWrapperTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
+      "verifiedRuntimeTree": "c60126214c2de88731b912c6bdee26b7769d8fd4",
+      "treeIdentity": "PASS",
+      "forceUsed": false,
+      "hostingerSelectedBranchChanged": false,
+      "hostingerEnvironmentChanged": false,
+      "strictSecurityProof": {
+        "run": 33526755370,
+        "job": 99920257942,
+        "result": "PASS",
+        "evidence": "LIVE_SECURITY_HEADER_PASS bare-home exact-baseline no-powered-by no-store no-s-maxage"
+      }
+    },
+    "readOnlyProductionDiagnostics": {
+      "run": 33526598947,
+      "job": 99918918445,
+      "result": "PASS",
+      "catalogRows": 0,
+      "activeCatalogRows": 0,
+      "coreRelationsPresent": true,
+      "physicalConstraintIncludesTote": true,
+      "writesPerformed": false
+    },
+    "liveBoundaryProof": {
+      "redRun": 33525915578,
+      "redFinding": "The old harness expected configured-provider 401/401/409 responses while the live release intentionally returned fail-closed provider-unavailable 503 responses.",
+      "isolatedProofPullRequest": 78,
+      "isolatedProofDisposition": "CLOSED_UNMERGED_READ_ONLY",
+      "isolatedProofHead": "3eb74d7223c7acf6d61d59dbc513fd51b52b69d7",
+      "greenRun": 33527773379,
+      "greenJob": 99922906669,
+      "greenResult": "PASS",
+      "verifiedLiveRelease": "28ff7deb6b1fe7578c271131f1655fc46898cefd",
+      "strictUnavailableContract": {
+        "safepayWebhook": "503 only with exact error Payment webhook is unavailable",
+        "printfulWebhook": "503 only with exact error Manufacturing webhook is unavailable",
+        "paymentCreate": "503 only with exact error Payment is unavailable"
+      },
+      "databaseReachabilityControl": "shipping returned expected 409 from the same customer session, proving the database-backed runtime path was reached rather than a global DATABASE_URL outage",
+      "integrationPullRequest": 79,
+      "integrationHead": "cab9dc6ab8557fc57186c1c18687cec4de61c4fb",
+      "integrationMerge": "3398a55399b747553bbce9d0bf9bdf820e5d4e14",
+      "exactHeadCiRun": 33528245008,
+      "exactHeadCiResult": "PASS: unit tests, typecheck, lint, production build",
+      "exactHeadBrowserQaRun": 33528245001,
+      "exactHeadBrowserQaResult": "PASS",
+      "postMergeCiRun": 33528600109,
+      "postMergeCiJob": 99925681096,
+      "postMergeCiResult": "PASS: unit tests, typecheck, lint, production build",
+      "postMergeBrowserQaRun": 33528600181,
+      "postMergeBrowserQaJob": 99925681708,
+      "postMergeBrowserQaResult": "PASS"
+    },
+    "liveBoundaryFindings": [
+      {
+        "surface": "physical form selection",
+        "observed": "HTTP 500 Physical form could not be locked",
+        "rootCause": "Production catalog authority is fail-closed and there is no owner-published ACTIVE catalog; read-only diagnostic proves zero catalog rows.",
+        "ownerGate": "Publish/activate a truthful production catalog through the owner-authorized catalog path."
+      },
+      {
+        "surface": "Safepay webhook and payment create",
+        "observed": "HTTP 503 with the exact privacy-safe unavailable contract",
+        "rootCause": "Payment runtime construction is unavailable before request-specific authentication/state validation while the database-backed shipping control reaches Postgres. This is the intended fail-closed state until Safepay production runtime values are owner-configured.",
+        "ownerGate": "Inspect/configure Hostinger Safepay runtime values without sharing secrets in chat; no real charge is authorized."
+      },
+      {
+        "surface": "Printful webhook",
+        "observed": "HTTP 503 with the exact privacy-safe unavailable contract",
+        "rootCause": "Manufacturing webhook runtime is unavailable before signature validation while core database paths are healthy. This is the intended fail-closed state until Printful webhook runtime values are owner-configured.",
+        "ownerGate": "Inspect/configure Hostinger Printful webhook runtime values without sharing secrets in chat; production confirmation remains disabled."
+      },
+      {
+        "surface": "live support persistence proof",
+        "observed": "Exact live release PASS, proof stopped before request because INTERNAL_OPERATIONS_TOKEN was blank in GitHub Actions.",
+        "rootCause": "QA credential is absent from GitHub Actions; this is not a live support API failure.",
+        "ownerGate": "Add INTERNAL_OPERATIONS_TOKEN to GitHub Actions only if owner wants the full support persistence proof automated; do not paste the token in chat."
+      }
+    ],
+    "completedEvidence": [
+      "Core migration 0036 production preflight/postflight is verified.",
+      "The actual existing Hostinger selected branch was preserved and fast-forwarded without force.",
+      "The live wrapper tree is byte-identical to verified integration runtime tree c6012621.",
+      "Exact live release identity is proven from multiple independent Actions jobs.",
+      "Strict security/cache boundary proof is GREEN.",
+      "Corrected live non-OTP boundary audit is GREEN against exact release 28ff7deb, with provider-unavailable responses accepted only under exact privacy-safe 503 contracts.",
+      "The corrected boundary contract is integrated through PR 79 and its exact-head/post-merge CI and Browser QA are GREEN."
+    ],
+    "remainingOwnerEvidence": [
+      "Publish/activate an owner-authorized production catalog, then rerun the physical customer smoke.",
+      "Inspect/configure Safepay runtime values in Hostinger; rerun non-charge boundary checks. Do not perform a real charge without separate approval.",
+      "Inspect/configure Printful webhook runtime values in Hostinger; rerun signature boundary checks. Do not confirm production manufacturing without separate approval.",
+      "Optionally add INTERNAL_OPERATIONS_TOKEN as a GitHub Actions secret to complete the automated live support persistence proof.",
+      "Canonical-domain cutover to issuedonce.shop remains a separate owner gate and was not performed."
+    ],
+    "resumeCondition": "Resume after the owner completes any one of the remaining production-readiness configuration/data gates and reports only that it is done. Do not ask for secret values. Re-run the corresponding exact live proof after each owner action.",
+    "nextSafeDeploymentMutation": "None required. The verified runtime tree is already live through wrapper 28ff7deb on the existing Hostinger-selected v2 branch.",
+    "executionHistory": {
+      "preflightEvidence": [
+        "GitHub active migration branch was exactly 74f6366e15915fd3d738e98cd3c1e757b5e9f447 when approval execution began.",
+        "Verified runtime deployment target remained 6b64b3b000cff18db2ac27b8c5494b0c72670211 with verified runtime tree c60126214c2de88731b912c6bdee26b7769d8fd4.",
+        "Neon project search resolved a single project named issued once: autumn-butterfly-25489215; its default branch was production br-dawn-cloud-axm880q9 on PostgreSQL 18.",
+        "Read-only Neon production branch metadata resolved neondb and showed issues plus existing core tables; artwork_objects was initially observed absent, matching the expected pre-0036 state at that checkpoint.",
+        "Repository history proved issues.id is UUID primary key; migration 0036 is create-only for artwork_objects plus its index and has no backfill or destructive statement.",
+        "An earlier continuation checkpoint incorrectly treated release/hostinger-v10-candidate-20260825 as Hostinger-linked. Later live identity and repository history corrected this: the actual Hostinger-linked branch is release/hostinger-v2-candidate-20260824 and v10 is only a combined candidate.",
+        "Current-session Neon describe_project reproduced the connector camelCase-to-snake_case argument mismatch before any database operation.",
+        "The retired GitHub Actions fallback run 33501588310 failed before SQL: Node 20 was incompatible with pnpm 11.23.0 and DATABASE_URL was empty; install/migration steps never executed.",
+        "Replacement branch ops/cr-27-0036-runner-v2-20260901 was created directly from exact verified runtime 6b64b3b000cff18db2ac27b8c5494b0c72670211 and contained only the exact-0036 helper, guarded workflow infrastructure, and one-time execution sentinel.",
+        "First one-time execution head 28372c4a05a902a6fa251e2f3f8729a6286da625 / run 33508091342 passed the complete verification gate but migration was skipped because github.event.head_commit.added could not reliably attest the sentinel; no SQL executed.",
+        "Trigger-fix head 629d5cc6575d7b756f77954ae4fa55fdeeb856d3 replaced push-payload sentinel detection with checked-out Git-history verification. Run 33508318562 passed isolated diff, exact 0036 contract, unit tests, typecheck and lint; migration skipped on the non-execution commit.",
+        "Final re-armed execution head 2c7da6528dfde7f5c87e6585fbe578bfc7c83bf8 / run 33508570582 passed verification job 99858440402 completely. Initial migration job 99859147633 passed checkout, sentinel verification, Node 24 setup and locked dependency installation before stopping at DATABASE_URL preflight; no SQL executed on that attempt.",
+        "After the owner added DATABASE_URL, rerun job 99911484696 passed preflight/postflight for exact migration 0036. The schema was already compatible and the required index was present."
+      ],
+      "blockerEvidenceResolvedOrRemaining": [
+        "Neon get_database_tables using the connector-declared projectId/branchId arguments was rejected by the underlying MCP because it requires project_id/branch_id.",
+        "Neon run_sql reproduced the same validation mismatch before any SQL reached the database.",
+        "Neon get_connection_string reproduced the same validation mismatch; this remains a connector argument-adapter defect rather than a database permission or project-selection error.",
+        "Neon describe_project reproduced the same adapter defect again on 2026-09-01.",
+        "Migration job 99859147633 originally showed DATABASE_URL blank and exited with code 20 before SQL; that owner gate was later satisfied and rerun job 99911484696 passed.",
+        "No real Safepay charge/refund, Printful production confirmation, referral activation, secret rotation, creator outreach, or canonical-domain cutover occurred during CR-27."
+      ],
+      "migrationRunnerHistory": {
+        "branch": "ops/cr-27-0036-runner-v2-20260901",
+        "baseRuntimeHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
+        "workflowHead": "629d5cc6575d7b756f77954ae4fa55fdeeb856d3",
+        "executionHead": "2c7da6528dfde7f5c87e6585fbe578bfc7c83bf8",
+        "workflow": ".github/workflows/verify-cr27-0036-runner-v2.yml",
+        "helper": "scripts/apply-approved-0036.mjs",
+        "verificationRun": 33508570582,
+        "verificationJob": 99858440402,
+        "verificationResult": "PASS",
+        "initialMigrationJob": 99859147633,
+        "initialMigrationResult": "BLOCKED_NO_DATABASE_URL_EXIT_20",
+        "successfulRerunJob": 99911484696,
+        "finalMigrationResult": "PASS_ALREADY_COMPATIBLE_INDEX_PRESENT",
+        "sentinelVerification": "PASS",
+        "requiredSecret": "DATABASE_URL",
+        "secretPresentAtFinalRerun": true
+      },
+      "governanceCheckpoints": [
+        {
+          "pullRequest": 74,
+          "head": "6be4f69c7a6d199a53e13b610279c78f0157f791",
+          "ciRun": 33506462445,
+          "result": "PASS",
+          "merge": "1342f8436d4acd5041177b225b466e44dc5d7ecb"
+        },
+        {
+          "pullRequest": 75,
+          "head": "5266448712586865cfe4753805a339afc4bc2133",
+          "ciRun": 33507263438,
+          "result": "PASS",
+          "merge": "4d0ffda0b2d519115973fa0cad71b77bd5ee50c5"
+        },
+        {
+          "pullRequest": 76,
+          "head": "533f82d0f2dd733aeda81a6e362ec956da1c64ac",
+          "ciRun": 33509187945,
+          "ciJob": 99860445981,
+          "result": "PASS",
+          "merge": "75212fa5fd15a46d4425cef1a4e7c47cdb4ecddc"
+        }
+      ]
+    }
+  },
+  "privacyV2Retirement20260905": {
+    "status": "V1_TEST_ESTATE_REMOVED_V2_RETAINED_0037_CODE_READY_NOT_APPLIED",
+    "v1LinkedTestDataDeletionExplicitlyApprovedAndPerformed": true,
+    "legacyV1EncryptedPayloadRowsAfterCleanup": 0,
+    "retainedV2ExperienceAnswerRows": 560,
+    "retainedV2OtpRows": 24,
+    "v2DeletionDeferredByOwnerUntilPrelaunch": true,
+    "doNotRotateQuizEncryptionKeyV2": true,
+    "doNotRotateIdentityHmacKey": true,
+    "doNotFabricateQuizEncryptionKeyV1": true,
+    "privacyPullRequest": 94,
+    "privacyMerge": "5db8472001b5531613c754335e586056c1845d5e",
+    "postMergeCiRun": 33970316280,
+    "postMergeBrowserQaRun": 33970316256,
+    "migration0037": "db/migrations/0037_design_brief_key_v2.sql",
+    "migration0037IsolatedNeonProof": "PASS: both design-brief constraints accept v1/v2 with unchanged rows",
+    "migration0037ProductionApplied": false,
+    "nextGate": "Explicit owner approval is still required before applying migration 0037 to production."
+  },
+  "printfulCatalogReadiness20260905": {
+    "status": "MAPPING_GENERATED_AWAITING_HOSTINGER_CONFIGURATION",
+    "printfulApiTokenConfiguredInHostinger": true,
+    "inspectorPullRequest": 95,
+    "inspectorHead": "a36810eedb1d8dbdee0de080efd71ee408f71fca",
+    "inspectorMerge": "904ac30e13ac5734789661253b9ecdc890b1d7b8",
+    "inspectorExactHeadCiRun": 33973394942,
+    "inspectorExactHeadBrowserQaRun": 33973394898,
+    "liveProviderInspectionRun": 33973782036,
+    "liveProviderInspectionResult": "PASS: authenticated read-only Printful API inspection; no provider writes or secret output",
+    "products": {
+      "tee": {
+        "productId": 71,
+        "model": "3001",
+        "name": "Unisex Staple T-Shirt | Bella + Canvas 3001",
+        "technique": "dtg",
+        "fileType": "front",
+        "printArea": {
+          "width": 1800,
+          "height": 2400,
+          "dpi": 150
+        },
+        "variantCount": 30
+      },
+      "hat": {
+        "productId": 206,
+        "model": "6245CM",
+        "name": "Classic Dad Hat | Yupoong 6245CM",
+        "technique": "dtfilm",
+        "fileType": "front_dtf_hat",
+        "printArea": {
+          "width": 1500,
+          "height": 600,
+          "dpi": 300
+        },
+        "variantCount": 2
+      },
+      "tote": {
+        "productId": 367,
+        "model": "EC8000",
+        "name": "Eco Tote Bag | Econscious EC8000",
+        "technique": "dtg",
+        "fileType": "front",
+        "printArea": {
+          "width": 1500,
+          "height": 1500,
+          "dpi": 150
+        },
+        "variantCount": 2
+      }
+    },
+    "logicalVariantCount": 34,
+    "variantMapGeneratedAndParserValidated": true,
+    "variantMapConfiguredInHostinger": false,
+    "storefrontNamesUnchanged": true,
+    "swatches": {
+      "tee": {
+        "Bone": "#f0f1ea",
+        "Black": "#0c0c0c",
+        "Ash": "#cececc",
+        "Navy": "#212642",
+        "Forest": "#223e25"
+      },
+      "hat": {
+        "Bone": "#d6bdad",
+        "Black": "#181717"
+      },
+      "tote": {
+        "Bone": "#edcea5",
+        "Black": "#101010"
+      }
+    },
+    "artworkGeometry": {
+      "tee": {
+        "source": "1024x1536",
+        "placement": "900x1350 centered"
+      },
+      "hat": {
+        "source": "1536x1024",
+        "placement": "900x600 centered"
+      },
+      "tote": {
+        "source": "1024x1536",
+        "placement": "900x1350 centered"
+      }
+    },
+    "catalogUiAndGeometryPullRequest": 96,
+    "catalogUiAndGeometryHead": "a941e24dd9f6c3e365a46d91f0fffdaaffcfd29a",
+    "catalogUiAndGeometryMerge": "c5d78630581fc3992fe26a8a08000d8565f8e6a2",
+    "exactHeadCiRun": 33975302787,
+    "exactHeadBrowserQaRun": 33975328021,
+    "postMergeCiRun": 33975481223,
+    "postMergeBrowserQaRun": 33975481243,
+    "localVerification": "typecheck PASS; lint PASS; 240 test files / 707 tests PASS; build PASS; Playwright 44/44 PASS",
+    "liveRelease": "dbf2fc15cd5be0397034777897e254f6c845469c",
+    "liveTree": "d6d40b172836ac1393a624e833b403735ffd4734",
+    "liveHealthFromAuthorizedWorkstation": "PASS exact release",
+    "liveSupportProofRun": 33975661779,
+    "liveSupportProofResult": "PASS",
+    "temporaryReleaseProofRun": 33975661787,
+    "temporaryReleaseProofResult": "EXPECTED FAIL-CLOSED after seven answers at physical selection because ACTIVE catalog count is zero",
+    "boundaryAuditRun": 33975661778,
+    "boundaryAuditResult": "BLOCKED_EXTERNAL: GitHub runner received repeated Hostinger CDN HTTP 403 before the audit; exact release is independently confirmed from authorized workstation and support proof",
+    "productionManufacturingConfirmationPerformed": false,
+    "providerWritePerformedByInspection": false,
+    "uiApprovalRule": "Owner approved the provider-backed swatch update for this cycle; ask again before any later UI/UX change."
+  }
 }

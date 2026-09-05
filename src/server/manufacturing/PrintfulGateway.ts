@@ -110,22 +110,24 @@ export class PrintfulGateway implements ManufacturerGateway {
       throw new Error('Printful draft lookup failed');
     }
 
+    const recipient = {
+      name: input.recipient.name,
+      email: input.recipient.email,
+      address1: input.recipient.address1,
+      city: input.recipient.city,
+      country_code: input.recipient.countryCode,
+      zip: input.recipient.zip,
+      ...(input.recipient.phone.trim() ? { phone: input.recipient.phone } : {}),
+      ...(input.recipient.address2.trim() ? { address2: input.recipient.address2 } : {}),
+      ...(input.recipient.stateCode.trim() ? { state_code: input.recipient.stateCode } : {}),
+    };
+
     const response = await this.fetchImpl('https://api.printful.com/orders?confirm=0&update_existing=true', {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify({
         external_id: externalId,
-        recipient: {
-          name: input.recipient.name,
-          email: input.recipient.email,
-          phone: input.recipient.phone,
-          address1: input.recipient.address1,
-          address2: input.recipient.address2,
-          city: input.recipient.city,
-          state_code: input.recipient.stateCode,
-          country_code: input.recipient.countryCode,
-          zip: input.recipient.zip,
-        },
+        recipient,
         items: [{
           variant_id: input.variantId,
           quantity: 1,

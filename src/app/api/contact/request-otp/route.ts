@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { SESSION_COOKIE_NAME } from '@/server/http/sessionCookie';
+import { clientIpRiskKey } from '@/server/http/clientIpRiskKey';
 import {
   ContactRuntimeUnavailableError,
   createContactService,
@@ -9,14 +10,6 @@ import {
 const schema = z.object({
   email: z.string().trim().email().max(320),
 });
-
-function riskKey(request: Request): string {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip')?.trim() ||
-    'unknown'
-  );
-}
 
 export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null));
@@ -34,20 +27,20 @@ export async function POST(request: Request) {
     const result = await createContactService().requestOtp({
       experienceToken: token,
       email: parsed.data.email,
-      ipKey: riskKey(request),
+      ipKey: clientIpRiskKey(request.headers),
     });
     return Response.json(result);
   } catch (error) {
     if (error instanceof ContactRuntimeUnavailableError) {
       return Response.json({ error: 'Contact verification is unavailable' }, { status: 503 });
     }
-    if (error instanceof Error && /wait|resend/i.test(error.message)) {
+    if (error instanceof Error && /wait|resend|rate/i.test(error.message)) {
       return Response.json({ error: 'A code was sent recently. Try again shortly.' }, { status: 429 });
     }
     if (error instanceof Error && /not found|stage|email/i.test(error.message)) {
       return Response.json({ error: 'Contact verification could not be started' }, { status: 409 });
     }
-    console.error('contact otp request failed', error);
+    console.error('contact otp request failed');
     return Response.json({ error: 'Contact verification failed' }, { status: 500 });
   }
 }

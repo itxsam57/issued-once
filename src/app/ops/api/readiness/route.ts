@@ -11,8 +11,8 @@ export async function GET() {
     return Response.json(result, {
       headers: { 'cache-control': 'no-store' },
     });
-  } catch (error) {
-    console.error('ops readiness check failed', error);
+  } catch {
+    console.error('ops readiness check failed');
     return Response.json({ error: 'Readiness check failed' }, { status: 500 });
   }
 }

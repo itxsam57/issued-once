@@ -1,0 +1,39 @@
+name: Hostinger Live Support Proof
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - release/hostinger-v2-candidate-20260824
+
+permissions:
+  contents: read
+
+jobs:
+  prove-live-support:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
+      EXPECTED_RELEASE_ID: ${{ github.sha }}
+      INTERNAL_OPERATIONS_TOKEN: ${{ secrets.INTERNAL_OPERATIONS_TOKEN }}
+    steps:
+      - name: Checkout pushed Hostinger candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.23.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install chromium
+      - name: Wait for exact pushed release
+        run: node tests/e2e/live-release-health.mjs
+      - name: Prove live Issue session and support persistence request
+        run: node tests/e2e/live-support-proof.mjs

@@ -2,7 +2,7 @@
   "name": "issued-once",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.15.0",
+  "packageManager": "pnpm@11.23.0",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -18,8 +18,6 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0",
-    "@vercel/blob": "^2.7.0",
-    "@vercel/queue": "^0.4.0",
     "next": "16.2.11",
     "openai": "^7.4.0",
     "react": "19.2.7",

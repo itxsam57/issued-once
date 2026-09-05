@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && /verified contact|stage|locked|not found|shipping/i.test(error.message)) {
       return Response.json({ error: 'Shipping details could not be saved' }, { status: 409 });
     }
-    console.error('shipping save failed', error);
+    console.error('shipping save failed');
     return Response.json({ error: 'Shipping details failed' }, { status: 500 });
   }
 }

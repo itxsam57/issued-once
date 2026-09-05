@@ -76,7 +76,7 @@ type NotificationInputRow = {
   conversion_id: string;
   creator_id: string;
   email_payload_version: 1;
-  email_key_version: 'v1';
+  email_key_version: 'v1' | 'v2';
   email_iv: string;
   email_auth_tag: string;
   email_ciphertext: string;

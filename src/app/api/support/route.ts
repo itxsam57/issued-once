@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       sessionToken: token,
       message: parsed.data.message,
     });
-    return Response.json({ received: true, issueCode: result.issueCode });
+    return Response.json({ received: true, reference: result.requestId });
   } catch (error) {
     if (error instanceof SupportRuntimeUnavailableError) {
       return Response.json({ error: 'Support is unavailable right now.' }, { status: 503 });
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && /issue|required|message/i.test(error.message)) {
       return Response.json({ error: 'This Issue could not be attached to support.' }, { status: 409 });
     }
-    console.error('support request failed', error);
+    console.error('support request failed');
     return Response.json({ error: 'Support request failed.' }, { status: 500 });
   }
 }

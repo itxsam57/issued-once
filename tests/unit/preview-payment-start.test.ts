@@ -25,7 +25,7 @@ function seed(stage: 'COMMITMENT_READY' | 'CHECKOUT_STARTED' | 'PROFILE_COMPLETE
     variantId: 'tee-m-bone',
     amountMinor: 3200,
     currency: 'USD',
-    expiresAt: new Date('2026-08-24T04:00:00.000Z'),
+    expiresAt: new Date('2099-01-01T00:00:00.000Z'),
   });
   return store;
 }

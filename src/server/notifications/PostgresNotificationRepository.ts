@@ -1,4 +1,4 @@
-import type { EncryptedPayload } from '@/server/crypto/privatePayload';
+import { encryptedPayloadFromStorage, type EncryptedPayload } from '@/server/crypto/privatePayload';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type {
   NotificationEventKey,
@@ -10,8 +10,8 @@ type InputRow = {
   issue_id: string;
   issue_code: string;
   status: string;
-  payload_version: 1;
-  key_version: 'v1';
+  payload_version: number;
+  key_version: string;
   iv: string;
   auth_tag: string;
   ciphertext: string;
@@ -37,13 +37,13 @@ export class PostgresNotificationRepository implements NotificationRepository {
     );
     const row = rows[0];
     if (!row) return null;
-    const encryptedEmail: EncryptedPayload = {
-      version: row.payload_version,
+    const encryptedEmail: EncryptedPayload = encryptedPayloadFromStorage({
+      payloadVersion: row.payload_version,
       keyVersion: row.key_version,
       iv: row.iv,
       tag: row.auth_tag,
       ciphertext: row.ciphertext,
-    };
+    });
     return {
       issueId: row.issue_id,
       issueCode: row.issue_code,
