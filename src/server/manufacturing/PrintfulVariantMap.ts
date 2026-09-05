@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ISSUED_ONCE_PRINTFUL_VARIANT_MAP_JSON } from './verifiedPrintfulVariantMap';
 
 const printAreaSchema = z.object({
   width: z.number().int().positive(),
@@ -30,6 +31,10 @@ const mappingValue = z.object({
 const mappingSchema = z.record(z.string().min(1), mappingValue);
 
 export type PrintfulVariantMapping = z.infer<typeof mappingValue>;
+
+export function readPrintfulVariantMapJson(env: NodeJS.ProcessEnv = process.env): string {
+  return env.PRINTFUL_VARIANT_MAP_JSON?.trim() || ISSUED_ONCE_PRINTFUL_VARIANT_MAP_JSON;
+}
 
 export class PrintfulVariantMap {
   private readonly mappings: Record<string, PrintfulVariantMapping>;

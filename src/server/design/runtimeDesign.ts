@@ -1,5 +1,5 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
-import { PrintfulVariantMap } from '@/server/manufacturing/PrintfulVariantMap';
+import { PrintfulVariantMap, readPrintfulVariantMapJson } from '@/server/manufacturing/PrintfulVariantMap';
 import type { ArtworkPrintTemplateResolver } from './ArtworkQualityGate';
 import { DesignService } from './DesignService';
 import { OpenAIDesignGateway } from './OpenAIDesignGateway';
@@ -21,7 +21,7 @@ function env(name: string): string {
 
 const printTemplateResolver: ArtworkPrintTemplateResolver = {
   resolve(input) {
-    const mapping = new PrintfulVariantMap(env('PRINTFUL_VARIANT_MAP_JSON')).resolve(input);
+    const mapping = new PrintfulVariantMap(readPrintfulVariantMapJson(process.env)).resolve(input);
     return {
       ...input,
       placementWidth: mapping.position.width,
