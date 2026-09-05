@@ -1,32 +1,32 @@
 {
   "schemaVersion": 1,
-  "version": "1.36.4",
+  "version": "1.36.5",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-05T15:50:56Z",
+  "updatedAt": "2026-09-05T22:11:15.575Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "c5d78630581fc3992fe26a8a08000d8565f8e6a2",
-    "verifiedRuntimeTree": "d6d40b172836ac1393a624e833b403735ffd4734",
-    "liveReleaseHead": "dbf2fc15cd5be0397034777897e254f6c845469c",
-    "liveReleaseTree": "d6d40b172836ac1393a624e833b403735ffd4734",
+    "verifiedRuntimeIntegrationHead": "b3952681883443fe3277343aa1e7a6885f716552",
+    "verifiedRuntimeTree": "4057a5b187e63632b80623e246d129df4d476f8f",
+    "liveReleaseHead": "97d5f015df33bf4ec5486e7b6a5d3d135fc184cc",
+    "liveReleaseTree": "4057a5b187e63632b80623e246d129df4d476f8f",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-    "hostingerLinkedBranchHead": "dbf2fc15cd5be0397034777897e254f6c845469c",
+    "hostingerLinkedBranchHead": "97d5f015df33bf4ec5486e7b6a5d3d135fc184cc",
     "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
     "combinedCandidateBranchHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop",
-    "latestEngineeringIntegrationHead": "c5d78630581fc3992fe26a8a08000d8565f8e6a2",
-    "latestEngineeringIntegrationTree": "d6d40b172836ac1393a624e833b403735ffd4734",
-    "latestEngineeringIntegrationVerifiedAt": "2026-09-05T15:50:56Z"
+    "latestEngineeringIntegrationHead": "b3952681883443fe3277343aa1e7a6885f716552",
+    "latestEngineeringIntegrationTree": "4057a5b187e63632b80623e246d129df4d476f8f",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-05T22:11:15.575Z"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "The live Hostinger runtime is exact release dbf2fc15cd5be0397034777897e254f6c845469c with tree d6d40b172836ac1393a624e833b403735ffd4734. Printful provider truth is now read from the real API: Bella + Canvas 3001 (30 variants), Yupoong 6245CM (2), and Econscious EC8000 (2). The exact 34-entry PRINTFUL_VARIANT_MAP_JSON has been generated and validated, the production Printful token is configured, and provider-backed storefront swatches/cap artwork geometry are merged and verified. The remaining immediate gate is authenticated Hostinger hPanel access to configure the generated mapping; ACTIVE catalog publication remains blocked until that configuration is present. Production migration 0037 and signed Printful webhook configuration remain separate gates.",
+    "currentEngineeringStopReason": "The exact 34-variant Printful map is now audited in code, the owner-approved catalog is ACTIVE v1, and the exact Hostinger release has passed support, boundary, Tee/Cap/Tote physical-gate, and real OTP-request proof. Remaining launch blockers are production privacy migration 0037, Safepay runtime configuration/live proof, and Printful signed-webhook configuration/live provider proof. Real payment/refund and manufacturing confirmation remain separately gated.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -34,12 +34,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "STOP_AT_HOSTINGER_AUTH_FOR_PRINTFUL_MAPPING",
-    "reason": "No further code or UI change is needed to construct the current 34-variant catalog. The next action requires the owner to complete Hostinger authentication in Opera so the already-generated non-secret mapping can be stored as an environment variable. Do not fabricate provider IDs, rotate privacy keys, confirm manufacturing, or publish an ACTIVE catalog before readiness validates."
+    "decision": "STOP_AT_PRIVACY_SAFEPAY_PRINTFUL_WEBHOOK_GATES",
+    "reason": "Catalog mapping, publication and temporary-host physical selection proof are complete. Do not reintroduce PRINTFUL_VARIANT_MAP_JSON as a deployment requirement. Do not apply migration 0037, create a real Safepay charge/refund, confirm Printful manufacturing, rotate privacy keys, delete retained V2 data, or cut over the canonical domain without the required explicit owner gate."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "PRINTFUL_CATALOG_PROVIDER_TRUTH_READY_AWAITING_HOSTINGER_ENV",
+    "internalWorkStatus": "CATALOG_ACTIVE_AND_PHYSICAL_FLOW_PROVEN_REMAINING_OWNER_PROVIDER_GATES",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan and CR-27 evidence checkpoint as the release evidence ledger.",
@@ -165,7 +165,7 @@
   "standingOwnerGates": {
     "productionDeploymentOrHostingerBranchMutation": true,
     "productionCoreMigration0036": false,
-    "productionCatalogPublication": true,
+    "productionCatalogPublication": false,
     "productionProviderRuntimeConfiguration": true,
     "productionReferralMigrations": true,
     "realSafepayCharge": true,
@@ -174,13 +174,13 @@
     "canonicalDomainCutover": true,
     "truthfulMerchantPublicLocation": true,
     "productionPrivacyKeyConfiguration": true,
-    "printfulVariantMapConfiguration": true,
+    "printfulVariantMapConfiguration": false,
     "productionDesignBriefV2Migration0037": true,
-    "hostingerAuthenticationForProviderConfig": true
+    "hostingerAuthenticationForProviderConfig": false
   },
   "productionRuntime": {
-    "liveRelease": "dbf2fc15cd5be0397034777897e254f6c845469c",
-    "liveTree": "d6d40b172836ac1393a624e833b403735ffd4734",
+    "liveRelease": "97d5f015df33bf4ec5486e7b6a5d3d135fc184cc",
+    "liveTree": "4057a5b187e63632b80623e246d129df4d476f8f",
     "runtimeProvider": "hostinger",
     "productionDeploymentOfIntegratedTree": true,
     "hostingerSelectedBranch": "release/hostinger-v2-candidate-20260824",
@@ -193,13 +193,13 @@
     "referralMigrationsApplied": false,
     "coreMigration0036Verified": true,
     "coreMigration0036NewlyCreatedByRunner": false,
-    "activeProductionCatalogCount": 0,
+    "activeProductionCatalogCount": 1,
     "creatorLaunchOutreachSent": false,
     "canonicalDomainCutover": false,
     "merchantDisclosureConfigured": true,
     "internalOperationsTokenQaAvailable": true,
     "printfulApiTokenConfigured": true,
-    "printfulVariantMapConfigured": false,
+    "printfulVariantMapConfigured": true,
     "printfulSignedWebhookConfigured": false,
     "productionMigration0037Applied": false,
     "legacyV1EncryptedPayloadRows": 0,
@@ -207,8 +207,8 @@
     "retainedV2OtpRows": 24
   },
   "nextAction": {
-    "actor": "OWNER",
-    "instruction": "In the Opera Hostinger sign-in tab, select the Google account that owns the ISSUED ONCE Hostinger account. After hPanel opens, resume assistant control. The next operation is to add the already-generated 34-entry PRINTFUL_VARIANT_MAP_JSON without exposing secrets, redeploy/restart as Hostinger requires, rerun readiness, and only then publish the exact owner-approved boot catalog through Owner OS. Do not enable PRINTFUL_ALLOW_CONFIRM. Migration 0037, Printful signed-webhook values, real Safepay charge/refund, manufacturing confirmation, referral activation, V2 cleanup, and canonical-domain cutover remain separately gated."
+    "actor": "OWNER_OR_PROVIDER",
+    "instruction": "Catalog and physical-selection gates are complete. Next, apply production migration 0037 only after explicit owner approval; configure truthful Safepay runtime values and Printful signed-webhook values without exposing secrets; keep PRINTFUL_ALLOW_CONFIRM disabled. Then rerun readiness and temporary-host live proofs before any canonical-domain cutover or real charge/manufacturing proof."
   },
   "consumerReadinessFinishV4": {
     "taskId": "issued-once-consumer-ready-finish-v4",
@@ -274,11 +274,23 @@
         "result": "PASS on exact live release: required read APIs no-store, Issue pagination limit=2, 11 Owner OS rooms, overflow=0; current Manufacturing 503 isolated and root-fixed in PR #90; referrals launch-disabled"
       },
       "printfulCatalog20260905": {
-        "integration": "c5d78630581fc3992fe26a8a08000d8565f8e6a2",
-        "liveRelease": "dbf2fc15cd5be0397034777897e254f6c845469c",
-        "providerVariants": "34/34 verified from live Printful API",
-        "mapping": "generated + parser validated; Hostinger env pending",
-        "activeCatalogCount": 0
+        "integration": "b3952681883443fe3277343aa1e7a6885f716552",
+        "liveRelease": "97d5f015df33bf4ec5486e7b6a5d3d135fc184cc",
+        "providerVariants": "34/34 verified from live Printful API and audited into the runtime map",
+        "mapping": "built-in audited provider truth; environment override optional only",
+        "activeCatalogCount": 1
+      },
+      "catalogActivation20260906": {
+        "run": 33994961529,
+        "job": 101383778554,
+        "release": "97d5f015df33bf4ec5486e7b6a5d3d135fc184cc",
+        "result": "PASS: ACTIVE v1, USD, exact approved 3 products / 34 variants structurally verified; catalog-authority=ready"
+      },
+      "temporaryPhysicalProof20260906": {
+        "run": 33994492960,
+        "job": 101383892978,
+        "release": "97d5f015df33bf4ec5486e7b6a5d3d135fc184cc",
+        "result": "PASS: exact release + Tee physical gate + Hat physical gate + Tote physical gate + real OTP request boundary; visual evidence artifact 9977791873"
       }
     },
     "rowReconciliation": {
@@ -289,14 +301,13 @@
       "CR-27": "DONE: owner-approved latest verified integration tree deployed through forward-only Hostinger wrapper; exact live health, non-OTP boundary audit, and strict security/cache-header proof passed"
     },
     "remainingOwnerOrProviderGates": [
-      "configure production privacy V1/V2 encryption keys and identity-HMAC key",
-      "configure Safepay production runtime",
-      "configure Printful API, exact variant mapping and signed-webhook runtime",
-      "publish/activate an owner-authorized ACTIVE catalog after factory mapping validation",
+      "apply production migration 0037 only after explicit owner approval; retain current V2 data and keys until the separate prelaunch cleanup gate",
+      "configure Safepay production runtime with truthful provider-issued values and complete separately approved live payment/refund proofs",
+      "configure Printful signed-webhook runtime with truthful provider-issued values; keep PRINTFUL_ALLOW_CONFIRM disabled until the separate manufacturing gate",
       "attest truthful public merchant/legal disclosure",
-      "complete row-specific real OTP/payment/design/Printful/tracking/support/recovery/refund proofs",
+      "complete remaining row-specific payment/design/Printful/tracking/support/recovery/refund proofs",
       "complete CR-28 one controlled full live order plus a second isolated customer proof",
-      "canonical-domain cutover remains separately unapproved"
+      "canonical-domain cutover remains after temporary-host/provider/privacy gates are green"
     ],
     "irreversibleActionsPerformed": [],
     "ownerReadProviderIndependence": {
@@ -372,6 +383,29 @@
       "catalogPublicationPerformed": false,
       "providerSecretsChanged": false,
       "canonicalDomainCutoverPerformed": false
+    },
+    "catalogAndPhysicalProof20260906": {
+      "pullRequest": 98,
+      "candidateHead": "8a79f2da59a0dd0db81c69fcfc1a74e92405fca3",
+      "integrationHead": "b3952681883443fe3277343aa1e7a6885f716552",
+      "integrationTree": "4057a5b187e63632b80623e246d129df4d476f8f",
+      "exactHeadCiRun": 33994176206,
+      "postMergeCiRun": 33994312767,
+      "postMergeBrowserQaRun": 33994312721,
+      "releaseWrapper": "97d5f015df33bf4ec5486e7b6a5d3d135fc184cc",
+      "liveSupportProofRun": 33994492972,
+      "liveBoundaryAuditRun": 33994492974,
+      "catalogActivationRun": 33994961529,
+      "catalogActivationJob": 101383778554,
+      "catalogVersion": 1,
+      "catalogProducts": 3,
+      "catalogVariants": 34,
+      "temporaryPhysicalProofRun": 33994492960,
+      "temporaryPhysicalProofJob": 101383892978,
+      "realOtpRequestReached": true,
+      "realSafepayChargePerformed": false,
+      "realSafepayRefundPerformed": false,
+      "printfulProductionConfirmationPerformed": false
     }
   },
   "cr27HistoricalContinuationEvidence": {
