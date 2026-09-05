@@ -253,7 +253,7 @@ export class PaymentService {
       }
     }
 
-    const fresh = await this.dependencies.payments.recordProviderEvent({
+    await this.dependencies.payments.recordProviderEvent({
       provider: 'SAFEPAY', providerEventId: event.providerEventId, providerReference: event.providerReference,
       state: event.state, amountMinor: verifiedAmountMinor, currency: verifiedCurrency, reference: event.reference, receivedAt: this.now(),
     });
