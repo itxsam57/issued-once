@@ -11,19 +11,22 @@ Production must fail closed when any required boundary is not configured. Never 
 ### `DATABASE_URL`
 Neon/Postgres connection used by the production repositories.
 
-### `QUIZ_ENCRYPTION_KEY_V1`
-Base64-encoded 32-byte AES-256-GCM key used for questionnaire answers, verified email, shipping addresses, design briefs, and support messages.
+### `QUIZ_ENCRYPTION_KEY_V2`
+Base64-encoded 32-byte AES-256-GCM key used for all new questionnaire answers, verified email, shipping addresses, design briefs, and support messages.
 
 Requirements:
 - server-only
 - cryptographically random
 - backed up in a secure owner-controlled secret store
-- never rotate by deleting the old key while ciphertext still references `v1`
+- never rotate or replace it while ciphertext still references `v2`
+
+### `QUIZ_ENCRYPTION_KEY_V1`
+Legacy decrypt-only key. It is required only while the production database still contains ciphertext whose key-version column is `v1`. Readiness must verify that condition from the database rather than requiring V1 unconditionally. Never fabricate or regenerate a replacement V1 key for historical ciphertext.
 
 ### `IDENTITY_HMAC_KEY`
 Server-only high-entropy key used for privacy-preserving deterministic identity/lookup hashes.
 
-It must be independent from `QUIZ_ENCRYPTION_KEY_V1`.
+It must be independent from the questionnaire encryption keys.
 
 ## Retail catalog
 

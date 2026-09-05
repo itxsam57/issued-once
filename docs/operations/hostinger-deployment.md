@@ -109,6 +109,8 @@ Do not replace or regenerate these values while completing the remaining configu
 - `APP_ORIGIN=https://lightgray-coyote-141764.hostingersite.com`
 - `ARTWORK_STORAGE_DIR=/home/u639555688/issued-once-private-artwork`
 
+`QUIZ_ENCRYPTION_KEY_V1` is now legacy decrypt-only. Keep it only when a read-only database audit still finds V1 ciphertext; do not invent a replacement V1 value merely to satisfy readiness. Production `0037_design_brief_key_v2.sql` must be applied before V2 design briefs are persisted.
+
 A stale manual `RELEASE_ID` is no longer authoritative because actual Git HEAD wins at build time. Do not change it merely to make proof green.
 
 ## 5. Where owner-controlled values are added
