@@ -1,32 +1,32 @@
 {
   "schemaVersion": 1,
-  "version": "1.36.3",
+  "version": "1.36.4",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-05T05:43:15Z",
+  "updatedAt": "2026-09-05T15:50:56Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "c8e7041447ae9f36804158f9c0fec7cb082c7612",
-    "verifiedRuntimeTree": "24768225100fa77cc8f728dcc09b39bb0a9376bd",
-    "liveReleaseHead": "c1af0cdc336a2ad7710697297763e064c8d54b4f",
-    "liveReleaseTree": "24768225100fa77cc8f728dcc09b39bb0a9376bd",
+    "verifiedRuntimeIntegrationHead": "c5d78630581fc3992fe26a8a08000d8565f8e6a2",
+    "verifiedRuntimeTree": "d6d40b172836ac1393a624e833b403735ffd4734",
+    "liveReleaseHead": "dbf2fc15cd5be0397034777897e254f6c845469c",
+    "liveReleaseTree": "d6d40b172836ac1393a624e833b403735ffd4734",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-    "hostingerLinkedBranchHead": "c1af0cdc336a2ad7710697297763e064c8d54b4f",
+    "hostingerLinkedBranchHead": "dbf2fc15cd5be0397034777897e254f6c845469c",
     "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
     "combinedCandidateBranchHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop",
-    "latestEngineeringIntegrationHead": "18c5dd08464352f1b75588473868b0f8a79dfcb6",
-    "latestEngineeringIntegrationTree": "e2c3cacc9e6546a7af806ffea75a778e6c9c21d1",
-    "latestEngineeringIntegrationVerifiedAt": "2026-09-05T03:23:59Z"
+    "latestEngineeringIntegrationHead": "c5d78630581fc3992fe26a8a08000d8565f8e6a2",
+    "latestEngineeringIntegrationTree": "d6d40b172836ac1393a624e833b403735ffd4734",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-05T15:50:56Z"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "The owner-approved Hostinger production deployment is complete: verified integration c8e7041447ae9f36804158f9c0fec7cb082c7612 was deployed through forward-only wrapper c1af0cdc336a2ad7710697297763e064c8d54b4f with exact tree 24768225100fa77cc8f728dcc09b39bb0a9376bd. Exact live health, non-OTP boundary audit, and strict security/cache-header proof are green. The customer smoke again reaches seven answers and then fails closed at physical selection because no ACTIVE catalog exists, matching the pre-existing owner/provider gate. No new engineering-safe consumer-readiness code/test/read-only gap was introduced. Remaining work is owner/provider configuration, catalog/legal truth, or row-specific live commercial proof.",
+    "currentEngineeringStopReason": "The live Hostinger runtime is exact release dbf2fc15cd5be0397034777897e254f6c845469c with tree d6d40b172836ac1393a624e833b403735ffd4734. Printful provider truth is now read from the real API: Bella + Canvas 3001 (30 variants), Yupoong 6245CM (2), and Econscious EC8000 (2). The exact 34-entry PRINTFUL_VARIANT_MAP_JSON has been generated and validated, the production Printful token is configured, and provider-backed storefront swatches/cap artwork geometry are merged and verified. The remaining immediate gate is authenticated Hostinger hPanel access to configure the generated mapping; ACTIVE catalog publication remains blocked until that configuration is present. Production migration 0037 and signed Printful webhook configuration remain separate gates.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -34,12 +34,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "STOP_AT_PRODUCTION_READINESS_OWNER_GATES",
-    "reason": "Production now serves the exact verified integration tree through the existing Hostinger-linked branch without force-push, selected-branch change, or environment mutation. CR-27 deployment/security evidence is complete. CR-28 remains OWNER_REQUIRED/MISSING_LIVE_COMPOSITE_EVIDENCE until the remaining provider/catalog/legal gates and user-run live commercial proofs are completed."
+    "decision": "STOP_AT_HOSTINGER_AUTH_FOR_PRINTFUL_MAPPING",
+    "reason": "No further code or UI change is needed to construct the current 34-variant catalog. The next action requires the owner to complete Hostinger authentication in Opera so the already-generated non-secret mapping can be stored as an environment variable. Do not fabricate provider IDs, rotate privacy keys, confirm manufacturing, or publish an ACTIVE catalog before readiness validates."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CR22_OWNER_OS_BRIDGE_MERGED_VERIFIED_CR27_OWNER_READINESS_GATES",
+    "internalWorkStatus": "PRINTFUL_CATALOG_PROVIDER_TRUTH_READY_AWAITING_HOSTINGER_ENV",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan and CR-27 evidence checkpoint as the release evidence ledger.",
@@ -55,7 +55,8 @@
       "Do not publish or activate catalog truth by direct production mutation without a separate owner-authorized catalog action.",
       "For provider-gated live boundary checks, an unavailable 503 is acceptable only when the response body exactly matches the route's known privacy-safe unavailable contract; never accept arbitrary 503 or 500 responses as healthy.",
       "Do not send creator outreach until referral activation and owner launch gates are satisfied.",
-      "Do not fabricate MERCHANT_PUBLIC_LOCATION; truthful merchant identity remains required before canonical launch."
+      "Do not fabricate MERCHANT_PUBLIC_LOCATION; truthful merchant identity remains required before canonical launch.",
+      "Before any future customer-facing UI/UX change, stop and ask the owner for explicit UI approval."
     ]
   },
   "lastCompleted": {
@@ -173,17 +174,19 @@
     "canonicalDomainCutover": true,
     "truthfulMerchantPublicLocation": true,
     "productionPrivacyKeyConfiguration": true,
-    "printfulVariantMapConfiguration": true
+    "printfulVariantMapConfiguration": true,
+    "productionDesignBriefV2Migration0037": true,
+    "hostingerAuthenticationForProviderConfig": true
   },
   "productionRuntime": {
-    "liveRelease": "c1af0cdc336a2ad7710697297763e064c8d54b4f",
-    "liveTree": "24768225100fa77cc8f728dcc09b39bb0a9376bd",
+    "liveRelease": "dbf2fc15cd5be0397034777897e254f6c845469c",
+    "liveTree": "d6d40b172836ac1393a624e833b403735ffd4734",
     "runtimeProvider": "hostinger",
     "productionDeploymentOfIntegratedTree": true,
     "hostingerSelectedBranch": "release/hostinger-v2-candidate-20260824",
     "hostingerSelectedBranchChanged": false,
     "hostingerLinkedBranchFastForwarded": true,
-    "hostingerEnvironmentChanged": false,
+    "hostingerEnvironmentChanged": true,
     "realSafepayQaCharge": false,
     "realSafepayRefundProof": false,
     "printfulProductionConfirmation": false,
@@ -194,11 +197,18 @@
     "creatorLaunchOutreachSent": false,
     "canonicalDomainCutover": false,
     "merchantDisclosureConfigured": true,
-    "internalOperationsTokenQaAvailable": true
+    "internalOperationsTokenQaAvailable": true,
+    "printfulApiTokenConfigured": true,
+    "printfulVariantMapConfigured": false,
+    "printfulSignedWebhookConfigured": false,
+    "productionMigration0037Applied": false,
+    "legacyV1EncryptedPayloadRows": 0,
+    "retainedV2ExperienceAnswerRows": 560,
+    "retainedV2OtpRows": 24
   },
   "nextAction": {
     "actor": "OWNER",
-    "instruction": "Production-ready code is deployed. The owner may perform the remaining live product tests. When desired, complete the still-separate production gates without sharing secret values in chat: privacy keys, Safepay runtime, Printful API/variant-map/signed-webhook runtime, truthful merchant/legal attestation, and ACTIVE catalog publication after exact mapping validation. Real Safepay charge/refund, Printful production confirmation, referral activation, and canonical-domain cutover remain separately gated."
+    "instruction": "In the Opera Hostinger sign-in tab, select the Google account that owns the ISSUED ONCE Hostinger account. After hPanel opens, resume assistant control. The next operation is to add the already-generated 34-entry PRINTFUL_VARIANT_MAP_JSON without exposing secrets, redeploy/restart as Hostinger requires, rerun readiness, and only then publish the exact owner-approved boot catalog through Owner OS. Do not enable PRINTFUL_ALLOW_CONFIRM. Migration 0037, Printful signed-webhook values, real Safepay charge/refund, manufacturing confirmation, referral activation, V2 cleanup, and canonical-domain cutover remain separately gated."
   },
   "consumerReadinessFinishV4": {
     "taskId": "issued-once-consumer-ready-finish-v4",
@@ -262,6 +272,13 @@
         "run": 33941209257,
         "job": 101238878633,
         "result": "PASS on exact live release: required read APIs no-store, Issue pagination limit=2, 11 Owner OS rooms, overflow=0; current Manufacturing 503 isolated and root-fixed in PR #90; referrals launch-disabled"
+      },
+      "printfulCatalog20260905": {
+        "integration": "c5d78630581fc3992fe26a8a08000d8565f8e6a2",
+        "liveRelease": "dbf2fc15cd5be0397034777897e254f6c845469c",
+        "providerVariants": "34/34 verified from live Printful API",
+        "mapping": "generated + parser validated; Hostinger env pending",
+        "activeCatalogCount": 0
       }
     },
     "rowReconciliation": {
@@ -561,5 +578,131 @@
         }
       ]
     }
+  },
+  "privacyV2Retirement20260905": {
+    "status": "V1_TEST_ESTATE_REMOVED_V2_RETAINED_0037_CODE_READY_NOT_APPLIED",
+    "v1LinkedTestDataDeletionExplicitlyApprovedAndPerformed": true,
+    "legacyV1EncryptedPayloadRowsAfterCleanup": 0,
+    "retainedV2ExperienceAnswerRows": 560,
+    "retainedV2OtpRows": 24,
+    "v2DeletionDeferredByOwnerUntilPrelaunch": true,
+    "doNotRotateQuizEncryptionKeyV2": true,
+    "doNotRotateIdentityHmacKey": true,
+    "doNotFabricateQuizEncryptionKeyV1": true,
+    "privacyPullRequest": 94,
+    "privacyMerge": "5db8472001b5531613c754335e586056c1845d5e",
+    "postMergeCiRun": 33970316280,
+    "postMergeBrowserQaRun": 33970316256,
+    "migration0037": "db/migrations/0037_design_brief_key_v2.sql",
+    "migration0037IsolatedNeonProof": "PASS: both design-brief constraints accept v1/v2 with unchanged rows",
+    "migration0037ProductionApplied": false,
+    "nextGate": "Explicit owner approval is still required before applying migration 0037 to production."
+  },
+  "printfulCatalogReadiness20260905": {
+    "status": "MAPPING_GENERATED_AWAITING_HOSTINGER_CONFIGURATION",
+    "printfulApiTokenConfiguredInHostinger": true,
+    "inspectorPullRequest": 95,
+    "inspectorHead": "a36810eedb1d8dbdee0de080efd71ee408f71fca",
+    "inspectorMerge": "904ac30e13ac5734789661253b9ecdc890b1d7b8",
+    "inspectorExactHeadCiRun": 33973394942,
+    "inspectorExactHeadBrowserQaRun": 33973394898,
+    "liveProviderInspectionRun": 33973782036,
+    "liveProviderInspectionResult": "PASS: authenticated read-only Printful API inspection; no provider writes or secret output",
+    "products": {
+      "tee": {
+        "productId": 71,
+        "model": "3001",
+        "name": "Unisex Staple T-Shirt | Bella + Canvas 3001",
+        "technique": "dtg",
+        "fileType": "front",
+        "printArea": {
+          "width": 1800,
+          "height": 2400,
+          "dpi": 150
+        },
+        "variantCount": 30
+      },
+      "hat": {
+        "productId": 206,
+        "model": "6245CM",
+        "name": "Classic Dad Hat | Yupoong 6245CM",
+        "technique": "dtfilm",
+        "fileType": "front_dtf_hat",
+        "printArea": {
+          "width": 1500,
+          "height": 600,
+          "dpi": 300
+        },
+        "variantCount": 2
+      },
+      "tote": {
+        "productId": 367,
+        "model": "EC8000",
+        "name": "Eco Tote Bag | Econscious EC8000",
+        "technique": "dtg",
+        "fileType": "front",
+        "printArea": {
+          "width": 1500,
+          "height": 1500,
+          "dpi": 150
+        },
+        "variantCount": 2
+      }
+    },
+    "logicalVariantCount": 34,
+    "variantMapGeneratedAndParserValidated": true,
+    "variantMapConfiguredInHostinger": false,
+    "storefrontNamesUnchanged": true,
+    "swatches": {
+      "tee": {
+        "Bone": "#f0f1ea",
+        "Black": "#0c0c0c",
+        "Ash": "#cececc",
+        "Navy": "#212642",
+        "Forest": "#223e25"
+      },
+      "hat": {
+        "Bone": "#d6bdad",
+        "Black": "#181717"
+      },
+      "tote": {
+        "Bone": "#edcea5",
+        "Black": "#101010"
+      }
+    },
+    "artworkGeometry": {
+      "tee": {
+        "source": "1024x1536",
+        "placement": "900x1350 centered"
+      },
+      "hat": {
+        "source": "1536x1024",
+        "placement": "900x600 centered"
+      },
+      "tote": {
+        "source": "1024x1536",
+        "placement": "900x1350 centered"
+      }
+    },
+    "catalogUiAndGeometryPullRequest": 96,
+    "catalogUiAndGeometryHead": "a941e24dd9f6c3e365a46d91f0fffdaaffcfd29a",
+    "catalogUiAndGeometryMerge": "c5d78630581fc3992fe26a8a08000d8565f8e6a2",
+    "exactHeadCiRun": 33975302787,
+    "exactHeadBrowserQaRun": 33975328021,
+    "postMergeCiRun": 33975481223,
+    "postMergeBrowserQaRun": 33975481243,
+    "localVerification": "typecheck PASS; lint PASS; 240 test files / 707 tests PASS; build PASS; Playwright 44/44 PASS",
+    "liveRelease": "dbf2fc15cd5be0397034777897e254f6c845469c",
+    "liveTree": "d6d40b172836ac1393a624e833b403735ffd4734",
+    "liveHealthFromAuthorizedWorkstation": "PASS exact release",
+    "liveSupportProofRun": 33975661779,
+    "liveSupportProofResult": "PASS",
+    "temporaryReleaseProofRun": 33975661787,
+    "temporaryReleaseProofResult": "EXPECTED FAIL-CLOSED after seven answers at physical selection because ACTIVE catalog count is zero",
+    "boundaryAuditRun": 33975661778,
+    "boundaryAuditResult": "BLOCKED_EXTERNAL: GitHub runner received repeated Hostinger CDN HTTP 403 before the audit; exact release is independently confirmed from authorized workstation and support proof",
+    "productionManufacturingConfirmationPerformed": false,
+    "providerWritePerformedByInspection": false,
+    "uiApprovalRule": "Owner approved the provider-backed swatch update for this cycle; ask again before any later UI/UX change."
   }
 }
