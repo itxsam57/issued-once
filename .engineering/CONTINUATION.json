@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.36.1",
+  "version": "1.36.2",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-05T03:23:59Z",
+  "updatedAt": "2026-09-05T03:55:19Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -26,7 +26,7 @@
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "Finish-v4 reconciled every consumer-readiness row, then exhausted the remaining safe CR-23 live-read opportunity. The exact deployed Hostinger release 909d84832b345ecd05b03ec30ad06e5c32000908 passed required Owner API reads, bounded Issue pagination and 11-room browser navigation. That audit exposed an eager Printful dependency in the read-only Manufacturing queue; TDD plus a sibling audit also found eager Resend reply configuration in read-only Support construction. PR #90 root-fixed both by deferring mutation-provider construction and merged as 18c5dd08464352f1b75588473868b0f8a79dfcb6 after exact-head CI and full local Browser QA passed. Post-merge CI and Browser QA are green; no known engineering-safe consumer-readiness code/test/read-only verification item remains. Hostinger is still on 909d8483/tree 409710da, so deploying the latest integration remains an owner production mutation gate. Production also still requires owner-controlled privacy keys, Safepay runtime, Printful API/variant-map/signed-webhook configuration, ACTIVE catalog publication after mapping validation, merchant/legal truth attestation, and row-specific real-provider/commercial-cycle evidence.",
+    "currentEngineeringStopReason": "Finish-v4 reconciled every consumer-readiness row and exhausted the remaining safe CR-23 live-read opportunity. The exact deployed Hostinger release 909d84832b345ecd05b03ec30ad06e5c32000908 passed required Owner API reads, bounded Issue pagination and 11-room browser navigation; PR #90 root-fixed the read-only Manufacturing/Support provider coupling that audit exposed. A final independent post-audit then found one stale canonical contradiction: CR-15 master-plan prose still instructed re-applying production migration 0036 although the higher-priority continuation and CR-27 production evidence already mark that schema gate verified. PR #92 corrects that ledger state and adds a regression locking it to the verified continuation. No product/runtime behavior is changed. After this correction there is no known engineering-safe consumer-readiness code/test/read-only verification item left. Hostinger is still on 909d8483/tree 409710da, so deploying the latest integration remains an owner production mutation gate. Production also still requires owner-controlled privacy keys, Safepay runtime, Printful API/variant-map/signed-webhook configuration, ACTIVE catalog publication after mapping validation, merchant/legal truth attestation, and row-specific real-provider/commercial-cycle evidence.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -35,7 +35,7 @@
       "COMPLETE"
     ],
     "decision": "STOP_AT_PRODUCTION_READINESS_OWNER_GATES",
-    "reason": "Latest code is locally verified at 234 test files / 692 tests, typecheck, warning-free lint, production build and 44/44 Browser QA. PR #90 exact-head CI run 33941405484 passed. Live CR-23 audit run 33941209257 passed exact release identity, required Owner reads, pagination and browser navigation; the live Manufacturing 503 root cause is fixed in the not-yet-deployed integration. Referrals remain intentionally launch-disabled under CR-30. Remaining work is owner/configuration/deployment, truthful owner data, real-provider proof, or irreversible/spend gates."
+    "reason": "Latest product code remains fully verified; the post-audit governance correction is additionally locked by a dedicated RED/GREEN ledger-consistency regression, full 235-file/693-test unit suite, typecheck, warning-free lint, production build and 44/44 local Chromium Browser QA. Migration 0036 is already production-verified and must not be re-run as a remaining gate. Referrals remain intentionally launch-disabled under CR-30. Remaining work is owner/configuration/deployment, truthful owner data, real-provider proof, or irreversible/spend gates."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -311,6 +311,26 @@
       "postMergeBrowserQaJob": 101239909604,
       "postMergeBrowserQaResult": "PASS",
       "productionMutationPerformed": false
+    },
+    "postAuditLedgerConsistency": {
+      "finding": "Independent finish-v4 reconciliation found stale CR-15 master-plan prose that still treated production migration 0036 as unapplied/owner-gated even though the higher-priority continuation and CR-27 production checkpoint record the schema gate as verified.",
+      "rootCorrection": "CR-15 now treats migration 0036 as already production-verified and leaves only destructive deployed retention plus real provider/template proof as live evidence. A unit regression locks the master-plan wording to standingOwnerGates.productionCoreMigration0036=false and productionRuntime.coreMigration0036Verified=true.",
+      "pullRequest": 92,
+      "pullRequestBase": "infra/hostinger-migration-20260823",
+      "baseHead": "a3544ac741fb5097636d60acbd257df5021e41db",
+      "initialCorrectionHead": "f5e9b5a5251bacd644cdfa0aefec30c2fe63aa8b",
+      "initialCorrectionTree": "a2012aba6206d524f79de1ab8d65af6a0431c4a6",
+      "redCommand": "corepack pnpm exec vitest run tests/unit/consumer-readiness-ledger-consistency.test.ts",
+      "redResult": "FAIL intended ledger-consistency assertion because CR-15 still instructed applying migration 0036",
+      "focusedGreen": "1 test file / 1 test passed",
+      "fullUnit": "235 test files / 693 tests passed",
+      "typecheck": "PASS",
+      "lint": "PASS: 0 warnings / 0 errors",
+      "productionBuild": "PASS",
+      "localBrowserQa": "PASS: 44 / 44 desktop+mobile Chromium tests",
+      "verifiedProjectBaseDiffCheck": "PASS: git diff --check 4ea10081cb0de2f5de49eb46f973649a5fba3a51...HEAD",
+      "productionMutationPerformed": false,
+      "remainingState": "No migration 0036 owner action remains. Latest engineering integration deployment and the recorded production/provider/irreversible gates remain unchanged."
     }
   },
   "cr27HistoricalContinuationEvidence": {
