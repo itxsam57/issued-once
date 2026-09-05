@@ -1,5 +1,9 @@
 .page {
-  --display: 'Bodoni 72', 'Bodoni MT', Didot, 'Iowan Old Style', Baskerville, Georgia, serif;
+  --paper: #0c0a08;
+  --ink: #eee4d5;
+  --muted: rgba(238, 228, 213, .52);
+  --hairline: rgba(238, 228, 213, .14);
+  --signal: #d49a70;
   min-height: 100svh;
   background: var(--paper);
   color: var(--ink);
@@ -12,15 +16,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: 9px;
+  letter-spacing: .22em;
   text-transform: uppercase;
 }
 
 .brand {
   color: inherit;
-  font-weight: 700;
-  letter-spacing: 0.24em;
+  font-weight: 800;
+  letter-spacing: .26em;
   text-decoration: none;
 }
 
@@ -45,8 +49,8 @@
 }
 
 .hero {
-  max-width: 1180px;
-  padding: clamp(100px, 15vh, 190px) 0 clamp(70px, 10vh, 130px);
+  max-width: 1200px;
+  padding: clamp(105px, 15vh, 195px) 0 clamp(74px, 10vh, 136px);
 }
 
 .kicker,
@@ -54,28 +58,29 @@
 .meta {
   margin: 0;
   color: var(--muted);
-  font-size: 10px;
-  letter-spacing: 0.2em;
+  font-size: 9px;
+  letter-spacing: .22em;
   text-transform: uppercase;
 }
 
 .hero h1 {
-  max-width: 1020px;
-  margin: 28px 0 0;
-  font-family: var(--display);
-  font-size: clamp(58px, 8.2vw, 132px);
-  font-weight: 400;
-  letter-spacing: -0.055em;
-  line-height: 0.9;
+  max-width: 1080px;
+  margin: 30px 0 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(62px, 9vw, 146px);
+  font-weight: 800;
+  letter-spacing: -.068em;
+  line-height: .84;
+  text-transform: uppercase;
   text-wrap: balance;
 }
 
 .intro {
   max-width: 680px;
-  margin: 36px 0 0;
+  margin: 38px 0 0;
   color: var(--muted);
-  font-size: clamp(15px, 1.25vw, 19px);
-  line-height: 1.65;
+  font-size: clamp(14px, 1.2vw, 18px);
+  line-height: 1.72;
 }
 
 .grid {
@@ -86,7 +91,7 @@
 
 .section {
   grid-column: 1 / 9;
-  padding: clamp(48px, 6vw, 86px) 0;
+  padding: clamp(52px, 6vw, 92px) 0;
   border-bottom: 1px solid var(--hairline);
 }
 
@@ -95,13 +100,14 @@
 }
 
 .section h2 {
-  max-width: 820px;
+  max-width: 840px;
   margin: 20px 0 0;
-  font-family: var(--display);
-  font-size: clamp(34px, 4.5vw, 64px);
-  font-weight: 400;
-  letter-spacing: -0.035em;
-  line-height: 1;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(36px, 4.7vw, 70px);
+  font-weight: 800;
+  letter-spacing: -.05em;
+  line-height: .94;
+  text-transform: uppercase;
 }
 
 .section p,
@@ -109,17 +115,11 @@
   max-width: 720px;
   color: var(--muted);
   font-size: 15px;
-  line-height: 1.75;
+  line-height: 1.78;
 }
 
-.section p {
-  margin: 22px 0 0;
-}
-
-.section ul {
-  margin: 24px 0 0;
-  padding-left: 1.2em;
-}
+.section p { margin: 22px 0 0; }
+.section ul { margin: 24px 0 0; padding-left: 1.2em; }
 
 .priceList,
 .identity {
@@ -136,14 +136,14 @@
   gap: 24px;
   padding: 17px 0;
   border-bottom: 1px solid var(--hairline);
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  letter-spacing: .1em;
   text-transform: uppercase;
 }
 
 .priceRow strong,
 .identityRow strong {
-  font-weight: 500;
+  font-weight: 600;
   text-align: right;
 }
 
@@ -154,11 +154,11 @@
   border-bottom: 1px solid var(--hairline);
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .footer {
-  min-height: 25svh;
+  min-height: 28svh;
   align-items: flex-end;
   margin-top: clamp(70px, 9vw, 140px);
   border-top: 1px solid var(--hairline);
@@ -173,54 +173,18 @@
 }
 
 @media (max-width: 700px) {
-  .page {
-    padding: 22px 20px 28px;
-  }
-
-  .topbar {
-    align-items: flex-start;
-  }
-
-  .hero {
-    padding: 110px 0 72px;
-  }
-
-  .hero h1 {
-    font-size: clamp(58px, 16vw, 86px);
-  }
-
-  .grid {
-    display: block;
-  }
-
+  .page { padding: 22px 20px 28px; }
+  .topbar { align-items: flex-start; }
+  .hero { padding: 112px 0 76px; }
+  .hero h1 { font-size: clamp(58px, 17vw, 90px); }
+  .grid { display: block; }
   .section,
-  .section:nth-child(even) {
-    padding: 50px 0;
-  }
-
-  .section h2 {
-    font-size: clamp(38px, 10vw, 56px);
-  }
-
+  .section:nth-child(even) { padding: 52px 0; }
+  .section h2 { font-size: clamp(40px, 11vw, 60px); }
   .priceRow,
-  .identityRow {
-    grid-template-columns: 1fr;
-    gap: 7px;
-  }
-
+  .identityRow { grid-template-columns: 1fr; gap: 7px; }
   .priceRow strong,
-  .identityRow strong {
-    text-align: left;
-  }
-
-  .footer {
-    min-height: 30svh;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-end;
-  }
-
-  .footer nav {
-    justify-content: flex-start;
-  }
+  .identityRow strong { text-align: left; }
+  .footer { min-height: 32svh; flex-direction: column; align-items: flex-start; justify-content: flex-end; }
+  .footer nav { justify-content: flex-start; }
 }
