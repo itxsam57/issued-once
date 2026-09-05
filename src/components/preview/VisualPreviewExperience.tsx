@@ -90,7 +90,7 @@ export function VisualPreviewExperience({ mode = 'qa' }: VisualPreviewExperience
 
   if (previewComplete) {
     return (
-      <main className="visual-preview">
+      <main className="visual-preview io-customer-theme" data-io-surface="secret-motion">
         <div className="visual-preview__marker" role="note">
           {marker}
         </div>
@@ -107,7 +107,7 @@ export function VisualPreviewExperience({ mode = 'qa' }: VisualPreviewExperience
   }
 
   return (
-    <main className="visual-preview">
+    <main className="visual-preview io-customer-theme" data-io-surface="secret-motion">
       <div className="visual-preview__marker" role="note">
         {marker}
       </div>
