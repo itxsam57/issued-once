@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import { chromium } from '@playwright/test';
 
 const baseUrl = process.env.LIVE_PRODUCTION_URL?.replace(/\/$/, '');
@@ -7,24 +8,52 @@ if (!baseUrl?.startsWith('https://')) throw new Error('LIVE_PRODUCTION_URL must 
 if (!expectedReleaseId || !/^[0-9a-f]{40}$/.test(expectedReleaseId)) throw new Error('EXPECTED_RELEASE_ID must be a 40-character SHA');
 if (!internalToken || internalToken.length < 24) throw new Error('INTERNAL_OPERATIONS_TOKEN is required');
 
+const teeSizes = ['XS', 'S', 'M', 'L', 'XL', '2XL'];
+const teeColors = [
+  { code: 'bone', name: 'Bone', swatch: '#f0f1ea' },
+  { code: 'black', name: 'Black', swatch: '#0c0c0c' },
+  { code: 'ash', name: 'Ash', swatch: '#cececc' },
+  { code: 'navy', name: 'Navy', swatch: '#212642' },
+  { code: 'forest', name: 'Forest', swatch: '#223e25' },
+];
+const approvedCatalog = {
+  currency: 'USD',
+  products: {
+    tee: {
+      slug: 'io-tee',
+      variants: teeSizes.flatMap((size) => teeColors.map((color) => ({
+        id: `io-tee-${size.toLowerCase()}-${color.code}`,
+        size,
+        colorName: color.name,
+        colorSwatch: color.swatch,
+        amountMinor: 3200,
+        available: true,
+      }))),
+    },
+    hat: {
+      slug: 'io-hat',
+      variants: [
+        { id: 'io-hat-os-bone', size: 'OS', colorName: 'Bone', colorSwatch: '#d6bdad', amountMinor: 3400, available: true },
+        { id: 'io-hat-os-black', size: 'OS', colorName: 'Black', colorSwatch: '#181717', amountMinor: 3400, available: true },
+      ],
+    },
+    tote: {
+      slug: 'io-tote',
+      variants: [
+        { id: 'io-tote-os-bone', size: 'OS', colorName: 'Bone', colorSwatch: '#edcea5', amountMinor: 3600, available: true },
+        { id: 'io-tote-os-black', size: 'OS', colorName: 'Black', colorSwatch: '#101010', amountMinor: 3600, available: true },
+      ],
+    },
+  },
+};
+
 async function json(response) {
   return response.json().catch(() => ({}));
 }
 
-function assertCatalogShape(payload) {
-  if (!payload || typeof payload !== 'object') throw new Error('Catalog payload is missing');
-  if (!['USD', 'PKR'].includes(payload.currency)) throw new Error('Catalog currency is unsupported');
-  const expected = { tee: 'io-tee', hat: 'io-hat', tote: 'io-tote' };
-  for (const [key, slug] of Object.entries(expected)) {
-    const product = payload.products?.[key];
-    if (!product || product.slug !== slug || !Array.isArray(product.variants) || product.variants.length < 1) {
-      throw new Error(`Catalog ${key} definition is not the deployed canonical form`);
-    }
-    for (const variant of product.variants) {
-      if (!variant?.id || !variant?.size || !variant?.colorName || !Number.isInteger(variant?.amountMinor) || variant.amountMinor <= 0 || typeof variant.available !== 'boolean') {
-        throw new Error(`Catalog ${key} contains an invalid variant`);
-      }
-    }
+function assertApprovedCatalog(payload) {
+  if (!isDeepStrictEqual(payload, approvedCatalog)) {
+    throw new Error('Catalog payload differs structurally from the exact approved 34-variant boot catalog');
   }
 }
 
@@ -82,14 +111,11 @@ try {
     }
 
     let state = await getWebsite();
-    assertCatalogShape(state?.catalog?.payload);
     const initialSource = state?.catalog?.source;
     const initialVersion = Number(state?.catalog?.version ?? -1);
-    const catalogPayload = state.catalog.payload;
-    const productCount = Object.keys(catalogPayload.products).length;
-    const variantCount = Object.values(catalogPayload.products).reduce((sum, product) => sum + product.variants.length, 0);
-    if (productCount !== 3 || variantCount !== 34) throw new Error(`Expected exact approved 3-product/34-variant catalog, got products=${productCount} variants=${variantCount}`);
-    console.log(`CATALOG_GATE_BEFORE source=${initialSource} version=${initialVersion} currency=${catalogPayload.currency} products=${productCount} variants=${variantCount}`);
+    const catalogPayload = state?.catalog?.payload;
+    assertApprovedCatalog(catalogPayload);
+    console.log(`CATALOG_GATE_BEFORE source=${initialSource} version=${initialVersion} currency=${catalogPayload.currency} products=3 variants=34`);
 
     if (initialSource === 'BOOT') {
       const publishResponse = await request.post(`${baseUrl}/ops/api/website/catalog`, {
@@ -109,10 +135,8 @@ try {
     if (state?.catalog?.source !== 'ACTIVE' || !Number.isInteger(state?.catalog?.version) || state.catalog.version < 1) {
       throw new Error('Catalog did not become ACTIVE');
     }
-    if (JSON.stringify(state.catalog.payload) !== JSON.stringify(catalogPayload)) {
-      throw new Error('ACTIVE catalog payload differs from the approved deployed catalog');
-    }
-    console.log(`CATALOG_ACTIVATION_PASS version=${state.catalog.version} currency=${state.catalog.payload.currency}`);
+    assertApprovedCatalog(state.catalog.payload);
+    console.log(`CATALOG_ACTIVATION_PASS version=${state.catalog.version} currency=${state.catalog.payload.currency} products=3 variants=34`);
 
     const readiness = await readReadiness('READINESS');
     const authority = readiness.checks.find((check) => check.key === 'catalog-authority');
