@@ -1,0 +1,33 @@
+name: Sync Catalog Active Ledger
+
+on:
+  push:
+    branches:
+      - ops/ledger-sync-catalog-active-20260906
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: infra/hostinger-migration-20260823
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Create clean docs checkpoint branch
+        run: |
+          git switch -c docs/catalog-active-checkpoint-20260906
+          git show origin/ops/ledger-sync-catalog-active-20260906:scripts/sync-catalog-active-ledger.mjs > /tmp/sync-ledger.mjs
+          node /tmp/sync-ledger.mjs
+          git diff --check
+          git status --short
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .engineering/CONTINUATION.json
+          git commit -m "docs(engineering): checkpoint active catalog proof"
+          git push origin docs/catalog-active-checkpoint-20260906
