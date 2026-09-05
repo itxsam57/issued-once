@@ -81,6 +81,22 @@ describe('OpenAIDesignGateway production artwork model', () => {
     expect(artwork.height).toBe(1536);
   });
 
+  test('uses landscape production artwork for hats so the DTF cap placement is not forced through a portrait canvas', async () => {
+    const landscapePng = rgbaPng(1536, 1024);
+    const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      data: [{ b64_json: landscapePng.toString('base64') }],
+    }), { status: 200, headers: { 'content-type': 'application/json' } }));
+
+    const gateway = new OpenAIDesignGateway({ apiKey: 'test-key', fetchImpl });
+    const artwork = await gateway.generateArtwork(brief, { objectType: 'hat' });
+
+    const [, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(init.body)) as Record<string, unknown>;
+    expect(body.size).toBe('1536x1024');
+    expect(artwork.width).toBe(1536);
+    expect(artwork.height).toBe(1024);
+  });
+
   test('rejects provider output that is not actually PNG image data', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({
       data: [{ b64_json: Buffer.from('not-an-image').toString('base64') }],

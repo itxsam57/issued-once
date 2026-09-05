@@ -7,5 +7,5 @@ test('DesignService keeps owner feedback separate from the seven customer answer
   expect(source).toMatch(/createForIssue\(issueId: string, ownerFeedback\?: string\)/);
   expect(source).toMatch(/questions,\s*\.\.\.\(feedback \? \{ ownerFeedback: feedback \} : \{\}\)/s);
   expect(source).toMatch(/regenerateArtwork\(issueId: string, ownerFeedback\?: string\)/);
-  expect(source).toMatch(/generateArtwork\(brief, feedback \? \{ ownerFeedback: feedback \} : undefined\)/);
+  expect(source).toMatch(/generateArtwork\(brief, \{\s*objectType: input\.objectType,\s*\.\.\.\(feedback \? \{ ownerFeedback: feedback \} : \{\}\),\s*\}\)/s);
 });
