@@ -1,9 +1,12 @@
 import Link from 'next/link';
+import { SecretMotionLayer } from '@/components/ui/SecretMotionLayer';
 import styles from './home.module.css';
 
 export default function Home() {
   return (
-    <main className={styles.story}>
+    <main className={`${styles.story} io-customer-theme`} data-io-surface="secret-motion">
+      <SecretMotionLayer />
+
       <section className={styles.hero} aria-labelledby="entry-prompt">
         <header className={styles.header}>
           <span className={styles.brand}>ISSUED ONCE</span>
@@ -17,6 +20,7 @@ export default function Home() {
             <br />
             <em>Issued for you.</em>
           </h1>
+          <div className={styles.presence} aria-hidden="true"><span /></div>
         </div>
 
         <div className={styles.heroFoot}>

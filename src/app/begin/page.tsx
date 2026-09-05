@@ -7,7 +7,7 @@ export default function BeginPage() {
   }
 
   return (
-    <main className="public-interview">
+    <main className="public-interview io-customer-theme" data-io-surface="secret-motion">
       <PublicInterviewExperience />
     </main>
   );
