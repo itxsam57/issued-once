@@ -18,8 +18,16 @@ jobs:
       INTERNAL_OPERATIONS_TOKEN: ${{ secrets.INTERNAL_OPERATIONS_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.23.0
+          run_install: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install chromium
       - name: Activate only the deployed catalog already exposed by Owner OS
         run: node scripts/owner-approved-catalog-activation.mjs
