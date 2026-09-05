@@ -1,3 +1,5 @@
+import { chromium } from '@playwright/test';
+
 const baseUrl = process.env.LIVE_PRODUCTION_URL?.replace(/\/$/, '');
 const expectedReleaseId = process.env.EXPECTED_RELEASE_ID?.trim().toLowerCase();
 const internalToken = process.env.INTERNAL_OPERATIONS_TOKEN?.trim();
@@ -7,53 +9,6 @@ if (!internalToken || internalToken.length < 24) throw new Error('INTERNAL_OPERA
 
 async function json(response) {
   return response.json().catch(() => ({}));
-}
-
-const healthResponse = await fetch(`${baseUrl}/api/health/release`, { cache: 'no-store' });
-const health = await json(healthResponse);
-if (!healthResponse.ok || health?.releaseId !== expectedReleaseId || health?.runtimeProvider !== 'hostinger') {
-  throw new Error(`Exact Hostinger release is not live (${healthResponse.status})`);
-}
-console.log(`CATALOG_GATE_RELEASE_PASS release=${expectedReleaseId}`);
-
-const loginResponse = await fetch(`${baseUrl}/api/ops/session`, {
-  method: 'POST',
-  headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ token: internalToken }),
-});
-if (loginResponse.status !== 200) throw new Error(`Owner session login returned ${loginResponse.status}`);
-const setCookie = loginResponse.headers.get('set-cookie') ?? '';
-const ownerCookie = setCookie.split(';', 1)[0];
-if (!/^io_ops=/.test(ownerCookie)) throw new Error('Owner session cookie was not issued');
-console.log('CATALOG_GATE_OWNER_AUTH_PASS');
-
-async function printSafeReadiness() {
-  const response = await fetch(`${baseUrl}/ops/api/readiness`, {
-    headers: { cookie: ownerCookie },
-    cache: 'no-store',
-  });
-  const payload = await json(response);
-  if (response.status !== 200 || !Array.isArray(payload?.checks)) {
-    throw new Error(`Owner readiness returned ${response.status}`);
-  }
-  for (const check of payload.checks) {
-    if (['catalog', 'catalog-authority', 'safepay', 'printful', 'merchant', 'resend', 'storage', 'database', 'privacy'].includes(check.key)) {
-      console.log(`READINESS_BEFORE ${check.key}=${check.state} detail=${String(check.detail).replace(/\s+/g, ' ')}`);
-    }
-  }
-  return payload;
-}
-
-await printSafeReadiness();
-
-async function getWebsite() {
-  const response = await fetch(`${baseUrl}/ops/api/website`, {
-    headers: { cookie: ownerCookie },
-    cache: 'no-store',
-  });
-  const payload = await json(response);
-  if (response.status !== 200) throw new Error(`Owner website state returned ${response.status}`);
-  return payload;
 }
 
 function assertCatalogShape(payload) {
@@ -73,51 +28,93 @@ function assertCatalogShape(payload) {
   }
 }
 
-let state = await getWebsite();
-assertCatalogShape(state?.catalog?.payload);
-const initialSource = state?.catalog?.source;
-const initialVersion = Number(state?.catalog?.version ?? -1);
-const catalogPayload = state.catalog.payload;
-const productCount = Object.keys(catalogPayload.products).length;
-const variantCount = Object.values(catalogPayload.products).reduce((sum, product) => sum + product.variants.length, 0);
-console.log(`CATALOG_GATE_BEFORE source=${initialSource} version=${initialVersion} currency=${catalogPayload.currency} products=${productCount} variants=${variantCount}`);
+const browser = await chromium.launch();
+try {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  try {
+    const page = await context.newPage();
+    const begin = await page.goto(`${baseUrl}/begin`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+    if (!begin?.ok()) throw new Error(`/begin returned ${begin?.status() ?? 'NO_RESPONSE'}`);
 
-if (initialSource === 'BOOT') {
-  const publishResponse = await fetch(`${baseUrl}/ops/api/website/catalog`, {
-    method: 'POST',
-    headers: { cookie: ownerCookie, 'content-type': 'application/json' },
-    body: JSON.stringify(catalogPayload),
-  });
-  const publishPayload = await json(publishResponse);
-  if (publishResponse.status !== 200 || publishPayload?.ok !== true || !Number.isInteger(publishPayload?.version) || publishPayload.version < 1) {
-    throw new Error(`Catalog publication returned ${publishResponse.status}: ${String(publishPayload?.error ?? 'unknown')}`);
+    const request = context.request;
+    const healthResponse = await request.get(`${baseUrl}/api/health/release`, { headers: { 'cache-control': 'no-store' } });
+    const health = await json(healthResponse);
+    if (!healthResponse.ok() || health?.releaseId !== expectedReleaseId || health?.runtimeProvider !== 'hostinger') {
+      throw new Error(`Exact Hostinger release is not live (${healthResponse.status()})`);
+    }
+    console.log(`CATALOG_GATE_RELEASE_PASS release=${expectedReleaseId}`);
+
+    const loginResponse = await request.post(`${baseUrl}/api/ops/session`, {
+      headers: { 'content-type': 'application/json' },
+      data: { token: internalToken },
+    });
+    if (loginResponse.status() !== 200) throw new Error(`Owner session login returned ${loginResponse.status()}`);
+    const ownerCookies = await context.cookies(baseUrl);
+    if (!ownerCookies.some((cookie) => cookie.name === 'io_ops' && cookie.value)) throw new Error('Owner session cookie was not issued');
+    console.log('CATALOG_GATE_OWNER_AUTH_PASS');
+
+    async function readReadiness(prefix) {
+      const response = await request.get(`${baseUrl}/ops/api/readiness`, { headers: { 'cache-control': 'no-store' } });
+      const payload = await json(response);
+      if (response.status() !== 200 || !Array.isArray(payload?.checks)) {
+        throw new Error(`Owner readiness returned ${response.status()}`);
+      }
+      for (const check of payload.checks) {
+        if (['catalog', 'catalog-authority', 'safepay', 'printful', 'merchant', 'resend', 'storage', 'database', 'privacy'].includes(check.key)) {
+          console.log(`${prefix} ${check.key}=${check.state} detail=${String(check.detail).replace(/\s+/g, ' ')}`);
+        }
+      }
+      return payload;
+    }
+
+    await readReadiness('READINESS_BEFORE');
+
+    async function getWebsite() {
+      const response = await request.get(`${baseUrl}/ops/api/website`, { headers: { 'cache-control': 'no-store' } });
+      const payload = await json(response);
+      if (response.status() !== 200) throw new Error(`Owner website state returned ${response.status()}`);
+      return payload;
+    }
+
+    let state = await getWebsite();
+    assertCatalogShape(state?.catalog?.payload);
+    const initialSource = state?.catalog?.source;
+    const initialVersion = Number(state?.catalog?.version ?? -1);
+    const catalogPayload = state.catalog.payload;
+    const productCount = Object.keys(catalogPayload.products).length;
+    const variantCount = Object.values(catalogPayload.products).reduce((sum, product) => sum + product.variants.length, 0);
+    if (productCount !== 3 || variantCount !== 34) throw new Error(`Expected exact approved 3-product/34-variant catalog, got products=${productCount} variants=${variantCount}`);
+    console.log(`CATALOG_GATE_BEFORE source=${initialSource} version=${initialVersion} currency=${catalogPayload.currency} products=${productCount} variants=${variantCount}`);
+
+    if (initialSource === 'BOOT') {
+      const publishResponse = await request.post(`${baseUrl}/ops/api/website/catalog`, {
+        headers: { 'content-type': 'application/json' },
+        data: catalogPayload,
+      });
+      const publishPayload = await json(publishResponse);
+      if (publishResponse.status() !== 200 || publishPayload?.ok !== true || !Number.isInteger(publishPayload?.version) || publishPayload.version < 1) {
+        throw new Error(`Catalog publication returned ${publishResponse.status()}: ${String(publishPayload?.error ?? 'unknown')}`);
+      }
+      console.log(`CATALOG_GATE_PUBLICATION_ACCEPTED version=${publishPayload.version}`);
+    } else if (initialSource !== 'ACTIVE') {
+      throw new Error(`Unexpected catalog source: ${String(initialSource)}`);
+    }
+
+    state = await getWebsite();
+    if (state?.catalog?.source !== 'ACTIVE' || !Number.isInteger(state?.catalog?.version) || state.catalog.version < 1) {
+      throw new Error('Catalog did not become ACTIVE');
+    }
+    if (JSON.stringify(state.catalog.payload) !== JSON.stringify(catalogPayload)) {
+      throw new Error('ACTIVE catalog payload differs from the approved deployed catalog');
+    }
+    console.log(`CATALOG_ACTIVATION_PASS version=${state.catalog.version} currency=${state.catalog.payload.currency}`);
+
+    const readiness = await readReadiness('READINESS');
+    const authority = readiness.checks.find((check) => check.key === 'catalog-authority');
+    if (authority?.state !== 'ready') throw new Error('Catalog authority readiness is not ready after publication');
+  } finally {
+    await context.close();
   }
-  console.log(`CATALOG_GATE_PUBLICATION_ACCEPTED version=${publishPayload.version}`);
-} else if (initialSource !== 'ACTIVE') {
-  throw new Error(`Unexpected catalog source: ${String(initialSource)}`);
+} finally {
+  await browser.close();
 }
-
-state = await getWebsite();
-if (state?.catalog?.source !== 'ACTIVE' || !Number.isInteger(state?.catalog?.version) || state.catalog.version < 1) {
-  throw new Error('Catalog did not become ACTIVE');
-}
-if (JSON.stringify(state.catalog.payload) !== JSON.stringify(catalogPayload)) {
-  throw new Error('ACTIVE catalog payload differs from the approved deployed catalog');
-}
-console.log(`CATALOG_ACTIVATION_PASS version=${state.catalog.version} currency=${state.catalog.payload.currency}`);
-
-const readinessResponse = await fetch(`${baseUrl}/ops/api/readiness`, {
-  headers: { cookie: ownerCookie },
-  cache: 'no-store',
-});
-const readiness = await json(readinessResponse);
-if (readinessResponse.status !== 200 || !Array.isArray(readiness?.checks)) {
-  throw new Error(`Owner readiness returned ${readinessResponse.status}`);
-}
-for (const check of readiness.checks) {
-  if (['catalog', 'catalog-authority', 'safepay', 'printful', 'merchant', 'resend', 'storage'].includes(check.key)) {
-    console.log(`READINESS ${check.key}=${check.state} detail=${String(check.detail).replace(/\s+/g, ' ')}`);
-  }
-}
-const authority = readiness.checks.find((check) => check.key === 'catalog-authority');
-if (authority?.state !== 'ready') throw new Error('Catalog authority readiness is not ready after publication');
