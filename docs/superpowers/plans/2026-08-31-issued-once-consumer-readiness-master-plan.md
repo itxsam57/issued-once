@@ -55,7 +55,7 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 | CR-12 | Customer lifecycle email notifications are idempotent and deliver from verified sender | CODE_READY | real PAYMENT_RECEIVED/IN_PRODUCTION/SHIPPED/DELIVERED email proof |
 | CR-13 | AI interpretation and artwork generation are provider-backed, private and replaceable | CODE_READY | exact-head provider/runtime hardening is green; one real supported-provider generated candidate proof still required |
 | CR-14 | Artwork quality gate proves an actually printable transparent PNG, not metadata alone | CODE_READY | decoded corruption/alpha/template/effective-DPI contract is exact-head green; real selected-template candidate proof still required |
-| CR-15 | Generated artwork is durably retained across application redeploy/restart boundary | CODE_READY | durable Postgres/private-access/integrity regressions are integrated and tree-verified; apply `0036` only through the production-migration gate, then prove a real object survives destructive restart/redeploy |
+| CR-15 | Generated artwork is durably retained across application redeploy/restart boundary | CODE_READY | durable Postgres/private-access/integrity regressions are integrated and tree-verified; production `0036` schema gate is verified, then prove a real object survives destructive restart/redeploy |
 | CR-16 | Owner reviews/approves/rejects/regenerates/uploads design with audited private-data reveals | CODE_READY | deployed Owner OS browser proof on a real controlled Issue |
 | CR-17 | Catalog publication cannot sell a variant without a factory mapping | CODE_READY | exact-head regression + Owner OS publish rejection proof |
 | CR-18 | Boot/default catalog never silently becomes accidental production commercial truth | CODE_READY | fail-closed owner-publication authority and readiness regression are integrated; deployed owner-published catalog + live quote/selection proof still required |
@@ -200,8 +200,8 @@ Synthetic preview/browser tests are evidence of UI logic only. `ENABLE_VISUAL_PR
 - Private locator/access contract: canonical metadata stores only `artwork://<issue>/<artifact>` locators; external factory reads use bounded same-app signed `/api/artwork/<token>` URLs, and the durable raw locator is not exposed as a public object URL.
 - Integrity contract: durable reads revalidate canonical locator, PNG MIME type, byte count and SHA-256; missing or corrupt objects fail closed. Manufacturing approval reopens the durable object and rejects metadata-only/mismatched records before approval.
 - Readiness contract: storage readiness verifies the durable Postgres relation plus signing/origin safety instead of probing deployment-local disk.
-- Schema: `0036_durable_artwork_objects.sql` is repository/code-ready only. **It has not been applied to production.** Referral migrations remain separately deferred and untouched.
-- Remaining CR-15 evidence before `DONE`: obtain explicit production-migration approval for `0036`; preflight/apply only that approved core migration; perform a controlled private durable write/read and destructive application restart/redeploy; prove the same bytes remain retrievable and integrity-checked afterward on the deployed release identity.
+- Schema: `0036_durable_artwork_objects.sql` is repository/code-ready and its production schema gate was later verified by workflow run `33508570582`, successful migration rerun job `99911484696`: the required relation was already compatible and the index was present. Do not rerun the migration trigger solely for CR-15 evidence. Referral migrations remain separately deferred and untouched.
+- Remaining CR-15 evidence before `DONE`: perform a controlled private durable write/read and destructive application restart/redeploy on the deployed current integration descendant; prove the same bytes remain retrievable and integrity-checked afterward. The production `0036` schema gate is already verified and is not a remaining owner action.
 - Production deployment/environment/provider/factory mutation: none.
 - Master-plan state: `CODE_READY`, integrated and tree-verified; not `DONE`.
 
@@ -265,7 +265,7 @@ Remaining completion target: deploy the exact integrated release, confirm an own
 
 The design pipeline validates the actual decoded PNG rather than trusting requested background metadata, requires real transparent pixels at both automated and manual ingress, binds manufacturing approval to the exact selected Printful template with calculated effective DPI and audited evidence, and now reopens integrity-checked Postgres-backed artwork instead of trusting deployment-local filesystem metadata.
 
-Remaining completion target: apply `0036` only through its explicit production-migration gate; prove destructive deployed restart/redeploy retention; then run one real supported-provider generation plus actual selected-template/placement proof. These live/provider proofs remain distinct from code readiness.
+Remaining completion target: production `0036` schema gate is already verified; do not rerun it for evidence. Prove destructive deployed restart/redeploy retention, then run one real supported-provider generation plus actual selected-template/placement proof. These live/provider proofs remain distinct from code readiness.
 
 ### F. Public support
 
@@ -304,9 +304,9 @@ Root-cause completion target: expand controlled live QA in stages. Never charge 
 5. `CR-11` encrypted Issue-scoped customer support — **code-ready and integrated; deployed owner-reply proof pending**.
 6. `CR-18` require explicit production catalog authority — **code-ready and integrated; deployed owner-published catalog proof pending**.
 7. `CR-13` + `CR-14` current provider + actual printable-image contract — **code-ready and integrated; live/provider candidate proof pending**.
-8. `CR-15` durable artwork retention — **code-ready and integrated/tree-verified at `fc3be93445a3538cac473146df8557077c35a6ef`; production `0036` + destructive deployed recovery proof remain owner/live-gated**.
+8. `CR-15` durable artwork retention — **code-ready and integrated/tree-verified at `fc3be93445a3538cac473146df8557077c35a6ef`; production `0036` schema gate is verified; destructive deployed recovery proof remains owner/live-gated**.
 9. `CR-22` refund operations/runbook truth — **code-ready and integrated/tree-verified at `6b64b3b000cff18db2ac27b8c5494b0c72670211`; real Safepay full-refund proof pending**.
-10. Owner-gated production preflight: approve/apply required core migration `0036` before deploying code that depends on `artwork_objects`; deploy the exact verified integration release; run `CR-27` live boundary/security proof.
+10. Production `0036` schema compatibility is already verified; do not rerun it. Owner-gated production preflight now begins with deploying the exact latest verified integration release, then run `CR-27` live boundary/security proof and the CR-15 destructive retention proof on that deployed descendant.
 11. Automate all safe live provider tests: real OTP, shipping, payment sandbox/controlled production return, email, design generation and Printful draft.
 12. Owner-only irreversible gate: first real Safepay charge if needed and first Printful confirmation.
 13. Run `CR-28`: one complete controlled order plus a second deliberately different customer/session to prove no cross-customer data mixing.
