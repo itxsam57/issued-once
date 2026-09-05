@@ -188,6 +188,34 @@ test('blocks GPT Image 2 readiness while transparent production artwork is requi
   expect(result.readyForSandbox).toBe(false);
 });
 
+test('privacy readiness does not require the legacy V1 key when no V1 payloads remain', async () => {
+  const env = { ...completeEnv };
+  delete env.QUIZ_ENCRYPTION_KEY_V1;
+
+  const result = await new ReadinessService({
+    ...healthyDependencies(env),
+    legacyPrivacyPayloadsExist: vi.fn(async () => false),
+  }).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'privacy', state: 'ready' }));
+  expect(result.readyForSandbox).toBe(true);
+});
+
+test('privacy readiness blocks when the database still rejects V2 design briefs', async () => {
+  const result = await new ReadinessService({
+    ...healthyDependencies(completeEnv),
+    legacyPrivacyPayloadsExist: vi.fn(async () => false),
+    privacySchemaPing: vi.fn(async () => false),
+  }).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'privacy',
+    state: 'blocked',
+    detail: expect.stringMatching(/schema|v2 design brief/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
 test('malformed privacy key material is blocked instead of treated as configured', async () => {
   const result = await new ReadinessService({
     ...healthyDependencies({ ...completeEnv, QUIZ_ENCRYPTION_KEY_V1: 'not-a-32-byte-key' }),

@@ -21,6 +21,33 @@ export function createReadinessService() {
       );
       return rows[0]?.ok === 1;
     },
+    legacyPrivacyPayloadsExist: async () => {
+      if (!sql) return true;
+      const rows = await sql.query<{ has_legacy: boolean }>(`
+        SELECT EXISTS (
+          SELECT 1 FROM experience_answers WHERE key_version='v1'
+          UNION ALL SELECT 1 FROM otp_challenges WHERE email_key_version='v1'
+          UNION ALL SELECT 1 FROM verified_contacts WHERE key_version='v1'
+          UNION ALL SELECT 1 FROM shipping_snapshots WHERE key_version='v1'
+          UNION ALL SELECT 1 FROM support_requests WHERE key_version='v1'
+          UNION ALL SELECT 1 FROM design_jobs WHERE brief_key_version='v1'
+          UNION ALL SELECT 1 FROM ops_design_candidates WHERE brief_key_version='v1'
+          LIMIT 1
+        ) AS has_legacy
+      `);
+      return rows[0]?.has_legacy === true;
+    },
+    privacySchemaPing: async () => {
+      if (!sql) return false;
+      const rows = await sql.query<{ ready_constraints: number | string }>(`
+        SELECT COUNT(*) AS ready_constraints
+        FROM pg_constraint
+        WHERE conrelid IN ('design_jobs'::regclass, 'ops_design_candidates'::regclass)
+          AND conname IN ('design_jobs_check', 'ops_design_candidates_check')
+          AND pg_get_constraintdef(oid) ILIKE '%v2%'
+      `);
+      return Number(rows[0]?.ready_constraints ?? 0) === 2;
+    },
     storagePing: async () => {
       if (!sql) return false;
       return createArtworkStorageSchemaPing(sql)();

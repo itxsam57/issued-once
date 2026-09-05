@@ -20,6 +20,25 @@ export type EncryptedPayload = EncryptedPayloadV1 | EncryptedPayloadV2;
 
 type KeyVersion = EncryptedPayload['keyVersion'];
 
+export function encryptedPayloadFromStorage(input: {
+  payloadVersion: number;
+  keyVersion: string;
+  iv: string;
+  tag: string;
+  ciphertext: string;
+}): EncryptedPayload {
+  if (input.payloadVersion !== 1 || (input.keyVersion !== 'v1' && input.keyVersion !== 'v2')) {
+    throw new Error('Unsupported private payload version');
+  }
+  return {
+    version: 1,
+    keyVersion: input.keyVersion,
+    iv: input.iv,
+    tag: input.tag,
+    ciphertext: input.ciphertext,
+  };
+}
+
 function loadKey(version: KeyVersion): Buffer {
   const envName = version === 'v1' ? 'QUIZ_ENCRYPTION_KEY_V1' : 'QUIZ_ENCRYPTION_KEY_V2';
   const encoded = process.env[envName];

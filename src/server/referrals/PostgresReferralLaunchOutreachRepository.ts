@@ -1,4 +1,4 @@
-import type { EncryptedPayload } from '@/server/crypto/privatePayload';
+import { encryptedPayloadFromStorage, type EncryptedPayload } from '@/server/crypto/privatePayload';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type { CreatorOutreachCandidate, ReferralLaunchOutreachRepository } from './ReferralLaunchOutreachService';
 
@@ -16,16 +16,13 @@ type CandidateRow = {
 type ReservationRow = { id: string };
 
 function encryptedEmail(row: CandidateRow): EncryptedPayload {
-  if (Number(row.email_payload_version) !== 1 || row.email_key_version !== 'v1') {
-    throw new Error('Creator email payload version is unsupported');
-  }
-  return {
-    version: 1,
-    keyVersion: 'v1',
+  return encryptedPayloadFromStorage({
+    payloadVersion: Number(row.email_payload_version),
+    keyVersion: row.email_key_version,
     iv: row.email_iv,
     tag: row.email_auth_tag,
     ciphertext: row.email_ciphertext,
-  };
+  });
 }
 
 export class PostgresReferralLaunchOutreachRepository implements ReferralLaunchOutreachRepository {

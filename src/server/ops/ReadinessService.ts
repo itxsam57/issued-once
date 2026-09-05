@@ -23,6 +23,8 @@ type Dependencies = {
   catalogAuthorityPing: () => Promise<boolean>;
   storagePing: () => Promise<boolean>;
   queuePing: () => Promise<boolean>;
+  legacyPrivacyPayloadsExist?: () => Promise<boolean>;
+  privacySchemaPing?: () => Promise<boolean>;
   fetchImpl?: typeof fetch;
 };
 
@@ -110,36 +112,63 @@ export class ReadinessService {
       }
     }
 
-    const hasPrivacyValues = present(
-      this.env,
-      'QUIZ_ENCRYPTION_KEY_V1',
-      'QUIZ_ENCRYPTION_KEY_V2',
-      'IDENTITY_HMAC_KEY',
-    );
-    const privacyKeysValid =
-      isBase64Key32(this.env.QUIZ_ENCRYPTION_KEY_V1) &&
-      isBase64Key32(this.env.QUIZ_ENCRYPTION_KEY_V2) &&
-      isBase64Key32(this.env.IDENTITY_HMAC_KEY);
-    checks.push(!hasPrivacyValues
+    let legacyPrivacyPayloadsExist = true;
+    let privacySchemaReady = true;
+    let privacyEvidenceReady = true;
+    try {
+      if (this.dependencies.legacyPrivacyPayloadsExist) {
+        legacyPrivacyPayloadsExist = await this.dependencies.legacyPrivacyPayloadsExist();
+      }
+      if (this.dependencies.privacySchemaPing) {
+        privacySchemaReady = await this.dependencies.privacySchemaPing();
+      }
+    } catch {
+      privacyEvidenceReady = false;
+    }
+
+    const requiredPrivacyKeys = legacyPrivacyPayloadsExist
+      ? ['QUIZ_ENCRYPTION_KEY_V1', 'QUIZ_ENCRYPTION_KEY_V2', 'IDENTITY_HMAC_KEY']
+      : ['QUIZ_ENCRYPTION_KEY_V2', 'IDENTITY_HMAC_KEY'];
+    const hasPrivacyValues = present(this.env, ...requiredPrivacyKeys);
+    const privacyKeysValid = requiredPrivacyKeys.every((name) => isBase64Key32(this.env[name]));
+    const privacyKeyLabel = legacyPrivacyPayloadsExist ? 'V1/V2 encryption keys' : 'V2 encryption key';
+
+    checks.push(!privacyEvidenceReady
       ? {
           key: 'privacy',
           label: 'Privacy keys',
-          state: 'missing',
-          detail: 'V1 and V2 encryption keys plus the identity-HMAC key are required.',
+          state: 'blocked',
+          detail: 'Legacy privacy-key usage or V2 design-brief schema could not be verified.',
         }
-      : privacyKeysValid
+      : !privacySchemaReady
         ? {
             key: 'privacy',
             label: 'Privacy keys',
-            state: 'ready',
-            detail: 'V1/V2 encryption keys and the identity-HMAC key decode to the required 32 bytes.',
-          }
-        : {
-            key: 'privacy',
-            label: 'Privacy keys',
             state: 'blocked',
-            detail: 'V1/V2 encryption keys and the identity-HMAC key must each decode to exactly 32 bytes.',
-          });
+            detail: 'Database privacy schema does not yet accept current V2 design briefs.',
+          }
+        : !hasPrivacyValues
+          ? {
+              key: 'privacy',
+              label: 'Privacy keys',
+              state: 'missing',
+              detail: legacyPrivacyPayloadsExist
+                ? 'V1 and V2 encryption keys plus the identity-HMAC key are required while legacy V1 payloads remain.'
+                : 'V2 encryption key plus the identity-HMAC key are required.',
+            }
+          : privacyKeysValid
+            ? {
+                key: 'privacy',
+                label: 'Privacy keys',
+                state: 'ready',
+                detail: `${privacyKeyLabel} and the identity-HMAC key decode to the required 32 bytes.`,
+              }
+            : {
+                key: 'privacy',
+                label: 'Privacy keys',
+                state: 'blocked',
+                detail: `${privacyKeyLabel} and the identity-HMAC key must each decode to exactly 32 bytes.`,
+              });
 
     const merchant = readPublicMerchant(this.env);
     checks.push(merchant.ready

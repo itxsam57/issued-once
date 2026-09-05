@@ -7,7 +7,7 @@ test('migration manifest points to repository tip and separates production-appli
     readFile('db/migrations/README.md', 'utf8'),
   ]);
 
-  expect(current.trim()).toBe('0036_durable_artwork_objects.sql');
+  expect(current.trim()).toBe('0037_design_brief_key_v2.sql');
 
   for (const migration of [
     '0030_background_job_pipeline.sql',
@@ -17,12 +17,15 @@ test('migration manifest points to repository tip and separates production-appli
     '0034_referral_launch_outreach.sql',
     '0035_referral_private_payload_key_v2.sql',
     '0036_durable_artwork_objects.sql',
+    '0037_design_brief_key_v2.sql',
   ]) {
     expect(readme).toContain(`\`${migration}\``);
   }
 
   expect(readme).toMatch(/production.*0030.*0031.*0032.*0033/is);
   expect(readme).toMatch(/pending.*0036/is);
+  expect(readme).toMatch(/pending.*0037/is);
+  expect(readme).toMatch(/0037.*may be applied independently of.*0036/is);
   expect(readme).toMatch(/deferred.*0029.*0034.*0035/is);
   expect(readme).not.toMatch(/apply in lexicographic filename order/i);
 });

@@ -43,6 +43,7 @@ Production rollout is intentionally split into tracks. Do not blindly apply ever
 35. `0034_referral_launch_outreach.sql`
 36. `0035_referral_private_payload_key_v2.sql`
 37. `0036_durable_artwork_objects.sql`
+38. `0037_design_brief_key_v2.sql`
 
 ## Production-applied core track
 
@@ -53,6 +54,8 @@ Those later core migrations were deliberately applied before the referral track.
 ## Pending core migration track
 
 `0036_durable_artwork_objects.sql` is a code-ready core migration for CR-15 durable private artwork retention. It is **not production-applied**. It must remain unapplied until the explicit production-migration approval checkpoint, where the target schema is preflighted and the durable write/read plus restart/redeploy proof is executed without enabling paid factory confirmation.
+
+`0037_design_brief_key_v2.sql` widens only the existing nullable encrypted design-brief constraints on `design_jobs` and `ops_design_candidates` from V1-only to V1/V2. It contains no data rewrite or destructive DML. It is **not production-applied** until its explicit production-migration approval checkpoint. Because it depends only on the already-live `0011`/`0021` schema, `0037` may be applied independently of pending `0036`; applying `0037` does not activate referrals or durable artwork storage.
 
 ## Deferred referral activation track
 
@@ -75,6 +78,7 @@ Do not apply any of these three migrations until the explicit referral productio
 - `0034` adds idempotent creator outreach delivery state.
 - `0035` permits referral private payload key versions `v1` and `v2` so current V2 encryption can coexist with historical V1 data.
 - `0036` stores private artwork bytes in the existing Postgres durability authority with byte-count and SHA-256 integrity metadata so generated and owner-uploaded artwork do not depend on a deployment-local filesystem.
+- `0037` permits encrypted design briefs in `design_jobs` and `ops_design_candidates` to use either historical V1 or current V2 private-payload keys.
 
 ## Latest verification evidence
 
@@ -82,4 +86,4 @@ On 2026-08-28, PR #18 re-proved the deferred referral chain on an isolated Neon 
 
 A fresh read-only production preflight on 2026-08-28 confirmed a clean referral starting state: zero existing referral objects, all prerequisite core columns/tables present, 342 existing checkout quotes with no non-positive amounts, and no partial referral columns, fill function, or trigger. No referral migration was applied during that preflight.
 
-Production therefore remains intentionally split: core migrations `0030`, `0031`, `0032`, and `0033` are live; core migration `0036` is pending explicit production-migration approval; and referral migrations `0029`, `0034`, and `0035` remain unapplied pending their separate activation gate.
+Production therefore remains intentionally split: core migrations `0030`, `0031`, `0032`, and `0033` are live; core migrations `0036` and `0037` are pending their explicit production-migration approval checkpoints (`0037` may be applied independently of `0036`); and referral migrations `0029`, `0034`, and `0035` remain unapplied pending their separate activation gate.
