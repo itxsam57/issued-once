@@ -199,7 +199,7 @@ Do not expose this token to public environment variables or browser JavaScript.
 Server-only Printful API token.
 
 ### `PRINTFUL_STORE_ID`
-Optional API-store identifier when the token has access to multiple stores.
+Explicit Printful store identifier for the ISSUED ONCE store. API-only calls can technically omit it when a token is single-store, but production readiness requires it so authenticated webhook events can be bound to exactly one configured store.
 
 ### `PRINTFUL_VARIANT_MAP_JSON`
 Explicit mapping from ISSUED ONCE physical truth to a **sampled and measured** Printful catalog variant and print placement.
@@ -241,7 +241,7 @@ Rules:
 Expected Printful v2 webhook public-key header.
 
 ### `PRINTFUL_WEBHOOK_SECRET_HEX`
-Printful v2 webhook signing secret as hexadecimal. The application hex-decodes it before HMAC-SHA256 verification.
+Printful v2 webhook signing secret as hexadecimal. The application hex-decodes it before HMAC-SHA256 verification. After the public-key and HMAC checks pass, the webhook payload `store_id` must exactly match `PRINTFUL_STORE_ID`; a correctly signed event for any other Printful store is rejected.
 
 Production webhook endpoint:
 

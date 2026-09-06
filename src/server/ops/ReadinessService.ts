@@ -313,11 +313,12 @@ export class ReadinessService {
     const printfulConfigured = present(
       this.env,
       'PRINTFUL_API_TOKEN',
+      'PRINTFUL_STORE_ID',
       'PRINTFUL_WEBHOOK_PUBLIC_KEY',
       'PRINTFUL_WEBHOOK_SECRET_HEX',
     );
     if (!printfulConfigured) {
-      checks.push({ key: 'printful', label: 'Printful', state: 'missing', detail: 'Printful API and signed-webhook configuration are required; the audited 34-variant map is built in.' });
+      checks.push({ key: 'printful', label: 'Printful', state: 'missing', detail: 'Printful API, store ID, and signed-webhook configuration are required; the audited 34-variant map is built in.' });
     } else if (!isValidHexSecret(this.env.PRINTFUL_WEBHOOK_SECRET_HEX)) {
       checks.push({ key: 'printful', label: 'Printful', state: 'blocked', detail: 'Printful webhook secret must be non-empty, even-length hexadecimal.' });
     } else {

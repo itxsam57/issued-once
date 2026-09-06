@@ -160,6 +160,21 @@ test('Printful readiness uses the audited built-in 34-variant map when the envir
   }));
 });
 
+
+test('Printful readiness requires an explicit store ID so signed webhooks are store-bound', async () => {
+  const env = { ...completeEnv };
+  delete env.PRINTFUL_STORE_ID;
+
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'printful',
+    state: 'missing',
+    detail: expect.stringMatching(/store id/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
 test('fails release readiness closed when no owner-published ACTIVE catalog exists', async () => {
   const dependencies = healthyDependencies(completeEnv);
   dependencies.catalogAuthorityPing.mockResolvedValue(false);

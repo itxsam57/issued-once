@@ -4,6 +4,7 @@ import { PrintfulWebhookVerifier } from '@/server/manufacturing/PrintfulWebhookV
 
 const secretHex = Buffer.alloc(32, 7).toString('hex');
 const publicKey = 'cHJpbnRmdWwtcHVibGljLWtleQ==';
+const storeId = '123';
 
 function signed(body: object) {
   const rawBody = JSON.stringify(body);
@@ -17,13 +18,15 @@ function signed(body: object) {
   };
 }
 
-test('requires a non-empty even-length hexadecimal Printful webhook secret', () => {
-  expect(() => new PrintfulWebhookVerifier({ publicKey, secretKeyHex: 'not-hex' })).toThrow(/hexadecimal/i);
-  expect(() => new PrintfulWebhookVerifier({ publicKey, secretKeyHex: '' })).toThrow(/hexadecimal|empty/i);
+test('requires valid Printful webhook secret and store identity configuration', () => {
+  expect(() => new PrintfulWebhookVerifier({ publicKey, secretKeyHex: 'not-hex', storeId })).toThrow(/hexadecimal/i);
+  expect(() => new PrintfulWebhookVerifier({ publicKey, secretKeyHex: '', storeId })).toThrow(/hexadecimal|empty/i);
+  expect(() => new PrintfulWebhookVerifier({ publicKey, secretKeyHex: secretHex, storeId: '' })).toThrow(/store id/i);
+  expect(() => new PrintfulWebhookVerifier({ publicKey, secretKeyHex: secretHex, storeId: 'abc' })).toThrow(/store id/i);
 });
 
 test('verifies shipment_sent and derives stable event identity that ignores Printful retry count', () => {
-  const verifier = new PrintfulWebhookVerifier({ publicKey, secretKeyHex: secretHex });
+  const verifier = new PrintfulWebhookVerifier({ publicKey, secretKeyHex: secretHex, storeId });
   const base = {
     type: 'shipment_sent',
     occurred_at: '2026-08-19T03:00:00Z',
@@ -44,8 +47,19 @@ test('verifies shipment_sent and derives stable event identity that ignores Prin
   expect(retry.providerEventId).toBe(first.providerEventId);
 });
 
+
+test('rejects a correctly signed event from a different Printful store', () => {
+  const verifier = new PrintfulWebhookVerifier({ publicKey, secretKeyHex: secretHex, storeId });
+  const body = {
+    type: 'shipment_sent', occurred_at: '2026-08-19T03:00:00Z', retries: 0, store_id: 999,
+    data: { shipment: { id: 456 }, order: { id: 987654, external_id: 'IO-ABCD-EFGH', status: 'fulfilled' } },
+  };
+
+  expect(() => verifier.verify(signed(body))).toThrow(/store/i);
+});
+
 test('parses delivered event and rejects wrong public key/signature', () => {
-  const verifier = new PrintfulWebhookVerifier({ publicKey, secretKeyHex: secretHex });
+  const verifier = new PrintfulWebhookVerifier({ publicKey, secretKeyHex: secretHex, storeId });
   const body = {
     type: 'shipment_delivered', occurred_at: '2026-08-22T12:00:00Z', retries: 0, store_id: 123,
     data: { shipment: { id: 456, tracking_number: 'TRACK-1', tracking_url: 'https://carrier.example/T1', delivered_at: '2026-08-22T11:59:00Z' }, order: { id: 987654, external_id: 'IO-ABCD-EFGH', status: 'fulfilled' } },
