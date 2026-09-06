@@ -25,6 +25,19 @@ function env(name: string): string {
   return value;
 }
 
+function createPrintfulWebhookVerifier(): PrintfulWebhookVerifier {
+  try {
+    return new PrintfulWebhookVerifier({
+      publicKey: env('PRINTFUL_WEBHOOK_PUBLIC_KEY'),
+      secretKeyHex: env('PRINTFUL_WEBHOOK_SECRET_HEX'),
+      storeId: env('PRINTFUL_STORE_ID'),
+    });
+  } catch (error) {
+    if (error instanceof ManufacturingRuntimeUnavailableError) throw error;
+    throw new ManufacturingRuntimeUnavailableError('Printful webhook runtime configuration is invalid');
+  }
+}
+
 export function createManufacturingService(): ManufacturingService {
   const sql = createNeonSqlExecutor(env('DATABASE_URL'));
   return new ManufacturingService(
@@ -41,10 +54,7 @@ export function createManufacturingService(): ManufacturingService {
 export function createManufacturingEventService(): ManufacturingEventService {
   const sql = createNeonSqlExecutor(env('DATABASE_URL'));
   return new ManufacturingEventService(
-    new PrintfulWebhookVerifier({
-      publicKey: env('PRINTFUL_WEBHOOK_PUBLIC_KEY'),
-      secretKeyHex: env('PRINTFUL_WEBHOOK_SECRET_HEX'),
-    }),
+    createPrintfulWebhookVerifier(),
     new PostgresManufacturingEventRepository(sql),
     referralsAreEnabled() ? createReferralConversionService() : undefined,
   );
