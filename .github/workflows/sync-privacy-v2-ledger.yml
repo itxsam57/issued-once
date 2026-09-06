@@ -1,0 +1,83 @@
+name: Sync Privacy V2 Ledger
+
+on:
+  push:
+    branches:
+      - ops/sync-privacy-v2-ledger-20260906
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create clean privacy V2 checkpoint branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin infra/hostinger-migration-20260823
+          git checkout -B docs/privacy-v2-ready-checkpoint-20260906 origin/infra/hostinger-migration-20260823
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = '.engineering/CONTINUATION.json';
+          const state = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const now = new Date().toISOString();
+
+          state.version = '1.36.6';
+          state.updatedAt = now;
+          state.sourceOfTruth.latestEngineeringIntegrationHead = 'e93b6dcee340b9e53ab772fa4f89052b846e0652';
+          state.sourceOfTruth.latestEngineeringIntegrationTree = '10512bda94fd6b858f978b32fd2d3c9997fd37b0';
+          state.sourceOfTruth.latestEngineeringIntegrationVerifiedAt = now;
+
+          state.continuationGovernor.currentEngineeringStopReason = 'Production privacy migration 0037 is applied and freshly verified: design_jobs and ops_design_candidates accept exactly v1/v2 encrypted design briefs, both tables remained at 0 rows, and live Owner OS readiness reports privacy=ready. The owner-approved catalog remains ACTIVE v1 with exact 34 variants on Hostinger release 97d5f015df33bf4ec5486e7b6a5d3d135fc184cc. Remaining runtime blockers are Safepay provider configuration/live proof and Printful signed-webhook configuration/live provider proof. Real payment/refund and Printful manufacturing confirmation remain separately gated.';
+          state.continuationGovernor.decision = 'STOP_AT_SAFEPAY_PRINTFUL_WEBHOOK_GATES';
+          state.continuationGovernor.reason = 'Privacy V2 schema/key readiness, catalog mapping/publication, and temporary-host physical selection proof are complete. Do not create a real Safepay charge/refund, confirm Printful manufacturing, delete retained V2 data, rotate privacy keys, or cut over the canonical domain without the applicable separate owner gate.';
+          state.engineeringFactory.internalWorkStatus = 'PRIVACY_V2_READY_CATALOG_ACTIVE_AWAITING_PROVIDER_RUNTIME';
+
+          state.standingOwnerGates.productionPrivacyKeyConfiguration = false;
+          state.standingOwnerGates.productionDesignBriefV2Migration0037 = false;
+          state.productionRuntime.productionMigration0037Applied = true;
+          state.productionRuntime.privacyReadiness = 'ready';
+          state.productionRuntime.privacyReadinessVerifiedAt = now;
+
+          state.nextAction = {
+            actor: 'OWNER_OR_AUTHENTICATED_PROVIDER',
+            instruction: 'Configure Safepay runtime with truthful provider-issued values and configure Printful webhook-v2 with truthful provider-issued public/secret keys for the six supported events. Keep PRINTFUL_ALLOW_CONFIRM disabled. Then redeploy/restart only as required and rerun exact-release readiness/boundary proof. Do not create a real Safepay charge/refund or confirm Printful manufacturing solely for QA. Retain current V2 data and keys until the separately approved prelaunch cleanup gate.'
+          };
+
+          const finish = state.consumerReadinessFinishV4;
+          finish.freshLiveEvidence = finish.freshLiveEvidence || {};
+          finish.freshLiveEvidence.productionPrivacyV2Migration0037 = {
+            ownerApproval: '2026-09-06 explicit approval received in project control chat',
+            project: 'autumn-butterfly-25489215',
+            database: 'neondb',
+            productionBranch: 'br-dawn-cloud-axm880q9',
+            preparedMigrationId: '7ce7d19b-e7d8-47c8-87d3-83240ba9fbce',
+            result: 'APPLIED_AND_FRESHLY_VERIFIED',
+            designJobsRowsAfter: 0,
+            opsDesignCandidatesRowsAfter: 0,
+            constraintTruth: "brief_payload_version=1 accepts brief_key_version IN ('v1','v2') with all encrypted fields present; all-null form remains accepted",
+            liveReadiness: 'privacy=ready; V2 encryption key and identity-HMAC key decode to required 32 bytes',
+            catalogActivationRecheckRun: 33994961529,
+            catalogActivationRecheckJob: 101412450802,
+            irreversibleDataDeletionPerformed: false,
+            keyRotationPerformed: false
+          };
+
+          if (Array.isArray(finish.remainingOwnerOrProviderGates)) {
+            finish.remainingOwnerOrProviderGates = finish.remainingOwnerOrProviderGates.filter((item) => !String(item).includes('migration 0037'));
+          }
+
+          fs.writeFileSync(path, JSON.stringify(state, null, 2) + '\n');
+          NODE
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .engineering/CONTINUATION.json
+          git diff --cached --check
+          git commit -m 'docs(engineering): checkpoint privacy V2 readiness'
+          git push origin HEAD:refs/heads/docs/privacy-v2-ready-checkpoint-20260906
