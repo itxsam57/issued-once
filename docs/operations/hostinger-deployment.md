@@ -204,16 +204,15 @@ Required for manufacturing draft creation:
 - `ARTWORK_SIGNING_KEY` from Batch 1
 - `APP_ORIGIN`
 
-Optional depending on token type:
-
-- `PRINTFUL_STORE_ID`
+`PRINTFUL_STORE_ID` remains optional for API-only calls when the token is single-store, but production readiness requires an explicit value so webhook events are bound to the intended store.
 
 Required for Printful webhook-v2 verification:
 
+- `PRINTFUL_STORE_ID`
 - `PRINTFUL_WEBHOOK_PUBLIC_KEY`
 - `PRINTFUL_WEBHOOK_SECRET_HEX`
 
-Current code expects Printful webhook-v2 HMAC-SHA256 signing and decodes the returned hexadecimal secret before verification.
+Current code expects Printful webhook-v2 HMAC-SHA256 signing, decodes the returned hexadecimal secret before verification, and rejects an otherwise-valid signed payload whose `store_id` does not exactly match `PRINTFUL_STORE_ID`.
 
 Prove draft-safe manufacturing only. Draft creation is separate from confirmation. Keep production confirmation disabled during QA because Printful confirmation submits the order for fulfillment and can charge the store owner.
 

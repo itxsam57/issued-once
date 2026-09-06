@@ -16,6 +16,7 @@ const ENV_KEYS = [
   'DATABASE_URL',
   'PRINTFUL_WEBHOOK_PUBLIC_KEY',
   'PRINTFUL_WEBHOOK_SECRET_HEX',
+  'PRINTFUL_STORE_ID',
 ] as const;
 const saved = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
 
@@ -23,6 +24,7 @@ beforeEach(() => {
   process.env.DATABASE_URL = 'postgresql://user:pass@ep-test-000000.us-east-2.aws.neon.tech/neondb?sslmode=require';
   process.env.PRINTFUL_WEBHOOK_PUBLIC_KEY = 'test-public-key';
   process.env.PRINTFUL_WEBHOOK_SECRET_HEX = '00'.repeat(32);
+  process.env.PRINTFUL_STORE_ID = '123';
   referralRuntime.enabled.mockReset().mockReturnValue(false);
   referralRuntime.createConversionService.mockClear();
 });

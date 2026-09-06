@@ -47,6 +47,19 @@ test('duplicate shipment retries can resume a failed notification enqueue', asyn
   expect(enqueueIssueNotificationMock).toHaveBeenCalledWith(issueId, 'DELIVERED');
 });
 
+
+test('correctly signed Printful event from a different store is rejected as an identity mismatch', async () => {
+  createManufacturingEventServiceMock.mockReturnValue({
+    handle: vi.fn(() => { throw new Error('Printful webhook store mismatch'); }),
+  });
+  const response = await POST(new Request('https://issuedonce.shop/api/webhooks/printful', {
+    method: 'POST', body: '{}',
+  }));
+  expect(response.status).toBe(409);
+  expect(await response.json()).toEqual({ error: 'Webhook identity mismatch' });
+  expect(enqueueIssueNotificationMock).not.toHaveBeenCalled();
+});
+
 test('invalid Printful signature is rejected without customer notification', async () => {
   createManufacturingEventServiceMock.mockReturnValue({
     handle: vi.fn(() => { throw new Error('Printful webhook signature is invalid'); }),
