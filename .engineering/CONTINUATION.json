@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.36.5",
+  "version": "1.36.6",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-05T22:11:15.575Z",
+  "updatedAt": "2026-09-06T02:12:12.337Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -19,14 +19,14 @@
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop",
-    "latestEngineeringIntegrationHead": "b3952681883443fe3277343aa1e7a6885f716552",
-    "latestEngineeringIntegrationTree": "4057a5b187e63632b80623e246d129df4d476f8f",
-    "latestEngineeringIntegrationVerifiedAt": "2026-09-05T22:11:15.575Z"
+    "latestEngineeringIntegrationHead": "e93b6dcee340b9e53ab772fa4f89052b846e0652",
+    "latestEngineeringIntegrationTree": "10512bda94fd6b858f978b32fd2d3c9997fd37b0",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-06T02:12:12.337Z"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "The exact 34-variant Printful map is now audited in code, the owner-approved catalog is ACTIVE v1, and the exact Hostinger release has passed support, boundary, Tee/Cap/Tote physical-gate, and real OTP-request proof. Remaining launch blockers are production privacy migration 0037, Safepay runtime configuration/live proof, and Printful signed-webhook configuration/live provider proof. Real payment/refund and manufacturing confirmation remain separately gated.",
+    "currentEngineeringStopReason": "Production privacy migration 0037 is applied and freshly verified: design_jobs and ops_design_candidates accept exactly v1/v2 encrypted design briefs, both tables remained at 0 rows, and live Owner OS readiness reports privacy=ready. The owner-approved catalog remains ACTIVE v1 with exact 34 variants on Hostinger release 97d5f015df33bf4ec5486e7b6a5d3d135fc184cc. Remaining runtime blockers are Safepay provider configuration/live proof and Printful signed-webhook configuration/live provider proof. Real payment/refund and Printful manufacturing confirmation remain separately gated.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -34,12 +34,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "STOP_AT_PRIVACY_SAFEPAY_PRINTFUL_WEBHOOK_GATES",
-    "reason": "Catalog mapping, publication and temporary-host physical selection proof are complete. Do not reintroduce PRINTFUL_VARIANT_MAP_JSON as a deployment requirement. Do not apply migration 0037, create a real Safepay charge/refund, confirm Printful manufacturing, rotate privacy keys, delete retained V2 data, or cut over the canonical domain without the required explicit owner gate."
+    "decision": "STOP_AT_SAFEPAY_PRINTFUL_WEBHOOK_GATES",
+    "reason": "Privacy V2 schema/key readiness, catalog mapping/publication, and temporary-host physical selection proof are complete. Do not create a real Safepay charge/refund, confirm Printful manufacturing, delete retained V2 data, rotate privacy keys, or cut over the canonical domain without the applicable separate owner gate."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "CATALOG_ACTIVE_AND_PHYSICAL_FLOW_PROVEN_REMAINING_OWNER_PROVIDER_GATES",
+    "internalWorkStatus": "PRIVACY_V2_READY_CATALOG_ACTIVE_AWAITING_PROVIDER_RUNTIME",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan and CR-27 evidence checkpoint as the release evidence ledger.",
@@ -173,9 +173,9 @@
     "printfulProductionConfirmation": true,
     "canonicalDomainCutover": true,
     "truthfulMerchantPublicLocation": true,
-    "productionPrivacyKeyConfiguration": true,
+    "productionPrivacyKeyConfiguration": false,
     "printfulVariantMapConfiguration": false,
-    "productionDesignBriefV2Migration0037": true,
+    "productionDesignBriefV2Migration0037": false,
     "hostingerAuthenticationForProviderConfig": false
   },
   "productionRuntime": {
@@ -201,14 +201,16 @@
     "printfulApiTokenConfigured": true,
     "printfulVariantMapConfigured": true,
     "printfulSignedWebhookConfigured": false,
-    "productionMigration0037Applied": false,
+    "productionMigration0037Applied": true,
     "legacyV1EncryptedPayloadRows": 0,
     "retainedV2ExperienceAnswerRows": 560,
-    "retainedV2OtpRows": 24
+    "retainedV2OtpRows": 24,
+    "privacyReadiness": "ready",
+    "privacyReadinessVerifiedAt": "2026-09-06T02:12:12.337Z"
   },
   "nextAction": {
-    "actor": "OWNER_OR_PROVIDER",
-    "instruction": "Catalog and physical-selection gates are complete. Next, apply production migration 0037 only after explicit owner approval; configure truthful Safepay runtime values and Printful signed-webhook values without exposing secrets; keep PRINTFUL_ALLOW_CONFIRM disabled. Then rerun readiness and temporary-host live proofs before any canonical-domain cutover or real charge/manufacturing proof."
+    "actor": "OWNER_OR_AUTHENTICATED_PROVIDER",
+    "instruction": "Configure Safepay runtime with truthful provider-issued values and configure Printful webhook-v2 with truthful provider-issued public/secret keys for the six supported events. Keep PRINTFUL_ALLOW_CONFIRM disabled. Then redeploy/restart only as required and rerun exact-release readiness/boundary proof. Do not create a real Safepay charge/refund or confirm Printful manufacturing solely for QA. Retain current V2 data and keys until the separately approved prelaunch cleanup gate."
   },
   "consumerReadinessFinishV4": {
     "taskId": "issued-once-consumer-ready-finish-v4",
@@ -291,6 +293,22 @@
         "job": 101383892978,
         "release": "97d5f015df33bf4ec5486e7b6a5d3d135fc184cc",
         "result": "PASS: exact release + Tee physical gate + Hat physical gate + Tote physical gate + real OTP request boundary; visual evidence artifact 9977791873"
+      },
+      "productionPrivacyV2Migration0037": {
+        "ownerApproval": "2026-09-06 explicit approval received in project control chat",
+        "project": "autumn-butterfly-25489215",
+        "database": "neondb",
+        "productionBranch": "br-dawn-cloud-axm880q9",
+        "preparedMigrationId": "7ce7d19b-e7d8-47c8-87d3-83240ba9fbce",
+        "result": "APPLIED_AND_FRESHLY_VERIFIED",
+        "designJobsRowsAfter": 0,
+        "opsDesignCandidatesRowsAfter": 0,
+        "constraintTruth": "brief_payload_version=1 accepts brief_key_version IN ('v1','v2') with all encrypted fields present; all-null form remains accepted",
+        "liveReadiness": "privacy=ready; V2 encryption key and identity-HMAC key decode to required 32 bytes",
+        "catalogActivationRecheckRun": 33994961529,
+        "catalogActivationRecheckJob": 101412450802,
+        "irreversibleDataDeletionPerformed": false,
+        "keyRotationPerformed": false
       }
     },
     "rowReconciliation": {
@@ -301,7 +319,6 @@
       "CR-27": "DONE: owner-approved latest verified integration tree deployed through forward-only Hostinger wrapper; exact live health, non-OTP boundary audit, and strict security/cache-header proof passed"
     },
     "remainingOwnerOrProviderGates": [
-      "apply production migration 0037 only after explicit owner approval; retain current V2 data and keys until the separate prelaunch cleanup gate",
       "configure Safepay production runtime with truthful provider-issued values and complete separately approved live payment/refund proofs",
       "configure Printful signed-webhook runtime with truthful provider-issued values; keep PRINTFUL_ALLOW_CONFIRM disabled until the separate manufacturing gate",
       "attest truthful public merchant/legal disclosure",
