@@ -1,7 +1,7 @@
 # ISSUED ONCE — Integration Readiness, Canonical Domain, and Email Design
 
 Date: 2026-09-07
-Status: FINAL DESIGN FOR OWNER REVIEW
+Status: OWNER APPROVED — simplified to Hostinger-authoritative DNS
 Base: `infra/hostinger-migration-20260823` @ `aea453222f86abb352f6833271a4d24230e5cbc3`
 Live Hostinger release: `674ca48769619bc4664653caddd5f5b9545d1576`
 
@@ -129,20 +129,25 @@ Preserve the existing `otp.issuedonce.shop` Resend records until the root-domain
 
 ## 6. DNS and canonical-domain strategy
 
-Keep Vercel as DNS-only during this cutover. Do not move nameservers merely to move the application runtime; that creates unnecessary DNS and email risk.
+Use Hostinger as the single production DNS authority. Vercel is not part of the final stack and is removed after the nameserver migration proves healthy.
+
+The cutover intentionally avoids a Vercel-zone migration. The only existing non-Hostinger DNS state that must survive is the verified Resend OTP subdomain, whose exact three records are recoverable from the connected Resend account.
 
 Sequence:
 
 1. Deploy and prove all code-side fixes on the temporary Hostinger hostname.
-2. Configure the root-domain human-mail provider and Resend DNS records in the existing Vercel DNS zone.
-3. Publish DMARC at `_dmarc.issuedonce.shop`, initially in monitoring mode, with aggregate reports routed to `dmarc@issuedonce.shop`.
-4. Add `issuedonce.shop` and `www.issuedonce.shop` to the existing Hostinger application and read the exact DNS targets Hostinger provides. Never guess target IPs/CNAMEs.
-5. Replace the stale Vercel web records with those exact Hostinger targets while leaving unrelated DNS/email records intact.
-6. Verify TLS and exact release identity on both apex and `www`.
-7. Canonicalize `www.issuedonce.shop` to `https://issuedonce.shop`, preserving path and query.
-8. Set `APP_ORIGIN=https://issuedonce.shop` in Hostinger and restart/redeploy as required.
-9. Re-run the full customer and Owner OS proofs on the apex domain.
-10. Only after canonical-domain proof, update external provider callback/webhook URLs from the temporary Hostinger hostname to `issuedonce.shop`.
+2. Create `support@issuedonce.shop` in Hostinger Mail and the required aliases.
+3. In Hostinger, attach `issuedonce.shop` to the existing application and choose **Use Hostinger nameservers** for the Hostinger-registered domain.
+4. Once Hostinger is authoritative, reset the Hostinger DNS zone to its default records so stale Vercel web routing is not carried forward.
+5. Restore only the verified Resend OTP records from Resend: `resend._domainkey.otp` TXT, `send.otp` MX, and `send.otp` SPF TXT.
+6. Add the root-domain Resend sender records and `_dmarc` record after Resend returns their exact values. Never guess DNS targets or mail records.
+7. Verify apex and `www` resolve to Hostinger, TLS is valid, the exact intended release is served, Hostinger Mail receives, and `otp.issuedonce.shop` remains verified in Resend.
+8. Canonicalize `www.issuedonce.shop` to `https://issuedonce.shop`, preserving path and query.
+9. Set `APP_ORIGIN=https://issuedonce.shop` in Hostinger and restart/redeploy as required.
+10. Re-run the full customer and Owner OS proofs on the apex domain, then update Safepay/Printful callback/webhook URLs to `issuedonce.shop`.
+11. After the Hostinger DNS cutover is proven, Vercel is no longer required for ISSUED ONCE and may be retired without affecting production.
+
+Do not export, import, or preserve the stale Vercel web zone merely for completeness. Preserve only records that have an identified production purpose.
 
 ## 7. Provider integration boundary
 
