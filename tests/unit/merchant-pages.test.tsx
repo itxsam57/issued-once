@@ -15,6 +15,7 @@ afterEach(() => {
     'MERCHANT_SUPPORT_PHONE',
     'MERCHANT_PUBLIC_LOCATION',
     'MERCHANT_LEGAL_ENTITY',
+    'MERCHANT_PUBLIC_DETAILS_CONFIRMED',
     'ISSUED_ONCE_CATALOG_JSON',
     'DATABASE_URL',
   ]) delete process.env[key];
@@ -25,7 +26,8 @@ function configureMerchant() {
   process.env.MERCHANT_SUPPORT_EMAIL = 'support@issuedonce.shop';
   process.env.MERCHANT_SUPPORT_PHONE = '+92 300 0000000';
   process.env.MERCHANT_PUBLIC_LOCATION = 'Lahore, Punjab, Pakistan';
-  process.env.MERCHANT_LEGAL_ENTITY = 'Example truthful registration text';
+  process.env.MERCHANT_LEGAL_ENTITY = 'Issued Once Commerce';
+  process.env.MERCHANT_PUBLIC_DETAILS_CONFIRMED = 'true';
 }
 
 function configureCatalog() {
@@ -53,9 +55,11 @@ test('merchant identity is deployment-backed and never invents a location or leg
     supportEmail: 'support@issuedonce.shop',
     supportPhone: '+92 300 0000000',
     location: 'Lahore, Punjab, Pakistan',
-    legalEntity: 'Example truthful registration text',
+    legalEntity: 'Issued Once Commerce',
+    confirmed: true,
     ready: true,
     missing: [],
+    invalid: [],
   });
 
   const absent = readPublicMerchant({});
@@ -64,6 +68,36 @@ test('merchant identity is deployment-backed and never invents a location or leg
   expect(absent.legalEntity).toBeNull();
   expect(absent.missing).toEqual(expect.arrayContaining(['name', 'supportEmail', 'location']));
   expect(JSON.stringify(absent)).not.toMatch(/United States|United Kingdom|Delaware|London|Dubai/i);
+});
+
+
+
+test('merchant readiness rejects observed production placeholders instead of echoing them', () => {
+  const merchant = readPublicMerchant({
+    MERCHANT_PUBLIC_NAME: 'ISSED ONCE',
+    MERCHANT_SUPPORT_EMAIL: 'ADEVOLPER@GMAIL.COM',
+    MERCHANT_PUBLIC_LOCATION: 'LOCATION 123',
+    MERCHANT_LEGAL_ENTITY: 'EXAMPLE COMPANY',
+    MERCHANT_PUBLIC_DETAILS_CONFIRMED: 'true',
+  });
+  expect(merchant.ready).toBe(false);
+  expect(merchant.invalid).toEqual(expect.arrayContaining(['name', 'supportEmail', 'location', 'legalEntity']));
+  expect(merchant.name).toBeNull();
+  expect(merchant.supportEmail).toBeNull();
+  expect(merchant.location).toBeNull();
+  expect(merchant.legalEntity).toBeNull();
+});
+
+test('valid merchant disclosure still requires explicit owner confirmation', () => {
+  const merchant = readPublicMerchant({
+    MERCHANT_PUBLIC_NAME: 'ISSUED ONCE',
+    MERCHANT_SUPPORT_EMAIL: 'support@issuedonce.shop',
+    MERCHANT_PUBLIC_LOCATION: 'Lahore, Pakistan',
+  });
+  expect(merchant.missing).toEqual([]);
+  expect(merchant.invalid).toEqual([]);
+  expect(merchant.confirmed).toBe(false);
+  expect(merchant.ready).toBe(false);
 });
 
 test('public store pricing is derived from sellable canonical catalog variants', async () => {

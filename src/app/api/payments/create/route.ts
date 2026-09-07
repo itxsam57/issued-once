@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod';
+import { resolvePublicOrigin } from '@/server/http/publicOrigin';
 import { SESSION_COOKIE_NAME } from '@/server/http/sessionCookie';
 import {
   createPaymentService,
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
       return Response.json(result);
     }
 
-    const origin = new URL(request.url).origin;
+    const origin = resolvePublicOrigin(request.url);
     const result = await createPaymentService().start({
       sessionToken,
       quoteId: parsed.data.quoteId,

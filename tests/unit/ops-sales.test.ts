@@ -61,6 +61,39 @@ test('historical windows read only aggregate metric buckets', async () => {
   expect(result.funnel.paid).toBe(10);
 });
 
+
+
+test('historical sales clamp bucket cutoff to the commercial baseline', async () => {
+  let bucketParams: readonly unknown[] | undefined;
+  const sql: SqlExecutor = { query: async (_text, params) => {
+    bucketParams = params;
+    return [] as never;
+  }};
+  const baseline = new Date('2026-09-07T00:00:00.000Z');
+  await new PostgresOpsSalesRepository(sql, baseline).getSnapshot({
+    days: 90,
+    now: new Date('2026-09-10T06:00:00Z'),
+  });
+  expect(bucketParams).toEqual(['2026-09-07']);
+});
+
+test('live sales clamp every query to the commercial baseline', async () => {
+  const liveParams: Array<readonly unknown[] | undefined> = [];
+  const sql: SqlExecutor = { query: async (_text, params) => {
+    liveParams.push(params);
+    return [] as never;
+  }};
+  const baseline = new Date('2026-09-07T00:00:00.000Z');
+  await new PostgresOpsSalesRepository(sql, baseline).getSnapshot({
+    days: 30,
+    now: new Date('2026-09-10T06:00:00Z'),
+  });
+  expect(liveParams).toHaveLength(7);
+  for (const params of liveParams) {
+    expect(params?.[0]).toEqual(new Date('2026-09-07T00:00:00.000Z'));
+  }
+});
+
 test('refuses to aggregate mixed currencies', async () => {
   const sql: SqlExecutor = { query: async () => [{ currency: 'PKR', currency_count: 2 }] as never };
   await expect(new PostgresOpsSalesRepository(sql).getSnapshot({ days: 30, now: new Date('2026-08-19T06:00:00Z') }))

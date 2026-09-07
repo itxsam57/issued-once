@@ -1,5 +1,6 @@
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type { OpsSalesRepository, OpsSalesSnapshot } from './OpsSalesRepository';
+import { clampMetricsCutoff, readCommercialMetricsBaseline } from './commercialMetricsBaseline';
 
 type TotalsRow = {
   currency: string | null;
@@ -47,7 +48,10 @@ function emptySnapshot(days: number): OpsSalesSnapshot {
 }
 
 export class PostgresOpsSalesRepository implements OpsSalesRepository {
-  constructor(private readonly sql: SqlExecutor) {}
+  constructor(
+    private readonly sql: SqlExecutor,
+    private readonly baseline: Date | null = readCommercialMetricsBaseline(),
+  ) {}
 
   async getSnapshot(input: { days: number; now: Date }): Promise<OpsSalesSnapshot> {
     const days = Math.min(Math.max(Math.trunc(input.days), 1), 3650);
@@ -56,7 +60,8 @@ export class PostgresOpsSalesRepository implements OpsSalesRepository {
   }
 
   private async getBucketSnapshot(days: number, now: Date): Promise<OpsSalesSnapshot> {
-    const cutoff = days >= 3650 ? null : new Date(now.getTime() - days * 86_400_000);
+    const requested = days >= 3650 ? null : new Date(now.getTime() - days * 86_400_000);
+    const cutoff = clampMetricsCutoff(requested, this.baseline);
     const rows = await this.sql.query<BucketRow>(
       `SELECT metric_key,dimension_key,currency_scope,
         SUM(event_count) AS event_count,
@@ -138,7 +143,8 @@ export class PostgresOpsSalesRepository implements OpsSalesRepository {
   }
 
   private async getLiveSnapshot(days: number, now: Date): Promise<OpsSalesSnapshot> {
-    const cutoff = new Date(now.getTime() - days * 86_400_000);
+    const requested = new Date(now.getTime() - days * 86_400_000);
+    const cutoff = clampMetricsCutoff(requested, this.baseline) ?? requested;
     const [totalsRows, productRows, sizeRows, colorRows, countryRows, timingRows, funnelRows] = await Promise.all([
       this.sql.query<TotalsRow>(
         `SELECT

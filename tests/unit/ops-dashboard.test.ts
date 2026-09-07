@@ -4,10 +4,10 @@ import type { SqlExecutor } from '@/server/experience/PostgresExperienceReposito
 
 test('returns bounded live sales plus bucket-backed lifetime, attention, operations and activity', async () => {
   let call = 0;
-  const queries: string[] = [];
+  const queries: Array<{ text: string; params?: readonly unknown[] }> = [];
   const sql: SqlExecutor = {
-    query: async (text) => {
-      queries.push(text);
+    query: async (text, params) => {
+      queries.push({ text, params });
       call += 1;
       if (call === 1) return [{
         currency: 'USD',
@@ -47,10 +47,15 @@ test('returns bounded live sales plus bucket-backed lifetime, attention, operati
     },
   };
 
-  const dashboard = await new PostgresOpsDashboardRepository(sql).getDashboard(new Date('2026-08-19T06:00:00Z'));
+  const baseline = new Date('2026-09-07T00:00:00.000Z');
+  const dashboard = await new PostgresOpsDashboardRepository(sql, baseline)
+    .getDashboard(new Date('2026-09-10T06:00:00Z'));
 
-  expect(queries[0]).toContain("issue.reserved_at >= bounds.thirty_start");
-  expect(queries[1]).toContain('commercial_metric_buckets');
+  expect(queries[0].text).toContain('GREATEST');
+  expect(queries[0].params).toContain('2026-09-07T00:00:00.000Z');
+  expect(queries[1].text).toContain('commercial_metric_buckets');
+  expect(queries[1].text).toContain('bucket_day >= $1::date');
+  expect(queries[1].params).toEqual(['2026-09-07']);
   expect(dashboard.sales.currency).toBe('USD');
   expect(dashboard.sales.today).toEqual({ orders: 2, grossMinor: 10800 });
   expect(dashboard.sales.lifetime).toEqual({ orders: 12, grossMinor: 64800 });

@@ -1,4 +1,5 @@
 import { readPublicMerchant } from '@/brand/publicMerchant';
+import { readCommercialMetricsBaseline } from '@/server/ops/commercialMetricsBaseline';
 import { PrintfulVariantMap, readPrintfulVariantMapJson } from '@/server/manufacturing/PrintfulVariantMap';
 import {
   readSafepayRuntimeConfig,
@@ -173,17 +174,23 @@ export class ReadinessService {
     const merchant = readPublicMerchant(this.env);
     checks.push(merchant.ready
       ? {
-          key: 'merchant',
-          label: 'Public merchant disclosure',
-          state: 'ready',
-          detail: 'Required public merchant identity, support and location disclosures are configured.',
+          key: 'merchant', label: 'Public merchant disclosure', state: 'ready',
+          detail: 'Required public merchant identity, support and location disclosures are owner-confirmed.',
         }
-      : {
-          key: 'merchant',
-          label: 'Public merchant disclosure',
-          state: 'missing',
-          detail: 'Required public merchant identity, support or location disclosure is incomplete.',
-        });
+      : merchant.invalid.length > 0
+        ? {
+            key: 'merchant', label: 'Public merchant disclosure', state: 'blocked',
+            detail: 'Public merchant disclosure contains invalid or placeholder values.',
+          }
+        : merchant.missing.length > 0
+          ? {
+              key: 'merchant', label: 'Public merchant disclosure', state: 'missing',
+              detail: 'Required public merchant identity, support or location disclosure is incomplete.',
+            }
+          : {
+              key: 'merchant', label: 'Public merchant disclosure', state: 'blocked',
+              detail: 'Public merchant disclosure is configured but owner truthfulness confirmation is missing.',
+            });
 
     let availableFactoryKeys: string[] = [];
     const configuredCatalogJson = this.env.ISSUED_ONCE_CATALOG_JSON?.trim();
@@ -310,6 +317,24 @@ export class ReadinessService {
       }
     }
 
+    const openAIState = checks.find((check) => check.key === 'openai')?.state;
+    const storageState = checks.find((check) => check.key === 'storage')?.state;
+    checks.push(storageState === 'ready'
+      ? {
+          key: 'design-workflow',
+          label: 'Design workflow',
+          state: 'ready',
+          detail: openAIState === 'ready'
+            ? 'AI and manual artwork workflows are available.'
+            : 'Manual artwork workflow is available; AI automation is unavailable.',
+        }
+      : {
+          key: 'design-workflow',
+          label: 'Design workflow',
+          state: 'blocked',
+          detail: 'Manual and AI artwork workflows require durable private artwork storage.',
+        });
+
     const printfulConfigured = present(
       this.env,
       'PRINTFUL_API_TOKEN',
@@ -362,6 +387,24 @@ export class ReadinessService {
       }
     }
 
+    try {
+      const baseline = readCommercialMetricsBaseline(this.env);
+      checks.push(baseline
+        ? {
+            key: 'commercial-metrics', label: 'Commercial metrics baseline', state: 'ready',
+            detail: `Commercial analytics start at ${baseline.toISOString().slice(0, 10)}.`,
+          }
+        : {
+            key: 'commercial-metrics', label: 'Commercial metrics baseline', state: 'missing',
+            detail: 'A launch analytics baseline date is required before commercial readiness.',
+          });
+    } catch {
+      checks.push({
+        key: 'commercial-metrics', label: 'Commercial metrics baseline', state: 'blocked',
+        detail: 'COMMERCIAL_METRICS_BASELINE_DATE must be a real YYYY-MM-DD date.',
+      });
+    }
+
     checks.push(this.env.PRINTFUL_ALLOW_CONFIRM === 'true'
       ? { key: 'factory-confirm', label: 'Factory charge switch', state: 'armed', detail: 'PRINTFUL_ALLOW_CONFIRM is armed. Keep this deliberate and temporary.' }
       : { key: 'factory-confirm', label: 'Factory charge switch', state: 'safe', detail: 'Printful production confirmation is disabled by default.' });
@@ -376,10 +419,11 @@ export class ReadinessService {
       state('safepay') === 'configured' &&
       safepayEnvironment === 'sandbox' &&
       state('resend') === 'configured' &&
-      state('openai') === 'ready' &&
+      state('design-workflow') === 'ready' &&
       state('storage') === 'ready' &&
       state('printful') === 'ready' &&
       state('queues') === 'ready' &&
+      state('commercial-metrics') === 'ready' &&
       state('factory-confirm') === 'safe';
 
     return {

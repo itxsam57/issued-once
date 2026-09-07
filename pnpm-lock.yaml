@@ -11,6 +11,15 @@ importers:
       '@neondatabase/serverless':
         specifier: ^1.0.0
         version: 1.1.0
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.1
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.4(@types/react@19.2.18)
       next:
         specifier: 16.2.11
         version: 16.2.11(@babel/core@7.29.7)(@playwright/test@1.62.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -23,6 +32,9 @@ importers:
       react-dom:
         specifier: 19.2.7
         version: 19.2.7(react@19.2.7)
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
       zod:
         specifier: ^4.0.0
         version: 4.4.3
@@ -39,15 +51,6 @@ importers:
       '@testing-library/user-event':
         specifier: latest
         version: 14.6.6(@testing-library/dom@10.4.1)
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.20.1
-      '@types/react':
-        specifier: ^19.0.0
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: ^19.0.0
-        version: 19.2.4(@types/react@19.2.18)
       '@vitejs/plugin-react':
         specifier: latest
         version: 6.1.0(vite@8.2.2(@types/node@22.20.1))
@@ -60,9 +63,6 @@ importers:
       jsdom:
         specifier: latest
         version: 30.0.1
-      typescript:
-        specifier: ^5.9.0
-        version: 5.9.3
       vite:
         specifier: latest
         version: 8.2.2(@types/node@22.20.1)

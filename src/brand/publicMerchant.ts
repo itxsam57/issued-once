@@ -12,8 +12,10 @@ export type PublicMerchant = {
   supportPhone: string | null;
   location: string | null;
   legalEntity: string | null;
+  confirmed: boolean;
   ready: boolean;
   missing: Array<'name' | 'supportEmail' | 'location'>;
+  invalid: Array<'name' | 'supportEmail' | 'location' | 'legalEntity'>;
 };
 
 export type PublicCatalogProduct = {
@@ -38,24 +40,49 @@ function validEmail(value: string | null): string | null {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : null;
 }
 
+const PLACEHOLDER = /\b(?:LOCATION|TBD|TEST|EXAMPLE|PLACEHOLDER)\b/i;
+
+function issuedOnceEmail(value: string | null): string | null {
+  const email = validEmail(value);
+  if (!email) return null;
+  const domain = email.split('@').at(-1)!.toLowerCase();
+  return domain === 'issuedonce.shop' || domain.endsWith('.issuedonce.shop') ? email : null;
+}
+
+function truthfulText(value: string | null): string | null {
+  return value && !PLACEHOLDER.test(value) ? value : null;
+}
+
 export function readPublicMerchant(env: PublicEnv = process.env): PublicMerchant {
-  const name = optional(env.MERCHANT_PUBLIC_NAME);
-  const supportEmail = validEmail(optional(env.MERCHANT_SUPPORT_EMAIL));
+  const rawName = optional(env.MERCHANT_PUBLIC_NAME);
+  const rawEmail = optional(env.MERCHANT_SUPPORT_EMAIL);
+  const rawLocation = optional(env.MERCHANT_PUBLIC_LOCATION);
+  const rawLegalEntity = optional(env.MERCHANT_LEGAL_ENTITY);
+  const name = rawName === 'ISSUED ONCE' ? rawName : null;
+  const supportEmail = issuedOnceEmail(rawEmail);
   const supportPhone = optional(env.MERCHANT_SUPPORT_PHONE);
-  const location = optional(env.MERCHANT_PUBLIC_LOCATION);
-  const legalEntity = optional(env.MERCHANT_LEGAL_ENTITY);
+  const location = truthfulText(rawLocation);
+  const legalEntity = truthfulText(rawLegalEntity);
+  const confirmed = env.MERCHANT_PUBLIC_DETAILS_CONFIRMED?.trim() === 'true';
   const missing: PublicMerchant['missing'] = [];
-  if (!name) missing.push('name');
-  if (!supportEmail) missing.push('supportEmail');
-  if (!location) missing.push('location');
+  if (!rawName) missing.push('name');
+  if (!rawEmail) missing.push('supportEmail');
+  if (!rawLocation) missing.push('location');
+  const invalid: PublicMerchant['invalid'] = [];
+  if (rawName && !name) invalid.push('name');
+  if (rawEmail && !supportEmail) invalid.push('supportEmail');
+  if (rawLocation && !location) invalid.push('location');
+  if (rawLegalEntity && !legalEntity) invalid.push('legalEntity');
   return {
     name,
     supportEmail,
     supportPhone,
     location,
     legalEntity,
-    ready: missing.length === 0,
+    confirmed,
+    ready: missing.length === 0 && invalid.length === 0 && confirmed,
     missing,
+    invalid,
   };
 }
 

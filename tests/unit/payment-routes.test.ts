@@ -77,15 +77,21 @@ beforeEach(() => {
 });
 
 test('payment creation derives experience and return origin server-side', async () => {
+  process.env.APP_ORIGIN = 'https://issuedonce.shop';
   const start = vi.fn().mockResolvedValue({
     checkoutUrl: 'https://getsafepay.com/checkout/pay?beacon=track_1',
     paymentAttemptId: 'attempt-1',
   });
   createPaymentServiceMock.mockReturnValue({ start });
 
-  const response = await createPayment(new Request('https://issuedonce.shop/api/payments/create', {
+  const response = await createPayment(new Request('https://0.0.0.0:3000/api/payments/create', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'content-type': 'application/json',
+      host: 'evil.example',
+      'x-forwarded-host': 'evil.example',
+      'x-forwarded-proto': 'http',
+    },
     body: JSON.stringify({ quoteId: 'quote-1', returnBaseUrl: 'https://evil.example' }),
   }));
 

@@ -4,11 +4,22 @@ import { resolveBuildReleaseId } from './src/server/runtime/releaseInfo';
 const releaseId = resolveBuildReleaseId();
 
 const nextConfig: NextConfig = {
+  typescript: {
+    tsconfigPath: 'tsconfig.next.json',
+  },
   poweredByHeader: false,
   generateBuildId: async () => releaseId,
   env: {
     ISSUED_ONCE_RELEASE_ID: releaseId,
   },
+  redirects: async () => [
+    {
+      source: '/:path*',
+      has: [{ type: 'host', value: 'www.issuedonce.shop' }],
+      destination: 'https://issuedonce.shop/:path*',
+      permanent: true,
+    },
+  ],
   headers: async () => [
     {
       source: '/(.*)',
