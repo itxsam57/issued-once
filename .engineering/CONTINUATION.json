@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "version": "1.36.6",
+  "version": "1.36.7",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-06T02:12:12.337Z",
+  "updatedAt": "2026-09-07T00:07:34.369Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "b3952681883443fe3277343aa1e7a6885f716552",
-    "verifiedRuntimeTree": "4057a5b187e63632b80623e246d129df4d476f8f",
-    "liveReleaseHead": "97d5f015df33bf4ec5486e7b6a5d3d135fc184cc",
-    "liveReleaseTree": "4057a5b187e63632b80623e246d129df4d476f8f",
+    "verifiedRuntimeIntegrationHead": "5053090b24cea8add307f432e53bd055a3843968",
+    "verifiedRuntimeTree": "949f254ca27b28179b2e276a1396e9d58b04ebf2",
+    "liveReleaseHead": "674ca48769619bc4664653caddd5f5b9545d1576",
+    "liveReleaseTree": "949f254ca27b28179b2e276a1396e9d58b04ebf2",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-    "hostingerLinkedBranchHead": "97d5f015df33bf4ec5486e7b6a5d3d135fc184cc",
+    "hostingerLinkedBranchHead": "674ca48769619bc4664653caddd5f5b9545d1576",
     "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
     "combinedCandidateBranchHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop",
-    "latestEngineeringIntegrationHead": "e93b6dcee340b9e53ab772fa4f89052b846e0652",
-    "latestEngineeringIntegrationTree": "10512bda94fd6b858f978b32fd2d3c9997fd37b0",
-    "latestEngineeringIntegrationVerifiedAt": "2026-09-06T02:12:12.337Z"
+    "latestEngineeringIntegrationHead": "5053090b24cea8add307f432e53bd055a3843968",
+    "latestEngineeringIntegrationTree": "949f254ca27b28179b2e276a1396e9d58b04ebf2",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-07T00:07:34.369Z"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
@@ -160,7 +160,7 @@
     "status": "OWNER_REQUIRED",
     "engineeringSafeWork": "COMPLETE",
     "masterPlanRowState": "MISSING_LIVE_COMPOSITE_EVIDENCE",
-    "note": "CR-28 is not missing known application code. Its completion contract requires one controlled full live order plus a second isolated customer after the recorded production/provider gates are satisfied."
+    "note": "CR-23 exact-current Owner read/browser proof is now DONE on the deployed release. CR-28 is not missing known application code; its completion contract still requires one controlled full live order plus a second isolated customer after the recorded provider/owner gates are satisfied."
   },
   "standingOwnerGates": {
     "productionDeploymentOrHostingerBranchMutation": true,
@@ -179,8 +179,8 @@
     "hostingerAuthenticationForProviderConfig": false
   },
   "productionRuntime": {
-    "liveRelease": "97d5f015df33bf4ec5486e7b6a5d3d135fc184cc",
-    "liveTree": "4057a5b187e63632b80623e246d129df4d476f8f",
+    "liveRelease": "674ca48769619bc4664653caddd5f5b9545d1576",
+    "liveTree": "949f254ca27b28179b2e276a1396e9d58b04ebf2",
     "runtimeProvider": "hostinger",
     "productionDeploymentOfIntegratedTree": true,
     "hostingerSelectedBranch": "release/hostinger-v2-candidate-20260824",
@@ -206,11 +206,12 @@
     "retainedV2ExperienceAnswerRows": 560,
     "retainedV2OtpRows": 24,
     "privacyReadiness": "ready",
-    "privacyReadinessVerifiedAt": "2026-09-06T02:12:12.337Z"
+    "privacyReadinessVerifiedAt": "2026-09-06T02:12:12.337Z",
+    "printfulWebhookStoreBindingDeployed": true
   },
   "nextAction": {
     "actor": "OWNER_OR_AUTHENTICATED_PROVIDER",
-    "instruction": "Configure Safepay runtime with truthful provider-issued values and configure Printful webhook-v2 with truthful provider-issued public/secret keys for the six supported events. Keep PRINTFUL_ALLOW_CONFIRM disabled. Then redeploy/restart only as required and rerun exact-release readiness/boundary proof. Do not create a real Safepay charge/refund or confirm Printful manufacturing solely for QA. Retain current V2 data and keys until the separately approved prelaunch cleanup gate."
+    "instruction": "Configure Safepay runtime with truthful provider-issued values and configure Printful webhook-v2 with the truthful ISSUED ONCE PRINTFUL_STORE_ID plus provider-issued public/secret keys for the six supported events. The deployed verifier now rejects correctly signed events from any other store. Keep PRINTFUL_ALLOW_CONFIRM disabled. Then redeploy/restart only as required and rerun exact-release readiness/boundary proof. Do not create a real Safepay charge/refund or confirm Printful manufacturing solely for QA. Retain current V2 data and keys until the separately approved prelaunch cleanup gate."
   },
   "consumerReadinessFinishV4": {
     "taskId": "issued-once-consumer-ready-finish-v4",
@@ -309,13 +310,37 @@
         "catalogActivationRecheckJob": 101412450802,
         "irreversibleDataDeletionPerformed": false,
         "keyRotationPerformed": false
-      }
+      },
+      "printfulWebhookStoreBinding20260907": {
+        "pullRequest": 102,
+        "candidateHead": "7d80b16e8fd842ad1b3eda5fc6795b33e1d4481d",
+        "integrationHead": "5053090b24cea8add307f432e53bd055a3843968",
+        "integrationTree": "949f254ca27b28179b2e276a1396e9d58b04ebf2",
+        "exactHeadCiRun": 34063603380,
+        "exactHeadBrowserQaRun": 34063752063,
+        "postMergeCiRun": 34063930394,
+        "postMergeBrowserQaRun": 34063930408,
+        "releaseWrapper": "674ca48769619bc4664653caddd5f5b9545d1576",
+        "liveBoundaryAuditRun": 34068106307,
+        "liveTemporaryReleaseProofRun": 34068106298,
+        "liveSupportProofRun": 34068106319,
+        "result": "DEPLOYED_AND_FAIL_CLOSED: signed Printful webhooks require an explicit configured store ID and reject otherwise-valid signatures from a different store; live Printful webhook remains 503 until truthful provider webhook credentials are configured.",
+        "realProviderWritePerformed": false,
+        "printfulProductionConfirmationPerformed": false
+      },
+      "currentOwnerReadProof20260907": {
+        "run": 34068499545,
+        "release": "674ca48769619bc4664653caddd5f5b9545d1576",
+        "result": "PASS: exact release + authenticated Owner reads no-store + Manufacturing read HTTP 200 + Issue cursor pagination limit=2 + 11 Owner OS rooms + overflow=0; referrals remain expected launch-disabled 503.",
+        "temporaryProofBranchDeleted": true
+      },
+      "currentStrictHeaderProof20260907": "PASS on exact release 674ca48769619bc4664653caddd5f5b9545d1576 from the authorized workstation: exact baseline security headers, no x-powered-by, no-store, no s-maxage."
     },
     "rowReconciliation": {
       "CR-01": "DONE: exact-tree gates + real seven-answer Hostinger smoke",
       "CR-26": "OWNER_REQUIRED: live configured disclosure is proven; factual truth requires owner attestation",
       "CR-28": "MISSING live composite evidence only; no known engineering-safe implementation/test/read-only gap remains after PR #90",
-      "CR-23": "CODE_READY: deployed ancestor read/browser/pagination proof is green; latest integration includes provider-independent read fix and must be deployed/re-proven for exact-current-head DONE",
+      "CR-23": "DONE: exact-current release Owner read proof passed authenticated no-store reads, Manufacturing provider-independence, limit=2 cursor pagination, and all 11 Owner OS rooms with zero overflow on release 674ca48769619bc4664653caddd5f5b9545d1576.",
       "CR-27": "DONE: owner-approved latest verified integration tree deployed through forward-only Hostinger wrapper; exact live health, non-OTP boundary audit, and strict security/cache-header proof passed"
     },
     "remainingOwnerOrProviderGates": [
@@ -650,7 +675,7 @@
     "nextGate": "Explicit owner approval is still required before applying migration 0037 to production."
   },
   "printfulCatalogReadiness20260905": {
-    "status": "MAPPING_GENERATED_AWAITING_HOSTINGER_CONFIGURATION",
+    "status": "BUILT_IN_MAP_ACTIVE_CATALOG_AWAITING_SIGNED_WEBHOOK_CONFIGURATION",
     "printfulApiTokenConfiguredInHostinger": true,
     "inspectorPullRequest": 95,
     "inspectorHead": "a36810eedb1d8dbdee0de080efd71ee408f71fca",
@@ -743,17 +768,26 @@
     "postMergeCiRun": 33975481223,
     "postMergeBrowserQaRun": 33975481243,
     "localVerification": "typecheck PASS; lint PASS; 240 test files / 707 tests PASS; build PASS; Playwright 44/44 PASS",
-    "liveRelease": "dbf2fc15cd5be0397034777897e254f6c845469c",
-    "liveTree": "d6d40b172836ac1393a624e833b403735ffd4734",
-    "liveHealthFromAuthorizedWorkstation": "PASS exact release",
-    "liveSupportProofRun": 33975661779,
-    "liveSupportProofResult": "PASS",
-    "temporaryReleaseProofRun": 33975661787,
-    "temporaryReleaseProofResult": "EXPECTED FAIL-CLOSED after seven answers at physical selection because ACTIVE catalog count is zero",
-    "boundaryAuditRun": 33975661778,
-    "boundaryAuditResult": "BLOCKED_EXTERNAL: GitHub runner received repeated Hostinger CDN HTTP 403 before the audit; exact release is independently confirmed from authorized workstation and support proof",
+    "liveRelease": "674ca48769619bc4664653caddd5f5b9545d1576",
+    "liveTree": "949f254ca27b28179b2e276a1396e9d58b04ebf2",
+    "liveHealthFromAuthorizedWorkstation": "PASS exact release; databaseReady=true, queueReady=true, storageReady=true.",
+    "liveSupportProofRun": 34068106319,
+    "liveSupportProofResult": "PASS on exact current release.",
+    "temporaryReleaseProofRun": 34068106298,
+    "temporaryReleaseProofResult": "PASS: Tee, Hat and Tote physical gates plus real OTP request boundary on exact current release.",
+    "boundaryAuditRun": 34068106307,
+    "boundaryAuditResult": "PASS: LIVE_NON_OTP_BOUNDARY_AUDIT_PASS on exact current release; Safepay and Printful webhooks remain intentionally fail-closed unavailable until provider runtime configuration.",
     "productionManufacturingConfirmationPerformed": false,
     "providerWritePerformedByInspection": false,
-    "uiApprovalRule": "Owner approved the provider-backed swatch update for this cycle; ask again before any later UI/UX change."
+    "uiApprovalRule": "Owner approved the provider-backed swatch update for this cycle; ask again before any later UI/UX change.",
+    "variantMapRuntimeSource": "Audited built-in 34-variant map; environment override is optional only.",
+    "activeProductionCatalogCount": 1,
+    "builtinMapPullRequest": 98,
+    "catalogActivationRun": 33994961529,
+    "webhookStoreBindingPullRequest": 102,
+    "webhookStoreBindingIntegration": "5053090b24cea8add307f432e53bd055a3843968",
+    "webhookStoreBindingRelease": "674ca48769619bc4664653caddd5f5b9545d1576",
+    "webhookStoreBindingLiveBoundaryRun": 34068106307,
+    "webhookStoreBindingConfigured": false
   }
 }
