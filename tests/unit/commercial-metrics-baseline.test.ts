@@ -5,17 +5,19 @@ import {
   readCommercialMetricsBaseline,
 } from '@/server/ops/commercialMetricsBaseline';
 
+const testEnv = (values: Record<string, string> = {}): NodeJS.ProcessEnv => ({ NODE_ENV: 'test', ...values });
+
 test('missing baseline is null', () => {
-  expect(readCommercialMetricsBaseline({} as NodeJS.ProcessEnv)).toBeNull();
+  expect(readCommercialMetricsBaseline(testEnv())).toBeNull();
 });
 
 test('valid baseline is midnight UTC', () => {
-  expect(readCommercialMetricsBaseline({ COMMERCIAL_METRICS_BASELINE_DATE: '2026-09-07' } as NodeJS.ProcessEnv)?.toISOString())
+  expect(readCommercialMetricsBaseline(testEnv({ COMMERCIAL_METRICS_BASELINE_DATE: '2026-09-07' }))?.toISOString())
     .toBe('2026-09-07T00:00:00.000Z');
 });
 
 test.each(['2026-9-7', '2026-02-30', 'not-a-date'])('invalid baseline %s fails closed', (value) => {
-  expect(() => readCommercialMetricsBaseline({ COMMERCIAL_METRICS_BASELINE_DATE: value } as NodeJS.ProcessEnv))
+  expect(() => readCommercialMetricsBaseline(testEnv({ COMMERCIAL_METRICS_BASELINE_DATE: value })))
     .toThrow(CommercialMetricsBaselineError);
 });
 
