@@ -1,4 +1,5 @@
 import { readPublicMerchant } from '@/brand/publicMerchant';
+import { readCommercialMetricsBaseline } from '@/server/ops/commercialMetricsBaseline';
 import { PrintfulVariantMap, readPrintfulVariantMapJson } from '@/server/manufacturing/PrintfulVariantMap';
 import {
   readSafepayRuntimeConfig,
@@ -386,6 +387,24 @@ export class ReadinessService {
       }
     }
 
+    try {
+      const baseline = readCommercialMetricsBaseline(this.env);
+      checks.push(baseline
+        ? {
+            key: 'commercial-metrics', label: 'Commercial metrics baseline', state: 'ready',
+            detail: `Commercial analytics start at ${baseline.toISOString().slice(0, 10)}.`,
+          }
+        : {
+            key: 'commercial-metrics', label: 'Commercial metrics baseline', state: 'missing',
+            detail: 'A launch analytics baseline date is required before commercial readiness.',
+          });
+    } catch {
+      checks.push({
+        key: 'commercial-metrics', label: 'Commercial metrics baseline', state: 'blocked',
+        detail: 'COMMERCIAL_METRICS_BASELINE_DATE must be a real YYYY-MM-DD date.',
+      });
+    }
+
     checks.push(this.env.PRINTFUL_ALLOW_CONFIRM === 'true'
       ? { key: 'factory-confirm', label: 'Factory charge switch', state: 'armed', detail: 'PRINTFUL_ALLOW_CONFIRM is armed. Keep this deliberate and temporary.' }
       : { key: 'factory-confirm', label: 'Factory charge switch', state: 'safe', detail: 'Printful production confirmation is disabled by default.' });
@@ -404,6 +423,7 @@ export class ReadinessService {
       state('storage') === 'ready' &&
       state('printful') === 'ready' &&
       state('queues') === 'ready' &&
+      state('commercial-metrics') === 'ready' &&
       state('factory-confirm') === 'safe';
 
     return {

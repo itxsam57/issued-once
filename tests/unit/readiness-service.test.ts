@@ -311,6 +311,17 @@ test('malformed privacy key material is blocked instead of treated as configured
   expect(result.readyForSandbox).toBe(false);
 });
 
+
+
+test('malformed commercial metrics baseline blocks readiness', async () => {
+  const result = await new ReadinessService(healthyDependencies({
+    ...completeEnv,
+    COMMERCIAL_METRICS_BASELINE_DATE: '2026-02-30',
+  })).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'commercial-metrics', state: 'blocked' }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
 test('missing boundaries fail closed and never report production ready', async () => {
   const result = await new ReadinessService({
     env: { NODE_ENV: 'test', SAFEPAY_ENVIRONMENT: 'production', PRINTFUL_ALLOW_CONFIRM: 'true' },
