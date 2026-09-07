@@ -16,6 +16,8 @@ const completeEnv: NodeJS.ProcessEnv = {
   MERCHANT_PUBLIC_NAME: 'ISSUED ONCE',
   MERCHANT_SUPPORT_EMAIL: 'support@issuedonce.shop',
   MERCHANT_PUBLIC_LOCATION: 'Lahore, Punjab, Pakistan',
+  MERCHANT_PUBLIC_DETAILS_CONFIRMED: 'true',
+  COMMERCIAL_METRICS_BASELINE_DATE: '2026-09-07',
   ISSUED_ONCE_CATALOG_JSON: JSON.stringify({
     currency: 'USD',
     products: {
@@ -203,7 +205,7 @@ test('uses the same transparency-compatible default image model as the design ru
   );
 });
 
-test('blocks GPT Image 2 readiness while transparent production artwork is required', async () => {
+test('blocks GPT Image 2 automation while manual design remains launch-capable', async () => {
   const result = await new ReadinessService(healthyDependencies({
     ...completeEnv,
     OPENAI_IMAGE_MODEL: 'gpt-image-2',
@@ -214,6 +216,36 @@ test('blocks GPT Image 2 readiness while transparent production artwork is requi
     state: 'blocked',
     detail: expect.stringMatching(/transparent/i),
   }));
+  expect(result.readyForSandbox).toBe(true);
+});
+
+
+
+test('missing OpenAI keeps manual design workflow ready when private artwork storage is ready', async () => {
+  const env = { ...completeEnv };
+  delete env.OPENAI_API_KEY;
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'openai', state: 'missing' }));
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'design-workflow', state: 'ready', detail: expect.stringMatching(/manual/i),
+  }));
+  expect(result.readyForSandbox).toBe(true);
+});
+
+test('blocked OpenAI still leaves manual design workflow ready', async () => {
+  const env = { ...completeEnv, OPENAI_IMAGE_MODEL: 'gpt-image-2' };
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'openai', state: 'blocked' }));
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'design-workflow', state: 'ready' }));
+  expect(result.readyForSandbox).toBe(true);
+});
+
+test('manual design workflow blocks when durable artwork storage is unavailable', async () => {
+  const dependencies = healthyDependencies({ ...completeEnv });
+  dependencies.storagePing.mockResolvedValue(false);
+  const result = await new ReadinessService(dependencies).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'storage', state: 'blocked' }));
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'design-workflow', state: 'blocked' }));
   expect(result.readyForSandbox).toBe(false);
 });
 

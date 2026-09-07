@@ -310,6 +310,24 @@ export class ReadinessService {
       }
     }
 
+    const openAIState = checks.find((check) => check.key === 'openai')?.state;
+    const storageState = checks.find((check) => check.key === 'storage')?.state;
+    checks.push(storageState === 'ready'
+      ? {
+          key: 'design-workflow',
+          label: 'Design workflow',
+          state: 'ready',
+          detail: openAIState === 'ready'
+            ? 'AI and manual artwork workflows are available.'
+            : 'Manual artwork workflow is available; AI automation is unavailable.',
+        }
+      : {
+          key: 'design-workflow',
+          label: 'Design workflow',
+          state: 'blocked',
+          detail: 'Manual and AI artwork workflows require durable private artwork storage.',
+        });
+
     const printfulConfigured = present(
       this.env,
       'PRINTFUL_API_TOKEN',
@@ -376,7 +394,7 @@ export class ReadinessService {
       state('safepay') === 'configured' &&
       safepayEnvironment === 'sandbox' &&
       state('resend') === 'configured' &&
-      state('openai') === 'ready' &&
+      state('design-workflow') === 'ready' &&
       state('storage') === 'ready' &&
       state('printful') === 'ready' &&
       state('queues') === 'ready' &&
