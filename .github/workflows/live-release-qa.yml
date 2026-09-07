@@ -46,6 +46,8 @@ jobs:
         run: node tests/e2e/live-release-health.mjs
       - name: Prove Tee Cap Tote customer physical gates
         run: node tests/e2e/live-production-smoke.mjs
+      - name: Prove real Resend OTP receipt and verification
+        run: node tests/e2e/live-otp-tempmail.mjs
       - name: Upload live release evidence
         if: always()
         uses: actions/upload-artifact@v4
