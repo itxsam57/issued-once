@@ -23,6 +23,9 @@ test.each([
   'https://10.0.0.2',
   'https://192.168.1.20',
   'https://172.16.4.2',
+  'https://[fc00::1]',
+  'https://[fd12:3456::1]',
+  'https://[fe80::1]',
 ])('production rejects unsafe APP_ORIGIN %s', (APP_ORIGIN) => {
   expect(() => resolvePublicOrigin('https://0.0.0.0:3000/', { NODE_ENV: 'production', APP_ORIGIN } as NodeJS.ProcessEnv))
     .toThrow(PublicOriginConfigurationError);

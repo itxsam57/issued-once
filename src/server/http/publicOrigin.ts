@@ -12,8 +12,8 @@ function isPrivateIpv4(hostname: string): boolean {
 }
 
 function isInternalHost(hostname: string): boolean {
-  const host = hostname.toLowerCase();
-  return host === 'localhost' || host === '0.0.0.0' || host === '::1' || host === '[::1]' ||
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  return host === 'localhost' || host === '0.0.0.0' || host === '::1' ||
     host.startsWith('169.254.') || isPrivateIpv4(host) || host.startsWith('fc') || host.startsWith('fd') || host.startsWith('fe80:');
 }
 
