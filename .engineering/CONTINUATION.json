@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.37.0",
+  "version": "1.37.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-07T11:08:34Z",
+  "updatedAt": "2026-09-07T11:35:18Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -19,14 +19,14 @@
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop",
-    "latestEngineeringIntegrationHead": "aea453222f86abb352f6833271a4d24230e5cbc3",
-    "latestEngineeringIntegrationTree": "58730b54f6bb6e2922c99951ae8489f87fd83964",
-    "latestEngineeringIntegrationVerifiedAt": "2026-09-07T11:08:34Z"
+    "latestEngineeringIntegrationHead": "34312ef4c354612bbf5b0ea539f44f58bdbfd384",
+    "latestEngineeringIntegrationTree": "f6956843a2db265dac85d5d07e5f91a7f584b332",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-07T11:35:18Z"
   },
   "continuationGovernor": {
-    "state": "BLOCKED",
-    "currentEngineeringStopRequired": false,
-    "currentEngineeringStopReason": "The reopened origin/readiness defects are fixed and locally verified on an isolated candidate. Continue through focused PR/CI integration; do not deploy or mutate Hostinger production environment without the standing owner gate. Safepay/Printful runtime configuration, truthful merchant attestation, canonical APP_ORIGIN/support sender environment values and root Resend DKIM completion remain external/owner work.",
+    "state": "OWNER_REQUIRED",
+    "currentEngineeringStopRequired": true,
+    "currentEngineeringStopReason": "All currently identified engineering-safe integration-readiness work is merged into infra/hostinger-migration-20260823 and exact-head/post-merge CI plus Browser QA are green. Production deployment is intentionally withheld because Hostinger still needs the canonical APP_ORIGIN/support/merchant/launch-baseline environment integration before the new fail-closed origin contract can safely go live. Safepay production and Printful signed-webhook configuration remain provider/owner work; Resend root DKIM is still waiting on public DNS-cache expiry.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -34,8 +34,8 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "CONTINUE_ENGINEERING_INTEGRATION_THEN_OWNER_REQUIRED",
-    "reason": "Trusted public origin, manual-first design readiness, truthful merchant validation, commercial analytics baseline, Hostinger canonical redirect and current deployment contracts are implemented with TDD. OpenAI is no longer a launch blocker because MANUAL design is explicitly supported. Canonical DNS cutover itself is already complete at the registry/Hostinger authority layer."
+    "decision": "STOP_OWNER_REQUIRED_PROVIDER_INTEGRATION",
+    "reason": "PR #106 merged successfully. Trusted public origin (including private IPv4/IPv6 rejection), manual-first design readiness, truthful merchant validation, non-destructive commercial analytics baseline, Hostinger canonical-domain behavior and deployment contracts are code-complete and verified. OpenAI is optional for launch. Remaining work requires owner/provider account configuration or external DNS propagation, followed by the already-defined live commercial proofs."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -157,10 +157,10 @@
   "activeTask": {
     "consumerReadinessId": "CR-28",
     "title": "Consumer-readiness finish v4 and full commercial-cycle proof",
-    "status": "CODE_READY_LOCAL_VERIFIED_PENDING_INTEGRATION_AND_PROVIDER_CONFIGURATION",
-    "engineeringSafeWork": "OPEN_FOR_PR_INTEGRATION",
-    "masterPlanRowState": "ENGINEERING_DEFECTS_FIXED_PENDING_INTEGRATION_PLUS_EXTERNAL_GATES",
-    "note": "2026-09-07 isolated candidate fixes internal Hostinger-origin redirects, rejects placeholder/unconfirmed merchant disclosure, makes MANUAL design launch-capable without OpenAI, filters prelaunch analytics non-destructively, and canonicalizes www to apex. Local focused/full/unit/typecheck/lint/build/browser gates are green. Canonical Hostinger DNS cutover and support mailbox exist; root Resend DKIM remains pending."
+    "status": "CODE_READY_MERGED_POST_MERGE_VERIFIED_OWNER_PROVIDER_INTEGRATION_REQUIRED",
+    "engineeringSafeWork": "COMPLETE_FOR_CURRENT_SCOPE",
+    "masterPlanRowState": "OWNER_PROVIDER_GATES_ONLY",
+    "note": "PR #106 merged at 34312ef4c354612bbf5b0ea539f44f58bdbfd384 with tree f6956843a2db265dac85d5d07e5f91a7f584b332. Exact feature head and post-merge CI/Browser QA are green. Canonical DNS authority and support mailbox are established. Production remains on Hostinger release 674ca48769619bc4664653caddd5f5b9545d1576 until owner completes canonical Hostinger environment/provider integration; root Resend DKIM remains pending external DNS-cache expiry."
   },
   "standingOwnerGates": {
     "productionDeploymentOrHostingerBranchMutation": true,
@@ -223,8 +223,8 @@
     "merchantDisclosureTruthAttested": false
   },
   "nextAction": {
-    "actor": "ENGINEERING_INTEGRATION_THEN_OWNER_PROVIDER_CONFIG",
-    "instruction": "Push the verified integration-readiness candidate and open a focused PR to infra/hostinger-migration-20260823; require CI/browser gates before merge. After integration, owner/provider work remains: set APP_ORIGIN=https://issuedonce.shop and support/mail environment values in Hostinger, choose COMMERCIAL_METRICS_BASELINE_DATE only from read-only launch-boundary evidence, provide truthful merchant location/details before MERCHANT_PUBLIC_DETAILS_CONFIRMED=true, wait for root Resend DKIM verification before switching to notify@issuedonce.shop, and configure Safepay/Printful canonical webhook runtime values. Keep PRINTFUL_ALLOW_CONFIRM disabled; no real charge/refund/manufacturing confirmation is authorized by this checkpoint."
+    "actor": "OWNER_PROVIDER_INTEGRATION",
+    "instruction": "In Hostinger hPanel, set APP_ORIGIN=https://issuedonce.shop, SUPPORT_INBOX_EMAIL=support@issuedonce.shop, SUPPORT_REPLY_TO=support@issuedonce.shop and MERCHANT_SUPPORT_EMAIL=support@issuedonce.shop. Keep the existing OTP sender until Resend marks issuedonce.shop DKIM verified, then set RESEND_FROM_EMAIL=ISSUED ONCE <notify@issuedonce.shop>. Provide a truthful MERCHANT_PUBLIC_LOCATION (and any truthful legal entity if used), set MERCHANT_PUBLIC_NAME=ISSUED ONCE, and only then set MERCHANT_PUBLIC_DETAILS_CONFIRMED=true. Do not set COMMERCIAL_METRICS_BASELINE_DATE to 2026-09-07: read-only Neon evidence shows QA funnel buckets on that date; set it to the actual future date paid production is opened. Configure Safepay production credentials/webhook and Printful signed-webhook credentials for https://issuedonce.shop while keeping PRINTFUL_ALLOW_CONFIRM disabled. After those account-side integrations are complete, report only that they are done; engineering can then deploy the already-merged integration tree and run the final live proofs without receiving secrets in chat."
   },
   "consumerReadinessFinishV4": {
     "taskId": "issued-once-consumer-ready-finish-v4",
@@ -393,14 +393,14 @@
       "CR-27": "DONE: owner-approved latest verified integration tree deployed through forward-only Hostinger wrapper; exact live health, non-OTP boundary audit, and strict security/cache-header proof passed"
     },
     "remainingOwnerOrProviderGates": [
-      "merge/deploy the verified integration-readiness candidate through normal repository and owner deployment gates",
-      "set APP_ORIGIN/support sender environment values in Hostinger after integration; do not expose secrets",
-      "attest truthful public merchant/location disclosure before enabling MERCHANT_PUBLIC_DETAILS_CONFIRMED=true",
-      "choose COMMERCIAL_METRICS_BASELINE_DATE from read-only launch-boundary evidence; do not delete old metric rows",
-      "complete root issuedonce.shop Resend DKIM verification, then prove notify@issuedonce.shop while preserving otp.issuedonce.shop until replacement is proven",
-      "configure Safepay production runtime with truthful provider-issued values and complete separately approved live payment/refund proofs",
+      "Hostinger environment integration: canonical APP_ORIGIN plus support/mail routing; do not expose secrets in chat",
+      "truthful merchant public location/details and owner attestation before MERCHANT_PUBLIC_DETAILS_CONFIRMED=true",
+      "set COMMERCIAL_METRICS_BASELINE_DATE to the actual future paid-launch date; 2026-09-07 is still QA traffic and must not be used",
+      "wait for root issuedonce.shop Resend DKIM to verify, then switch/prove notify@issuedonce.shop while preserving otp.issuedonce.shop until replacement is proven",
+      "configure Safepay production runtime/webhook with truthful provider-issued values and complete separately approved live payment/refund proofs",
       "configure Printful signed-webhook runtime with truthful provider-issued values; keep PRINTFUL_ALLOW_CONFIRM disabled until the separate manufacturing gate",
-      "complete CR-28 one controlled full live order plus a second isolated customer proof only under their existing owner/provider gates"
+      "after the Hostinger environment values are correct, deploy merged integration tree f6956843a2db265dac85d5d07e5f91a7f584b332 through the existing Hostinger-linked release branch and rerun exact-live proofs",
+      "complete CR-28 one controlled full live order plus a second isolated customer proof only under the existing owner/provider gates"
     ],
     "irreversibleActionsPerformed": [],
     "ownerReadProviderIndependence": {
@@ -501,37 +501,64 @@
       "printfulProductionConfirmationPerformed": false
     },
     "integrationReadinessDomainEmail20260907": {
-      "status": "LOCAL_CODE_READY_PENDING_PR_INTEGRATION",
+      "status": "MERGED_POST_MERGE_VERIFIED_OWNER_INTEGRATION_REQUIRED",
       "branch": "feat/integration-readiness-domain-email-20260907",
       "baseIntegrationHead": "aea453222f86abb352f6833271a4d24230e5cbc3",
-      "head": "2a2486daf28c2d1d316ee766f7112dbcb6678431",
-      "tree": "cb56c0f525eaa70abd500a05dcc574a58ef01831",
+      "head": "48c8858d3eef040f42e89fd619dcfdd82a40ef57",
+      "tree": "f6956843a2db265dac85d5d07e5f91a7f584b332",
       "commits": [
         "aabc007 fix: trust canonical public origin behind Hostinger",
         "2600231 fix: treat manual design as launch-ready without OpenAI",
         "d94b8b1 fix: require truthful merchant disclosure",
         "8c5f683 fix: isolate prelaunch commercial analytics",
         "109a357 docs: make Hostinger the canonical domain authority",
-        "2a2486d test: satisfy process environment contract"
+        "2a2486d test: satisfy process environment contract",
+        "48c8858 fix: reject private IPv6 public origins"
       ],
       "verification": {
-        "focused": "14 files / 84 tests PASS",
-        "fullUnit": "245 files / 744 tests PASS",
+        "focused": "14 files / 84 tests PASS before final IPv6 hardening; public-origin suite 16/16 PASS after hardening",
+        "fullUnit": "245 files / 747 tests PASS on final feature head",
         "typecheck": "PASS",
         "lint": "PASS",
         "build": "PASS",
-        "browser": "12/12 PASS desktop+mobile focused suites",
+        "browser": "12/12 PASS desktop+mobile focused suites on final feature head",
         "diffCheck": "PASS",
-        "originAudit": "PASS"
+        "originAudit": "PASS: no request.url-derived public authority remains; private IPv4 and IPv6 production APP_ORIGIN values are rejected",
+        "exactHeadCiRun": 34116458437,
+        "exactHeadBrowserQaRun": 34116458441,
+        "postMergeCiRun": 34116890433,
+        "postMergeBrowserQaRun": 34116890421,
+        "postMergeResult": "PASS: CI unit/typecheck/lint/build + Browser QA"
       },
       "providerState": {
-        "canonicalDns": "Hostinger authoritative at .shop registry",
-        "hostingerMail": "support@issuedonce.shop exists; five aliases owner-created",
+        "canonicalDns": "Hostinger authoritative at the .shop registry via lunar.dns-parking.com and solar.dns-parking.com",
+        "dnsPropagation": "Hostinger authoritative zone is correct; at 2026-09-07T11:26Z Google Public DNS had Hostinger delegation while Cloudflare 1.1.1.1 still returned cached Vercel delegation",
+        "hostingerMail": "support@issuedonce.shop exists; five owner-created aliases exist",
         "resendOtpDomain": "verified",
-        "resendRootDomain": "pending DKIM; SPF/MX verified",
-        "safepayProduction": "still owner/provider configuration gate",
-        "printfulSignedWebhook": "still owner/provider configuration gate",
-        "realChargeRefundOrManufacturingConfirmation": false
+        "resendRootDomain": "pending DKIM; SPF MX/TXT verified; verification retriggered after Hostinger cutover",
+        "hostingerAuthoritativeRuntime": "Hostinger CDN edges directly serve release 674ca48769619bc4664653caddd5f5b9545d1576 with databaseReady=true, queueReady=true, storageReady=true",
+        "safepayProduction": "owner/provider configuration gate",
+        "printfulSignedWebhook": "owner/provider configuration gate",
+        "realChargeRefundOrManufacturingConfirmation": false,
+        "legacyVercelStatus": "A Vercel deployment status remains attached to PR commits and can fail, but Vercel is no longer an authoritative production gate or part of the final architecture."
+      },
+      "pullRequest": 106,
+      "mergeCommit": "34312ef4c354612bbf5b0ea539f44f58bdbfd384",
+      "mergeTree": "f6956843a2db265dac85d5d07e5f91a7f584b332",
+      "readOnlyProductionEvidence": {
+        "verifiedAt": "2026-09-07T11:35:18Z",
+        "issues": 0,
+        "paymentAttempts": 0,
+        "experiences": 224,
+        "metricBuckets": 72,
+        "paidMetricHistory": "Only prelaunch test paid/gross buckets exist: 2026-08-22 and 2026-08-23; no paid_order/gross_paid/refund/delivered buckets exist in September.",
+        "currentDayTraffic": "2026-09-07 contains QA funnel_started/funnel_answered/funnel_physical buckets only, so 2026-09-07 must not be used as the paid-launch metrics baseline.",
+        "baselineDecision": "Set COMMERCIAL_METRICS_BASELINE_DATE to the actual future calendar date when paid production is opened, after provider/environment integration."
+      },
+      "deploymentGate": {
+        "productionDeploymentPerformed": false,
+        "reason": "Do not fast-forward the Hostinger-linked release branch yet. The merged code fails closed around public-origin configuration and the live Hostinger environment still needs APP_ORIGIN=https://issuedonce.shop plus truthful support/merchant/launch-baseline values. Deploy only after those owner-side hPanel values are correct.",
+        "readyTree": "f6956843a2db265dac85d5d07e5f91a7f584b332"
       }
     }
   },
