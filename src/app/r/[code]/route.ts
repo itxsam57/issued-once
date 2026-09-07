@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { buildPublicUrl } from '@/server/http/publicOrigin';
 import { REFERRAL_COOKIE_NAME, referralCookieOptions } from '@/server/referrals/referralCookie';
 import { createReferralService } from '@/server/referrals/runtimeReferrals';
 
@@ -6,7 +7,7 @@ export async function GET(
   request: Request,
   context: { params: Promise<{ code: string }> },
 ) {
-  const target = new URL('/begin', request.url);
+  const target = buildPublicUrl('/begin', request.url);
   const { code } = await context.params;
 
   try {
