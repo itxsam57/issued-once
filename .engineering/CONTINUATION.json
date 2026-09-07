@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.36.7",
+  "version": "1.36.8",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-07T00:07:34.369Z",
+  "updatedAt": "2026-09-07T03:10:23.907Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -210,8 +210,8 @@
     "printfulWebhookStoreBindingDeployed": true
   },
   "nextAction": {
-    "actor": "OWNER_OR_AUTHENTICATED_PROVIDER",
-    "instruction": "Configure Safepay runtime with truthful provider-issued values and configure Printful webhook-v2 with the truthful ISSUED ONCE PRINTFUL_STORE_ID plus provider-issued public/secret keys for the six supported events. The deployed verifier now rejects correctly signed events from any other store. Keep PRINTFUL_ALLOW_CONFIRM disabled. Then redeploy/restart only as required and rerun exact-release readiness/boundary proof. Do not create a real Safepay charge/refund or confirm Printful manufacturing solely for QA. Retain current V2 data and keys until the separately approved prelaunch cleanup gate."
+    "actor": "OWNER_SECRET_HANDOFF_OR_AUTHENTICATED_PROVIDER",
+    "instruction": "Keep the Printful one-time token tab open. Authenticate the connected browser to Safepay production/onboarding and Hostinger hPanel. Securely hand the already-created Issued Once Runtime v2 Printful token into the approved runtime/API configuration path without pasting it into chat. Configure Printful webhook-v2 for shipment_sent, shipment_delivered, shipment_canceled, order_failed, order_canceled and order_updated at the verified Hostinger webhook URL, then set PRINTFUL_API_TOKEN, PRINTFUL_STORE_ID=18710377, PRINTFUL_WEBHOOK_PUBLIC_KEY and PRINTFUL_WEBHOOK_SECRET_HEX in Hostinger. Configure truthful Safepay production environment/API/webhook credentials in Hostinger. Keep PRINTFUL_ALLOW_CONFIRM disabled and perform no charge, refund, manufacturing confirmation, referral activation, cleanup or DNS cutover solely for configuration. Re-run exact-release provider readiness and webhook fail-open/valid-signature proofs only after secrets are installed."
   },
   "consumerReadinessFinishV4": {
     "taskId": "issued-once-consumer-ready-finish-v4",
@@ -334,7 +334,43 @@
         "result": "PASS: exact release + authenticated Owner reads no-store + Manufacturing read HTTP 200 + Issue cursor pagination limit=2 + 11 Owner OS rooms + overflow=0; referrals remain expected launch-disabled 503.",
         "temporaryProofBranchDeleted": true
       },
-      "currentStrictHeaderProof20260907": "PASS on exact release 674ca48769619bc4664653caddd5f5b9545d1576 from the authorized workstation: exact baseline security headers, no x-powered-by, no-store, no s-maxage."
+      "currentStrictHeaderProof20260907": "PASS on exact release 674ca48769619bc4664653caddd5f5b9545d1576 from the authorized workstation: exact baseline security headers, no x-powered-by, no-store, no s-maxage.",
+      "providerAccessCheckpoint20260907": {
+        "safepaySandboxAuthenticated": true,
+        "safepaySandboxMode": "TEST_MODE",
+        "safepaySandboxWebhookUrl": "https://lightgray-coyote-141764.hostingersite.com/api/webhooks/safepay",
+        "safepaySandboxWebhookEvents": [
+          "payment:created",
+          "refund:created"
+        ],
+        "safepaySandboxWebhookUpdateResult": "PASS: dashboard confirmed Hook Updated; no payment created.",
+        "safepayProductionAuthenticated": false,
+        "safepayProductionState": "LOGIN_OR_ONBOARDING_REQUIRED",
+        "printfulAuthenticated": true,
+        "printfulStoreName": "Issued Once",
+        "printfulStoreId": "18710377",
+        "printfulExistingTokenId": "95855",
+        "printfulExistingTokenName": "Issued Once Token",
+        "printfulExistingTokenSecretRecoverable": false,
+        "printfulRuntimeTokenCreated": true,
+        "printfulRuntimeTokenName": "Issued Once Runtime v2",
+        "printfulRuntimeTokenAccessLevel": "A single store: Issued Once",
+        "printfulRuntimeTokenScopes": [
+          "orders/read",
+          "orders",
+          "webhooks/read",
+          "webhooks"
+        ],
+        "printfulRuntimeTokenSecretPersistedByEngineering": false,
+        "printfulRuntimeTokenSecretState": "VISIBLE_ONCE_IN_AUTHENTICATED_BROWSER_AND_COPIED_TO_BROWSER_CLIPBOARD; DO_NOT CLOSE_OR_RELOAD TOKEN TAB UNTIL SECURE HANDOFF",
+        "printfulWebhookV2Configured": false,
+        "hostingerBrowserAuthenticated": false,
+        "liveSafepayWebhookProbe": "503 Payment webhook is unavailable",
+        "livePrintfulWebhookProbe": "503 Manufacturing webhook is unavailable",
+        "realSafepayChargePerformed": false,
+        "realSafepayRefundPerformed": false,
+        "printfulProductionConfirmationPerformed": false
+      }
     },
     "rowReconciliation": {
       "CR-01": "DONE: exact-tree gates + real seven-answer Hostinger smoke",
