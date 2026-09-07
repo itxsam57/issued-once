@@ -369,3 +369,13 @@ The final release gate must verify, in order:
 ## Completion rule
 
 ISSUED ONCE is `CONSUMER_READY` only when every launch-blocking row above is `DONE` or an explicitly documented `OWNER_REQUIRED` irreversible boundary, and the full commercial-cycle proof has executed on the same deployed release identity. No percentage, green unit suite, preview screenshot, deployment compile, or owner dashboard label overrides this rule.
+
+## 2026-09-07 fresh consumer + Owner OS live audit
+
+- Exact live release under audit: `674ca48769619bc4664653caddd5f5b9545d1576`. Exact-tree consumer Playwright: **34/34 PASS** across desktop/mobile. Exact-tree Owner OS Playwright: **10/10 PASS**; focused owner/backend unit set: **82 files / 237 tests PASS**.
+- Authenticated live Owner read proof run `34082163692` passed Dashboard, Attention, Issues, Designer, Manufacturing, Sales, Customers, Support, Website, Readiness and Audit; Issue pagination stayed bounded at `limit=2`; all 11 rooms rendered with zero horizontal overflow. Referrals remain intentionally launch-disabled (`503`). Twenty-nine unauthenticated production write-route probes all returned `401`.
+- **Engineering reopened:** Hostinger reverse-proxy request origin is internal `https://0.0.0.0:3000`; `/payment/return` and `/r/<code>` currently construct redirects from `request.url` and therefore emit unusable public redirects. This is a live code/runtime-origin defect, not a provider gate.
+- **Merchant readiness defect:** live public disclosure contains placeholder/misspelled merchant values, but System reports `merchant=ready` because readiness currently validates only presence/email syntax. Launch must remain blocked until readiness rejects placeholders and truthful merchant data is configured.
+- **Design runtime gap:** System reports `openai=missing`; in the deployed readiness contract this means `OPENAI_API_KEY` is not configured. Automated AI design is therefore not live-ready even though the Designer control plane itself reads correctly.
+- Other live readiness states: `database=ready`, `privacy=ready`, `catalog=ready`, `catalog-authority=ready`, `safepay=missing`, `resend=configured`, `storage=ready`, `printful=missing`, `queues=ready`, `factory-confirm=safe`; `readyForSandbox=false`, `readyForProduction=false`. OTP delivery was observed to arrive but was classified as Gmail Spam, so deliverability remains a launch-quality issue requiring investigation.
+- No real charge/refund, Printful confirmation, catalog/price/question write, referral activation/payout/outreach, support/customer/Issue mutation, or DNS cutover was performed in this audit.
