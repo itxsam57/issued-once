@@ -4,6 +4,9 @@ import { resolveBuildReleaseId } from './src/server/runtime/releaseInfo';
 const releaseId = resolveBuildReleaseId();
 
 const nextConfig: NextConfig = {
+  typescript: {
+    tsconfigPath: 'tsconfig.next.json',
+  },
   poweredByHeader: false,
   generateBuildId: async () => releaseId,
   env: {

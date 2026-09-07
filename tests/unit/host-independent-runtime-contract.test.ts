@@ -33,6 +33,37 @@ test('production runtime has no Vercel package or source coupling', () => {
   expect(coupled).toEqual([]);
 });
 
+test('Hostinger production install includes the TypeScript build toolchain', () => {
+  const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8')) as {
+    dependencies?: Record<string, string>;
+  };
+
+  for (const dependency of ['typescript', '@types/node', '@types/react', '@types/react-dom']) {
+    expect(pkg.dependencies).toHaveProperty(dependency);
+  }
+});
+
+test('Next production build uses an app-only TypeScript config', () => {
+  const nextConfig = readFileSync(join(process.cwd(), 'next.config.ts'), 'utf8');
+  expect(nextConfig).toContain("tsconfigPath: 'tsconfig.next.json'");
+
+  const buildConfig = JSON.parse(
+    readFileSync(join(process.cwd(), 'tsconfig.next.json'), 'utf8'),
+  ) as {
+    extends?: string;
+    compilerOptions?: { types?: string[] };
+    include?: string[];
+    exclude?: string[];
+  };
+  expect(buildConfig.extends).toBe('./tsconfig.json');
+  expect(buildConfig.compilerOptions?.types).toEqual(['node']);
+  expect(buildConfig.include).toContain('src/**/*.ts');
+  expect(buildConfig.include).toContain('src/**/*.tsx');
+  expect(buildConfig.exclude).toEqual(
+    expect.arrayContaining(['tests', 'vitest.config.ts', 'playwright.config.ts']),
+  );
+});
+
 test('Hostinger design dispatch does not require the retired Vercel Blob token', () => {
   const source = readFileSync(join(process.cwd(), 'src/server/design/designDispatch.ts'), 'utf8');
   expect(source).not.toContain('BLOB_READ_WRITE_TOKEN');
