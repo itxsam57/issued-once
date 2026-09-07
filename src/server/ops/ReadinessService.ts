@@ -173,17 +173,23 @@ export class ReadinessService {
     const merchant = readPublicMerchant(this.env);
     checks.push(merchant.ready
       ? {
-          key: 'merchant',
-          label: 'Public merchant disclosure',
-          state: 'ready',
-          detail: 'Required public merchant identity, support and location disclosures are configured.',
+          key: 'merchant', label: 'Public merchant disclosure', state: 'ready',
+          detail: 'Required public merchant identity, support and location disclosures are owner-confirmed.',
         }
-      : {
-          key: 'merchant',
-          label: 'Public merchant disclosure',
-          state: 'missing',
-          detail: 'Required public merchant identity, support or location disclosure is incomplete.',
-        });
+      : merchant.invalid.length > 0
+        ? {
+            key: 'merchant', label: 'Public merchant disclosure', state: 'blocked',
+            detail: 'Public merchant disclosure contains invalid or placeholder values.',
+          }
+        : merchant.missing.length > 0
+          ? {
+              key: 'merchant', label: 'Public merchant disclosure', state: 'missing',
+              detail: 'Required public merchant identity, support or location disclosure is incomplete.',
+            }
+          : {
+              key: 'merchant', label: 'Public merchant disclosure', state: 'blocked',
+              detail: 'Public merchant disclosure is configured but owner truthfulness confirmation is missing.',
+            });
 
     let availableFactoryKeys: string[] = [];
     const configuredCatalogJson = this.env.ISSUED_ONCE_CATALOG_JSON?.trim();

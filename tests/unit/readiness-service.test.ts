@@ -136,6 +136,32 @@ test('merchant disclosure fails sandbox readiness closed when required public id
   expect(result.readyForProduction).toBe(false);
 });
 
+
+
+test('merchant disclosure blocks when owner truthfulness confirmation is missing', async () => {
+  const env = { ...completeEnv };
+  delete env.MERCHANT_PUBLIC_DETAILS_CONFIRMED;
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'merchant', state: 'blocked', detail: expect.stringMatching(/confirmation/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
+test('merchant disclosure blocks observed placeholder production values', async () => {
+  const env = {
+    ...completeEnv,
+    MERCHANT_PUBLIC_NAME: 'ISSED ONCE',
+    MERCHANT_SUPPORT_EMAIL: 'ADEVOLPER@GMAIL.COM',
+    MERCHANT_PUBLIC_LOCATION: 'LOCATION 123',
+  };
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'merchant', state: 'blocked', detail: expect.stringMatching(/invalid|placeholder/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
 test('uses the audited boot catalog when the deployment override is absent', async () => {
   const env = { ...completeEnv };
   delete env.ISSUED_ONCE_CATALOG_JSON;
