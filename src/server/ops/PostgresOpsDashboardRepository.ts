@@ -1,5 +1,6 @@
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type { OpsDashboardRepository, OpsDashboardSnapshot } from './OpsDashboardRepository';
+import { readCommercialMetricsBaseline } from './commercialMetricsBaseline';
 
 type SalesRow = {
   currency: string | null;
@@ -43,7 +44,10 @@ type ActivityRow = {
 const n = (value: number | string | null | undefined) => Number(value ?? 0);
 
 export class PostgresOpsDashboardRepository implements OpsDashboardRepository {
-  constructor(private readonly sql: SqlExecutor) {}
+  constructor(
+    private readonly sql: SqlExecutor,
+    private readonly baseline: Date | null = readCommercialMetricsBaseline(),
+  ) {}
 
   async getDashboard(now: Date): Promise<OpsDashboardSnapshot> {
     const [salesRows, lifetimeRows, operationRows, activityRows] = await Promise.all([
@@ -57,16 +61,17 @@ export class PostgresOpsDashboardRepository implements OpsDashboardRepository {
         SELECT
           MIN(issue.currency) AS currency,
           COUNT(DISTINCT issue.currency) AS currency_count,
-          COUNT(*) FILTER (WHERE issue.reserved_at >= bounds.today_start) AS today_orders,
-          COALESCE(SUM(issue.amount_minor) FILTER (WHERE issue.reserved_at >= bounds.today_start),0) AS today_gross_minor,
-          COUNT(*) FILTER (WHERE issue.reserved_at >= bounds.seven_start) AS seven_day_orders,
-          COALESCE(SUM(issue.amount_minor) FILTER (WHERE issue.reserved_at >= bounds.seven_start),0) AS seven_day_gross_minor,
-          COUNT(*) FILTER (WHERE issue.reserved_at >= bounds.thirty_start) AS thirty_day_orders,
-          COALESCE(SUM(issue.amount_minor) FILTER (WHERE issue.reserved_at >= bounds.thirty_start),0) AS thirty_day_gross_minor
+          COUNT(*) FILTER (WHERE issue.reserved_at >= GREATEST(bounds.today_start, COALESCE($2::timestamptz, bounds.today_start))) AS today_orders,
+          COALESCE(SUM(issue.amount_minor) FILTER (WHERE issue.reserved_at >= GREATEST(bounds.today_start, COALESCE($2::timestamptz, bounds.today_start))),0) AS today_gross_minor,
+          COUNT(*) FILTER (WHERE issue.reserved_at >= GREATEST(bounds.seven_start, COALESCE($2::timestamptz, bounds.seven_start))) AS seven_day_orders,
+          COALESCE(SUM(issue.amount_minor) FILTER (WHERE issue.reserved_at >= GREATEST(bounds.seven_start, COALESCE($2::timestamptz, bounds.seven_start))),0) AS seven_day_gross_minor,
+          COUNT(*) FILTER (WHERE issue.reserved_at >= GREATEST(bounds.thirty_start, COALESCE($2::timestamptz, bounds.thirty_start))) AS thirty_day_orders,
+          COALESCE(SUM(issue.amount_minor) FILTER (WHERE issue.reserved_at >= GREATEST(bounds.thirty_start, COALESCE($2::timestamptz, bounds.thirty_start))),0) AS thirty_day_gross_minor
         FROM issues AS issue
         CROSS JOIN bounds
-        WHERE issue.payment_attempt_id IS NOT NULL AND issue.reserved_at >= bounds.thirty_start`,
-        [now],
+        WHERE issue.payment_attempt_id IS NOT NULL
+          AND issue.reserved_at >= GREATEST(bounds.thirty_start, COALESCE($2::timestamptz, bounds.thirty_start))`,
+        [now, this.baseline?.toISOString() ?? null],
       ),
       this.sql.query<LifetimeRow>(
         `SELECT
@@ -77,7 +82,9 @@ export class PostgresOpsDashboardRepository implements OpsDashboardRepository {
           COALESCE(SUM(value_minor) FILTER (WHERE metric_key='refund'),0) AS refunded_minor,
           COALESCE(SUM(event_count) FILTER (WHERE metric_key='delivered'),0) AS delivered
         FROM commercial_metric_buckets
-        WHERE dimension_key='all' AND metric_key IN ('paid_order','gross_paid','refund','delivered')`,
+        WHERE dimension_key='all' AND metric_key IN ('paid_order','gross_paid','refund','delivered')
+          AND ($1::date IS NULL OR bucket_day >= $1::date)`,
+        [this.baseline?.toISOString().slice(0, 10) ?? null],
       ),
       this.sql.query<OpsRow>(
         `SELECT

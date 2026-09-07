@@ -16,6 +16,8 @@ const completeEnv: NodeJS.ProcessEnv = {
   MERCHANT_PUBLIC_NAME: 'ISSUED ONCE',
   MERCHANT_SUPPORT_EMAIL: 'support@issuedonce.shop',
   MERCHANT_PUBLIC_LOCATION: 'Lahore, Punjab, Pakistan',
+  MERCHANT_PUBLIC_DETAILS_CONFIRMED: 'true',
+  COMMERCIAL_METRICS_BASELINE_DATE: '2026-09-07',
   ISSUED_ONCE_CATALOG_JSON: JSON.stringify({
     currency: 'USD',
     products: {
@@ -134,6 +136,32 @@ test('merchant disclosure fails sandbox readiness closed when required public id
   expect(result.readyForProduction).toBe(false);
 });
 
+
+
+test('merchant disclosure blocks when owner truthfulness confirmation is missing', async () => {
+  const env = { ...completeEnv };
+  delete env.MERCHANT_PUBLIC_DETAILS_CONFIRMED;
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'merchant', state: 'blocked', detail: expect.stringMatching(/confirmation/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
+test('merchant disclosure blocks observed placeholder production values', async () => {
+  const env = {
+    ...completeEnv,
+    MERCHANT_PUBLIC_NAME: 'ISSED ONCE',
+    MERCHANT_SUPPORT_EMAIL: 'ADEVOLPER@GMAIL.COM',
+    MERCHANT_PUBLIC_LOCATION: 'LOCATION 123',
+  };
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'merchant', state: 'blocked', detail: expect.stringMatching(/invalid|placeholder/i),
+  }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
 test('uses the audited boot catalog when the deployment override is absent', async () => {
   const env = { ...completeEnv };
   delete env.ISSUED_ONCE_CATALOG_JSON;
@@ -203,7 +231,7 @@ test('uses the same transparency-compatible default image model as the design ru
   );
 });
 
-test('blocks GPT Image 2 readiness while transparent production artwork is required', async () => {
+test('blocks GPT Image 2 automation while manual design remains launch-capable', async () => {
   const result = await new ReadinessService(healthyDependencies({
     ...completeEnv,
     OPENAI_IMAGE_MODEL: 'gpt-image-2',
@@ -214,6 +242,36 @@ test('blocks GPT Image 2 readiness while transparent production artwork is requi
     state: 'blocked',
     detail: expect.stringMatching(/transparent/i),
   }));
+  expect(result.readyForSandbox).toBe(true);
+});
+
+
+
+test('missing OpenAI keeps manual design workflow ready when private artwork storage is ready', async () => {
+  const env = { ...completeEnv };
+  delete env.OPENAI_API_KEY;
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'openai', state: 'missing' }));
+  expect(result.checks).toContainEqual(expect.objectContaining({
+    key: 'design-workflow', state: 'ready', detail: expect.stringMatching(/manual/i),
+  }));
+  expect(result.readyForSandbox).toBe(true);
+});
+
+test('blocked OpenAI still leaves manual design workflow ready', async () => {
+  const env = { ...completeEnv, OPENAI_IMAGE_MODEL: 'gpt-image-2' };
+  const result = await new ReadinessService(healthyDependencies(env)).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'openai', state: 'blocked' }));
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'design-workflow', state: 'ready' }));
+  expect(result.readyForSandbox).toBe(true);
+});
+
+test('manual design workflow blocks when durable artwork storage is unavailable', async () => {
+  const dependencies = healthyDependencies({ ...completeEnv });
+  dependencies.storagePing.mockResolvedValue(false);
+  const result = await new ReadinessService(dependencies).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'storage', state: 'blocked' }));
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'design-workflow', state: 'blocked' }));
   expect(result.readyForSandbox).toBe(false);
 });
 
@@ -250,6 +308,17 @@ test('malformed privacy key material is blocked instead of treated as configured
     ...healthyDependencies({ ...completeEnv, QUIZ_ENCRYPTION_KEY_V1: 'not-a-32-byte-key' }),
   }).check();
   expect(result.checks).toContainEqual(expect.objectContaining({ key: 'privacy', state: 'blocked' }));
+  expect(result.readyForSandbox).toBe(false);
+});
+
+
+
+test('malformed commercial metrics baseline blocks readiness', async () => {
+  const result = await new ReadinessService(healthyDependencies({
+    ...completeEnv,
+    COMMERCIAL_METRICS_BASELINE_DATE: '2026-02-30',
+  })).check();
+  expect(result.checks).toContainEqual(expect.objectContaining({ key: 'commercial-metrics', state: 'blocked' }));
   expect(result.readyForSandbox).toBe(false);
 });
 

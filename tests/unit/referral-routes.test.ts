@@ -22,6 +22,7 @@ beforeEach(() => {
 });
 
 test('public referral link stores only the signed opaque attribution token and redirects into the normal journey', async () => {
+  process.env.APP_ORIGIN = 'https://issuedonce.shop';
   const set = vi.fn();
   cookiesMock.mockResolvedValue({ get: vi.fn(), set });
   const expiresAt = new Date('2026-09-20T10:00:00.000Z');
@@ -33,7 +34,13 @@ test('public referral link stores only the signed opaque attribution token and r
   createReferralServiceMock.mockReturnValue({ captureLink });
 
   const response = await captureReferral(
-    new Request('https://issuedonce.shop/r/creator-one'),
+    new Request('https://0.0.0.0:3000/r/creator-one', {
+      headers: {
+        host: 'evil.example',
+        'x-forwarded-host': 'evil.example',
+        'x-forwarded-proto': 'http',
+      },
+    }),
     { params: Promise.resolve({ code: 'creator-one' }) },
   );
 

@@ -81,10 +81,12 @@ test('Safepay return reconciles the returned tracker and finalizes a Reporter-pr
   );
 });
 
-test('Safepay return without a tracker remains side-effect free', async () => {
-  const response = await paymentReturn(new Request('https://issuedonce.shop/payment/return'));
+test('Safepay return without a tracker remains side-effect free and canonicalizes Hostinger internal origin', async () => {
+  process.env.APP_ORIGIN = 'https://issuedonce.shop';
+  const response = await paymentReturn(new Request('https://0.0.0.0:3000/payment/return'));
 
   expect(response.status).toBe(303);
+  expect(response.headers.get('location')).toBe('https://issuedonce.shop/payment/pending');
   expect(reconcileTrackerMock).not.toHaveBeenCalled();
   expect(reserveForPaidAttemptMock).not.toHaveBeenCalled();
 });

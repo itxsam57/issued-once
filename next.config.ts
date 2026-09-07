@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
   env: {
     ISSUED_ONCE_RELEASE_ID: releaseId,
   },
+  redirects: async () => [
+    {
+      source: '/:path*',
+      has: [{ type: 'host', value: 'www.issuedonce.shop' }],
+      destination: 'https://issuedonce.shop/:path*',
+      permanent: true,
+    },
+  ],
   headers: async () => [
     {
       source: '/(.*)',

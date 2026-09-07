@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.36.9",
+  "version": "1.37.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-07T04:13:57.120659Z",
+  "updatedAt": "2026-09-07T11:08:34Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -19,14 +19,14 @@
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop",
-    "latestEngineeringIntegrationHead": "5053090b24cea8add307f432e53bd055a3843968",
-    "latestEngineeringIntegrationTree": "949f254ca27b28179b2e276a1396e9d58b04ebf2",
-    "latestEngineeringIntegrationVerifiedAt": "2026-09-07T00:07:34.369Z"
+    "latestEngineeringIntegrationHead": "aea453222f86abb352f6833271a4d24230e5cbc3",
+    "latestEngineeringIntegrationTree": "58730b54f6bb6e2922c99951ae8489f87fd83964",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-07T11:08:34Z"
   },
   "continuationGovernor": {
     "state": "BLOCKED",
     "currentEngineeringStopRequired": false,
-    "currentEngineeringStopReason": "Fresh live consumer and Owner OS audit reopened engineering: Hostinger-backed public redirects derive from the internal request origin and emit https://0.0.0.0:3000 for payment return/referral routes; live merchant disclosure contains placeholder/misspelled values while readiness marks merchant ready; OPENAI_API_KEY is missing in live readiness. Safepay and Printful production runtime configuration remain missing external/provider work.",
+    "currentEngineeringStopReason": "The reopened origin/readiness defects are fixed and locally verified on an isolated candidate. Continue through focused PR/CI integration; do not deploy or mutate Hostinger production environment without the standing owner gate. Safepay/Printful runtime configuration, truthful merchant attestation, canonical APP_ORIGIN/support sender environment values and root Resend DKIM completion remain external/owner work.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -34,12 +34,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "REOPEN_ENGINEERING_FOR_LIVE_ORIGIN_AND_READINESS_GAPS",
-    "reason": "Do not call consumer readiness complete. Fix and regression-lock the public-origin redirect behavior and merchant-readiness validation before returning to provider-only gates. Configure truthful merchant values and OpenAI runtime through the appropriate owner/runtime path. Real payment/refund and Printful confirmation remain separately gated."
+    "decision": "CONTINUE_ENGINEERING_INTEGRATION_THEN_OWNER_REQUIRED",
+    "reason": "Trusted public origin, manual-first design readiness, truthful merchant validation, commercial analytics baseline, Hostinger canonical redirect and current deployment contracts are implemented with TDD. OpenAI is no longer a launch blocker because MANUAL design is explicitly supported. Canonical DNS cutover itself is already complete at the registry/Hostinger authority layer."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "PRIVACY_V2_READY_CATALOG_ACTIVE_AWAITING_PROVIDER_RUNTIME",
+    "internalWorkStatus": "INTEGRATION_READINESS_CANDIDATE_GREEN_PENDING_PR",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan and CR-27 evidence checkpoint as the release evidence ledger.",
@@ -157,10 +157,10 @@
   "activeTask": {
     "consumerReadinessId": "CR-28",
     "title": "Consumer-readiness finish v4 and full commercial-cycle proof",
-    "status": "BLOCKED_KNOWN_LIVE_DEFECTS_AND_PROVIDER_CONFIGURATION",
-    "engineeringSafeWork": "REOPENED",
-    "masterPlanRowState": "KNOWN_LIVE_DEFECTS_PLUS_PROVIDER_GATES",
-    "note": "Fresh 2026-09-07 consumer + Owner OS audit proved the exact deployed tree is broadly green under tests but exposed live reverse-proxy origin redirects to 0.0.0.0, placeholder merchant disclosure accepted as ready, and missing OpenAI runtime configuration. Provider gates for Safepay/Printful remain."
+    "status": "CODE_READY_LOCAL_VERIFIED_PENDING_INTEGRATION_AND_PROVIDER_CONFIGURATION",
+    "engineeringSafeWork": "OPEN_FOR_PR_INTEGRATION",
+    "masterPlanRowState": "ENGINEERING_DEFECTS_FIXED_PENDING_INTEGRATION_PLUS_EXTERNAL_GATES",
+    "note": "2026-09-07 isolated candidate fixes internal Hostinger-origin redirects, rejects placeholder/unconfirmed merchant disclosure, makes MANUAL design launch-capable without OpenAI, filters prelaunch analytics non-destructively, and canonicalizes www to apex. Local focused/full/unit/typecheck/lint/build/browser gates are green. Canonical Hostinger DNS cutover and support mailbox exist; root Resend DKIM remains pending."
   },
   "standingOwnerGates": {
     "productionDeploymentOrHostingerBranchMutation": true,
@@ -171,7 +171,7 @@
     "realSafepayCharge": true,
     "realSafepayRefund": true,
     "printfulProductionConfirmation": true,
-    "canonicalDomainCutover": true,
+    "canonicalDomainCutover": false,
     "truthfulMerchantPublicLocation": true,
     "productionPrivacyKeyConfiguration": false,
     "printfulVariantMapConfiguration": false,
@@ -195,7 +195,7 @@
     "coreMigration0036NewlyCreatedByRunner": false,
     "activeProductionCatalogCount": 1,
     "creatorLaunchOutreachSent": false,
-    "canonicalDomainCutover": false,
+    "canonicalDomainCutover": true,
     "merchantDisclosureConfigured": true,
     "internalOperationsTokenQaAvailable": true,
     "printfulApiTokenConfigured": true,
@@ -207,11 +207,24 @@
     "retainedV2OtpRows": 24,
     "privacyReadiness": "ready",
     "privacyReadinessVerifiedAt": "2026-09-06T02:12:12.337Z",
-    "printfulWebhookStoreBindingDeployed": true
+    "printfulWebhookStoreBindingDeployed": true,
+    "canonicalDomain": "issuedonce.shop",
+    "authoritativeDnsProvider": "hostinger",
+    "authoritativeNameservers": [
+      "lunar.dns-parking.com",
+      "solar.dns-parking.com"
+    ],
+    "canonicalDomainCutoverVerifiedAt": "2026-09-07T10:29:40Z",
+    "hostingerMailboxConfigured": true,
+    "hostingerSupportMailbox": "support@issuedonce.shop",
+    "resendOtpDomainStatus": "verified",
+    "resendRootDomainStatus": "pending_dkim_spf_verified",
+    "canonicalAppOriginEnvironmentVerified": false,
+    "merchantDisclosureTruthAttested": false
   },
   "nextAction": {
-    "actor": "OWNER_SECRET_HANDOFF_OR_AUTHENTICATED_PROVIDER",
-    "instruction": "Keep the Printful one-time token tab open. Authenticate the connected browser to Safepay production/onboarding and Hostinger hPanel. Securely hand the already-created Issued Once Runtime v2 Printful token into the approved runtime/API configuration path without pasting it into chat. Configure Printful webhook-v2 for shipment_sent, shipment_delivered, shipment_canceled, order_failed, order_canceled and order_updated at the verified Hostinger webhook URL, then set PRINTFUL_API_TOKEN, PRINTFUL_STORE_ID=18710377, PRINTFUL_WEBHOOK_PUBLIC_KEY and PRINTFUL_WEBHOOK_SECRET_HEX in Hostinger. Configure truthful Safepay production environment/API/webhook credentials in Hostinger. Keep PRINTFUL_ALLOW_CONFIRM disabled and perform no charge, refund, manufacturing confirmation, referral activation, cleanup or DNS cutover solely for configuration. Re-run exact-release provider readiness and webhook fail-open/valid-signature proofs only after secrets are installed."
+    "actor": "ENGINEERING_INTEGRATION_THEN_OWNER_PROVIDER_CONFIG",
+    "instruction": "Push the verified integration-readiness candidate and open a focused PR to infra/hostinger-migration-20260823; require CI/browser gates before merge. After integration, owner/provider work remains: set APP_ORIGIN=https://issuedonce.shop and support/mail environment values in Hostinger, choose COMMERCIAL_METRICS_BASELINE_DATE only from read-only launch-boundary evidence, provide truthful merchant location/details before MERCHANT_PUBLIC_DETAILS_CONFIRMED=true, wait for root Resend DKIM verification before switching to notify@issuedonce.shop, and configure Safepay/Printful canonical webhook runtime values. Keep PRINTFUL_ALLOW_CONFIRM disabled; no real charge/refund/manufacturing confirmation is authorized by this checkpoint."
   },
   "consumerReadinessFinishV4": {
     "taskId": "issued-once-consumer-ready-finish-v4",
@@ -375,17 +388,19 @@
     "rowReconciliation": {
       "CR-01": "DONE: exact-tree gates + real seven-answer Hostinger smoke",
       "CR-26": "OWNER_REQUIRED: live configured disclosure is proven; factual truth requires owner attestation",
-      "CR-28": "MISSING live composite evidence only; no known engineering-safe implementation/test/read-only gap remains after PR #90",
+      "CR-28": "CODE_READY_LOCAL_VERIFIED: reopened Hostinger-origin, merchant-readiness, manual-design and stale-metrics defects are fixed on the integration-readiness candidate; PR/CI integration and external provider/runtime gates remain.",
       "CR-23": "DONE: exact-current release Owner read proof passed authenticated no-store reads, Manufacturing provider-independence, limit=2 cursor pagination, and all 11 Owner OS rooms with zero overflow on release 674ca48769619bc4664653caddd5f5b9545d1576.",
       "CR-27": "DONE: owner-approved latest verified integration tree deployed through forward-only Hostinger wrapper; exact live health, non-OTP boundary audit, and strict security/cache-header proof passed"
     },
     "remainingOwnerOrProviderGates": [
+      "merge/deploy the verified integration-readiness candidate through normal repository and owner deployment gates",
+      "set APP_ORIGIN/support sender environment values in Hostinger after integration; do not expose secrets",
+      "attest truthful public merchant/location disclosure before enabling MERCHANT_PUBLIC_DETAILS_CONFIRMED=true",
+      "choose COMMERCIAL_METRICS_BASELINE_DATE from read-only launch-boundary evidence; do not delete old metric rows",
+      "complete root issuedonce.shop Resend DKIM verification, then prove notify@issuedonce.shop while preserving otp.issuedonce.shop until replacement is proven",
       "configure Safepay production runtime with truthful provider-issued values and complete separately approved live payment/refund proofs",
       "configure Printful signed-webhook runtime with truthful provider-issued values; keep PRINTFUL_ALLOW_CONFIRM disabled until the separate manufacturing gate",
-      "attest truthful public merchant/legal disclosure",
-      "complete remaining row-specific payment/design/Printful/tracking/support/recovery/refund proofs",
-      "complete CR-28 one controlled full live order plus a second isolated customer proof",
-      "canonical-domain cutover remains after temporary-host/provider/privacy gates are green"
+      "complete CR-28 one controlled full live order plus a second isolated customer proof only under their existing owner/provider gates"
     ],
     "irreversibleActionsPerformed": [],
     "ownerReadProviderIndependence": {
@@ -484,6 +499,40 @@
       "realSafepayChargePerformed": false,
       "realSafepayRefundPerformed": false,
       "printfulProductionConfirmationPerformed": false
+    },
+    "integrationReadinessDomainEmail20260907": {
+      "status": "LOCAL_CODE_READY_PENDING_PR_INTEGRATION",
+      "branch": "feat/integration-readiness-domain-email-20260907",
+      "baseIntegrationHead": "aea453222f86abb352f6833271a4d24230e5cbc3",
+      "head": "2a2486daf28c2d1d316ee766f7112dbcb6678431",
+      "tree": "cb56c0f525eaa70abd500a05dcc574a58ef01831",
+      "commits": [
+        "aabc007 fix: trust canonical public origin behind Hostinger",
+        "2600231 fix: treat manual design as launch-ready without OpenAI",
+        "d94b8b1 fix: require truthful merchant disclosure",
+        "8c5f683 fix: isolate prelaunch commercial analytics",
+        "109a357 docs: make Hostinger the canonical domain authority",
+        "2a2486d test: satisfy process environment contract"
+      ],
+      "verification": {
+        "focused": "14 files / 84 tests PASS",
+        "fullUnit": "245 files / 744 tests PASS",
+        "typecheck": "PASS",
+        "lint": "PASS",
+        "build": "PASS",
+        "browser": "12/12 PASS desktop+mobile focused suites",
+        "diffCheck": "PASS",
+        "originAudit": "PASS"
+      },
+      "providerState": {
+        "canonicalDns": "Hostinger authoritative at .shop registry",
+        "hostingerMail": "support@issuedonce.shop exists; five aliases owner-created",
+        "resendOtpDomain": "verified",
+        "resendRootDomain": "pending DKIM; SPF/MX verified",
+        "safepayProduction": "still owner/provider configuration gate",
+        "printfulSignedWebhook": "still owner/provider configuration gate",
+        "realChargeRefundOrManufacturingConfirmation": false
+      }
     }
   },
   "cr27HistoricalContinuationEvidence": {
@@ -827,7 +876,7 @@
     "webhookStoreBindingConfigured": false
   },
   "ownerConsumerAudit20260907": {
-    "status": "ENGINEERING_REOPENED",
+    "status": "ENGINEERING_FIX_CANDIDATE_LOCAL_VERIFIED",
     "liveRelease": "674ca48769619bc4664653caddd5f5b9545d1576",
     "consumerEvidence": {
       "browserSuite": "34/34 PASS on desktop/mobile exact deployed tree",
@@ -874,10 +923,29 @@
       "no DNS cutover"
     ],
     "nextEngineeringActions": [
-      "Implement a trusted public-origin helper for Hostinger/proxy-aware redirects and payment return URLs; add live/regression tests.",
-      "Strengthen merchant readiness validation so known placeholders/misspellings cannot report ready; then configure truthful merchant disclosure.",
-      "Configure and prove the live OpenAI design runtime without exposing secrets.",
-      "Re-run full consumer + Owner OS live audit before provider launch proof."
-    ]
+      "Integrate the locally verified candidate through a focused PR and repository CI/browser gates.",
+      "After owner-approved deployment, re-run live consumer + Owner OS audit on issuedonce.shop and prove no internal Hostinger origin leaks.",
+      "Configure truthful merchant disclosure and owner confirmation; do not fabricate location/legal identity.",
+      "Keep MANUAL design as the launch-safe fallback; OpenAI automation is optional and must not block readiness when durable storage is healthy."
+    ],
+    "candidateResolution": {
+      "branch": "feat/integration-readiness-domain-email-20260907",
+      "baseIntegrationHead": "aea453222f86abb352f6833271a4d24230e5cbc3",
+      "candidateHead": "2a2486daf28c2d1d316ee766f7112dbcb6678431",
+      "candidateTree": "cb56c0f525eaa70abd500a05dcc574a58ef01831",
+      "trustedPublicOrigin": "FIXED_WITH_APP_ORIGIN_FAIL_CLOSED_PRODUCTION_CONTRACT",
+      "merchantReadiness": "FIXED_REJECTS_PLACEHOLDER_INVALID_UNCONFIRMED_VALUES",
+      "designReadiness": "FIXED_MANUAL_WORKFLOW_LAUNCH_CAPABLE_WITHOUT_OPENAI",
+      "commercialMetrics": "FIXED_NON_DESTRUCTIVE_BASELINE_CUTOFF",
+      "canonicalDomain": "HOSTINGER_AUTHORITY_CUTOVER_VERIFIED; WWW_REDIRECT_CODE_READY_UNDEPLOYED",
+      "focusedRegression": "14 files / 84 tests PASS",
+      "fullUnit": "245 files / 744 tests PASS",
+      "typecheck": "PASS",
+      "lint": "PASS",
+      "productionBuild": "PASS",
+      "browserQa": "12/12 PASS desktop+mobile across consumer, Owner OS and Designer focused suites",
+      "originAuthorityAudit": "PASS: zero new URL(..., request.url) / request.url.origin authority patterns remain in src/app or src/server",
+      "productionDeploymentPerformed": false
+    }
   }
 }

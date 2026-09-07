@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ExperienceAccessService } from '@/server/experience/ExperienceAccessService';
 import { getExperienceRepository } from '@/server/experience/runtimeRepository';
+import { buildPublicUrl } from '@/server/http/publicOrigin';
 import {
   SESSION_COOKIE_NAME,
   sessionCookieOptions,
@@ -35,7 +36,7 @@ async function reconcileReturnedTracker(
 
 function paymentReturnRedirect(request: Request, restoredToken: string | null) {
   const destination = restoredToken ? '/issue' : '/payment/pending';
-  const response = NextResponse.redirect(new URL(destination, request.url), 303);
+  const response = NextResponse.redirect(buildPublicUrl(destination, request.url), 303);
   if (restoredToken) {
     response.cookies.set(SESSION_COOKIE_NAME, restoredToken, sessionCookieOptions);
   }
