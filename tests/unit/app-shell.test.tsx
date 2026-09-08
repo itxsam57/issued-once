@@ -1,27 +1,21 @@
 import { render, screen } from '@testing-library/react';
 import Home from '@/app/page';
 
-test('home opens with the issued-for-you idea and lets curiosity carry the page', () => {
+test('home opens with the approved issued-for-you editorial sequence and no sales pressure', () => {
   render(<Home />);
 
-  expect(screen.getByText('ISSUED ONCE')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'ISSUED ONCE' })).toHaveAttribute('href', '/');
   expect(
     screen.getByRole('heading', { name: 'A piece of your mind. Issued for you.' }),
   ).toBeInTheDocument();
-  expect(
-    screen.getByText('Nothing has to appear literally to still be there.'),
-  ).toBeInTheDocument();
-  expect(
-    screen.getByText('You may recognize where it came from without knowing how it got there.'),
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole('heading', {
-      name: "Some of this might get personal. It doesn't need to become public.",
-    }),
-  ).toBeInTheDocument();
-  expect(screen.getAllByRole('link', { name: /begin/i }).length).toBeGreaterThan(0);
+  expect(screen.getByText('questions are enough.')).toBeInTheDocument();
+  expect(screen.getByText('design.')).toBeInTheDocument();
+  expect(screen.getByText('exists once.')).toBeInTheDocument();
+  expect(screen.getByText('HIDDEN')).toBeInTheDocument();
+  expect(screen.getByText('AVAILABLE')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'BEGIN.' })).toHaveAttribute('href', '/begin');
 
-  expect(screen.queryByText('There is something here that does not exist yet.')).not.toBeInTheDocument();
+  expect(document.querySelector('[data-issue-ledger]')).toBeNull();
   expect(screen.queryByText(/shop now/i)).not.toBeInTheDocument();
-  expect(screen.queryByText(/no account|no payment/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/countdown|only \d+ left|hurry|ending soon/i)).not.toBeInTheDocument();
 });

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.37.1",
+  "version": "1.38.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-07T11:35:18Z",
+  "updatedAt": "2026-09-08T06:08:30Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -10,23 +10,23 @@
     "activeMigrationPullRequest": 13,
     "verifiedRuntimeIntegrationHead": "5053090b24cea8add307f432e53bd055a3843968",
     "verifiedRuntimeTree": "949f254ca27b28179b2e276a1396e9d58b04ebf2",
-    "liveReleaseHead": "674ca48769619bc4664653caddd5f5b9545d1576",
-    "liveReleaseTree": "949f254ca27b28179b2e276a1396e9d58b04ebf2",
+    "liveReleaseHead": "88961f027a110575374e5172b99681ebada3c24f",
+    "liveReleaseTree": "a8c176bd62372db9648632d099f01a131a261c01",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-    "hostingerLinkedBranchHead": "674ca48769619bc4664653caddd5f5b9545d1576",
+    "hostingerLinkedBranchHead": "88961f027a110575374e5172b99681ebada3c24f",
     "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
     "combinedCandidateBranchHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop",
-    "latestEngineeringIntegrationHead": "34312ef4c354612bbf5b0ea539f44f58bdbfd384",
-    "latestEngineeringIntegrationTree": "f6956843a2db265dac85d5d07e5f91a7f584b332",
-    "latestEngineeringIntegrationVerifiedAt": "2026-09-07T11:35:18Z"
+    "latestEngineeringIntegrationHead": "4195bfd5d445d7625885c9716f9b9ed3e68e93ea",
+    "latestEngineeringIntegrationTree": "a8c176bd62372db9648632d099f01a131a261c01",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-08T04:21:12Z"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "All currently identified engineering-safe integration-readiness work is merged into infra/hostinger-migration-20260823 and exact-head/post-merge CI plus Browser QA are green. Production deployment is intentionally withheld because Hostinger still needs the canonical APP_ORIGIN/support/merchant/launch-baseline environment integration before the new fail-closed origin contract can safely go live. Safepay production and Printful signed-webhook configuration remain provider/owner work; Resend root DKIM is still waiting on public DNS-cache expiry.",
+    "state": "COMPLETE",
+    "currentEngineeringStopRequired": false,
+    "currentEngineeringStopReason": "Final production UI implementation and exact approved 12-JPG asset integration are locally verified. Safepay remains explicitly excluded; integration/CI/release promotion is the next engineering action.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -34,8 +34,8 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "STOP_OWNER_REQUIRED_PROVIDER_INTEGRATION",
-    "reason": "PR #106 merged successfully. Trusted public origin (including private IPv4/IPv6 rejection), manual-first design readiness, truthful merchant validation, non-destructive commercial analytics baseline, Hostinger canonical-domain behavior and deployment contracts are code-complete and verified. OpenAI is optional for launch. Remaining work requires owner/provider account configuration or external DNS propagation, followed by the already-defined live commercial proofs."
+    "decision": "CONTINUE_INTEGRATION_FINAL_UI",
+    "reason": "Exact uploaded bundle hash verified, all 12 JPG hashes preserved, and the final UI acceptance suite is 6/6 green. Full regression gates will be rerun before PR/merge/release promotion."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -179,8 +179,8 @@
     "hostingerAuthenticationForProviderConfig": false
   },
   "productionRuntime": {
-    "liveRelease": "674ca48769619bc4664653caddd5f5b9545d1576",
-    "liveTree": "949f254ca27b28179b2e276a1396e9d58b04ebf2",
+    "liveRelease": "88961f027a110575374e5172b99681ebada3c24f",
+    "liveTree": "a8c176bd62372db9648632d099f01a131a261c01",
     "runtimeProvider": "hostinger",
     "productionDeploymentOfIntegratedTree": true,
     "hostingerSelectedBranch": "release/hostinger-v2-candidate-20260824",
@@ -218,9 +218,11 @@
     "hostingerMailboxConfigured": true,
     "hostingerSupportMailbox": "support@issuedonce.shop",
     "resendOtpDomainStatus": "verified",
-    "resendRootDomainStatus": "pending_dkim_spf_verified",
-    "canonicalAppOriginEnvironmentVerified": false,
-    "merchantDisclosureTruthAttested": false
+    "resendRootDomainStatus": "verified",
+    "canonicalAppOriginEnvironmentVerified": true,
+    "merchantDisclosureTruthAttested": true,
+    "wwwTlsStatus": "verified_wildcard_and_apex_san",
+    "wwwCanonicalRedirectStatus": "verified_307_to_apex_on_hostinger_dns_path"
   },
   "nextAction": {
     "actor": "OWNER_PROVIDER_INTEGRATION",
@@ -973,6 +975,49 @@
       "browserQa": "12/12 PASS desktop+mobile across consumer, Owner OS and Designer focused suites",
       "originAuthorityAudit": "PASS: zero new URL(..., request.url) / request.url.origin authority patterns remain in src/app or src/server",
       "productionDeploymentPerformed": false
+    }
+  },
+  "finalProductionUi20260908": {
+    "ownerApproved": true,
+    "approvedHandoff": "ISSUED-ONCE-UI-HANDOFF.md",
+    "branch": "ui/final-production-ritual-20260908",
+    "baseIntegrationHead": "4195bfd5d445d7625885c9716f9b9ed3e68e93ea",
+    "baseIntegrationTree": "a8c176bd62372db9648632d099f01a131a261c01",
+    "status": "CODE_AND_UI_ASSET_QA_GREEN_READY_FOR_INTEGRATION",
+    "implemented": [
+      "Approved #F3EEE6 cream editorial homepage with no homepage ledger and exact 7 / 1 / 1-to-1 sequence.",
+      "Production ritual shell with truthful NOT YET pre-payment Issue state and progressive server-success-bound ledger.",
+      "Exact TEE / CAP / TOTE selector geometry and FORM→MATERIAL→TECHNICAL→DISPLAY cycling without card growth.",
+      "Desktop/tablet/mobile ledger breakpoints, keyboard/touch semantics, reduced-motion handling and no pre-purchase hidden-artwork DOM leakage.",
+      "Shared fixed public utility header across merchant and Issue status/pending surfaces; downstream typography/colors aligned to approved tokens.",
+      "No src/server, src/domain, src/app/api, payment, Safepay, Printful or catalog business-contract code changed."
+    ],
+    "freshEvidence": {
+      "fullUnit": "PASS: 248 test files / 761 tests",
+      "typecheck": "PASS",
+      "lint": "PASS: 0 errors / 0 warnings",
+      "productionBuild": "PASS: Next.js 16.2.11 optimized production build",
+      "existingBrowserQa": "PASS: 44/44 desktop+mobile Chromium tests, including catalog Tee/Cap/Tote, recovery, support, merchant pages, customer flow, referral replacement, repeat lifecycle and owner gates.",
+      "finalUiBrowserQa": "PASS: 6/6 final-production-ui desktop Chromium acceptance tests with the exact owner-approved JPG bundle loaded.",
+      "acceptanceWidths": "PASS: 1440 / 1024 / 768 / 390 / 360 no horizontal overflow",
+      "consoleAndPageErrors": "PASS on homepage, first-question and all merchant routes",
+      "backendDiffAudit": "PASS: no diff under src/server, src/domain, src/app/api, proxy.ts, next.config.ts, package.json or pnpm-lock.yaml",
+      "safepaySideEffects": "NONE; checkout boundary only mocked in QA",
+      "printfulProductionConfirmation": "NONE"
+    },
+    "externalReadiness": {
+      "resendRootDomain": "VERIFIED: DKIM + SPF MX/TXT verified in Resend and authoritative Hostinger DNS",
+      "wwwTls": "VERIFIED: certificate SAN includes *.issuedonce.shop and issuedonce.shop",
+      "hostingerRelease": "88961f027a110575374e5172b99681ebada3c24f direct authoritative-edge health PASS with databaseReady/queueReady/storageReady true",
+      "localResolverNote": "The authorized workstation local DNS cache still resolves apex to stale Vercel IPs; direct authoritative Hostinger edges and public resolvers show Hostinger DNS. Do not classify that local resolver cache as production origin drift."
+    },
+    "safepayScope": "EXCLUDED_BY_OWNER_FOR_THIS_CYCLE",
+    "exactAssetBundle": {
+      "zipSha256": "64d6dc00c3ed7d97bd5dc3c52b58455001550019397c44378ba19ae049c8aebf",
+      "assetCount": 12,
+      "destination": "public/assets/issued-once/",
+      "source": "owner-uploaded io-assets.zip / exact handoff bytes",
+      "substitutionPerformed": false
     }
   }
 }

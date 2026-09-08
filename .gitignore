@@ -10,3 +10,6 @@ test-results/
 .env.*.local
 !.env.example
 .DS_Store
+artifacts/
+*.tsbuildinfo
+next-env.d.ts
