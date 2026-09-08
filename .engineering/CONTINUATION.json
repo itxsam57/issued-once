@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.38.1",
+  "version": "1.39.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-08T06:08:30Z",
+  "updatedAt": "2026-09-08T21:54:24Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -24,9 +24,9 @@
     "latestEngineeringIntegrationVerifiedAt": "2026-09-08T04:21:12Z"
   },
   "continuationGovernor": {
-    "state": "COMPLETE",
-    "currentEngineeringStopRequired": false,
-    "currentEngineeringStopReason": "Final production UI implementation and exact approved 12-JPG asset integration are locally verified. Safepay remains explicitly excluded; integration/CI/release promotion is the next engineering action.",
+    "state": "OWNER_REQUIRED",
+    "currentEngineeringStopRequired": true,
+    "currentEngineeringStopReason": "Owner-rejected hybrid consumer UI has been replaced end-to-end on an isolated branch and fully verified locally. Production release/Hostinger promotion remains an explicit owner-authorized action; Safepay and Printful provider state were not mutated by this UI rebuild.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -34,12 +34,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "CONTINUE_INTEGRATION_FINAL_UI",
-    "reason": "Exact uploaded bundle hash verified, all 12 JPG hashes preserved, and the final UI acceptance suite is 6/6 green. Full regression gates will be rerun before PR/merge/release promotion."
+    "decision": "STOP_OWNER_REQUIRED_REFERENCE_UI_PROMOTION",
+    "reason": "Whole consumer presentation rebuild is verified across homepage, ritual, physical selection, identity, shipping, commitment, repeat, status/recovery/support, payment-pending, and merchant/legal routes. 763/763 unit tests and 56/56 Playwright tests pass; typecheck, lint, production build, and frontend-only diff audit pass."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "INTEGRATION_READINESS_CANDIDATE_GREEN_PENDING_PR",
+    "internalWorkStatus": "REFERENCE_UI_REBUILD_VERIFIED_PENDING_OWNER_RELEASE_APPROVAL",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan and CR-27 evidence checkpoint as the release evidence ledger.",
@@ -1019,5 +1019,60 @@
       "source": "owner-uploaded io-assets.zip / exact handoff bytes",
       "substitutionPerformed": false
     }
+  },
+  "referenceUiRebuild20260908": {
+    "status": "CODE_AND_QA_COMPLETE_OWNER_RELEASE_APPROVAL_REQUIRED",
+    "branch": "ui/reference-rebuild-20260908",
+    "baseReleaseHead": "e3bbafe3d597d51fd5db60dc28c1aa93873faf29",
+    "implementationHead": "eb3342edd9b88831eeaa97d3a5a38d71c4b5cf4d",
+    "rootCause": "The rejected production surface mounted the new editorial shell around legacy globally styled presentation components, creating a visibly hybrid old/new UI.",
+    "replacementContract": "Owner-approved HTML/handoff owns the entire customer-visible presentation tree. Existing backend/API/business/provider handlers remain the functional substrate only.",
+    "customerSurface": [
+      "home",
+      "seven-question ritual",
+      "object selection",
+      "size",
+      "base/color",
+      "contact/email",
+      "OTP",
+      "shipping",
+      "commitment/price",
+      "checkout handoff",
+      "payment pending",
+      "issue status",
+      "recovery",
+      "support",
+      "repeat order",
+      "store info",
+      "contact merchant page",
+      "terms",
+      "returns"
+    ],
+    "legacyPresentationRemoved": [
+      "src/app/object-stage.css",
+      "src/app/size-stage.css",
+      "src/app/base-stage.css",
+      "src/app/commitment-stage.css",
+      "src/components/home/HomeMaterialStudy.tsx",
+      "src/components/public/public-utility-header.module.css"
+    ],
+    "verification": {
+      "unit": "PASS: 249 files / 763 tests",
+      "playwright": "PASS: 56 tests / 14 files across desktop and mobile",
+      "typecheck": "PASS",
+      "lint": "PASS",
+      "productionBuild": "PASS",
+      "diffCheck": "PASS",
+      "serverDomainApiDiff": "NONE",
+      "manualVisualReview": "PASS: homepage, question, object, size, base, contact, OTP, shipping, commitment, repeat, pending/status, recovery/support, and all four merchant/legal pages inspected on desktop/mobile; local Next.js dev-tools badge is not production UI"
+    },
+    "providerSafety": {
+      "safepayMutated": false,
+      "printfulMutated": false,
+      "realChargeOrRefund": false,
+      "realManufacturingOrderOrConfirmation": false,
+      "productionDeploymentPerformed": false
+    },
+    "nextAction": "Owner reviews/accepts the rebuilt presentation and explicitly authorizes merge/release promotion. Only after that should Hostinger production be updated and live visual smoke/release verification run."
   }
 }
