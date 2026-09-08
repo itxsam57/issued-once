@@ -13,5 +13,7 @@ test('an unresolved payment keeps the buyer on the live Issue polling and recove
 
   await expect(page.getByRole('heading', { name: 'Hold this thought.' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'FIND MY ISSUE' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'ISSUED ONCE' })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'ISSUED ONCE' })).toHaveAttribute('href', '/');
+  await expect(page.getByRole('link', { name: 'INFO' })).toHaveAttribute('href', '/store-info');
+  await expect(page.getByRole('link', { name: 'STATUS' })).toHaveAttribute('href', '/issue');
 });

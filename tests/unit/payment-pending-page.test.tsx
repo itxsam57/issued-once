@@ -7,9 +7,11 @@ vi.mock('@/components/experience/IssueStatusView', () => ({
 
 import PaymentPendingPage from '@/app/payment/pending/page';
 
-test('pending payment keeps the customer on the live Issue polling and recovery surface', () => {
+test('pending payment keeps the customer on live Issue polling/recovery inside the approved public shell', () => {
   render(<PaymentPendingPage />);
 
   expect(screen.getByTestId('issue-status-view')).toBeInTheDocument();
-  expect(screen.queryByRole('link', { name: 'ISSUED ONCE' })).not.toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'ISSUED ONCE' })).toHaveAttribute('href', '/');
+  expect(screen.getByRole('link', { name: 'INFO' })).toHaveAttribute('href', '/store-info');
+  expect(screen.getByRole('link', { name: 'STATUS' })).toHaveAttribute('href', '/issue');
 });

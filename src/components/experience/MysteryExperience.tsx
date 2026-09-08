@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { QuestionDefinition, QuestionId } from '@/domain/experience/types';
 import type { ShippingAddress } from '@/server/shipping/ShippingRepository';
 import { BaseColorSelection, type BaseColorOption } from './BaseColorSelection';
@@ -12,6 +12,7 @@ import {
 import { ContactVerification } from './ContactVerification';
 import { InterviewFlow } from './InterviewFlow';
 import { ObjectSelection, type ObjectType } from './ObjectSelection';
+import { RitualShell } from './RitualShell';
 import { ShippingAddressForm } from './ShippingAddressForm';
 import { SizeConfirmation, type SizeOption } from './SizeConfirmation';
 
@@ -97,6 +98,9 @@ export function MysteryExperience({
   onCheckoutRequested,
 }: MysteryExperienceProps) {
   const [phase, setPhase] = useState<ExperiencePhase>(initialPhase);
+  const [answeredCount, setAnsweredCount] = useState(() =>
+    interviewInitiallyComplete ? 7 : Math.max(0, (initialQuestionPosition ?? 1) - 1),
+  );
   const [selectedObject, setSelectedObject] = useState<ObjectType | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<{ code: string; label: string } | null>(null);
@@ -107,6 +111,17 @@ export function MysteryExperience({
   const requiresContactAndShipping = Boolean(
     onRequestOtp && onVerifyOtp && onShippingSubmitted,
   );
+
+  const ledgerState = {
+    answered: answeredCount,
+    object: selectedObject,
+    size: selectedSize,
+    base: selectedColor?.label ?? null,
+  };
+
+  function ritual(content: ReactNode) {
+    return <RitualShell ledger={ledgerState}>{content}</RitualShell>;
+  }
 
   async function handleObjectSelected(object: ObjectType) {
     const returnedSizes = await onObjectSelected(object);
@@ -163,7 +178,7 @@ export function MysteryExperience({
     commitmentQuote &&
     onCheckoutRequested
   ) {
-    return (
+    return ritual(
       <CommitmentScreen
         selection={{
           object: selectedObject,
@@ -173,57 +188,50 @@ export function MysteryExperience({
         quote={commitmentQuote}
         onApplyReferral={onApplyReferral}
         onCommit={onCheckoutRequested}
-      />
+      />,
     );
   }
 
   if (phase === 'shipping' && onShippingSubmitted) {
-    return (
+    return ritual(
       <ShippingAddressForm
         onSubmit={async (address) => {
           await onShippingSubmitted(address);
           setPhase('commitment');
         }}
-      />
+      />,
     );
   }
 
   if (phase === 'contact' && onRequestOtp && onVerifyOtp) {
-    return (
+    return ritual(
       <ContactVerification
         onCheckEmail={onCheckEmail}
         onReuseVerified={onReuseVerified}
         onRequestOtp={onRequestOtp}
         onVerifyOtp={onVerifyOtp}
         onComplete={() => setPhase('shipping')}
-      />
+      />,
     );
   }
 
   if (phase === 'base' && selectedObject && selectedSize) {
-    return (
-      <BaseColorSelection
-        colors={availableColors}
-        onConfirm={handleBaseColorConfirmed}
-      />
+    return ritual(
+      <BaseColorSelection colors={availableColors} onConfirm={handleBaseColorConfirmed} />,
     );
   }
 
   if (phase === 'size' && selectedObject) {
-    return (
-      <SizeConfirmation
-        object={selectedObject}
-        sizes={availableSizes}
-        onConfirm={handleSizeConfirmed}
-      />
+    return ritual(
+      <SizeConfirmation object={selectedObject} sizes={availableSizes} onConfirm={handleSizeConfirmed} />,
     );
   }
 
   if (phase === 'form') {
-    return <ObjectSelection onSelect={handleObjectSelected} />;
+    return ritual(<ObjectSelection onSelect={handleObjectSelected} />);
   }
 
-  return (
+  return ritual(
     <InterviewFlow
       questions={questions}
       initialPosition={initialQuestionPosition}
@@ -231,6 +239,7 @@ export function MysteryExperience({
       onAnswer={onAnswer}
       onComplete={onInterviewComplete}
       onProceed={() => setPhase('form')}
-    />
+      onProgress={setAnsweredCount}
+    />,
   );
 }

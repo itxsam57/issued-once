@@ -1,29 +1,34 @@
 :root {
-  --paper: #eee9dd;
-  --paper-deep: #e4ded0;
-  --ink: #13130f;
-  --muted: #706d64;
-  --hairline: rgba(19, 19, 15, 0.2);
-  --signal: #7a2925;
-  --serif: Georgia, 'Times New Roman', Times, serif;
+  --bg: #F3EEE6;
+  --ink: #11100E;
+  --muted: rgba(17, 16, 14, 0.58);
+  --faint: rgba(17, 16, 14, 0.22);
+  --line: rgba(17, 16, 14, 0.16);
+  --line2: rgba(17, 16, 14, 0.30);
+  --signal: #9B6B47;
+  --danger: #9E3E32;
+  --ok: #4F7554;
+  --max: 1320px;
+  --pad: clamp(20px, 4vw, 58px);
+  --serif: Georgia, 'Times New Roman', serif;
   --sans: Arial, Helvetica, sans-serif;
+  --paper: var(--bg);
+  --paper-deep: #E9E2D8;
+  --hairline: var(--line);
 }
 
 html,
 body {
   margin: 0;
   min-height: 100%;
-  background: var(--paper);
+  background: var(--bg);
   color: var(--ink);
   font-family: var(--sans);
 }
 
 body {
   min-height: 100svh;
-  background-image:
-    linear-gradient(rgba(19, 19, 15, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(19, 19, 15, 0.018) 1px, transparent 1px);
-  background-size: 42px 42px;
+  background: var(--bg);
 }
 
 * {
@@ -470,5 +475,15 @@ a {
     transition-duration: 0.001ms !important;
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
+  }
+}
+
+.public-interview--headered {
+  padding-top: 64px;
+}
+
+@media (max-width: 720px) {
+  .public-interview--headered {
+    padding-top: 58px;
   }
 }
