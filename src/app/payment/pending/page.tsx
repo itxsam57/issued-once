@@ -1,9 +1,13 @@
 import { IssueStatusView } from '@/components/experience/IssueStatusView';
+import { PublicUtilityHeader } from '@/components/public/PublicUtilityHeader';
 
 export default function PaymentPendingPage() {
   return (
-    <main className="public-interview">
-      <IssueStatusView />
-    </main>
+    <>
+      <PublicUtilityHeader center="ISSUE / STATUS" />
+      <main className="public-interview public-interview--headered">
+        <IssueStatusView />
+      </main>
+    </>
   );
 }

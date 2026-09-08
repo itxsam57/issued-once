@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PublicUtilityHeader } from '@/components/public/PublicUtilityHeader';
 import type { ReactNode } from 'react';
 import styles from './merchant.module.css';
 
@@ -15,10 +16,7 @@ export function MerchantPageShell({
 }) {
   return (
     <main className={styles.page}>
-      <header className={styles.topbar}>
-        <Link className={styles.brand} href="/">ISSUED ONCE</Link>
-        <Link className={styles.back} href="/begin">BEGIN ↘</Link>
-      </header>
+      <PublicUtilityHeader />
 
       <section className={styles.hero}>
         <p className={styles.kicker}>{kicker}</p>

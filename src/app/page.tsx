@@ -1,75 +1,68 @@
 import Link from 'next/link';
+import { HomeMaterialStudy } from '@/components/home/HomeMaterialStudy';
 import styles from './home.module.css';
 
 export default function Home() {
   return (
     <main className={styles.story}>
-      <section className={styles.hero} aria-labelledby="entry-prompt">
-        <header className={styles.header}>
-          <span className={styles.brand}>ISSUED ONCE</span>
-          <span className={styles.status}>STATUS / UNISSUED</span>
-        </header>
+      <header className={styles.siteHeader}>
+        <Link className={styles.brand} href="/">ISSUED ONCE</Link>
+        <span className={styles.headerIssue}>ISSUE / NOT YET</span>
+        <nav className={styles.utilities} aria-label="Utility">
+          <Link href="/store-info">INFO</Link>
+          <Link href="/issue">STATUS</Link>
+        </nav>
+      </header>
 
-        <div className={styles.heroBody}>
-          <span className={styles.index}>ENTRY / 00</span>
+      <section className={styles.hero} aria-labelledby="entry-prompt">
+        <div className={styles.heroCopy}>
+          <p className={styles.technical}>ISSUE / NOT YET&nbsp;&nbsp;&nbsp; 1 / 1</p>
           <h1 id="entry-prompt" aria-label="A piece of your mind. Issued for you.">
             A piece of your mind.
             <br />
             <em>Issued for you.</em>
           </h1>
+          <Link className={styles.start} href="/begin">START <span aria-hidden="true">↘</span></Link>
         </div>
-
-        <div className={styles.heroFoot}>
-          <span aria-hidden="true">ISSUE / NOT YET</span>
-          <Link className={styles.begin} href="/begin">
-            BEGIN <span aria-hidden="true">↘</span>
-          </Link>
-        </div>
+        <HomeMaterialStudy className={styles.materialStudy} />
       </section>
 
-      <section className={`${styles.thought} ${styles.thoughtFirst}`} aria-labelledby="thought-one">
-        <p className={styles.index}>TRACE / 01</p>
-        <h2 id="thought-one">Nothing has to appear literally to still be there.</h2>
-        <div className={styles.orbit} aria-hidden="true" />
+      <section className={styles.statement} aria-label="Seven questions">
+        <strong>7</strong>
+        <p>questions are enough.</p>
       </section>
 
-      <section className={`${styles.thought} ${styles.thoughtSecond}`} aria-labelledby="thought-two">
-        <p className={styles.index}>AFTER / 07</p>
-        <h2 id="thought-two">
-          You may recognize where it came from without knowing how it got there.
-        </h2>
+      <section className={`${styles.statement} ${styles.statementRight}`} aria-label="One design">
+        <strong>1</strong>
+        <p>design.</p>
       </section>
 
-      <section className={styles.enough} aria-labelledby="enough-heading">
-        <div>
-          <p className={styles.index}>SEVEN / ENOUGH</p>
-          <h2 id="enough-heading">Seven questions are enough.</h2>
-        </div>
-        <Link className={`${styles.begin} ${styles.beginLarge}`} href="/begin">
-          BEGIN <span aria-hidden="true">↘</span>
-        </Link>
+      <section className={styles.statement} aria-label="One of one">
+        <strong>1 / 1</strong>
+        <p>exists once.</p>
       </section>
 
-      <section id="privacy" className={styles.privacy} aria-labelledby="privacy-heading">
-        <p className={styles.index}>YOUR ANSWERS</p>
-        <h2 id="privacy-heading">
-          Some of this might get personal. It doesn&apos;t need to become public.
-        </h2>
-        <div className={styles.privacyCopy}>
-          <p>What you tell us is there to shape your issue.</p>
-          <p>It isn&apos;t part of a public profile. It isn&apos;t something another customer gets to browse.</p>
+      <section className={styles.currentIssue} aria-labelledby="current-issue-heading">
+        <p className={styles.technical}>CURRENT ISSUE</p>
+        <h2 id="current-issue-heading" aria-label="Issue allocated after payment">—</h2>
+        <div className={styles.issueFacts}>
+          <span>HIDDEN</span>
+          <span>1 / 1</span>
+          <span>AVAILABLE</span>
         </div>
       </section>
 
-      <footer className={styles.finalFooter}>
+      <section className={styles.finalCta}>
+        <Link href="/begin">BEGIN.</Link>
+      </section>
+
+      <footer className={styles.footer}>
         <span>ISSUED ONCE / 2026</span>
-        <nav aria-label="Footer" style={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <a href="#privacy">PRIVACY</a>
+        <nav aria-label="Footer">
           <Link href="/store-info">STORE INFO</Link>
           <Link href="/contact">CONTACT</Link>
           <Link href="/terms">TERMS</Link>
           <Link href="/returns">RETURNS</Link>
-          <Link href="/begin">BEGIN</Link>
         </nav>
       </footer>
     </main>

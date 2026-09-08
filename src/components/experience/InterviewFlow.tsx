@@ -17,6 +17,7 @@ type InterviewFlowProps = {
   onAnswer: (payload: AnswerPayload) => Promise<void> | void;
   onComplete?: () => Promise<void> | void;
   onProceed?: () => Promise<void> | void;
+  onProgress?: (answered: number) => void;
 };
 
 export function InterviewFlow({
@@ -26,6 +27,7 @@ export function InterviewFlow({
   onAnswer,
   onComplete,
   onProceed,
+  onProgress,
 }: InterviewFlowProps) {
   if (questions.length !== 7) {
     throw new Error('Interview requires exactly seven assigned questions');
@@ -54,6 +56,7 @@ export function InterviewFlow({
 
   async function handleAnswer(payload: AnswerPayload) {
     await onAnswer(payload);
+    onProgress?.(questionIndex + 1);
 
     if (questionIndex === questions.length - 1) {
       setComplete(true);

@@ -19,7 +19,7 @@
 .stage h1 {
   margin: 0;
   max-width: 760px;
-  font-family: "Bodoni 72", "Bodoni MT", Didot, "Iowan Old Style", Baskerville, Georgia, serif;
+  font-family: var(--serif);
   font-weight: 400;
   font-size: clamp(52px, 8vw, 108px);
   line-height: .92;
@@ -70,7 +70,7 @@
 }
 
 .error {
-  color: #6d1d1d;
+  color: var(--danger);
   opacity: 1;
 }
 
