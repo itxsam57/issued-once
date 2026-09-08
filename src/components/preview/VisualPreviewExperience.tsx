@@ -31,91 +31,45 @@ const VISUAL_QA_TEE_COLORS = [
 ] as const;
 
 const VISUAL_QA_BASE_COLOR_CATALOG = {
-  tee: {
-    XS: VISUAL_QA_TEE_COLORS,
-    S: VISUAL_QA_TEE_COLORS,
-    M: VISUAL_QA_TEE_COLORS,
-    L: VISUAL_QA_TEE_COLORS,
-    XL: VISUAL_QA_TEE_COLORS,
-    '2XL': VISUAL_QA_TEE_COLORS,
-  },
+  tee: { XS: VISUAL_QA_TEE_COLORS, S: VISUAL_QA_TEE_COLORS, M: VISUAL_QA_TEE_COLORS, L: VISUAL_QA_TEE_COLORS, XL: VISUAL_QA_TEE_COLORS, '2XL': VISUAL_QA_TEE_COLORS },
   hoodie: {
-    S: [
-      { code: 'black', label: 'Black', swatch: '#171713' },
-      { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
-    ],
-    M: [
-      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
-      { code: 'black', label: 'Black', swatch: '#171713' },
-      { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
-    ],
-    L: [
-      { code: 'black', label: 'Black', swatch: '#171713' },
-      { code: 'ash', label: 'Ash', swatch: '#aaa69d' },
-    ],
+    S: [{ code: 'black', label: 'Black', swatch: '#171713' }, { code: 'ash', label: 'Ash', swatch: '#aaa69d' }],
+    M: [{ code: 'bone', label: 'Bone', swatch: '#e8e0cf' }, { code: 'black', label: 'Black', swatch: '#171713' }, { code: 'ash', label: 'Ash', swatch: '#aaa69d' }],
+    L: [{ code: 'black', label: 'Black', swatch: '#171713' }, { code: 'ash', label: 'Ash', swatch: '#aaa69d' }],
   },
-  hat: {
-    OS: [
-      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
-      { code: 'black', label: 'Black', swatch: '#171713' },
-    ],
-  },
-  tote: {
-    OS: [
-      { code: 'bone', label: 'Bone', swatch: '#e8e0cf' },
-      { code: 'black', label: 'Black', swatch: '#171713' },
-    ],
-  },
+  hat: { OS: [{ code: 'bone', label: 'Bone', swatch: '#e8e0cf' }, { code: 'black', label: 'Black', swatch: '#171713' }] },
+  tote: { OS: [{ code: 'bone', label: 'Bone', swatch: '#e8e0cf' }, { code: 'black', label: 'Black', swatch: '#171713' }] },
 } as const;
 
-const VISUAL_QA_PRICE_MINOR = {
-  tee: 3200,
-  hat: 3400,
-  tote: 3600,
-} as const;
-
+const VISUAL_QA_PRICE_MINOR = { tee: 3200, hat: 3400, tote: 3600 } as const;
 const PREVIEW_CHALLENGE_ID = 'owner-preview-challenge';
 const PREVIEW_OTP = '123456';
 
-type VisualPreviewExperienceProps = {
-  mode?: 'qa' | 'owner';
-};
+type VisualPreviewExperienceProps = { mode?: 'qa' | 'owner' };
 
 export function VisualPreviewExperience({ mode = 'qa' }: VisualPreviewExperienceProps) {
   const [previewComplete, setPreviewComplete] = useState(false);
   const isOwnerPreview = mode === 'owner';
-  const marker = isOwnerPreview
-    ? 'OWNER PREVIEW / NO PAYMENT'
-    : 'VISUAL QA / NOT PRODUCTION';
+  const marker = isOwnerPreview ? 'OWNER PREVIEW / NO PAYMENT' : 'VISUAL QA / NOT PRODUCTION';
 
   if (previewComplete) {
     return (
-      <main className="visual-preview">
-        <div className="visual-preview__marker" role="note">
-          {marker}
-        </div>
+      <main className="visual-preview io-customer-theme" data-io-surface="secret-motion">
+        <div className="visual-preview__marker" role="note">{marker}</div>
         <section className="commitment" aria-labelledby="owner-preview-complete-heading">
           <p className="commitment__signal">PREVIEW / COMPLETE</p>
           <h1 id="owner-preview-complete-heading">PREVIEW COMPLETE.</h1>
           <p className="commitment__unknown">No payment was attempted.</p>
-          <p className="commitment__unknown">
-            Live payment exists only in the production customer journey.
-          </p>
+          <p className="commitment__unknown">Live payment exists only in the production customer journey.</p>
         </section>
       </main>
     );
   }
 
   return (
-    <main className="visual-preview">
-      <div className="visual-preview__marker" role="note">
-        {marker}
-      </div>
-      {isOwnerPreview ? (
-        <div className={styles.otpHint} role="note">
-          PREVIEW OTP / {PREVIEW_OTP}
-        </div>
-      ) : null}
+    <main className="visual-preview io-customer-theme" data-io-surface="secret-motion">
+      <div className="visual-preview__marker" role="note">{marker}</div>
+      {isOwnerPreview ? <div className={styles.otpHint} role="note">PREVIEW OTP / {PREVIEW_OTP}</div> : null}
       <MysteryExperience
         onAnswer={async () => undefined}
         onObjectSelected={async () => undefined}
@@ -124,26 +78,13 @@ export function VisualPreviewExperience({ mode = 'qa' }: VisualPreviewExperience
         baseColorCatalog={VISUAL_QA_BASE_COLOR_CATALOG}
         onBaseColorConfirmed={async () => undefined}
         getCommitmentQuote={async (selection) => {
-          const amountMinor = selection.object === 'tee'
-            ? VISUAL_QA_PRICE_MINOR.tee
-            : selection.object === 'hat'
-              ? VISUAL_QA_PRICE_MINOR.hat
-              : selection.object === 'tote'
-                ? VISUAL_QA_PRICE_MINOR.tote
-                : null;
+          const amountMinor = selection.object === 'tee' ? VISUAL_QA_PRICE_MINOR.tee : selection.object === 'hat' ? VISUAL_QA_PRICE_MINOR.hat : selection.object === 'tote' ? VISUAL_QA_PRICE_MINOR.tote : null;
           if (amountMinor == null) return null;
-          return {
-            quoteId: `qa-${selection.object}-${selection.sizeCode}-${selection.colorCode}`,
-            amountMinor,
-            currency: 'USD',
-            expiresAt: '2099-01-01T00:00:00.000Z',
-          };
+          return { quoteId: `qa-${selection.object}-${selection.sizeCode}-${selection.colorCode}`, amountMinor, currency: 'USD', expiresAt: '2099-01-01T00:00:00.000Z' };
         }}
         onRequestOtp={async () => ({ challengeId: PREVIEW_CHALLENGE_ID, retryAfterSeconds: 0 })}
         onVerifyOtp={async (challengeId, code) => {
-          if (challengeId !== PREVIEW_CHALLENGE_ID || code !== PREVIEW_OTP) {
-            throw new Error('Preview OTP mismatch');
-          }
+          if (challengeId !== PREVIEW_CHALLENGE_ID || code !== PREVIEW_OTP) throw new Error('Preview OTP mismatch');
           return { verified: true as const };
         }}
         onShippingSubmitted={async () => undefined}

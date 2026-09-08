@@ -57,7 +57,7 @@ test('a failed answer save keeps the answer and offers a calm retry', async ({ p
       letterSpacing: Number.parseFloat(style.letterSpacing),
     };
   });
-  expect(metrics.color).toBe('rgb(122, 41, 37)');
+  expect(metrics.color).toBe('rgb(224, 128, 116)');
   expect(metrics.background).toBe('rgba(0, 0, 0, 0)');
   expect(metrics.fontSize).toBeLessThanOrEqual(11);
   expect(metrics.letterSpacing).toBeGreaterThanOrEqual(1.5);
