@@ -64,7 +64,7 @@ type PayoutDetailsRow = {
   creator_id: string;
   status: 'REQUESTED' | 'PAID' | 'CANCELLED';
   details_payload_version: 1;
-  details_key_version: 'v1';
+  details_key_version: 'v1' | 'v2';
   details_iv: string;
   details_auth_tag: string;
   details_ciphertext: string;

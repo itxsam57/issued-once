@@ -2,7 +2,7 @@
   "name": "issued-once",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.15.0",
+  "packageManager": "pnpm@11.23.0",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -18,12 +18,14 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0",
-    "@vercel/blob": "^2.7.0",
-    "@vercel/queue": "^0.4.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "next": "16.2.11",
     "openai": "^7.4.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
+    "typescript": "^5.9.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
@@ -31,14 +33,10 @@
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
     "@testing-library/user-event": "latest",
-    "@types/node": "^22.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "latest",
     "eslint": "^9.0.0",
     "eslint-config-next": "16.2.11",
     "jsdom": "latest",
-    "typescript": "^5.9.0",
     "vite": "latest",
     "vitest": "latest"
   }

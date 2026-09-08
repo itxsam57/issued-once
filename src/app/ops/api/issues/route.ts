@@ -84,7 +84,7 @@ export async function GET(request: Request) {
     ) {
       return Response.json({ error: 'Owner operations are unavailable' }, { status: 503 });
     }
-    console.error('owner issue list failed', error);
+    console.error('owner issue list failed');
     return Response.json({ error: 'Owner issue list failed' }, { status: 500 });
   }
 }

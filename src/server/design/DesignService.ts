@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { decryptPrivatePayload, encryptPrivatePayload } from '@/server/crypto/privatePayload';
 import type { ArtworkStorageGateway } from './ArtworkStorageGateway';
 import { ArtworkQualityGate } from './ArtworkQualityGate';
+import type { ArtworkPrintTemplateResolver } from './ArtworkQualityGate';
 import type { DesignGateway, StructuredDesignBrief } from './DesignGateway';
 import type { DesignJobRecord, DesignRepository } from './DesignRepository';
 
@@ -20,6 +21,7 @@ export class DesignService {
     private readonly idGenerator: () => string = () => randomUUID(),
     private readonly now: () => Date = () => new Date(),
     private readonly qualityGate: ArtworkQualityGate = new ArtworkQualityGate(),
+    private readonly printTemplateResolver?: ArtworkPrintTemplateResolver,
   ) {}
 
   async createForIssue(issueId: string, ownerFeedback?: string): Promise<DesignJobRecord> {
@@ -71,7 +73,7 @@ export class DesignService {
         questions,
         ...(feedback ? { ownerFeedback: feedback } : {}),
       });
-      const artwork = await this.gateway.generateArtwork(brief);
+      const artwork = await this.gateway.generateArtwork(brief, { objectType: input.objectType });
       const completionInput = await this.repository.loadInput(issueId);
       if (!completionInput || completionInput.issueStatus !== 'BEING_INTERPRETED') {
         throw new Error('Issue is no longer eligible for design completion');
@@ -119,7 +121,10 @@ export class DesignService {
 
     try {
       const brief = await decryptPrivatePayload<StructuredDesignBrief>(initialJob.encryptedBrief);
-      const artwork = await this.gateway.generateArtwork(brief, feedback ? { ownerFeedback: feedback } : undefined);
+      const artwork = await this.gateway.generateArtwork(brief, {
+        objectType: input.objectType,
+        ...(feedback ? { ownerFeedback: feedback } : {}),
+      });
       const completionInput = await this.repository.loadInput(issueId);
       if (!completionInput || completionInput.issueStatus !== 'BEING_INTERPRETED') {
         throw new Error('Issue is no longer eligible for design completion');
@@ -156,18 +161,36 @@ export class DesignService {
     if (!input || !job) throw new Error('Design review is unavailable');
     if (job.state === 'APPROVED') return job;
     if (input.issueStatus !== 'DESIGN_REVIEW') throw new Error('Issue is not waiting for design approval');
+    if (!this.printTemplateResolver) throw new Error('Print template resolver is unavailable for design approval');
+    if (!job.artworkUrl) throw new Error('Artwork is unavailable');
 
+    const stored = await this.storage.get(job.artworkUrl);
+    if (
+      stored.mimeType !== job.artworkMimeType
+      || !job.artworkBytes
+      || stored.bytes.length !== job.artworkBytes
+    ) {
+      throw new Error('Artwork integrity metadata does not match the durable object');
+    }
+
+    const template = this.printTemplateResolver.resolve({
+      objectType: input.objectType,
+      sizeCode: input.sizeCode,
+      colorCode: input.colorCode,
+    });
     const quality = this.qualityGate.validate({
       issueId,
       designJobId: job.id,
       objectType: input.objectType,
+      sizeCode: input.sizeCode,
+      colorCode: input.colorCode,
       state: job.state,
       artworkUrl: job.artworkUrl,
       artworkMimeType: job.artworkMimeType,
       artworkBytes: job.artworkBytes,
       width: job.width,
       height: job.height,
-    });
+    }, template);
     return this.repository.approve(job.id, quality.checks, this.now());
   }
 }

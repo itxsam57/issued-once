@@ -34,11 +34,11 @@ export function CustomersPanel() {
   const loadedMore = useRef(false);
   const firstQuery = useRef(true);
   const load = useCallback(() => fetchCustomers(email), [email]);
-  const live = useLiveResource({ load, intervalMs: 30_000 });
+  const { data: liveData, error: liveError, refresh } = useLiveResource({ load, intervalMs: 30_000 });
 
   useEffect(() => {
-    if (!live.data) return;
-    const page = live.data;
+    if (!liveData) return;
+    const page = liveData;
     setItems((current) => {
       const tail = loadedMore.current ? current.slice(firstPageCount.current) : [];
       const firstIds = new Set(page.items.map((item) => `${item.contactAlias}:${item.lastSeenAt}`));
@@ -46,7 +46,7 @@ export function CustomersPanel() {
       return [...page.items, ...tail.filter((item) => !firstIds.has(`${item.contactAlias}:${item.lastSeenAt}`))];
     });
     if (!loadedMore.current) setCursor(page.nextCursor);
-  }, [live.data]);
+  }, [liveData]);
 
   useEffect(() => {
     if (firstQuery.current) {
@@ -58,9 +58,9 @@ export function CustomersPanel() {
     setItems([]);
     setCursor(null);
     setAppendError(null);
-    const timer = window.setTimeout(() => void live.refresh(), 200);
+    const timer = window.setTimeout(() => void refresh(), 200);
     return () => window.clearTimeout(timer);
-  }, [email, live.refresh]);
+  }, [email, refresh]);
 
   async function loadMore() {
     if (!cursor) return;
@@ -78,13 +78,13 @@ export function CustomersPanel() {
     }
   }
 
-  const error = appendError ?? live.error;
+  const error = appendError ?? liveError;
   return <div>
     <div className={styles.panelHead}>
       <div><p>CUSTOMERS / CONTACT GROUPS</p><h1>People, without turning them into profiles.</h1></div>
       <div className={styles.actionRow}>
         <input aria-label="Find customer by verified email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Find by verified email" />
-        <button type="button" onClick={() => void live.refresh()}>REFRESH</button>
+        <button type="button" onClick={() => void refresh()}>REFRESH</button>
       </div>
     </div>
     <p className={styles.privacyFlags}>Search is HMAC-matched server-side. Plain email is not returned in this list. Reveal contact data only from a specific Issue.</p>

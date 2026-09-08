@@ -87,7 +87,7 @@ export async function POST(request: Request) {
       );
     }
 
-    console.error('contact otp verification failed', error);
+    console.error('contact otp verification failed');
     return Response.json({ error: 'Contact verification failed' }, { status: 500 });
   }
 }

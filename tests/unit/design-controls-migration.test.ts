@@ -15,5 +15,9 @@ test('0028 adds design policy config, per-Issue overrides, and manual artwork pr
 });
 
 test('repository migration head is not behind 0028 design controls', () => {
-  expect(readFileSync('db/migrations/CURRENT', 'utf8').trim()).toMatch(/^002(?:8_design_controls|9_creator_referrals)\.sql$/);
+  const current = readFileSync('db/migrations/CURRENT', 'utf8').trim();
+  const migrationNumber = Number.parseInt(current.slice(0, 4), 10);
+
+  expect(migrationNumber).toBeGreaterThanOrEqual(28);
+  expect(current).toMatch(/^\d{4}_[a-z0-9_]+\.sql$/);
 });

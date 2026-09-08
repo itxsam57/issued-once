@@ -82,6 +82,7 @@ test('decrypts answers only at design boundary, gives image generation only the 
   };
   const storage: ArtworkStorageGateway = {
     put: vi.fn(async () => ({ url: 'https://blob.example/issues/issue-1/design.png', bytes: 900_000 })),
+    get: vi.fn(async () => { throw new Error('not used'); }),
   };
   const service = new DesignService(repository, gateway, storage, () => 'job-1', () => new Date('2026-08-19T01:10:00Z'));
 
@@ -142,6 +143,7 @@ test('late design worker cannot resurrect an Issue that becomes an exception dur
   };
   const storage: ArtworkStorageGateway = {
     put: vi.fn(async () => ({ url: 'https://blob.example/issues/issue-1/design.png', bytes: 900_000 })),
+    get: vi.fn(async () => { throw new Error('not used'); }),
   };
 
   await expect(new DesignService(repository, gateway, storage, () => 'job-1').createForIssue('issue-1'))
@@ -173,6 +175,7 @@ test('regenerates artwork from the existing encrypted brief without reinterpreti
   };
   const storage: ArtworkStorageGateway = {
     put: vi.fn(async () => ({ url: 'https://blob.example/new.png', bytes: 910_000 })),
+    get: vi.fn(async () => { throw new Error('not used'); }),
   };
 
   const result = await new DesignService(repository, gateway, storage).regenerateArtwork('issue-1');

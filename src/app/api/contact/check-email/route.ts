@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && /experience not found/i.test(error.message)) {
       return Response.json({ error: 'Contact verification is unavailable' }, { status: 409 });
     }
-    console.error('contact continuity check failed', error);
+    console.error('contact continuity check failed');
     return Response.json({ error: 'Contact verification failed' }, { status: 500 });
   }
 }

@@ -1,6 +1,10 @@
 # ISSUED ONCE database migration manifest
 
-Apply in lexicographic filename order. Stop on first failure.
+`CURRENT` points to the newest migration represented by this repository. It is **not** a statement of production database state and must never be used by itself to decide what to apply.
+
+Production rollout is intentionally split into tracks. Do not blindly apply every migration by filename order. Before any production migration, compare the target database schema with the verified production state and follow the approved track below. Stop on the first failure.
+
+## Repository migrations
 
 1. `0001_experience.sql`
 2. `0002_checkout_quotes.sql`
@@ -32,40 +36,54 @@ Apply in lexicographic filename order. Stop on first failure.
 28. `0027_issue_prefix_search_indexes.sql`
 29. `0028_design_controls.sql`
 30. `0029_creator_referrals.sql`
+31. `0030_background_job_pipeline.sql`
+32. `0031_quiz_encryption_v2.sql`
+33. `0032_private_payload_key_v2.sql`
+34. `0033_contact_otp_rate_limits.sql`
+35. `0034_referral_launch_outreach.sql`
+36. `0035_referral_private_payload_key_v2.sql`
+37. `0036_durable_artwork_objects.sql`
+38. `0037_design_brief_key_v2.sql`
 
-`CURRENT` points to the latest migration represented by this repository. It does **not** assert that any production database has been migrated.
+## Production-applied core track
 
-## Safety intent of the final migrations
+Production has been independently verified with the historical schema through `0028_design_controls.sql`, plus the later core migrations `0030_background_job_pipeline.sql`, `0031_quiz_encryption_v2.sql`, `0032_private_payload_key_v2.sql`, and `0033_contact_otp_rate_limits.sql`.
 
-- `0014` adds explicit `REFUNDED` payment truth.
-- `0015` freezes verified contact and shipping snapshots while active money truth references them.
-- `0016` makes Issue lifecycle transitions a database finite-state machine.
-- `0017` separates post-production financial exceptions from physical fulfillment progress.
-- `0018` quarantines signed provider events whose amount/currency contradict the frozen payment attempt.
-- `0019` projects payment exceptions into the Issue timeline.
-- `0020` adds append-only Owner OS audit events and private internal Issue notes.
-- `0021` adds append-only design candidate history and permits design rework only before manufacturing has started.
-- `0022` adds versioned Owner OS website catalog configuration.
-- `0023` adds incremental daily commercial metric buckets and trigger-based projections for funnel, paid sales, product/size/color/country mix, payment outcomes, lifecycle timing, design activity, and support activity. It intentionally performs no historical full-table backfill; any future legacy backfill must be a separate resumable maintenance job.
-- `0024` adds bounded operational indexes for recent paid sales, Issue status, payment exceptions, payment outcomes, design/manufacturing/notification/support queues, and newest-first Issue events.
-- `0025` projects delivered counts independently of lifecycle timing so lifetime delivery totals do not require scanning delivered Issues.
-- `0026` adds newest-first Issue-ledger paging plus both sides of the country-filter join (`issues.shipping_snapshot_id` and `shipping_snapshots.country_code`) without indexing decrypted customer data.
-- `0027` enables PostgreSQL trigram search and adds GIN indexes for case-insensitive prefix lookup by Issue Code, Safepay provider reference, Printful order ID, and tracking number, matching the Owner OS ledger's existing `ILIKE` search behavior.
-- `0028` adds versioned global design policy, per-Issue design-policy overrides, and `OWNER_UPLOAD` provenance for manual artwork candidates while preserving the existing manufacturing safety state machine.
-- `0029` adds encrypted creator identities and payout details, immutable referral rule versions and checkout snapshots, signed-attribution storage, idempotent paid-sale conversions/reward states, notification idempotency, and payout allocation uniqueness. Existing non-referral quotes are backfilled as gross=final with zero discount. A compatibility trigger also fills those same values for legacy application inserts during migration-first rollout.
+Those later core migrations were deliberately applied before the referral track. This makes production state non-linear by filename number and is why the repository manifest must not be treated as an automatic production migration queue.
 
-## Verification state
+## Pending core migration track
 
-On 2026-08-19, migrations `0020`–`0022` were exercised on isolated Neon branch `owner-os-migration-proof-20260819` (`br-shy-fire-axkuvyf8`) against the prerequisite Issue/design/manufacturing schema. Verification confirmed four Owner OS tables, seven intended indexes, and the updated Issue transition function. A database behavior check confirmed that `DESIGN_REVIEW -> BEING_INTERPRETED` is allowed before a manufacturing draft and rejected once a `DRAFT` exists. The temporary branch was deleted after verification.
+`0036_durable_artwork_objects.sql` is a code-ready core migration for CR-15 durable private artwork retention. It is **not production-applied**. It must remain unapplied until the explicit production-migration approval checkpoint, where the target schema is preflighted and the durable write/read plus restart/redeploy proof is executed without enabling paid factory confirmation.
 
-On 2026-08-19, migrations `0023`–`0025` were exercised on isolated Neon branch `owner-os-metric-buckets-proof-20260819` (`br-still-boat-axp76bq8`) against representative prerequisite tables. Verification confirmed incremental projection for start/answer/physical/verified/shipping/checkout/paid funnel stages, gross paid sales, Tee/size/color/country dimensions, start-to-paid timing, paid-to-production timing, production-to-delivery timing, design approval/rework, support activity, refund value, failed-payment count, and delivered count. A synthetic $54 USD Issue produced the expected $54 gross bucket, one paid order, one Tee/M/Black/PK dimension count, 16-minute start-to-paid, 24-hour paid-to-production, 72-hour production-to-delivery, one $54 refund when refunded, and one failed-payment event on a separate attempt. Verification also confirmed all 9 Owner OS scale indexes. The temporary branch was deleted after verification.
+`0037_design_brief_key_v2.sql` widens only the existing nullable encrypted design-brief constraints on `design_jobs` and `ops_design_candidates` from V1-only to V1/V2. It contains no data rewrite or destructive DML. It is **not production-applied** until its explicit production-migration approval checkpoint. Because it depends only on the already-live `0011`/`0021` schema, `0037` may be applied independently of pending `0036`; applying `0037` does not activate referrals or durable artwork storage.
 
-On 2026-08-19, migration `0026` was re-proved after completing the country-filter join index set on isolated Neon branch `owner-os-issue-index-proof-v2-20260819` (`br-tiny-morning-axmzz103`) against representative Issue/shipping tables. Verification confirmed all three intended Issue-ledger filter indexes. The temporary branch was deleted after verification. The earlier two-index proof branch was also deleted and is superseded by this result.
+## Deferred referral activation track
 
-On 2026-08-19, migration `0027` was exercised on isolated Neon branch `owner-os-prefix-search-proof-20260819` (`br-weathered-pine-ax2ywpyh`). Verification confirmed the `pg_trgm` extension and all four prefix-search indexes. With sequential scans disabled only for the proof query, PostgreSQL planned the existing case-insensitive Issue Code predicate as a Bitmap Index Scan on `issues_issue_code_trgm_idx`, confirming the index is eligible for the Owner OS `ILIKE 'prefix%'` search pattern. The temporary branch was deleted after verification.
+The referral rollout remains deferred. Its verified production activation order is exactly:
 
-On 2026-08-21, migration `0028` was exercised on an isolated Neon branch, then applied to the production/default branch and independently verified. Production is therefore verified through `0028_design_controls.sql`.
+1. `0029_creator_referrals.sql`
+2. `0034_referral_launch_outreach.sql`
+3. `0035_referral_private_payload_key_v2.sql`
 
-On 2026-08-21, the first `0029` proof was exercised on isolated Neon branch `proof-0029-creator-referrals-20260821` (`br-autumn-breeze-ax0afwq5`). Verification confirmed all seven referral tables, complete non-referral quote backfill across 108 inherited quotes with zero invariant violations, unique normalized referral codes, sub-100% percentage discounts, complete referral snapshot requirements, one conversion per payment attempt, reward lifecycle states, and one payout allocation per conversion. A positive synthetic referral snapshot froze gross 3200, discount 320, and final 2880. The temporary proof branch was deleted after verification.
+Do not apply any of these three migrations until the explicit referral production-activation checkpoint is approved. Do not send creator launch outreach until the schema is live, the creator roster is reviewed, provider email configuration is green, and the Owner explicitly triggers the launch control.
 
-Later on 2026-08-21, `0029` was revised for migration-first zero-downtime compatibility and re-proved on isolated Neon branch `proof-0029-referral-rollout-v2-20260821` (`br-shiny-smoke-axd90njk`). Against 127 production-derived quotes, the migration plus one synthetic legacy-style insert produced 128 quotes with zero missing referral amount snapshots and zero legacy invariant violations. The pre-referral application INSERT shape succeeded without supplying any new referral columns and the compatibility trigger filled gross 3200, discount 0, final 3200. A referral snapshot still froze gross 3200, discount 320, final 2880. Duplicate public code and incomplete discounted attribution snapshots were rejected. The temporary proof branch was deleted, and the production/default branch was independently confirmed to still have neither referral tables nor referral quote columns. Production remains verified only through `0028`; `0029` is not applied there.
+## Safety intent
+
+- `0014`–`0019` harden payment/refund truth, immutable customer snapshots, lifecycle transitions, provider-money consistency, and exception history.
+- `0020`–`0028` add Owner OS audit/design/website controls, incremental commercial projections, bounded operational indexes, delivery projection, scalable Issue-ledger search, and guarded design controls.
+- `0029` adds encrypted creator identities/payout details, immutable referral rule and checkout snapshots, signed attribution, idempotent conversion/reward states, notification idempotency, and payout-allocation uniqueness. Existing non-referral quotes are backfilled as gross=final with zero discount and a compatibility trigger preserves legacy inserts during migration-first rollout.
+- `0030` adds durable background jobs.
+- `0031` and `0032` add V2 encryption support while preserving historical V1 readability.
+- `0033` adds persistent OTP rate-limit controls.
+- `0034` adds idempotent creator outreach delivery state.
+- `0035` permits referral private payload key versions `v1` and `v2` so current V2 encryption can coexist with historical V1 data.
+- `0036` stores private artwork bytes in the existing Postgres durability authority with byte-count and SHA-256 integrity metadata so generated and owner-uploaded artwork do not depend on a deployment-local filesystem.
+- `0037` permits encrypted design briefs in `design_jobs` and `ops_design_candidates` to use either historical V1 or current V2 private-payload keys.
+
+## Latest verification evidence
+
+On 2026-08-28, PR #18 re-proved the deferred referral chain on an isolated Neon branch in the exact order `0029` → `0034` → `0035`. V2 creator-email and payout-detail rows were accepted, the intended V1/V2 constraints were present, the outreach table/index existed, and checkout referral invariants had zero violations. The disposable proof branch was deleted afterward.
+
+A fresh read-only production preflight on 2026-08-28 confirmed a clean referral starting state: zero existing referral objects, all prerequisite core columns/tables present, 342 existing checkout quotes with no non-positive amounts, and no partial referral columns, fill function, or trigger. No referral migration was applied during that preflight.
+
+Production therefore remains intentionally split: core migrations `0030`, `0031`, `0032`, and `0033` are live; core migrations `0036` and `0037` are pending their explicit production-migration approval checkpoints (`0037` may be applied independently of `0036`); and referral migrations `0029`, `0034`, and `0035` remain unapplied pending their separate activation gate.

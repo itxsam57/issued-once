@@ -1,4 +1,4 @@
-import type { EncryptedPayload } from '@/server/crypto/privatePayload';
+import { encryptedPayloadFromStorage, type EncryptedPayload } from '@/server/crypto/privatePayload';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type { IssueStatus } from '@/server/issues/IssueRepository';
 import type {
@@ -12,11 +12,11 @@ type InputRow = {
   issue_id: string; issue_code: string; issue_status: IssueStatus; object_type: string;
   size_code: string; color_code: string; slot: DesignInput['questions'][number]['slot'];
   question_id: string; question_version: number; family: string; prompt_snapshot: string;
-  payload_version: 1; key_version: 'v1'; iv: string; auth_tag: string; ciphertext: string;
+  payload_version: number; key_version: string; iv: string; auth_tag: string; ciphertext: string;
 };
 type JobRow = {
   id: string; issue_id: string; state: DesignJobState;
-  brief_payload_version: 1 | null; brief_key_version: 'v1' | null; brief_iv: string | null;
+  brief_payload_version: number | null; brief_key_version: string | null; brief_iv: string | null;
   brief_auth_tag: string | null; brief_ciphertext: string | null; artwork_url: string | null;
   artwork_mime_type: string | null; artwork_bytes: number | string | null; artwork_width: number | null;
   artwork_height: number | null; provider: string | null; model: string | null;
@@ -24,8 +24,8 @@ type JobRow = {
 };
 
 const toDate = (v: Date | string) => v instanceof Date ? v : new Date(v);
-function encrypted(version: 1, keyVersion: 'v1', iv: string, tag: string, ciphertext: string): EncryptedPayload {
-  return { version, keyVersion, iv, tag, ciphertext };
+function encrypted(version: number, keyVersion: string, iv: string, tag: string, ciphertext: string): EncryptedPayload {
+  return encryptedPayloadFromStorage({ payloadVersion: version, keyVersion, iv, tag, ciphertext });
 }
 function jobFromRow(r: JobRow): DesignJobRecord {
   return {

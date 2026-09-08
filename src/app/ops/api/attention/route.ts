@@ -6,8 +6,8 @@ export async function GET() {
   try {
     const items = await createOpsAttentionRepository().list(100, new Date());
     return Response.json({ items: items.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })) }, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (error) {
-    console.error('Owner attention queue failed', error);
+  } catch {
+    console.error('Owner attention queue failed');
     return Response.json({ error: 'Attention queue unavailable' }, { status: 503 });
   }
 }

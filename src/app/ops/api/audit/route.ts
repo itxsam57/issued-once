@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     if (error instanceof Error && /audit (date|filter|range)/i.test(error.message)) {
       return Response.json({ error: 'Invalid audit filters' }, { status: 400 });
     }
-    console.error('Owner audit stream failed', error);
+    console.error('Owner audit stream failed');
     return Response.json({ error: 'Audit stream unavailable' }, { status: 503 });
   }
 }

@@ -68,7 +68,7 @@ test('creates a Safepay v3 payment session in exact minor units, mints a TBT, an
 
 test('verifies the original USD quote from Reporter even when Safepay base settlement is PKR', async () => {
   const fetchImpl = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
-    expect(String(url)).toBe('https://sandbox.api.getsafepay.com/reporter/api/v2/payments/track_paid_fx');
+    expect(String(url)).toBe('https://sandbox.api.getsafepay.com/reporter/api/v1/payments/track_paid_fx');
     expect(init?.method ?? 'GET').toBe('GET');
     expect(new Headers(init?.headers).get('x-sfpy-merchant-secret')).toBe('sec_private_test_456');
     return new Response(JSON.stringify({

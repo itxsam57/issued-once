@@ -48,8 +48,11 @@ Required post-migration proofs include:
 The isolated Neon proof branches exercised migrations `0020`–`0027` and were deleted afterward. Those proofs do **not** mean production has been migrated. The connected production/default database remains separately evidence-gated.
 
 ### 3. Privacy
-- `QUIZ_ENCRYPTION_KEY_V1`: base64 -> exactly 32 bytes
+- `QUIZ_ENCRYPTION_KEY_V2`: base64 -> exactly 32 bytes and preserved for every surviving V2 ciphertext
+- `QUIZ_ENCRYPTION_KEY_V1`: required only if a read-only database audit finds any surviving V1 ciphertext
 - `IDENTITY_HMAC_KEY`: independent base64 -> exactly 32 bytes
+- `0037_design_brief_key_v2.sql` applied before any V2 design brief can be persisted in production
+- readiness verifies both legacy-key usage and V2 design-brief schema instead of assuming either
 - secure backup confirmed before first real ciphertext
 - canonical generated artwork stored in private Vercel Blob
 - `/ops` receives only a short-lived signed artwork read URL

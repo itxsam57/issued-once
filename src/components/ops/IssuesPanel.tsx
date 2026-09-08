@@ -68,11 +68,11 @@ export function IssuesPanel() {
   const loadedMore = useRef(false);
   const firstQuery = useRef(true);
   const load = useCallback(() => fetchIssuePage(search, filters), [search, filters]);
-  const live = useLiveResource({ load, intervalMs: 20_000 });
+  const { data: liveData, error: liveError, loading, refresh } = useLiveResource({ load, intervalMs: 20_000 });
 
   useEffect(() => {
-    if (!live.data) return;
-    const page = live.data;
+    if (!liveData) return;
+    const page = liveData;
     setRows((current) => {
       const tail = loadedMore.current ? current.slice(firstPageCount.current) : [];
       const firstIds = new Set(page.items.map((item) => item.issueId));
@@ -80,7 +80,7 @@ export function IssuesPanel() {
       return [...page.items, ...tail.filter((item) => !firstIds.has(item.issueId))];
     });
     if (!loadedMore.current) setNextCursor(page.nextCursor);
-  }, [live.data]);
+  }, [liveData]);
 
   useEffect(() => {
     if (firstQuery.current) {
@@ -92,9 +92,9 @@ export function IssuesPanel() {
     setRows([]);
     setNextCursor(null);
     setAppendError(null);
-    const timer = window.setTimeout(() => void live.refresh(), 180);
+    const timer = window.setTimeout(() => void refresh(), 180);
     return () => window.clearTimeout(timer);
-  }, [search, filters, live.refresh]);
+  }, [search, filters, refresh]);
 
   async function loadMore() {
     if (!nextCursor) return;
@@ -113,7 +113,7 @@ export function IssuesPanel() {
   }
 
   const setFilter = (key: keyof Filters, value: string) => setFilters((current) => ({ ...current, [key]: value }));
-  const error = appendError ?? live.error;
+  const error = appendError ?? liveError;
 
   return (
     <div>
@@ -121,7 +121,7 @@ export function IssuesPanel() {
         <div><p>ISSUES / CANONICAL LEDGER</p><h1>Every paid piece.</h1></div>
         <div className={styles.actionRow}>
           <input aria-label="Search Issues" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Issue / Safepay / Printful / tracking" />
-          <button type="button" onClick={() => void live.refresh()}>REFRESH</button>
+          <button type="button" onClick={() => void refresh()}>REFRESH</button>
         </div>
       </div>
       <div className={styles.filterBar}>
@@ -168,7 +168,7 @@ export function IssuesPanel() {
             </button>
           ))}
           {nextCursor ? <button type="button" onClick={() => void loadMore()}>LOAD MORE</button> : null}
-          {rows.length === 0 && !live.loading ? <p>NO ISSUES MATCH</p> : null}
+          {rows.length === 0 && !loading ? <p>NO ISSUES MATCH</p> : null}
         </div>
         <IssueDetailPanel issueId={selected} />
       </div>

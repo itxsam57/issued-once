@@ -1,4 +1,4 @@
-import { VercelBlobArtworkAccess } from './VercelBlobArtworkAccess';
+import { SignedArtworkAccess } from './SignedArtworkAccess';
 
 export class ArtworkAccessRuntimeUnavailableError extends Error {
   constructor(message = 'Artwork access runtime is not configured') {
@@ -7,8 +7,15 @@ export class ArtworkAccessRuntimeUnavailableError extends Error {
   }
 }
 
-export function createArtworkAccess() {
-  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
-  if (!token) throw new ArtworkAccessRuntimeUnavailableError('BLOB_READ_WRITE_TOKEN is required');
-  return new VercelBlobArtworkAccess(token);
+function env(name: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) throw new ArtworkAccessRuntimeUnavailableError(`${name} is required`);
+  return value;
+}
+
+export function createArtworkAccess(): SignedArtworkAccess {
+  return new SignedArtworkAccess(
+    env('ARTWORK_SIGNING_KEY'),
+    env('APP_ORIGIN'),
+  );
 }

@@ -11,6 +11,8 @@ import { verifyContactContinuityToken } from './contactContinuity';
 import type {
   ContactRepository,
   OtpChallengeRecord,
+  OtpRateLimitReservation,
+  OtpRateLimitSubject,
   VerifiedContactRecord,
 } from './ContactRepository';
 import type { OtpDeliveryGateway } from './OtpDeliveryGateway';
@@ -18,6 +20,14 @@ import type { OtpDeliveryGateway } from './OtpDeliveryGateway';
 const OTP_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_ATTEMPTS = 5;
+const RATE_SHORT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LONG_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+const OTP_RATE_LIMITS: Record<OtpRateLimitSubject, { short: number; long: number }> = {
+  email: { short: 3, long: 10 },
+  experience: { short: 5, long: 20 },
+  ip: { short: 60, long: 500 },
+};
 
 export type OtpVerificationErrorCode =
   | 'WRONG_CODE'
@@ -28,7 +38,7 @@ export type OtpVerificationErrorCode =
 
 export class OtpVerificationError extends Error {
   constructor(
-    message: string,
+    message = 'OTP verification failed',
     readonly code: OtpVerificationErrorCode,
     readonly attemptsRemaining?: number,
   ) {
@@ -86,6 +96,23 @@ export class ContactService {
     const experience = await this.experiences.findBySessionHash(hashSessionToken(token));
     if (!experience) throw new Error('Experience not found');
     return experience;
+  }
+
+  private rateReservation(
+    subjectKind: OtpRateLimitSubject,
+    subjectHash: string,
+    now: Date,
+  ): OtpRateLimitReservation {
+    const limits = OTP_RATE_LIMITS[subjectKind];
+    return {
+      subjectKind,
+      subjectHash,
+      now,
+      shortWindowCutoff: new Date(now.getTime() - RATE_SHORT_WINDOW_MS),
+      longWindowCutoff: new Date(now.getTime() - RATE_LONG_WINDOW_MS),
+      shortLimit: limits.short,
+      longLimit: limits.long,
+    };
   }
 
   async checkContinuity(input: {
@@ -159,17 +186,49 @@ export class ContactService {
     ipKey: string;
   }): Promise<{ challengeId: string; retryAfterSeconds: number; requestTag: string }> {
     const experience = await this.requireExperience(input.experienceToken);
+    return this.requestOtpForExperience({
+      experienceId: experience.id,
+      email: input.email,
+      ipKey: input.ipKey,
+    });
+  }
+
+  async requestOtpForExperience(input: {
+    experienceId: string;
+    email: string;
+    ipKey: string;
+  }): Promise<{ challengeId: string; retryAfterSeconds: number; requestTag: string }> {
+    const experienceId = input.experienceId.trim();
+    if (!experienceId) throw new Error('Experience id is required');
+
     const email = normalizeEmail(input.email);
     if (!email || !email.includes('@') || email.length > 320) {
       throw new Error('Email is invalid');
     }
 
     const emailHash = emailLookupHash(email);
-    const current = await this.contacts.findRecentChallenge(experience.id, emailHash);
+    const current = await this.contacts.findRecentChallenge(experienceId, emailHash);
     const now = this.now();
     if (current && current.resendAvailableAt.getTime() > now.getTime()) {
       const seconds = Math.ceil((current.resendAvailableAt.getTime() - now.getTime()) / 1000);
       throw new Error(`Wait ${seconds} seconds before requesting another code`);
+    }
+
+    const ipKey = input.ipKey.trim() || 'unknown';
+    const ipHash = privacyLookupHash('ip', ipKey);
+    const reservations: OtpRateLimitReservation[] = [
+      this.rateReservation('email', emailHash, now),
+      this.rateReservation('experience', privacyLookupHash('experience', experienceId), now),
+    ];
+    if (ipKey !== 'unknown') {
+      reservations.push(this.rateReservation('ip', ipHash, now));
+    }
+
+    const allowed = await Promise.all(
+      reservations.map((reservation) => this.contacts.reserveOtpRateLimit(reservation)),
+    );
+    if (allowed.some((value) => !value)) {
+      throw new Error('OTP request rate limit reached; wait before requesting another code');
     }
 
     const challengeId = randomUUID();
@@ -178,10 +237,10 @@ export class ContactService {
 
     const record: OtpChallengeRecord = {
       id: challengeId,
-      experienceId: experience.id,
+      experienceId,
       emailHash,
       encryptedEmail: await encryptPrivatePayload({ email }),
-      ipHash: privacyLookupHash('ip', input.ipKey || 'unknown'),
+      ipHash,
       codeHash: keyedDigest(`otp:${challengeId}:${emailHash}:${code}`),
       expiresAt: new Date(now.getTime() + OTP_TTL_MS),
       resendAvailableAt: new Date(now.getTime() + RESEND_COOLDOWN_MS),
@@ -206,8 +265,25 @@ export class ContactService {
     code: string;
   }): Promise<{ verified: true }> {
     const experience = await this.requireExperience(input.experienceToken);
+    return this.verifyOtpForExperience({
+      experienceId: experience.id,
+      challengeId: input.challengeId,
+      code: input.code,
+    });
+  }
+
+  async verifyOtpForExperience(input: {
+    experienceId: string;
+    challengeId: string;
+    code: string;
+  }): Promise<{ verified: true }> {
+    const experienceId = input.experienceId.trim();
+    if (!experienceId) {
+      throw new OtpVerificationError('OTP challenge not found', 'CHALLENGE_NOT_FOUND');
+    }
+
     const challenge = await this.contacts.findChallenge(input.challengeId);
-    if (!challenge || challenge.experienceId !== experience.id) {
+    if (!challenge || challenge.experienceId !== experienceId) {
       throw new OtpVerificationError(
         'OTP challenge not found',
         'CHALLENGE_NOT_FOUND',
@@ -261,7 +337,7 @@ export class ContactService {
 
     const contact: VerifiedContactRecord = {
       id: randomUUID(),
-      experienceId: experience.id,
+      experienceId,
       emailHash: challenge.emailHash,
       encryptedEmail: challenge.encryptedEmail,
       verifiedAt: now,

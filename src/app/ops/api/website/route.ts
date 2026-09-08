@@ -6,8 +6,8 @@ export async function GET() {
   try {
     const state = await createOpsWebsiteService().getState();
     return Response.json(state, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (error) {
-    console.error('Owner website control failed', error);
+  } catch {
+    console.error('Owner website control failed');
     return Response.json({ error: 'Website controls unavailable' }, { status: 503 });
   }
 }

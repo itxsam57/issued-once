@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     if (error instanceof InternalOperationsUnauthorizedError) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('Owner session creation failed', error);
+    console.error('Owner session creation failed');
     return Response.json({ error: 'Owner operations are unavailable' }, { status: 503 });
   }
 }
@@ -72,8 +72,8 @@ export async function DELETE() {
   if (authenticated) {
     try {
       await recordSessionAudit('OPS_LOGOUT');
-    } catch (error) {
-      console.error('Owner session logout audit failed', error);
+    } catch {
+      console.error('Owner session logout audit failed');
     }
   }
   return Response.json({ authenticated: false });

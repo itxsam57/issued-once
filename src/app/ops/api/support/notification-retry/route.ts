@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && /failed notification/i.test(error.message)) {
       return Response.json({ error: 'Only a failed notification can be retried' }, { status: 409 });
     }
-    console.error('Owner notification retry failed', error);
+    console.error('Owner notification retry failed');
     return Response.json({ error: 'Notification retry unavailable' }, { status: 503 });
   }
 }

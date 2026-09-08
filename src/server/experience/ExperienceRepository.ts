@@ -25,8 +25,20 @@ export type AnswerTransition = {
   updatedAt: Date;
 };
 
+export type SessionHashRotation = {
+  experienceId: string;
+  publicSessionHash: string;
+  updatedAt: Date;
+};
+
+export type SessionHashCompareAndSwap = SessionHashRotation & {
+  expectedPublicSessionHash: string;
+};
+
 export interface ExperienceRepository {
   create(record: ExperienceRecord): Promise<void>;
   findBySessionHash(publicSessionHash: string): Promise<ExperienceRecord | null>;
+  rotateSessionHash?(input: SessionHashRotation): Promise<boolean>;
+  rotateSessionHashIfCurrent?(input: SessionHashCompareAndSwap): Promise<boolean>;
   saveAnswerAndAdvance(transition: AnswerTransition): Promise<void>;
 }

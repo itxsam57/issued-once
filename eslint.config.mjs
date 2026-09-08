@@ -20,5 +20,5 @@ export default defineConfig([
     files: ['src/components/ops/DesignerPanel.tsx', 'src/components/ops/OpsConsole.tsx'],
     rules: { '@next/next/no-img-element': 'off' },
   },
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+  globalIgnores(['.next/**', 'out/**', 'build/**', 'playwright-report/**', 'test-results/**', 'artifacts/**', 'next-env.d.ts']),
 ]);

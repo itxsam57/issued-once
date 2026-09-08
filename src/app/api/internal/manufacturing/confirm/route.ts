@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && /draft|confirm|printful/i.test(error.message)) {
       return Response.json({ error: 'Manufacturing draft is not ready to confirm' }, { status: 409 });
     }
-    console.error('manufacturing confirmation failed', error);
+    console.error('manufacturing confirmation failed');
     return Response.json({ error: 'Manufacturing confirmation failed' }, { status: 500 });
   }
 }

@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Base selection state conflict' }, { status: 409 });
     }
 
-    console.error('physical base selection failed', error);
+    console.error('physical base selection failed');
     return Response.json({ error: 'Base could not be confirmed' }, { status: 500 });
   }
 }

@@ -22,7 +22,7 @@ export async function GET() {
     if (error instanceof OpsRuntimeUnavailableError) {
       return Response.json({ error: 'Owner dashboard is unavailable' }, { status: 503 });
     }
-    console.error('owner dashboard failed', error);
+    console.error('owner dashboard failed');
     return Response.json({ error: 'Owner dashboard failed' }, { status: 500 });
   }
 }

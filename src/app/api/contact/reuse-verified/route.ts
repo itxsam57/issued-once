@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && /experience not found/i.test(error.message)) {
       return Response.json({ error: 'Verified email reuse is not available' }, { status: 409 });
     }
-    console.error('verified contact reuse failed', error);
+    console.error('verified contact reuse failed');
     return Response.json({ error: 'Contact verification failed' }, { status: 500 });
   }
 }

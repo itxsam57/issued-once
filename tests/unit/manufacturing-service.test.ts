@@ -1,5 +1,5 @@
 import { beforeAll, expect, test, vi } from 'vitest';
-import type { ArtworkAccessGateway } from '@/server/design/VercelBlobArtworkAccess';
+import type { ArtworkAccessGateway } from '@/server/design/SignedArtworkAccess';
 import { encryptPrivatePayload } from '@/server/crypto/privatePayload';
 import type { ManufacturerGateway } from '@/server/manufacturing/ManufacturerGateway';
 import type {
@@ -14,8 +14,8 @@ beforeAll(() => {
   process.env.QUIZ_ENCRYPTION_KEY_V1 = Buffer.alloc(32, 9).toString('base64');
 });
 
-const canonicalArtwork = 'https://store.private.blob.vercel-storage.com/issues/issue-1/design/design-1.png';
-const signedArtwork = `${canonicalArtwork}?signed=factory`;
+const canonicalArtwork = 'fs://issues/issue-1/design/design-1.png';
+const signedArtwork = 'https://issuedonce.shop/api/artwork/factory-signed-token';
 const artworkAccess: ArtworkAccessGateway = {
   createReadUrl: vi.fn(async (url, ttlMs) => {
     expect(url).toBe(canonicalArtwork);

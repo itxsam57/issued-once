@@ -22,11 +22,24 @@ export type VerifiedContactRecord = {
   verifiedAt: Date;
 };
 
+export type OtpRateLimitSubject = 'email' | 'experience' | 'ip';
+
+export type OtpRateLimitReservation = {
+  subjectKind: OtpRateLimitSubject;
+  subjectHash: string;
+  now: Date;
+  shortWindowCutoff: Date;
+  longWindowCutoff: Date;
+  shortLimit: number;
+  longLimit: number;
+};
+
 export interface ContactRepository {
   findRecentChallenge(
     experienceId: string,
     emailHash: string,
   ): Promise<OtpChallengeRecord | null>;
+  reserveOtpRateLimit(input: OtpRateLimitReservation): Promise<boolean>;
   createChallenge(record: OtpChallengeRecord): Promise<void>;
   findChallenge(challengeId: string): Promise<OtpChallengeRecord | null>;
   recordFailedAttempt(challengeId: string, attemptsRemaining: number): Promise<void>;

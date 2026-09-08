@@ -17,9 +17,10 @@ describe('POST /api/experience/answer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     delete process.env.QUIZ_ENCRYPTION_KEY_V1;
+    delete process.env.QUIZ_ENCRYPTION_KEY_V2;
   });
 
-  test('reports missing answer encryption configuration as service unavailable instead of a state conflict', async () => {
+  test('reports missing active answer encryption configuration as service unavailable instead of a state conflict', async () => {
     cookiesMock.mockResolvedValue({
       get: vi.fn().mockReturnValue({ value: 'live-session-token' }),
     });

@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const previewEncryptionKey = Buffer.alloc(32, 7).toString('base64');
+const previewEncryptionKeyV1 = Buffer.alloc(32, 7).toString('base64');
+const previewEncryptionKeyV2 = Buffer.alloc(32, 8).toString('base64');
 const testOperationsToken = 'issued-once-playwright-owner-key-v1';
 
 export default defineConfig({
@@ -37,7 +38,8 @@ export default defineConfig({
     env: {
       ...process.env,
       ENABLE_VISUAL_PREVIEW: '1',
-      QUIZ_ENCRYPTION_KEY_V1: previewEncryptionKey,
+      QUIZ_ENCRYPTION_KEY_V1: previewEncryptionKeyV1,
+      QUIZ_ENCRYPTION_KEY_V2: previewEncryptionKeyV2,
       INTERNAL_OPERATIONS_TOKEN: testOperationsToken,
     },
   },

@@ -1,29 +1,50 @@
 # ISSUED ONCE — Production Environment Contract
 
-Date: 2026-08-22
-Branch: `feat/mystery-foundation`
-Status: configuration contract only; values are not committed here.
+Updated: 2026-09-07
+Status: canonical Hostinger production contract; values are not committed here.
 
 Production must fail closed when any required boundary is not configured. Never put real secret values in this repository.
+
+
+## Canonical Hostinger launch values
+
+```text
+APP_ORIGIN=https://issuedonce.shop
+MERCHANT_PUBLIC_DETAILS_CONFIRMED=true
+COMMERCIAL_METRICS_BASELINE_DATE=YYYY-MM-DD
+RESEND_FROM_EMAIL=ISSUED ONCE <notify@issuedonce.shop>
+SUPPORT_INBOX_EMAIL=support@issuedonce.shop
+SUPPORT_REPLY_TO=support@issuedonce.shop
+MERCHANT_SUPPORT_EMAIL=support@issuedonce.shop
+```
+
+`MERCHANT_PUBLIC_DETAILS_CONFIRMED=true` is an owner truthfulness attestation, not a formatting switch. Set it only after the public merchant name, support address, and location are truthful and checked. Never invent those facts.
+
+`COMMERCIAL_METRICS_BASELINE_DATE` is a non-destructive analytics boundary. Set it only after read-only production evidence identifies the real commercial launch date. Historical/test rows remain stored; Owner OS metrics ignore rows before the baseline.
+
+Hostinger is the single production hosting/DNS/mail authority. Vercel DNS, Blob, and Queue are not launch dependencies.
 
 ## Core database and privacy
 
 ### `DATABASE_URL`
 Neon/Postgres connection used by the production repositories.
 
-### `QUIZ_ENCRYPTION_KEY_V1`
-Base64-encoded 32-byte AES-256-GCM key used for questionnaire answers, verified email, shipping addresses, design briefs, and support messages.
+### `QUIZ_ENCRYPTION_KEY_V2`
+Base64-encoded 32-byte AES-256-GCM key used for all new questionnaire answers, verified email, shipping addresses, design briefs, and support messages.
 
 Requirements:
 - server-only
 - cryptographically random
 - backed up in a secure owner-controlled secret store
-- never rotate by deleting the old key while ciphertext still references `v1`
+- never rotate or replace it while ciphertext still references `v2`
+
+### `QUIZ_ENCRYPTION_KEY_V1`
+Legacy decrypt-only key. It is required only while the production database still contains ciphertext whose key-version column is `v1`. Readiness must verify that condition from the database rather than requiring V1 unconditionally. Never fabricate or regenerate a replacement V1 key for historical ciphertext.
 
 ### `IDENTITY_HMAC_KEY`
 Server-only high-entropy key used for privacy-preserving deterministic identity/lookup hashes.
 
-It must be independent from `QUIZ_ENCRYPTION_KEY_V1`.
+It must be independent from the questionnaire encryption keys.
 
 ## Retail catalog
 
@@ -66,13 +87,13 @@ Rules:
 Server-only Resend API key for OTP, milestone notifications, and support forwarding.
 
 ### `RESEND_FROM_EMAIL`
-Verified sender identity, for example an address on `issuedonce.shop` after domain verification.
+After root-domain verification, use exactly `ISSUED ONCE <notify@issuedonce.shop>`. Keep the existing OTP subdomain sender available until the root sender is proven.
 
 ### `SUPPORT_INBOX_EMAIL`
-Private support inbox receiving encrypted-support submissions after decryption at the delivery boundary.
+Use `support@issuedonce.shop`. This is the primary Hostinger Mail inbox.
 
 ### `SUPPORT_REPLY_TO`
-Optional reply-to address used on automated customer milestone emails.
+Use `support@issuedonce.shop` for automated customer milestone emails.
 
 ## Safepay
 
@@ -144,10 +165,10 @@ Rollout order is mandatory:
 
 Do **not** configure the signing key before migration `0029` exists. Before rollout, its deliberate absence makes Safepay paid/refund webhooks skip referral SQL while preserving the canonical payment, Issue, design-dispatch, payment-notification, and refund-flag flows. Once the key is present, referral schema failures must fail loudly rather than silently degrading a partially enabled rollout.
 
-## OpenAI design worker
+## OpenAI design worker (optional automation)
 
 ### `OPENAI_API_KEY`
-Server-only API key used by the design worker.
+Optional server-only API key used by the automated design worker. MANUAL artwork remains launch-capable when durable private artwork storage is ready.
 
 ### `OPENAI_DESIGN_MODEL`
 Optional override for the structured interpretation model. If unset, the code default is used. Verify model access in the live account before enabling paid orders.
@@ -161,18 +182,9 @@ Rules:
 - image generation receives the structured design brief, not the raw seven answers
 - generated art stops at `DESIGN_REVIEW`; no model output can enter manufacturing without explicit approval
 
-## Vercel Blob
+## Private artwork storage
 
-### `BLOB_READ_WRITE_TOKEN`
-Server-only token for a **private** Vercel Blob store containing canonical generated PNG assets.
-
-Rules:
-- canonical artwork is uploaded with `access: private`
-- database stores the private canonical Blob URL
-- the owner browser receives only a short-lived signed read URL
-- Printful receives only a bounded signed read URL generated at draft time
-- never put questionnaire answers in Blob object names or metadata
-- do not switch the Blob store to public merely to make Printful fetch an image
+Canonical private artwork uses the current durable Hostinger/Postgres-backed storage boundary plus `ARTWORK_SIGNING_KEY`. Do not add Vercel Blob as a production dependency.
 
 ## Internal owner operations
 
@@ -196,7 +208,7 @@ Do not expose this token to public environment variables or browser JavaScript.
 Server-only Printful API token.
 
 ### `PRINTFUL_STORE_ID`
-Optional API-store identifier when the token has access to multiple stores.
+Explicit Printful store identifier for the ISSUED ONCE store. API-only calls can technically omit it when a token is single-store, but production readiness requires it so authenticated webhook events can be bound to exactly one configured store.
 
 ### `PRINTFUL_VARIANT_MAP_JSON`
 Explicit mapping from ISSUED ONCE physical truth to a **sampled and measured** Printful catalog variant and print placement.
@@ -238,7 +250,7 @@ Rules:
 Expected Printful v2 webhook public-key header.
 
 ### `PRINTFUL_WEBHOOK_SECRET_HEX`
-Printful v2 webhook signing secret as hexadecimal. The application hex-decodes it before HMAC-SHA256 verification.
+Printful v2 webhook signing secret as hexadecimal. The application hex-decodes it before HMAC-SHA256 verification. After the public-key and HMAC checks pass, the webhook payload `store_id` must exactly match `PRINTFUL_STORE_ID`; a correctly signed event for any other Printful store is rejected.
 
 Production webhook endpoint:
 
@@ -260,19 +272,9 @@ Even when this flag is `true`, `/ops` confirmation still requires:
 
 For the first commercial cycles, return this flag to disabled after a deliberate confirmation if continuous confirmations are not yet wanted.
 
-## Vercel Queue
+## Durable background jobs
 
-Queue consumers are declared in `vercel.json`:
-
-- `issued-once-design`
-- `issued-once-notifications`
-
-Before production payment is enabled, verify on the actual Vercel account that:
-- the Queue feature is provisioned
-- both function triggers are registered after deploy
-- the design function has enough execution duration for the selected image model
-- failed messages visibly retry
-- queue delivery can reach the production deployment environment
+Production background work uses the current Postgres durable-job boundary and protected drain (`CRON_SECRET`). Do not add Vercel Queue as a production dependency.
 
 ## Variables that must NOT be present in the final active commerce configuration
 
@@ -297,9 +299,9 @@ If any of the following cannot be demonstrated, keep paid production disabled:
 - referral signing key remains absent until migration `0029` is explicitly approved and applied
 - exact retail catalog loaded
 - exactly mapped sampled Printful variants and print placements
-- OpenAI design call proven
+- manual design workflow proven; OpenAI automation is optional
 - canonical artwork private and temporary owner/factory access proven
-- Queue retries proven
+- Postgres durable-job retries/drain proven
 - owner design approval works
 - Printful draft creation works with `confirm=0`
 - ambiguous Printful draft retry resolves by public Issue Code without a second order

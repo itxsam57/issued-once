@@ -21,6 +21,10 @@ import { DELETE, POST } from '@/app/api/ops/session/route';
 
 const OWNER_TOKEN = 'owner-secret-token-that-is-long-enough';
 
+function renderedConsoleCalls(calls: unknown[][]): string {
+  return calls.flat().map((value) => String(value)).join('\n');
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.cookieValue = null;
@@ -48,21 +52,37 @@ test('successful owner login is audited before the private session cookie is iss
   expect(mocks.setCookie).toHaveBeenCalledWith('io_ops', expect.stringMatching(/^[a-f0-9]{64}$/), expect.objectContaining({ httpOnly: true, sameSite: 'strict' }));
 });
 
-test('production login fails closed when session auditing cannot be recorded', async () => {
+test('production login fails closed when session auditing cannot be recorded without logging downstream details', async () => {
+  const sentinel = 'owner-session-create-secret-sentinel';
+  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   vi.stubEnv('NODE_ENV', 'production');
-  mocks.record.mockRejectedValueOnce(new Error('database unavailable'));
-  const response = await POST(new Request('https://issuedonce.shop/api/ops/session', {
-    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: OWNER_TOKEN }),
-  }));
-  expect(response.status).toBe(503);
-  expect(mocks.setCookie).not.toHaveBeenCalled();
+  mocks.record.mockRejectedValueOnce(new Error(sentinel));
+
+  try {
+    const response = await POST(new Request('https://issuedonce.shop/api/ops/session', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: OWNER_TOKEN }),
+    }));
+    expect(response.status).toBe(503);
+    expect(mocks.setCookie).not.toHaveBeenCalled();
+    expect(renderedConsoleCalls(consoleError.mock.calls)).not.toContain(sentinel);
+  } finally {
+    consoleError.mockRestore();
+  }
 });
 
-test('logout clears the cookie even when audit recording fails and audits only a valid prior session', async () => {
+test('logout clears the cookie even when audit recording fails without logging downstream details', async () => {
+  const sentinel = 'owner-session-logout-secret-sentinel';
+  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   mocks.cookieValue = createOpsSessionValue();
-  mocks.record.mockRejectedValueOnce(new Error('database unavailable'));
-  const response = await DELETE();
-  expect(response.status).toBe(200);
-  expect(mocks.setCookie).toHaveBeenCalledWith('io_ops', '', expect.objectContaining({ maxAge: 0 }));
-  expect(mocks.record).toHaveBeenCalledWith(expect.objectContaining({ action: 'OPS_LOGOUT', targetType: 'owner_session', targetId: 'OWNER' }));
+  mocks.record.mockRejectedValueOnce(new Error(sentinel));
+
+  try {
+    const response = await DELETE();
+    expect(response.status).toBe(200);
+    expect(mocks.setCookie).toHaveBeenCalledWith('io_ops', '', expect.objectContaining({ maxAge: 0 }));
+    expect(mocks.record).toHaveBeenCalledWith(expect.objectContaining({ action: 'OPS_LOGOUT', targetType: 'owner_session', targetId: 'OWNER' }));
+    expect(renderedConsoleCalls(consoleError.mock.calls)).not.toContain(sentinel);
+  } finally {
+    consoleError.mockRestore();
+  }
 });

@@ -1,0 +1,59 @@
+name: Live Release QA
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: HTTPS URL of the deployed release to prove
+        required: true
+        type: string
+      expected_release:
+        description: Exact Git commit SHA expected from release health
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  live-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LIVE_PRODUCTION_URL: ${{ inputs.deployment_url }}
+      EXPECTED_RELEASE_ID: ${{ inputs.expected_release }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.23.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml', 'package.json') }}
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+      - name: Prove deployed runtime identity and live boundaries
+        run: node tests/e2e/live-release-health.mjs
+      - name: Prove Tee Cap Tote customer physical gates
+        run: node tests/e2e/live-production-smoke.mjs
+      - name: Upload live release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issued-once-live-release-qa
+          path: |
+            artifacts/visual
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7

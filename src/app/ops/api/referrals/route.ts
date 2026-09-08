@@ -31,8 +31,8 @@ export async function GET() {
         paidAt: payout.paidAt?.toISOString() ?? null,
       })),
     }, { headers: noStore });
-  } catch (error) {
-    console.error('Owner referral list failed', error);
+  } catch {
+    console.error('Owner referral list failed');
     return Response.json({ error: 'Referral data unavailable' }, { status: 503, headers: noStore });
   }
 }

@@ -19,6 +19,7 @@ export type DesignQuestionInput = {
 };
 
 export type DesignRevisionContext = {
+  objectType?: string;
   ownerFeedback?: string;
 };
 

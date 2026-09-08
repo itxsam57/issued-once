@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     ) {
       return Response.json({ error: 'Referral state conflict' }, { status: 409 });
     }
-    console.error('referral application failed', error);
+    console.error('referral application failed');
     return Response.json({ error: 'Referral could not be applied' }, { status: 500 });
   }
 }

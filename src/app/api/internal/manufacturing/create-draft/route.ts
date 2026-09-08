@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && /approved|mapping|input|artwork|eligible|printful/i.test(error.message)) {
       return Response.json({ error: 'Issue is not ready for a manufacturing draft' }, { status: 409 });
     }
-    console.error('manufacturing draft failed', error);
+    console.error('manufacturing draft failed');
     return Response.json({ error: 'Manufacturing draft failed' }, { status: 500 });
   }
 }

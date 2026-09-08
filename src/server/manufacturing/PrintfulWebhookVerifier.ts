@@ -37,7 +37,7 @@ export type NormalizedPrintfulEvent = {
   reason: string | null;
 };
 
-type Options = { publicKey: string; secretKeyHex: string };
+type Options = { publicKey: string; secretKeyHex: string; storeId: string };
 
 function safeHexEqual(left: string, right: string): boolean {
   if (!/^[0-9a-f]+$/i.test(right) || left.length !== right.length) return false;
@@ -66,9 +66,12 @@ function normalizeType(value: string): NormalizedPrintfulEvent['type'] {
 
 export class PrintfulWebhookVerifier {
   private readonly secret: Buffer;
+  private readonly storeId: string;
 
   constructor(private readonly options: Options) {
     if (!options.publicKey.trim()) throw new Error('Printful webhook public key is required');
+    this.storeId = options.storeId.trim();
+    if (!/^[1-9][0-9]*$/.test(this.storeId)) throw new Error('Printful webhook store ID is invalid');
     if (!/^[0-9a-f]+$/i.test(options.secretKeyHex) || options.secretKeyHex.length % 2 !== 0) {
       throw new Error('Printful webhook secret must be hexadecimal');
     }
@@ -86,6 +89,7 @@ export class PrintfulWebhookVerifier {
     let raw: unknown;
     try { raw = JSON.parse(input.rawBody); } catch { throw new Error('Printful webhook JSON is invalid'); }
     const event = webhookSchema.parse(raw);
+    if (String(event.store_id) !== this.storeId) throw new Error('Printful webhook store mismatch');
     const type = normalizeType(event.type);
     const shipment = event.data.shipment;
     const providerOrderId = String(event.data.order.id);

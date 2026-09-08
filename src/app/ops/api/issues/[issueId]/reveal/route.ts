@@ -36,7 +36,7 @@ export async function POST(
     }
     const message = error instanceof Error ? error.message : 'Private reveal failed';
     const status = /required|not available|unsupported/i.test(message) ? 400 : 500;
-    if (status === 500) console.error('private reveal failed', error);
+    if (status === 500) console.error('private reveal failed');
     return Response.json({ error: status === 500 ? 'Private reveal failed' : message }, { status });
   }
 }

@@ -1,4 +1,4 @@
-import type { EncryptedPayload } from '@/server/crypto/privatePayload';
+import { encryptedPayloadFromStorage, type EncryptedPayload } from '@/server/crypto/privatePayload';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type { OpsPrivateSource } from './OpsPrivateRevealService';
 
@@ -14,16 +14,13 @@ type AnswerRow = PayloadRow & { slot: string; prompt_snapshot: string };
 type SupportRow = PayloadRow & { id: string; status: string };
 
 function payload(row: PayloadRow): EncryptedPayload {
-  if (row.payload_version !== 1 || row.key_version !== 'v1') {
-    throw new Error('Unsupported private payload version');
-  }
-  return {
-    version: 1,
-    keyVersion: 'v1',
+  return encryptedPayloadFromStorage({
+    payloadVersion: row.payload_version,
+    keyVersion: row.key_version,
     iv: row.iv,
-    ciphertext: row.ciphertext,
     tag: row.auth_tag,
-  };
+    ciphertext: row.ciphertext,
+  });
 }
 
 export class PostgresOpsPrivateSource implements OpsPrivateSource {

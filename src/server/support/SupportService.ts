@@ -39,4 +39,18 @@ export class SupportService {
 
     return { requestId, issueCode: context.issueCode };
   }
+
+  async sendCanary(input: { releaseId: string; replyTo: string }) {
+    const releaseId = input.releaseId.trim().toLowerCase();
+    const replyTo = input.replyTo.trim();
+    if (!/^[0-9a-f]{40}$/.test(releaseId)) throw new Error('Support canary release is invalid');
+    if (!replyTo || !replyTo.includes('@')) throw new Error('Support canary reply address is invalid');
+
+    return this.email.send({
+      issueCode: `CANARY-${releaseId.slice(0, 12)}`,
+      replyTo,
+      message: `Automated ISSUED ONCE support delivery canary for release ${releaseId}. No customer data.`,
+      idempotencyKey: `issued-once/support-canary/${releaseId}`,
+    });
+  }
 }

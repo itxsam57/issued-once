@@ -9,8 +9,8 @@ export async function GET(request: Request) {
     const days = Number.isFinite(requested) ? Math.min(Math.max(Math.trunc(requested), 1), 3650) : 30;
     const snapshot = await createOpsSalesRepository().getSnapshot({ days, now: new Date() });
     return Response.json(snapshot, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (error) {
-    console.error('Owner sales analytics failed', error);
+  } catch {
+    console.error('Owner sales analytics failed');
     return Response.json({ error: 'Sales analytics unavailable' }, { status: 503 });
   }
 }

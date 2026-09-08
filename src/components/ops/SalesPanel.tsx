@@ -33,15 +33,13 @@ export function SalesPanel() {
   const [days, setDays] = useState(30);
   const previousDays = useRef(days);
   const load = useCallback(() => fetchSales(days), [days]);
-  const live = useLiveResource({ load, intervalMs: 20_000 });
+  const { data, error, refresh } = useLiveResource({ load, intervalMs: 20_000 });
 
   useEffect(() => {
     if (previousDays.current === days) return;
     previousDays.current = days;
-    void live.refresh();
-  }, [days, live.refresh]);
-
-  const data = live.data;
+    void refresh();
+  }, [days, refresh]);
   return <div>
     <div className={styles.panelHead}>
       <div><p>SALES / CANONICAL</p><h1>What actually sold.</h1></div>
@@ -49,10 +47,10 @@ export function SalesPanel() {
         <select aria-label="Sales window" value={days} onChange={(event) => setDays(Number(event.target.value))}>
           <option value={7}>7 DAYS</option><option value={30}>30 DAYS</option><option value={90}>90 DAYS</option><option value={3650}>LIFETIME</option>
         </select>
-        <button type="button" onClick={() => void live.refresh()}>REFRESH</button>
+        <button type="button" onClick={() => void refresh()}>REFRESH</button>
       </div>
     </div>
-    {live.error ? <p role="alert" className={styles.alert}>{live.error}</p> : null}
+    {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
     {!data ? <p>READING SALES</p> : <>
       <div className={styles.metricGrid}>
         <article><span>PAID ORDERS</span><strong>{data.paidOrders}</strong></article><article><span>GROSS</span><strong>{money(data.grossMinor, data.currency)}</strong></article>

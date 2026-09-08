@@ -1,0 +1,41 @@
+name: Hostinger Strict Header Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - engineering/live-header-proof-20260826
+
+permissions:
+  contents: read
+
+jobs:
+  strict-header-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
+      LIVE_RELEASE_HEALTH_ATTEMPTS: '3'
+      LIVE_RELEASE_HEALTH_DELAY_MS: '2000'
+    steps:
+      - name: Checkout engineering proof
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Syntax-check live proof scripts
+        run: |
+          node --check tests/e2e/live-release-health.mjs
+          node --check tests/e2e/live-security-headers.mjs
+          node --check tests/e2e/live-non-otp-boundaries.mjs
+      - name: Resolve exact live release from Continuation Governor
+        shell: bash
+        run: |
+          EXPECTED_RELEASE_ID="$(node -e "const c=require('./.engineering/CONTINUATION.json'); const v=c?.sourceOfTruth?.hostingerLinkedBranchHead; if(typeof v!=='string'||!v.trim()) process.exit(1); process.stdout.write(v.trim())")"
+          echo "EXPECTED_RELEASE_ID=$EXPECTED_RELEASE_ID" >> "$GITHUB_ENV"
+      - name: Prove exact live release
+        run: node tests/e2e/live-release-health.mjs
+      - name: Enforce bare-home security headers
+        run: node tests/e2e/live-security-headers.mjs

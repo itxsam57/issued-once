@@ -8,7 +8,7 @@ type Row = {
   contact_id: string;
   country_code: string;
   payload_version: 1;
-  key_version: 'v1';
+  key_version: EncryptedPayload['keyVersion'];
   iv: string;
   auth_tag: string;
   ciphertext: string;

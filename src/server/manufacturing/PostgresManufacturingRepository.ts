@@ -1,4 +1,4 @@
-import type { EncryptedPayload } from '@/server/crypto/privatePayload';
+import { encryptedPayloadFromStorage, type EncryptedPayload } from '@/server/crypto/privatePayload';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type { IssueStatus } from '@/server/issues/IssueRepository';
 import type { DesignJobState } from '@/server/design/DesignRepository';
@@ -21,13 +21,13 @@ type InputRow = {
   object_type: string;
   size_code: string;
   color_code: string;
-  email_payload_version: 1;
-  email_key_version: 'v1';
+  email_payload_version: number;
+  email_key_version: string;
   email_iv: string;
   email_auth_tag: string;
   email_ciphertext: string;
-  shipping_payload_version: 1;
-  shipping_key_version: 'v1';
+  shipping_payload_version: number;
+  shipping_key_version: string;
   shipping_iv: string;
   shipping_auth_tag: string;
   shipping_ciphertext: string;
@@ -49,9 +49,8 @@ type JobRow = {
 };
 
 const toDate = (value: Date | string) => value instanceof Date ? value : new Date(value);
-const payload = (version: 1, keyVersion: 'v1', iv: string, tag: string, ciphertext: string): EncryptedPayload => ({
-  version, keyVersion, iv, tag, ciphertext,
-});
+const payload = (version: number, keyVersion: string, iv: string, tag: string, ciphertext: string): EncryptedPayload =>
+  encryptedPayloadFromStorage({ payloadVersion: version, keyVersion, iv, tag, ciphertext });
 
 function fromRow(row: JobRow): ManufacturingJobRecord {
   return {

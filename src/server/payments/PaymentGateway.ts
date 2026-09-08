@@ -25,6 +25,12 @@ export interface PaymentGateway {
     currency: string;
   }): Promise<boolean>;
 
+  verifyRefundedTracker?(input: {
+    providerReference: string;
+    amountMinor: number;
+    currency: string;
+  }): Promise<boolean>;
+
   verifyWebhook(input: {
     rawBody: string;
     headers: Headers;

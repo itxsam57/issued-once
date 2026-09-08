@@ -1,22 +1,11 @@
 import { afterEach, expect, test, vi } from 'vitest';
 
-const { sendMock } = vi.hoisted(() => ({ sendMock: vi.fn() }));
+const { enqueue } = vi.hoisted(() => ({ enqueue: vi.fn() }));
 
-vi.mock('@vercel/queue', () => {
-  class DuplicateMessageError extends Error {
-    constructor(message = 'duplicate message') {
-      super(message);
-      this.name = 'DuplicateMessageError';
-    }
-  }
+vi.mock('@/server/jobs/runtimeJobs', () => ({
+  createJobQueue: () => ({ enqueue }),
+}));
 
-  return {
-    send: sendMock,
-    DuplicateMessageError,
-  };
-});
-
-import { DuplicateMessageError } from '@vercel/queue';
 import { DESIGN_QUEUE_TOPIC, enqueueDesignIssue } from '@/server/design/designQueue';
 import { enqueueIssueNotification } from '@/server/notifications/notificationQueue';
 
@@ -26,14 +15,16 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-test('design queue treats Vercel idempotency collision as already delivered', async () => {
-  sendMock.mockRejectedValueOnce(new DuplicateMessageError('duplicate'));
-
-  await expect(enqueueDesignIssue(issueId)).resolves.toBeUndefined();
+test('design queue treats an idempotency collision as already accepted', async () => {
+  enqueue.mockResolvedValueOnce({ id: 'existing-design-job', duplicate: true });
+  await expect(enqueueDesignIssue(issueId)).resolves.toEqual({
+    id: 'existing-design-job',
+    duplicate: true,
+  });
 });
 
 test('design queue carries bounded owner revision feedback in the internal message', async () => {
-  sendMock.mockResolvedValueOnce(undefined);
+  enqueue.mockResolvedValueOnce({ id: 'design-job', duplicate: false });
 
   await enqueueDesignIssue(issueId, {
     mode: 'regenerate',
@@ -42,32 +33,31 @@ test('design queue carries bounded owner revision feedback in the internal messa
     feedback: 'TOO BUSY — simplify the center and leave more negative space',
   });
 
-  expect(sendMock).toHaveBeenCalledWith(
-    DESIGN_QUEUE_TOPIC,
-    {
+  expect(enqueue).toHaveBeenCalledWith({
+    topic: DESIGN_QUEUE_TOPIC,
+    payload: {
       issueId,
       mode: 'regenerate',
       generationKey: 'gen-2',
       source: 'OWNER_REGENERATE',
       feedback: 'TOO BUSY — simplify the center and leave more negative space',
     },
-    {
-      idempotencyKey: `design:${issueId}:gen-2`,
-      retentionSeconds: 7 * 24 * 60 * 60,
-    },
-  );
+    idempotencyKey: `design:${issueId}:gen-2`,
+  });
 });
 
-test('notification queue treats Vercel idempotency collision as already delivered', async () => {
-  sendMock.mockRejectedValueOnce(new DuplicateMessageError('duplicate'));
-
-  await expect(enqueueIssueNotification(issueId, 'PAYMENT_RECEIVED')).resolves.toBeUndefined();
+test('notification queue treats an idempotency collision as already accepted', async () => {
+  enqueue.mockResolvedValueOnce({ id: 'existing-notification-job', duplicate: true });
+  await expect(enqueueIssueNotification(issueId, 'PAYMENT_RECEIVED')).resolves.toEqual({
+    id: 'existing-notification-job',
+    duplicate: true,
+  });
 });
 
 test('queue publishers still surface real delivery failures', async () => {
-  sendMock.mockRejectedValueOnce(new Error('queue unavailable'));
+  enqueue.mockRejectedValueOnce(new Error('queue unavailable'));
   await expect(enqueueDesignIssue(issueId)).rejects.toThrow('queue unavailable');
 
-  sendMock.mockRejectedValueOnce(new Error('queue unavailable'));
+  enqueue.mockRejectedValueOnce(new Error('queue unavailable'));
   await expect(enqueueIssueNotification(issueId, 'PAYMENT_RECEIVED')).rejects.toThrow('queue unavailable');
 });

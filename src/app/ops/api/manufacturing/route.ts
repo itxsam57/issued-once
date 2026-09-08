@@ -9,8 +9,8 @@ export async function GET() {
       items: items.map((item) => ({ ...item, updatedAt: item.updatedAt.toISOString() })),
       confirmArmed: process.env.PRINTFUL_ALLOW_CONFIRM === 'true',
     }, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (error) {
-    console.error('Owner manufacturing queue failed', error);
+  } catch {
+    console.error('Owner manufacturing queue failed');
     return Response.json({ error: 'Manufacturing queue unavailable' }, { status: 503 });
   }
 }

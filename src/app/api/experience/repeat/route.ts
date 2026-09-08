@@ -91,7 +91,7 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Repeat-order state conflict' }, { status: 409 });
     }
 
-    console.error('repeat order choice failed', error);
+    console.error('repeat order choice failed');
     return Response.json({ error: 'Repeat order could not begin' }, { status: 500 });
   }
 }

@@ -65,7 +65,7 @@ function databaseUrl(): string {
 }
 
 function hasDesignAutomationConfig(): boolean {
-  return Boolean(process.env.OPENAI_API_KEY?.trim() && process.env.BLOB_READ_WRITE_TOKEN?.trim());
+  return Boolean(process.env.OPENAI_API_KEY?.trim());
 }
 
 export function createDesignDispatchService(): DesignDispatchService {

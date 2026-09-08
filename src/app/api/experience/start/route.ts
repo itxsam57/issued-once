@@ -35,7 +35,7 @@ export async function POST() {
       return Response.json({ error: 'Interview storage is unavailable' }, { status: 503 });
     }
 
-    console.error('public interview bootstrap failed', error);
+    console.error('public interview bootstrap failed');
     return Response.json({ error: 'Interview could not begin' }, { status: 500 });
   }
 }

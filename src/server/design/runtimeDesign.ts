@@ -1,8 +1,10 @@
 import { createNeonSqlExecutor } from '@/server/experience/NeonSqlExecutor';
+import { PrintfulVariantMap, readPrintfulVariantMapJson } from '@/server/manufacturing/PrintfulVariantMap';
+import type { ArtworkPrintTemplateResolver } from './ArtworkQualityGate';
 import { DesignService } from './DesignService';
 import { OpenAIDesignGateway } from './OpenAIDesignGateway';
+import { PostgresArtworkStorage } from './PostgresArtworkStorage';
 import { PostgresDesignRepository } from './PostgresDesignRepository';
-import { VercelBlobArtworkStorage } from './VercelBlobArtworkStorage';
 
 export class DesignRuntimeUnavailableError extends Error {
   constructor(message = 'Design runtime is not configured') {
@@ -17,6 +19,18 @@ function env(name: string): string {
   return value;
 }
 
+const printTemplateResolver: ArtworkPrintTemplateResolver = {
+  resolve(input) {
+    const mapping = new PrintfulVariantMap(readPrintfulVariantMapJson(process.env)).resolve(input);
+    return {
+      ...input,
+      placementWidth: mapping.position.width,
+      placementHeight: mapping.position.height,
+      targetDpi: mapping.printArea.dpi,
+    };
+  },
+};
+
 export function createDesignService(): DesignService {
   const sql = createNeonSqlExecutor(env('DATABASE_URL'));
   return new DesignService(
@@ -26,6 +40,10 @@ export function createDesignService(): DesignService {
       interpretationModel: process.env.OPENAI_DESIGN_MODEL,
       imageModel: process.env.OPENAI_IMAGE_MODEL,
     }),
-    new VercelBlobArtworkStorage(env('BLOB_READ_WRITE_TOKEN')),
+    new PostgresArtworkStorage(sql),
+    undefined,
+    undefined,
+    undefined,
+    printTemplateResolver,
   );
 }

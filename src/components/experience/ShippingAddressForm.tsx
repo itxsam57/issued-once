@@ -1,6 +1,10 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import {
+  normalizeShippingCountryCode,
+  shippingAddressRequirements,
+} from '@/domain/shipping/addressRequirements';
 import type { ShippingAddress } from '@/server/shipping/ShippingRepository';
 import styles from './shipping-address.module.css';
 
@@ -22,11 +26,13 @@ export function ShippingAddressForm({ onSubmit }: Props) {
   const [otherCountry, setOtherCountry] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const effectiveCountryCode = country === 'OTHER' ? otherCountry : country;
+  const requirements = shippingAddressRequirements(effectiveCountryCode);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const countryCode = country === 'OTHER' ? otherCountry.trim().toUpperCase() : country;
+    const countryCode = normalizeShippingCountryCode(effectiveCountryCode);
     if (!/^[A-Z]{2}$/.test(countryCode)) {
       setError('Use the two-letter country code for your destination.');
       return;
@@ -61,7 +67,10 @@ export function ShippingAddressForm({ onSubmit }: Props) {
         <label className={`${styles.field} ${styles.wide}`}><span>Address</span><input name="line1" autoComplete="address-line1" required /></label>
         <label className={`${styles.field} ${styles.wide}`}><span>Address line 2 <em>optional</em></span><input name="line2" autoComplete="address-line2" /></label>
         <label className={styles.field}><span>City</span><input name="city" autoComplete="address-level2" required /></label>
-        <label className={styles.field}><span>Province / state / region</span><input aria-label="Province / state / region" name="region" autoComplete="address-level1" required /></label>
+        <label className={styles.field}>
+          <span>Province / state / region {!requirements.regionRequired ? <em>optional</em> : null}</span>
+          <input aria-label="Province / state / region" name="region" autoComplete="address-level1" required={requirements.regionRequired} />
+        </label>
         <label className={styles.field}><span>Postal code</span><input name="postalCode" autoComplete="postal-code" required /></label>
         <label className={styles.field}>
           <span>Country</span>
@@ -74,8 +83,8 @@ export function ShippingAddressForm({ onSubmit }: Props) {
         {country === 'OTHER' ? (
           <label className={styles.field}><span>Country code</span><input aria-label="Country code" value={otherCountry} onChange={(event) => setOtherCountry(event.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2))} placeholder="XX" required /></label>
         ) : null}
-        <label className={`${styles.field} ${styles.wide}`}><span>Phone</span><input aria-label="Phone" name="phone" autoComplete="tel" inputMode="tel" required /></label>
-        <p className={styles.note}>Used only to deliver your issue, including courier contact when needed. It stays private.</p>
+        <label className={`${styles.field} ${styles.wide}`}><span>Phone <em>optional</em></span><input aria-label="Phone" name="phone" autoComplete="tel" inputMode="tel" /></label>
+        <p className={styles.note}>Used only to deliver your issue, including courier contact when supplied. It stays private.</p>
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
         <button type="submit" disabled={busy || !country}>{busy ? 'SAVING' : 'USE THIS ADDRESS'}</button>
       </form>

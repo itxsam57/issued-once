@@ -1,0 +1,172 @@
+.shell {
+  min-height: 100svh;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 60;
+  height: 64px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 var(--pad);
+  border-bottom: 1px solid var(--line);
+  background: rgba(243, 238, 230, 0.95);
+  backdrop-filter: blur(12px);
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.brand {
+  justify-self: start;
+  font-weight: 700;
+  letter-spacing: .24em;
+  text-decoration: none;
+}
+
+.current {
+  justify-self: center;
+  color: var(--muted);
+}
+
+.utilities {
+  justify-self: end;
+  display: flex;
+  gap: 26px;
+}
+
+.utilities a {
+  text-decoration: none;
+}
+
+.utilities a:hover,
+.utilities a:focus-visible,
+.brand:hover,
+.brand:focus-visible {
+  color: var(--signal);
+  outline: none;
+}
+
+.ledger {
+  position: fixed;
+  z-index: 40;
+  top: 64px;
+  right: 0;
+  bottom: 0;
+  width: 210px;
+  overflow-y: auto;
+  border-left: 1px solid var(--line);
+  background: rgba(243, 238, 230, .97);
+}
+
+.ledgerBody,
+.mobileLedgerBody {
+  display: grid;
+  align-content: start;
+}
+
+.ledgerRow {
+  min-height: 76px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+  text-transform: uppercase;
+}
+
+.ledgerRow span {
+  color: var(--muted);
+  font-size: 8px;
+  letter-spacing: .19em;
+}
+
+.ledgerRow strong {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -.02em;
+}
+
+.ritual {
+  min-height: 100svh;
+  padding: 64px 210px 0 0;
+}
+
+.ritualInner {
+  width: min(1020px, calc(100% - 2 * var(--pad)));
+  min-height: calc(100svh - 64px);
+  display: grid;
+  align-items: center;
+  margin: 0 auto;
+  padding: clamp(48px, 7vh, 96px) 0;
+}
+
+.mobileLedger {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .ledger { width: 184px; }
+  .ritual { padding-right: 184px; }
+}
+
+@media (max-width: 720px) {
+  .header {
+    height: 58px;
+    grid-template-columns: 1fr auto;
+    padding: 0 18px;
+  }
+
+  .current { display: none; }
+  .utilities { gap: 16px; }
+  .ledger { display: none; }
+
+  .ritual {
+    padding: 58px 0 0;
+  }
+
+  .ritualInner {
+    width: calc(100% - 36px);
+    min-height: calc(100svh - 58px);
+    padding: 56px 0 90px;
+  }
+
+  .mobileLedger {
+    display: block;
+    position: fixed;
+    z-index: 55;
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
+    border: 1px solid var(--line2);
+    background: rgba(243,238,230,.98);
+  }
+
+  .mobileLedger summary {
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    cursor: pointer;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .2em;
+    list-style: none;
+  }
+
+  .mobileLedger summary::-webkit-details-marker { display: none; }
+  .mobileLedger summary::after { content: '+'; }
+  .mobileLedger[open] summary::after { content: '−'; }
+  .mobileLedgerBody { max-height: 52vh; overflow-y: auto; border-top: 1px solid var(--line); }
+}
+
+@media (max-width: 380px) {
+  .brand { letter-spacing: .18em; }
+  .utilities a:first-child { display: none; }
+}

@@ -3,6 +3,7 @@ import type { SqlExecutor } from '@/server/experience/PostgresExperienceReposito
 import type {
   ContactRepository,
   OtpChallengeRecord,
+  OtpRateLimitReservation,
   VerifiedContactRecord,
 } from './ContactRepository';
 
@@ -11,7 +12,7 @@ type ChallengeRow = {
   experience_id: string;
   email_hash: string;
   email_payload_version: 1;
-  email_key_version: 'v1';
+  email_key_version: EncryptedPayload['keyVersion'];
   email_iv: string;
   email_auth_tag: string;
   email_ciphertext: string;
@@ -29,7 +30,7 @@ type ContactRow = {
   experience_id: string;
   email_hash: string;
   payload_version: 1;
-  key_version: 'v1';
+  key_version: EncryptedPayload['keyVersion'];
   iv: string;
   auth_tag: string;
   ciphertext: string;
@@ -37,6 +38,7 @@ type ContactRow = {
 };
 
 type BoolRow = { ok: boolean };
+type CountRow = { deleted_count: number | string };
 
 const date = (value: Date | string) => value instanceof Date ? value : new Date(value);
 
@@ -103,6 +105,71 @@ export class PostgresContactRepository implements ContactRepository {
       [experienceId, emailHash],
     );
     return rows[0] ? challengeFromRow(rows[0]) : null;
+  }
+
+  async reserveOtpRateLimit(input: OtpRateLimitReservation): Promise<boolean> {
+    const rows = await this.sql.query<BoolRow>(
+      `INSERT INTO otp_rate_limits (
+         subject_kind, subject_hash,
+         short_window_started_at, short_count,
+         long_window_started_at, long_count,
+         updated_at
+       )
+       VALUES ($1,$2,$3,1,$3,1,$3)
+       ON CONFLICT (subject_kind, subject_hash) DO UPDATE
+       SET short_window_started_at = CASE
+             WHEN otp_rate_limits.short_window_started_at <= $4 THEN $3
+             ELSE otp_rate_limits.short_window_started_at
+           END,
+           short_count = CASE
+             WHEN otp_rate_limits.short_window_started_at <= $4 THEN 1
+             ELSE otp_rate_limits.short_count + 1
+           END,
+           long_window_started_at = CASE
+             WHEN otp_rate_limits.long_window_started_at <= $5 THEN $3
+             ELSE otp_rate_limits.long_window_started_at
+           END,
+           long_count = CASE
+             WHEN otp_rate_limits.long_window_started_at <= $5 THEN 1
+             ELSE otp_rate_limits.long_count + 1
+           END,
+           updated_at = $3
+       WHERE (otp_rate_limits.short_window_started_at <= $4 OR otp_rate_limits.short_count < $6)
+         AND (otp_rate_limits.long_window_started_at <= $5 OR otp_rate_limits.long_count < $7)
+       RETURNING TRUE AS ok`,
+      [
+        input.subjectKind,
+        input.subjectHash,
+        input.now,
+        input.shortWindowCutoff,
+        input.longWindowCutoff,
+        input.shortLimit,
+        input.longLimit,
+      ],
+    );
+    return rows[0]?.ok === true;
+  }
+
+  async pruneOtpRateLimits(input: { olderThan: Date; limit: number }): Promise<number> {
+    const rows = await this.sql.query<CountRow>(
+      `WITH stale AS (
+         SELECT subject_kind, subject_hash
+         FROM otp_rate_limits
+         WHERE updated_at < $1
+         ORDER BY updated_at ASC
+         LIMIT $2
+       ), deleted AS (
+         DELETE FROM otp_rate_limits AS rate
+         USING stale
+         WHERE rate.subject_kind = stale.subject_kind
+           AND rate.subject_hash = stale.subject_hash
+         RETURNING 1
+       )
+       SELECT COUNT(*)::int AS deleted_count
+       FROM deleted`,
+      [input.olderThan, input.limit],
+    );
+    return Number(rows[0]?.deleted_count ?? 0);
   }
 
   async createChallenge(record: OtpChallengeRecord): Promise<void> {

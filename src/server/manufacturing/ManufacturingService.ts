@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { ArtworkAccessGateway } from '@/server/design/VercelBlobArtworkAccess';
+import type { ArtworkAccessGateway } from '@/server/design/SignedArtworkAccess';
 import { decryptPrivatePayload } from '@/server/crypto/privatePayload';
 import type { ShippingAddress } from '@/server/shipping/ShippingRepository';
 import type { ManufacturerGateway } from './ManufacturerGateway';
@@ -30,7 +30,7 @@ export class ManufacturingService {
     if (input.issueStatus !== 'DESIGN_APPROVED' || input.designState !== 'APPROVED') {
       throw new Error('Design must be approved before manufacturing');
     }
-    if (!input.artworkUrl.startsWith('https://')) throw new Error('Approved artwork URL is invalid');
+    if (!input.artworkUrl.startsWith('fs://')) throw new Error('Approved artwork locator is invalid');
 
     const mapping = this.variantMap.resolve({
       objectType: input.objectType,

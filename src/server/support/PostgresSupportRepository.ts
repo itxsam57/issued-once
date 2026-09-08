@@ -7,7 +7,7 @@ type ContextRow = {
   issue_code: string;
   contact_id: string;
   payload_version: 1;
-  key_version: 'v1';
+  key_version: EncryptedPayload['keyVersion'];
   iv: string;
   auth_tag: string;
   ciphertext: string;

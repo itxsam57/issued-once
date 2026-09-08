@@ -1,4 +1,4 @@
-import type { EncryptedPayload } from '@/server/crypto/privatePayload';
+import { encryptedPayloadFromStorage, type EncryptedPayload } from '@/server/crypto/privatePayload';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type { NotificationEventKey } from '@/server/notifications/NotificationRepository';
 import type { OpsSupportQueueItem, OpsSupportStore } from './OpsSupportService';
@@ -8,10 +8,16 @@ type QueueRow = {
   created_at: Date | string; updated_at: Date | string; note_count: number | string;
   failed_notifications: NotificationEventKey[] | null;
 };
-type ContextRow = { issue_id: string; issue_code: string; payload_version: 1; key_version: 'v1'; iv: string; auth_tag: string; ciphertext: string };
+type ContextRow = { issue_id: string; issue_code: string; payload_version: number; key_version: string; iv: string; auth_tag: string; ciphertext: string };
 
 function encrypted(row: ContextRow): EncryptedPayload {
-  return { version: row.payload_version, keyVersion: row.key_version, iv: row.iv, tag: row.auth_tag, ciphertext: row.ciphertext };
+  return encryptedPayloadFromStorage({
+    payloadVersion: row.payload_version,
+    keyVersion: row.key_version,
+    iv: row.iv,
+    tag: row.auth_tag,
+    ciphertext: row.ciphertext,
+  });
 }
 
 export class PostgresOpsSupportStore implements OpsSupportStore {

@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && /json|unsupported|invalid/i.test(error.message)) {
       return Response.json({ error: 'Webhook payload is invalid' }, { status: 400 });
     }
-    console.error('printful webhook processing failed', error);
+    console.error('printful webhook processing failed');
     return Response.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
