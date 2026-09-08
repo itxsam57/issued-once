@@ -1,120 +1,60 @@
 .choice {
-  width: 100%;
+  width: min(1020px, calc(100% - 2 * var(--pad)));
   min-height: 100svh;
   display: grid;
   align-content: center;
-  padding: clamp(28px, 5vw, 76px);
-  position: relative;
-  overflow: hidden;
+  margin: 0 auto;
+  padding: 112px 0 72px;
 }
-
 .choice::before {
   content: '';
-  position: absolute;
-  left: clamp(28px, 5vw, 76px);
-  right: clamp(28px, 5vw, 76px);
-  top: clamp(28px, 5vw, 76px);
+  width: 100%;
   height: 1px;
-  background: var(--hairline);
+  margin-bottom: clamp(48px, 8vh, 88px);
+  background: var(--line);
 }
-
 .choice h1 {
-  width: min(1050px, 92%);
-  margin: 0 0 26px;
-  font-family: var(--serif);
-  font-size: clamp(44px, 6.7vw, 104px);
-  font-weight: 400;
-  line-height: 0.96;
-  letter-spacing: -0.047em;
+  max-width: 920px;
+  margin: 0 0 24px;
+  font: 400 clamp(52px, 7vw, 104px)/.92 var(--serif);
+  letter-spacing: -.055em;
   text-wrap: balance;
 }
-
 .copy {
-  width: min(720px, 100%);
+  max-width: 660px;
   margin: 0;
   color: var(--muted);
-  font-family: var(--serif);
-  font-size: clamp(20px, 2vw, 30px);
-  line-height: 1.3;
+  font: 400 clamp(19px, 1.8vw, 28px)/1.35 var(--serif);
 }
-
 .actions {
-  width: min(820px, 100%);
+  width: min(860px, 100%);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
-  margin-top: clamp(44px, 7vh, 82px);
-  border-top: 1px solid var(--hairline);
+  margin-top: clamp(44px, 7vh, 80px);
+  border-top: 1px solid var(--line2);
 }
-
 .actions button {
-  min-height: 78px;
-  padding: 20px 2px;
+  min-height: 82px;
+  padding: 18px 4px;
   border: 0;
-  border-bottom: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--line2);
   background: transparent;
   color: var(--ink);
   cursor: pointer;
   text-align: left;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.17em;
-  transition: color 160ms ease, letter-spacing 160ms ease;
-}
-
-.actions button + button {
-  padding-left: 28px;
-  border-left: 1px solid var(--hairline);
-}
-
-.actions button:hover:not(:disabled),
-.actions button:focus-visible:not(:disabled) {
-  color: var(--signal);
-  letter-spacing: 0.21em;
-  outline: none;
-}
-
-.actions button:disabled {
-  color: var(--muted);
-  cursor: default;
-  opacity: 0.55;
-}
-
-.error {
-  width: min(820px, 100%);
-  margin: 18px 0 0;
-  color: var(--signal);
   font-size: 10px;
   font-weight: 700;
-  line-height: 1.4;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  letter-spacing: .18em;
 }
+.actions button + button { padding-left: 28px; border-left: 1px solid var(--line); }
+.actions button:hover:not(:disabled), .actions button:focus-visible:not(:disabled) { color: var(--signal); outline: none; }
+.actions button:disabled { color: var(--muted); opacity: .5; cursor: default; }
+.error { max-width: 820px; margin: 18px 0 0; color: var(--danger); font-size: 9px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
 
 @media (max-width: 720px) {
-  .choice {
-    padding: 24px 20px 36px;
-  }
-
-  .choice::before {
-    left: 20px;
-    right: 20px;
-    top: 24px;
-  }
-
-  .choice h1 {
-    width: 100%;
-    font-size: clamp(40px, 12vw, 62px);
-  }
-
-  .actions {
-    grid-template-columns: 1fr;
-  }
-
-  .actions button,
-  .actions button + button {
-    min-height: 64px;
-    padding: 16px 2px;
-    border-left: 0;
-  }
+  .choice { width: calc(100% - 36px); min-height: 100svh; padding: 100px 0 82px; }
+  .choice::before { margin-bottom: 38px; }
+  .choice h1 { font-size: clamp(44px, 13vw, 66px); }
+  .actions { grid-template-columns: 1fr; }
+  .actions button, .actions button + button { min-height: 68px; padding: 16px 2px; border-left: 0; }
 }
