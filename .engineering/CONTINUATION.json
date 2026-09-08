@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.39.0",
+  "version": "1.39.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-08T21:54:24Z",
+  "updatedAt": "2026-09-08T22:09:40Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -26,7 +26,7 @@
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "Owner-rejected hybrid consumer UI has been replaced end-to-end on an isolated branch and fully verified locally. Production release/Hostinger promotion remains an explicit owner-authorized action; Safepay and Printful provider state were not mutated by this UI rebuild.",
+    "currentEngineeringStopReason": "Reference UI rebuild is locally integrated and post-merge verified on release/hostinger-v2-candidate-20260824. Remote push/Hostinger production promotion remains owner-authorized work; Safepay and Printful provider state remain untouched.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -34,8 +34,8 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "STOP_OWNER_REQUIRED_REFERENCE_UI_PROMOTION",
-    "reason": "Whole consumer presentation rebuild is verified across homepage, ritual, physical selection, identity, shipping, commitment, repeat, status/recovery/support, payment-pending, and merchant/legal routes. 765/765 unit tests and 56/56 Playwright tests pass; typecheck, lint, production build, and frontend-only diff audit pass."
+    "decision": "STOP_OWNER_REQUIRED_REMOTE_RELEASE_PROMOTION",
+    "reason": "Local integration completed at 9849412d8a127e49ad4b0f82762aeb96b4ddc69c. Post-merge verification passed 249 test files / 765 unit tests, typecheck, lint, production build, and the complete Playwright desktop/mobile matrix."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -987,7 +987,7 @@
     "implemented": [
       "Approved #F3EEE6 cream editorial homepage with no homepage ledger and exact 7 / 1 / 1-to-1 sequence.",
       "Production ritual shell with truthful NOT YET pre-payment Issue state and progressive server-success-bound ledger.",
-      "Exact TEE / CAP / TOTE selector geometry and FORM→MATERIAL→TECHNICAL→DISPLAY cycling without card growth.",
+      "Exact TEE / CAP / TOTE selector geometry and FORM\u2192MATERIAL\u2192TECHNICAL\u2192DISPLAY cycling without card growth.",
       "Desktop/tablet/mobile ledger breakpoints, keyboard/touch semantics, reduced-motion handling and no pre-purchase hidden-artwork DOM leakage.",
       "Shared fixed public utility header across merchant and Issue status/pending surfaces; downstream typography/colors aligned to approved tokens.",
       "No src/server, src/domain, src/app/api, payment, Safepay, Printful or catalog business-contract code changed."
@@ -1021,7 +1021,7 @@
     }
   },
   "referenceUiRebuild20260908": {
-    "status": "CODE_AND_QA_COMPLETE_OWNER_RELEASE_APPROVAL_REQUIRED",
+    "status": "LOCALLY_INTEGRATED_AND_POST_MERGE_VERIFIED_REMOTE_RELEASE_APPROVAL_REQUIRED",
     "branch": "ui/reference-rebuild-20260908",
     "baseReleaseHead": "e3bbafe3d597d51fd5db60dc28c1aa93873faf29",
     "implementationHead": "eb3342edd9b88831eeaa97d3a5a38d71c4b5cf4d",
@@ -1073,11 +1073,26 @@
       "realManufacturingOrderOrConfirmation": false,
       "productionDeploymentPerformed": false
     },
-    "nextAction": "Owner reviews/accepts the rebuilt presentation and explicitly authorizes merge/release promotion. Only after that should Hostinger production be updated and live visual smoke/release verification run.",
+    "nextAction": "Owner explicitly authorizes remote release-branch push and Hostinger production promotion. Until then, keep production unchanged and do not mutate Safepay or Printful provider state.",
     "parallelBranchComparison": {
       "remoteBranch": "origin/ui/reference-rebuild-20260908",
       "remoteHead": "3a6a0cab6b64ce6fd7c47028dfff4174d6622590",
       "finding": "Parallel remote implementation matched the rebuilt application source. Local branch retains the later calm-retry style fix; the stronger remote isolation assertions were incorporated without force-pushing or discarding either history."
+    },
+    "localIntegration": {
+      "baseBranch": "release/hostinger-v2-candidate-20260824",
+      "preMergeRemoteHead": "e3bbafe3d597d51fd5db60dc28c1aa93873faf29",
+      "localMergedHead": "9849412d8a127e49ad4b0f82762aeb96b4ddc69c",
+      "mergeMode": "fast-forward local only",
+      "remotePushPerformed": false,
+      "productionDeploymentPerformed": false,
+      "postMergeVerification": {
+        "unit": "PASS: 249 files / 765 tests",
+        "typecheck": "PASS",
+        "lint": "PASS",
+        "productionBuild": "PASS",
+        "playwright": "PASS: complete desktop/mobile suite; failedTests empty"
+      }
     }
   }
 }
