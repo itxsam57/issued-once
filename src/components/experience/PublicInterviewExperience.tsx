@@ -10,6 +10,7 @@ import type {
 } from './CommitmentScreen';
 import { MysteryExperience } from './MysteryExperience';
 import type { ObjectType } from './ObjectSelection';
+import { ReferenceHeader } from '@/components/reference/ReferenceHeader';
 import { RepeatOrderChoice, type RepeatOrderMode } from './RepeatOrderChoice';
 import type { SizeOption } from './SizeConfirmation';
 
@@ -194,25 +195,38 @@ export function PublicInterviewExperience() {
 
   if (bootstrapError) {
     return (
-      <section className="interview-bootstrap" role="alert">
-        <p className="interview-complete__signal">ENTRY / INTERRUPTED</p>
-        <h1>Something didn&apos;t hold.</h1>
-        <p>Refresh to begin again.</p>
-      </section>
+      <>
+        <ReferenceHeader />
+        <section className="interview-bootstrap" data-reference-surface="entry-error" role="alert">
+          <p className="interview-complete__signal">ENTRY / INTERRUPTED</p>
+          <h1>Something didn&apos;t hold.</h1>
+          <p>Refresh to begin again.</p>
+        </section>
+      </>
     );
   }
 
   if (!bootstrap) {
     return (
-      <section className="interview-bootstrap" aria-live="polite">
-        <p className="interview-complete__signal">ENTRY / 00</p>
-        <h1>ISSUED ONCE</h1>
-      </section>
+      <>
+        <ReferenceHeader />
+        <section className="interview-bootstrap" data-reference-surface="entry-loading" aria-live="polite">
+          <p className="interview-complete__signal">ENTRY / 00</p>
+          <h1>ISSUED ONCE</h1>
+        </section>
+      </>
     );
   }
 
   if (bootstrap.entryMode === 'repeat-choice') {
-    return <RepeatOrderChoice onChoose={chooseRepeat} />;
+    return (
+      <>
+        <ReferenceHeader center="ISSUE / ANOTHER" />
+        <main className="public-interview" data-reference-surface="repeat">
+          <RepeatOrderChoice onChoose={chooseRepeat} />
+        </main>
+      </>
+    );
   }
 
   return (

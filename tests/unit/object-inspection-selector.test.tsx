@@ -63,6 +63,7 @@ describe('approved object inspection selector', () => {
     expect(onSelect).toHaveBeenCalledTimes(1);
     expect(onSelect).toHaveBeenCalledWith('tee');
   });
+
   test('pins the approved card geometry and pointer inspection hooks', () => {
     render(<ObjectSelection onSelect={vi.fn()} />);
     const tee = screen.getByRole('radio', { name: 'TEE' });
@@ -70,11 +71,10 @@ describe('approved object inspection selector', () => {
     fireEvent.pointerMove(card, { clientX: 90, clientY: 70 });
     expect(card.style.getPropertyValue('--inspect-x')).not.toBe('');
 
-    const css = readFileSync(join(process.cwd(), 'src/app/object-stage.css'), 'utf8');
+    const css = readFileSync(join(process.cwd(), 'src/app/reference-ui.css'), 'utf8');
     expect(css).toContain('grid-template-columns: repeat(3, minmax(0, 1fr));');
     expect(css).toContain('gap: 16px;');
     expect(css).toContain('height: 380px;');
     expect(css).toMatch(/max-width:\s*720px[\s\S]*height:\s*240px/);
   });
-
 });

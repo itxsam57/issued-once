@@ -5,7 +5,7 @@ export default function PaymentPendingPage() {
   return (
     <>
       <PublicUtilityHeader center="ISSUE / STATUS" />
-      <main className="public-interview public-interview--headered">
+      <main className="public-interview public-interview--headered" data-reference-surface="pending">
         <IssueStatusView />
       </main>
     </>

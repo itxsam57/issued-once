@@ -15,7 +15,7 @@ export function MerchantPageShell({
   children: ReactNode;
 }) {
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-reference-surface="merchant">
       <PublicUtilityHeader />
 
       <section className={styles.hero}>
