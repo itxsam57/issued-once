@@ -35,7 +35,7 @@
       "COMPLETE"
     ],
     "decision": "STOP_OWNER_REQUIRED_REFERENCE_UI_PROMOTION",
-    "reason": "Whole consumer presentation rebuild is verified across homepage, ritual, physical selection, identity, shipping, commitment, repeat, status/recovery/support, payment-pending, and merchant/legal routes. 763/763 unit tests and 56/56 Playwright tests pass; typecheck, lint, production build, and frontend-only diff audit pass."
+    "reason": "Whole consumer presentation rebuild is verified across homepage, ritual, physical selection, identity, shipping, commitment, repeat, status/recovery/support, payment-pending, and merchant/legal routes. 765/765 unit tests and 56/56 Playwright tests pass; typecheck, lint, production build, and frontend-only diff audit pass."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -1057,7 +1057,7 @@
       "src/components/public/public-utility-header.module.css"
     ],
     "verification": {
-      "unit": "PASS: 249 files / 763 tests",
+      "unit": "PASS: 249 files / 765 tests",
       "playwright": "PASS: 56 tests / 14 files across desktop and mobile",
       "typecheck": "PASS",
       "lint": "PASS",
@@ -1073,6 +1073,11 @@
       "realManufacturingOrderOrConfirmation": false,
       "productionDeploymentPerformed": false
     },
-    "nextAction": "Owner reviews/accepts the rebuilt presentation and explicitly authorizes merge/release promotion. Only after that should Hostinger production be updated and live visual smoke/release verification run."
+    "nextAction": "Owner reviews/accepts the rebuilt presentation and explicitly authorizes merge/release promotion. Only after that should Hostinger production be updated and live visual smoke/release verification run.",
+    "parallelBranchComparison": {
+      "remoteBranch": "origin/ui/reference-rebuild-20260908",
+      "remoteHead": "3a6a0cab6b64ce6fd7c47028dfff4174d6622590",
+      "finding": "Parallel remote implementation matched the rebuilt application source. Local branch retains the later calm-retry style fix; the stronger remote isolation assertions were incorporated without force-pushing or discarding either history."
+    }
   }
 }
