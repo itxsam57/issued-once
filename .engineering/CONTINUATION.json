@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.38.0",
+  "version": "1.38.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-08T04:23:30Z",
+  "updatedAt": "2026-09-08T06:08:30Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -24,9 +24,9 @@
     "latestEngineeringIntegrationVerifiedAt": "2026-09-08T04:21:12Z"
   },
   "continuationGovernor": {
-    "state": "OWNER_REQUIRED",
-    "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "All engineering-safe final production UI and non-Safepay QA reachable without the missing binary handoff assets is complete and green. The only UI acceptance blocker is the exact 12 owner-approved JPG files, which are not reachable from repo/workstation/File Library and must not be substituted. Safepay is explicitly excluded by owner for this cycle.",
+    "state": "COMPLETE",
+    "currentEngineeringStopRequired": false,
+    "currentEngineeringStopReason": "Final production UI implementation and exact approved 12-JPG asset integration are locally verified. Safepay remains explicitly excluded; integration/CI/release promotion is the next engineering action.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -34,8 +34,8 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "STOP_OWNER_REQUIRED_EXACT_UI_ASSET_UPLOAD",
-    "reason": "248/761 unit tests, typecheck, clean lint, production build, 44/44 existing desktop+mobile browser QA, and 5/6 new final-UI browser acceptance checks pass. The one failing check proves the exact object study images do not load because their files are absent."
+    "decision": "CONTINUE_INTEGRATION_FINAL_UI",
+    "reason": "Exact uploaded bundle hash verified, all 12 JPG hashes preserved, and the final UI acceptance suite is 6/6 green. Full regression gates will be rerun before PR/merge/release promotion."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -983,7 +983,7 @@
     "branch": "ui/final-production-ritual-20260908",
     "baseIntegrationHead": "4195bfd5d445d7625885c9716f9b9ed3e68e93ea",
     "baseIntegrationTree": "a8c176bd62372db9648632d099f01a131a261c01",
-    "status": "CODE_AND_NON_ASSET_QA_GREEN_BLOCKED_ON_EXACT_APPROVED_JPG_BYTES",
+    "status": "CODE_AND_UI_ASSET_QA_GREEN_READY_FOR_INTEGRATION",
     "implemented": [
       "Approved #F3EEE6 cream editorial homepage with no homepage ledger and exact 7 / 1 / 1-to-1 sequence.",
       "Production ritual shell with truthful NOT YET pre-payment Issue state and progressive server-success-bound ledger.",
@@ -998,7 +998,7 @@
       "lint": "PASS: 0 errors / 0 warnings",
       "productionBuild": "PASS: Next.js 16.2.11 optimized production build",
       "existingBrowserQa": "PASS: 44/44 desktop+mobile Chromium tests, including catalog Tee/Cap/Tote, recovery, support, merchant pages, customer flow, referral replacement, repeat lifecycle and owner gates.",
-      "finalUiBrowserQa": "5/6 PASS; sole failure is deliberate hard gate naturalWidth=0 because the 12 owner-approved JPG files are absent from all reachable repo/workstation/File Library sources.",
+      "finalUiBrowserQa": "PASS: 6/6 final-production-ui desktop Chromium acceptance tests with the exact owner-approved JPG bundle loaded.",
       "acceptanceWidths": "PASS: 1440 / 1024 / 768 / 390 / 360 no horizontal overflow",
       "consoleAndPageErrors": "PASS on homepage, first-question and all merchant routes",
       "backendDiffAudit": "PASS: no diff under src/server, src/domain, src/app/api, proxy.ts, next.config.ts, package.json or pnpm-lock.yaml",
@@ -1011,25 +1011,13 @@
       "hostingerRelease": "88961f027a110575374e5172b99681ebada3c24f direct authoritative-edge health PASS with databaseReady/queueReady/storageReady true",
       "localResolverNote": "The authorized workstation local DNS cache still resolves apex to stale Vercel IPs; direct authoritative Hostinger edges and public resolvers show Hostinger DNS. Do not classify that local resolver cache as production origin drift."
     },
-    "hardBlocker": {
-      "kind": "OWNER_ASSET_UPLOAD_REQUIRED",
-      "detail": "Exact supplied JPG bytes are required by the approved handoff. They are not present in the repository, any remote branch, the authorized workstation, current-conversation uploads, or File Library. Do not substitute or regenerate them.",
-      "requiredFiles": [
-        "asset-form-tee.jpg",
-        "asset-form-cap.jpg",
-        "asset-form-tote.jpg",
-        "asset-macro-tee.jpg",
-        "asset-macro-cap.jpg",
-        "asset-macro-tote.jpg",
-        "asset-tech-tee.jpg",
-        "asset-tech-cap.jpg",
-        "asset-tech-tote.jpg",
-        "asset-museum-tee.jpg",
-        "asset-museum-cap.jpg",
-        "asset-museum-tote.jpg"
-      ],
-      "afterUpload": "Place exact files under public/assets/issued-once/, rerun final-production-ui.spec.ts to 6/6, then run full verification, PR/CI/merge and Hostinger forward-only promotion."
-    },
-    "safepayScope": "EXCLUDED_BY_OWNER_FOR_THIS_CYCLE"
+    "safepayScope": "EXCLUDED_BY_OWNER_FOR_THIS_CYCLE",
+    "exactAssetBundle": {
+      "zipSha256": "64d6dc00c3ed7d97bd5dc3c52b58455001550019397c44378ba19ae049c8aebf",
+      "assetCount": 12,
+      "destination": "public/assets/issued-once/",
+      "source": "owner-uploaded io-assets.zip / exact handoff bytes",
+      "substitutionPerformed": false
+    }
   }
 }
