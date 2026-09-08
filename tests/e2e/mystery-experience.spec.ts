@@ -24,13 +24,16 @@ async function capture(page: import('@playwright/test').Page, name: string) {
   await page.screenshot({ path: `artifacts/visual/${name}.png`, fullPage: true });
 }
 
-async function completePreviewIdentity(page: import('@playwright/test').Page) {
+async function completePreviewIdentity(page: import('@playwright/test').Page, projectName: string) {
   await expect(page.getByRole('heading', { name: 'Where do we find you?' })).toBeVisible();
+  await capture(page, `20-contact-${projectName}`);
   await page.getByLabel('Email').fill('qa@example.com');
   await page.getByRole('button', { name: 'SEND CODE' }).click();
+  await capture(page, `21-otp-${projectName}`);
   await page.getByLabel('Verification code').fill('123456');
   await page.getByRole('button', { name: 'VERIFY' }).click();
   await expect(page.getByRole('heading', { name: 'Where does it go?' })).toBeVisible();
+  await capture(page, `22-shipping-${projectName}`);
   await page.getByLabel('Name').fill('QA Customer');
   await page.getByLabel('Address', { exact: true }).fill('1 QA Street');
   await page.getByLabel('City').fill('Peshawar');
@@ -145,7 +148,7 @@ test('the mystery journey crosses private traces, physical locks, identity, dest
   await capture(page, `07-base-${testInfo.project.name}`);
   await lockBase.click();
 
-  await completePreviewIdentity(page);
+  await completePreviewIdentity(page, testInfo.project.name);
   await expect(page.getByText('FORM COMPLETE')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'From here, it becomes ours to interpret.' })).toBeVisible();
   await expect(page.getByText('TEE / M / BONE')).toBeVisible();

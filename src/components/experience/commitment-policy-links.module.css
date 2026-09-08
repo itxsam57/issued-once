@@ -3,30 +3,17 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px 24px;
-  margin: 22px 0 0;
-  font-size: 9px;
+  margin: 24px 0 0;
+  font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: .18em;
   text-transform: uppercase;
 }
-
 .links a {
   color: var(--muted);
   text-decoration: none;
-  border-bottom: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--line);
   padding-bottom: 4px;
 }
-
-.links a:hover,
-.links a:focus-visible {
-  color: var(--signal);
-  border-color: currentColor;
-  outline: none;
-}
-
-@media (max-width: 700px) {
-  .links {
-    gap: 12px 18px;
-    line-height: 1.5;
-  }
-}
+.links a:hover, .links a:focus-visible { color: var(--signal); border-color: currentColor; outline: none; }
+@media (max-width: 720px) { .links { gap: 12px 18px; line-height: 1.5; } }

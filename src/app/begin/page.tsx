@@ -7,7 +7,7 @@ export default function BeginPage() {
   }
 
   return (
-    <main className="public-interview">
+    <main className="public-interview" data-reference-surface="begin">
       <PublicInterviewExperience />
     </main>
   );

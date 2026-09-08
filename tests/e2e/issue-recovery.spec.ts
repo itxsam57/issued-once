@@ -1,6 +1,12 @@
+import { mkdir } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
-test('a lost-session buyer can recover an Issue without existence leakage before OTP proof', async ({ page }) => {
+async function capture(page: import('@playwright/test').Page, name: string) {
+  await mkdir('artifacts/visual', { recursive: true });
+  await page.screenshot({ path: `artifacts/visual/${name}.png`, fullPage: true });
+}
+
+test('a lost-session buyer can recover an Issue without existence leakage before OTP proof', async ({ page }, testInfo) => {
   let restored = false;
 
   await page.route('**/api/issue/status', async (route) => {
@@ -63,13 +69,16 @@ test('a lost-session buyer can recover an Issue without existence leakage before
 
   await page.goto('/issue');
   await expect(page.getByRole('heading', { name: 'Hold this thought.' })).toBeVisible();
+  await capture(page, `23-status-empty-${testInfo.project.name}`);
   await page.getByRole('button', { name: 'FIND MY ISSUE' }).click();
   await expect(page.getByRole('heading', { name: 'Find your Issue.' })).toBeVisible();
+  await capture(page, `24-recovery-${testInfo.project.name}`);
 
   await page.getByLabel('Issue Code').fill('IO-ABCD-EFGH');
   await page.getByLabel('Email').fill('buyer@example.com');
   await page.getByRole('button', { name: 'SEND CODE' }).click();
   await expect(page.getByText('If those details match an Issue, six digits are on the way.')).toBeVisible();
+  await capture(page, `25-recovery-otp-${testInfo.project.name}`);
   await expect(page.locator('body')).not.toContainText(/we found|does not exist|no issue/i);
 
   await page.getByLabel('Verification code').fill('123456');
@@ -77,4 +86,5 @@ test('a lost-session buyer can recover an Issue without existence leakage before
 
   await expect(page.getByText('ISSUE / IO-ABCD-EFGH')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'IN TRANSIT' })).toBeVisible();
+  await capture(page, `26-status-restored-${testInfo.project.name}`);
 });

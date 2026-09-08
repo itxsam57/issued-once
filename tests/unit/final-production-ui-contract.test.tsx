@@ -25,13 +25,14 @@ describe('owner-approved final production UI contract', () => {
     expect(text.indexOf('exists once.')).toBeLessThan(text.indexOf('HIDDEN'));
   });
 
-  test('hero material study receives pointer coordinates without becoming a product preview', () => {
+  test('hero physical presence is reference-owned, unframed and never a product preview', () => {
     render(<Home />);
-    const study = screen.getByTestId('home-material-study');
-    fireEvent.pointerMove(study, { clientX: 120, clientY: 80 });
-    expect(study.style.getPropertyValue('--pointer-x')).not.toBe('');
-    expect(study).toHaveAttribute('aria-hidden', 'true');
-    expect(study.querySelector('img')).toBeNull();
+    const presence = screen.getByTestId('reference-hero-presence');
+    fireEvent.pointerMove(presence, { clientX: 120, clientY: 80 });
+    expect(presence.style.getPropertyValue('--x')).not.toBe('');
+    expect(presence).toHaveAttribute('aria-hidden', 'true');
+    expect(presence.querySelector('img')).toBeNull();
+    expect(screen.queryByTestId('home-material-study')).toBeNull();
   });
 
   test('global theme pins the approved cream palette', () => {
