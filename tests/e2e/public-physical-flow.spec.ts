@@ -195,7 +195,6 @@ test('public physical flow requires verified contact and shipping before Safepay
   await expect(page.getByText('Everything else stays unknown until it arrives.')).toBeVisible();
   const issueMine = page.getByRole('button', { name: 'ISSUE MINE' });
   await expect(issueMine).toBeVisible();
-  await capture(page, `14-public-commitment-${testInfo.project.name}`);
 
   await page.route('https://sandbox.api.getsafepay.com/checkout/**', async (route) => {
     await route.fulfill({

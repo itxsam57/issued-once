@@ -64,3 +64,22 @@ test('shipping step submits a valid international address without region or phon
   }));
   expect(screen.queryByText(/issue id|contact id/i)).not.toBeInTheDocument();
 });
+
+
+test('contact email cannot change while the OTP request for that address is pending', async () => {
+  const user = userEvent.setup();
+  let releaseOtp: ((value: { challengeId: string; retryAfterSeconds: number }) => void) | null = null;
+  const requestOtp = vi.fn(() => new Promise<{ challengeId: string; retryAfterSeconds: number }>((resolve) => { releaseOtp = resolve; }));
+  render(<ContactVerification onRequestOtp={requestOtp} onVerifyOtp={vi.fn()} onComplete={vi.fn()} />);
+
+  const email = screen.getByLabelText('Email');
+  await user.type(email, 'first@example.com');
+  await user.click(screen.getByRole('button', { name: 'SEND CODE' }));
+
+  expect(requestOtp).toHaveBeenCalledWith('first@example.com');
+  expect(email).toBeDisabled();
+
+  releaseOtp?.({ challengeId: 'challenge-first', retryAfterSeconds: 60 });
+  await screen.findByText(/six digits went to/i);
+  expect(screen.getByText('first@example.com')).toBeInTheDocument();
+});

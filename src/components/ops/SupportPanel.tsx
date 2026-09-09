@@ -29,6 +29,7 @@ export function SupportPanel() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
   const previousFilter = useRef(filter);
+  const selectionGeneration = useRef(0);
   const load = useCallback(() => fetchCases(filter), [filter]);
   const { data, error: liveError, refresh } = useLiveResource({ load, intervalMs: 15_000 });
   const items = data ?? [];
@@ -41,13 +42,22 @@ export function SupportPanel() {
   }, [filter, refresh]);
 
   function clearEditor() { setReason(''); setMessage(null); setNote(''); setReply(''); }
-  function choose(item: Case) { setSelectedId(item.requestId); clearEditor(); setActionError(null); }
-  function changeFilter(next: 'OPEN'|'CLOSED') { setFilter(next); setSelectedId(null); clearEditor(); setActionError(null); }
+  function choose(item: Case) { selectionGeneration.current += 1; setSelectedId(item.requestId); clearEditor(); setActionError(null); }
+  function changeFilter(next: 'OPEN'|'CLOSED') { selectionGeneration.current += 1; setFilter(next); setSelectedId(null); clearEditor(); setActionError(null); }
 
-  async function run(action: () => Promise<unknown>) {
+  async function run<T>(action: () => Promise<T>, onCurrentSuccess?: (result: T) => void) {
+    const generation = selectionGeneration.current;
     setWorking(true); setActionError(null);
-    try { await action(); await refresh(); }
-    catch (cause) { setActionError(cause instanceof Error ? cause.message : 'Support action failed'); }
+    try {
+      const result = await action();
+      if (generation === selectionGeneration.current) onCurrentSuccess?.(result);
+      await refresh();
+    }
+    catch (cause) {
+      if (generation === selectionGeneration.current) {
+        setActionError(cause instanceof Error ? cause.message : 'Support action failed');
+      }
+    }
     finally { setWorking(false); }
   }
 
@@ -65,13 +75,22 @@ export function SupportPanel() {
       <section className={styles.detail}>{!selected ? <p>SELECT A CASE</p> : <>
         <p>ISSUE / {selected.issueCode}</p><h2>{selected.status}</h2><p>Customer message remains encrypted until you explicitly reveal it.</p>
         <label>Reason to reveal message<input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Why do you need the message?" /></label>
-        <button disabled={working || !reason.trim()} type="button" onClick={() => void run(async () => { const payload = await post(`/ops/api/issues/${selected.issueId}/reveal`, { category: 'support_message', reason }); setMessage(payload.value ?? null); })}>REVEAL MESSAGE</button>
+        <button disabled={working || !reason.trim()} type="button" onClick={() => void run(
+          () => post(`/ops/api/issues/${selected.issueId}/reveal`, { category: 'support_message', reason }),
+          (payload) => setMessage(payload.value ?? null),
+        )}>REVEAL MESSAGE</button>
         {message !== null ? <pre className={styles.privatePre}>{JSON.stringify(message, null, 2)}</pre> : null}
         {selected.failedNotifications.length ? <section><h3>Failed notifications</h3><div className={styles.actionRow}>{selected.failedNotifications.map((eventKey) => <button key={eventKey} disabled={working} type="button" onClick={() => void run(() => post('/ops/api/support/notification-retry', { issueId: selected.issueId, eventKey }))}>RETRY {eventKey.replaceAll('_',' ')}</button>)}</div></section> : null}
         <label>Internal note<textarea value={note} onChange={(event) => setNote(event.target.value)} /></label>
-        <button disabled={working || !note.trim()} type="button" onClick={() => void run(async () => { await post('/ops/api/support/note', { issueId: selected.issueId, body: note }); setNote(''); })}>ADD NOTE</button>
+        <button disabled={working || !note.trim()} type="button" onClick={() => void run(
+          () => post('/ops/api/support/note', { issueId: selected.issueId, body: note }),
+          () => setNote(''),
+        )}>ADD NOTE</button>
         <label>Reply to verified customer<textarea value={reply} onChange={(event) => setReply(event.target.value)} /></label>
-        <button disabled={working || reply.trim().length < 2} type="button" onClick={() => void run(async () => { await post('/ops/api/support/reply', { requestId: selected.requestId, message: reply }); setReply(''); })}>SEND REPLY</button>
+        <button disabled={working || reply.trim().length < 2} type="button" onClick={() => void run(
+          () => post('/ops/api/support/reply', { requestId: selected.requestId, message: reply }),
+          () => setReply(''),
+        )}>SEND REPLY</button>
         <button disabled={working} type="button" onClick={() => void run(() => post('/ops/api/support/status', { requestId: selected.requestId, status: selected.status === 'OPEN' ? 'CLOSED' : 'OPEN' }))}>{selected.status === 'OPEN' ? 'CLOSE CASE' : 'REOPEN CASE'}</button>
       </>}</section>
     </div>

@@ -178,6 +178,7 @@ export function ContactVerification({
               inputMode="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              disabled={busy}
               required
               maxLength={320}
             />

@@ -124,3 +124,133 @@ test('Designer control plane applies policy, feedback and unconfirmed manufactur
   await expect.poll(() => draftIssueId).toBe(APPROVED_ID);
   await expect(page.getByRole('status')).toContainText('Production is still not confirmed.');
 });
+
+
+test('Reviewer selection ignores stale candidate and policy responses from a previously selected Issue', async ({ page }) => {
+  const items = [
+    { issueId: REVIEW_ID, issueCode: 'IO-REVIEW-01', issueStatus: 'DESIGN_REVIEW', objectType: 'tee', sizeCode: 'M', colorCode: 'Black', designJobId: '33333333-3333-3333-3333-333333333333', designState: 'REVIEW', artworkUrl: null, width: 2048, height: 3072, provider: 'OPENAI', model: 'test-model', candidateCount: 1, updatedAt: '2026-08-21T10:00:00.000Z' },
+    { issueId: APPROVED_ID, issueCode: 'IO-APPROVED-01', issueStatus: 'DESIGN_APPROVED', objectType: 'tee', sizeCode: 'L', colorCode: 'White', designJobId: '44444444-4444-4444-4444-444444444444', designState: 'APPROVED', artworkUrl: null, width: 2048, height: 3072, provider: 'OPENAI', model: 'test-model', candidateCount: 1, updatedAt: '2026-08-21T10:00:00.000Z' },
+  ];
+  const readiness = { checkedAt: '2026-08-21T10:00:00.000Z', readyForSandbox: true, readyForProduction: false, checks: [
+    { key: 'openai', label: 'OpenAI', state: 'ready', detail: 'ready' },
+    { key: 'storage', label: 'Storage', state: 'ready', detail: 'ready' },
+    { key: 'queues', label: 'Queues', state: 'configured', detail: 'ready' },
+    { key: 'factory-confirm', label: 'Factory', state: 'safe', detail: 'safe' },
+  ] };
+  await page.route('**/ops/api/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, { sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 }, operations: { paidIssues: 2, designing: 0, review: 1, production: 0, transit: 0, delivered: 0 }, attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 0 }, activity: [] });
+    if (path === '/ops/api/designer') return json(route, { items });
+    if (path === '/ops/api/designer/policy') return json(route, { policy: basePolicy });
+    if (path === '/ops/api/readiness') return json(route, readiness);
+    const candidateMatch = path.match(/^\/ops\/api\/designer\/([^/]+)\/candidates$/);
+    if (candidateMatch) {
+      const id = candidateMatch[1];
+      if (id === REVIEW_ID) await new Promise((resolve) => setTimeout(resolve, 250));
+      return json(route, { items: [{ id: `candidate-${id}`, issueId: id, generationKey: `g-${id}`, source: 'AI_GENERATED', artworkUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==', width: 2048, height: 3072, provider: 'OPENAI', model: 'test-model', safeSummary: id === REVIEW_ID ? 'REVIEW-CANDIDATE-ONLY' : 'APPROVED-CANDIDATE-ONLY', selected: true, createdAt: '2026-08-21T10:00:00.000Z' }] });
+    }
+    const policyMatch = path.match(/^\/ops\/api\/designer\/([^/]+)\/policy$/);
+    if (policyMatch) {
+      const id = policyMatch[1];
+      if (id === REVIEW_ID) await new Promise((resolve) => setTimeout(resolve, 300));
+      const override = { mode: id === REVIEW_ID ? 'AUTO' : 'MANUAL' };
+      return json(route, { globalVersion: 7, override, policy: { ...basePolicy, ...override } });
+    }
+    return json(route, { error: `Unhandled stale-selection fixture ${path}` }, 500);
+  });
+
+  await login(page);
+  await page.getByRole('button', { name: 'Designer', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'What each mind became.' })).toBeVisible();
+  await page.getByRole('button', { name: /IO-REVIEW-01/ }).click();
+  await page.getByRole('button', { name: /IO-APPROVED-01/ }).click();
+  await expect(page.getByText('ISSUE / IO-APPROVED-01')).toBeVisible();
+  await expect(page.getByText('APPROVED-CANDIDATE-ONLY')).toBeVisible();
+  await page.waitForTimeout(450);
+  await expect(page.getByText('REVIEW-CANDIDATE-ONLY')).toHaveCount(0);
+  await expect(page.getByText('APPROVED-CANDIDATE-ONLY')).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'This Issue Mode' })).toHaveValue('MANUAL');
+});
+
+
+test('Reviewer action completion cannot repopulate a newly selected Issue with old candidates', async ({ page }) => {
+  const items = [
+    { issueId: REVIEW_ID, issueCode: 'IO-REVIEW-01', issueStatus: 'DESIGN_REVIEW', objectType: 'tee', sizeCode: 'M', colorCode: 'Black', designJobId: '33333333-3333-3333-3333-333333333333', designState: 'REVIEW', artworkUrl: null, width: 2048, height: 3072, provider: 'OPENAI', model: 'test-model', candidateCount: 1, updatedAt: '2026-08-21T10:00:00.000Z' },
+    { issueId: APPROVED_ID, issueCode: 'IO-APPROVED-01', issueStatus: 'DESIGN_APPROVED', objectType: 'tee', sizeCode: 'L', colorCode: 'White', designJobId: '44444444-4444-4444-4444-444444444444', designState: 'APPROVED', artworkUrl: null, width: 2048, height: 3072, provider: 'OPENAI', model: 'test-model', candidateCount: 1, updatedAt: '2026-08-21T10:00:00.000Z' },
+  ];
+  let reviewStarted = false;
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, { sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 }, operations: { paidIssues: 2, designing: 0, review: 1, production: 0, transit: 0, delivered: 0 }, attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 0 }, activity: [] });
+    if (path === '/ops/api/designer') return json(route, { items });
+    if (path === '/ops/api/designer/policy') return json(route, { policy: basePolicy });
+    if (path === '/ops/api/readiness') return json(route, { checkedAt: '2026-08-21T10:00:00.000Z', readyForSandbox: true, readyForProduction: false, checks: [
+      { key: 'openai', label: 'OpenAI', state: 'ready', detail: 'ready' }, { key: 'storage', label: 'Storage', state: 'ready', detail: 'ready' }, { key: 'queues', label: 'Queues', state: 'configured', detail: 'ready' }, { key: 'factory-confirm', label: 'Factory', state: 'safe', detail: 'safe' },
+    ] });
+    const candidateMatch = path.match(/^\/ops\/api\/designer\/([^/]+)\/candidates$/);
+    if (candidateMatch) {
+      const id = candidateMatch[1];
+      return json(route, { items: [{ id: `candidate-${id}`, issueId: id, generationKey: `g-${id}`, source: 'AI_GENERATED', artworkUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==', width: 2048, height: 3072, provider: 'OPENAI', model: 'test-model', safeSummary: id === REVIEW_ID ? 'ACTION-OLD-CANDIDATE' : 'ACTION-NEW-CANDIDATE', selected: true, createdAt: '2026-08-21T10:00:00.000Z' }] });
+    }
+    const policyMatch = path.match(/^\/ops\/api\/designer\/([^/]+)\/policy$/);
+    if (policyMatch) return json(route, { globalVersion: 7, override: null, policy: basePolicy });
+    if (path === `/ops/api/designer/${REVIEW_ID}/review` && request.method() === 'POST') {
+      reviewStarted = true;
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return json(route, { queued: true });
+    }
+    return json(route, { error: `Unhandled action-race fixture ${path}` }, 500);
+  });
+
+  await login(page);
+  await page.getByRole('button', { name: 'Designer', exact: true }).click();
+  await page.getByRole('button', { name: /IO-REVIEW-01/ }).click();
+  await expect(page.getByText('ACTION-OLD-CANDIDATE')).toBeVisible();
+  await page.getByRole('button', { name: 'APPROVE', exact: true }).click();
+  await expect.poll(() => reviewStarted).toBe(true);
+  await page.getByRole('button', { name: /IO-APPROVED-01/ }).click();
+  await expect(page.getByText('ACTION-NEW-CANDIDATE')).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.getByText('ISSUE / IO-APPROVED-01')).toBeVisible();
+  await expect(page.getByText('ACTION-OLD-CANDIDATE')).toHaveCount(0);
+  await expect(page.getByText('ACTION-NEW-CANDIDATE')).toBeVisible();
+});
+
+
+test('Reviewer private answer reveal cannot leak into a newly selected Issue', async ({ page }) => {
+  const items = [
+    { issueId: REVIEW_ID, issueCode: 'IO-REVIEW-A', issueStatus: 'DESIGN_REVIEW', objectType: 'tee', sizeCode: 'M', colorCode: 'Black', designJobId: '33333333-3333-3333-3333-333333333333', designState: 'REVIEW', artworkUrl: null, width: 2048, height: 3072, provider: 'OPENAI', model: 'test-model', candidateCount: 0, updatedAt: '2026-08-21T10:00:00.000Z' },
+    { issueId: APPROVED_ID, issueCode: 'IO-REVIEW-B', issueStatus: 'DESIGN_APPROVED', objectType: 'tee', sizeCode: 'L', colorCode: 'White', designJobId: '44444444-4444-4444-4444-444444444444', designState: 'APPROVED', artworkUrl: null, width: 2048, height: 3072, provider: 'OPENAI', model: 'test-model', candidateCount: 0, updatedAt: '2026-08-21T10:00:00.000Z' },
+  ];
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, { sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 }, operations: { paidIssues: 2, designing: 0, review: 1, production: 0, transit: 0, delivered: 0 }, attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 0 }, activity: [] });
+    if (path === '/ops/api/designer') return json(route, { items });
+    if (path === '/ops/api/designer/policy') return json(route, { policy: basePolicy });
+    if (path === '/ops/api/readiness') return json(route, { checkedAt: '2026-08-21T10:00:00.000Z', readyForSandbox: true, readyForProduction: false, checks: [
+      { key: 'openai', label: 'OpenAI', state: 'ready', detail: 'ready' }, { key: 'storage', label: 'Storage', state: 'ready', detail: 'ready' }, { key: 'queues', label: 'Queues', state: 'configured', detail: 'ready' }, { key: 'factory-confirm', label: 'Factory', state: 'safe', detail: 'safe' },
+    ] });
+    if (path.endsWith('/candidates')) return json(route, { items: [] });
+    if (/\/policy$/.test(path)) return json(route, { globalVersion: 7, override: null, policy: basePolicy });
+    if (path === `/ops/api/issues/${REVIEW_ID}/reveal`) {
+      await new Promise((resolve) => setTimeout(resolve, 350));
+      return json(route, { value: [{ slot: 'q1', prompt: 'A prompt', answer: 'PRIVATE-A-ANSWER' }] });
+    }
+    if (path === `/ops/api/issues/${APPROVED_ID}/reveal`) return json(route, { value: [{ slot: 'q1', prompt: 'B prompt', answer: 'PRIVATE-B-ANSWER' }] });
+    return json(route, { error: `Unhandled reviewer-reveal fixture ${request.method()} ${path}` }, 500);
+  });
+
+  await login(page);
+  await page.getByRole('button', { name: 'Designer', exact: true }).click();
+  await page.getByRole('button', { name: /IO-REVIEW-A/ }).click();
+  await page.getByRole('button', { name: 'REVEAL ANSWERS' }).click();
+  await page.getByRole('button', { name: /IO-REVIEW-B/ }).click();
+  await expect(page.getByText('ISSUE / IO-REVIEW-B')).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.getByText('PRIVATE-A-ANSWER')).toHaveCount(0);
+});

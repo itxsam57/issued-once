@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import styles from './owner-os.module.css';
 import { useLiveResource } from './useLiveResource';
 
@@ -80,6 +80,7 @@ export function DesignerPanel() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
+  const selectionRequest = useRef(0);
   const live = useLiveResource<DesignerSnapshot>({ load: fetchDesignerSnapshot, intervalMs: 15_000 });
   const items = live.data?.items ?? [];
   const globalPolicy = live.data?.policy ?? null;
@@ -99,6 +100,7 @@ export function DesignerPanel() {
   async function loadCandidates(issueId: string) { setCandidates(await fetchCandidates(issueId)); }
 
   function choose(item: QueueItem) {
+    const requestId = ++selectionRequest.current;
     setSelectedId(item.issueId);
     setCandidates([]);
     setIssuePolicy(null);
@@ -109,16 +111,28 @@ export function DesignerPanel() {
     setError(null);
     setNotice(null);
     void Promise.all([fetchCandidates(item.issueId), fetchIssuePolicy(item.issueId)])
-      .then(([nextCandidates, effective]) => { setCandidates(nextCandidates); setIssuePolicy(effective); })
-      .catch((cause) => setError(cause instanceof Error ? cause.message : 'Designer detail unavailable'));
+      .then(([nextCandidates, effective]) => {
+        if (requestId !== selectionRequest.current) return;
+        setCandidates(nextCandidates);
+        setIssuePolicy(effective);
+      })
+      .catch((cause) => {
+        if (requestId === selectionRequest.current) {
+          setError(cause instanceof Error ? cause.message : 'Designer detail unavailable');
+        }
+      });
   }
 
   async function run(action: () => Promise<void>, success?: string) {
+    const requestId = selectionRequest.current;
+    const selectedIssueId = selected?.issueId ?? null;
     setWorking(true); setError(null); setNotice(null);
     try {
       await action();
       await refresh();
-      if (selected) await loadCandidates(selected.issueId);
+      if (selectedIssueId && requestId === selectionRequest.current) {
+        await loadCandidates(selectedIssueId);
+      }
       setReason(''); setInstruction('');
       if (success) setNotice(success);
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Designer action failed'); }
@@ -147,17 +161,23 @@ export function DesignerPanel() {
 
   async function revealAnswers() {
     if (!selected || !revealReason.trim()) return;
+    const requestId = selectionRequest.current;
+    const targetIssueId = selected.issueId;
     setWorking(true); setError(null); setNotice(null);
     try {
-      const response = await fetch(`/ops/api/issues/${encodeURIComponent(selected.issueId)}/reveal`, {
+      const response = await fetch(`/ops/api/issues/${encodeURIComponent(targetIssueId)}/reveal`, {
         method: 'POST', credentials: 'same-origin', cache: 'no-store', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ category: 'answers', reason: revealReason.trim() }),
       });
       const payload = await readJson<{ value: RevealedAnswer[] }>(response, 'Answers could not be revealed');
+      if (requestId !== selectionRequest.current) return;
       setAnswers(payload.value);
       setNotice('Answers revealed for this owner session. The reveal was audited.');
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Answers could not be revealed'); }
-    finally { setWorking(false); }
+    } catch (cause) {
+      if (requestId === selectionRequest.current) {
+        setError(cause instanceof Error ? cause.message : 'Answers could not be revealed');
+      }
+    } finally { setWorking(false); }
   }
 
   async function uploadArtwork() {

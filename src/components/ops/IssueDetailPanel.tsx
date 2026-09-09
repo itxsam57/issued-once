@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './owner-os.module.css';
 
 type RevealCategory = 'contact' | 'shipping' | 'answers' | 'design_brief' | 'support_message';
@@ -32,6 +32,7 @@ export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
   const [revealed, setRevealed] = useState<unknown>(null);
   const [revealError, setRevealError] = useState<string | null>(null);
   const [revealing, setRevealing] = useState(false);
+  const revealRequest = useRef(0);
   const [refundReconcile, setRefundReconcile] = useState<RefundReconcileState>({ issueId: null, confirmation: '', working: false, message: null, error: null });
 
   useEffect(() => {
@@ -43,8 +44,19 @@ export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
     return () => { alive = false; };
   }, [issueId]);
 
+  useEffect(() => {
+    revealRequest.current += 1;
+    setRevealIssueId(null);
+    setRevealCategory(null);
+    setRevealReason('');
+    setRevealed(null);
+    setRevealError(null);
+    setRevealing(false);
+  }, [issueId]);
+
   async function reveal() {
     if (!issueId || revealIssueId !== issueId || !revealCategory) return;
+    const requestId = ++revealRequest.current;
     setRevealing(true); setRevealError(null); setRevealed(null);
     try {
       const response = await fetch(`/ops/api/issues/${encodeURIComponent(issueId)}/reveal`, {
@@ -53,9 +65,14 @@ export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
       });
       const payload = await response.json() as { value?: unknown; error?: string };
       if (!response.ok) throw new Error(payload.error || 'Private reveal failed');
-      setRevealed(payload.value ?? null);
-    } catch (cause) { setRevealError(cause instanceof Error ? cause.message : 'Private reveal failed'); }
-    finally { setRevealing(false); }
+      if (requestId === revealRequest.current) setRevealed(payload.value ?? null);
+    } catch (cause) {
+      if (requestId === revealRequest.current) {
+        setRevealError(cause instanceof Error ? cause.message : 'Private reveal failed');
+      }
+    } finally {
+      if (requestId === revealRequest.current) setRevealing(false);
+    }
   }
 
   async function reconcileRefund() {
@@ -104,14 +121,17 @@ export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
   }
 
   function openReveal(category: RevealCategory) {
+    revealRequest.current += 1;
     setRevealIssueId(issueId);
     setRevealCategory(category);
     setRevealReason('');
     setRevealed(null);
     setRevealError(null);
+    setRevealing(false);
   }
   function closeReveal() {
-    setRevealIssueId(null); setRevealCategory(null); setRevealReason(''); setRevealed(null); setRevealError(null);
+    revealRequest.current += 1;
+    setRevealIssueId(null); setRevealCategory(null); setRevealReason(''); setRevealed(null); setRevealError(null); setRevealing(false);
   }
 
   if (!issueId) return <aside className={styles.detail}><p>SELECT AN ISSUE</p></aside>;

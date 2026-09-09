@@ -212,3 +212,91 @@ test('Owner operational rooms execute only explicit safe actions and preserve pr
   await expect(page.getByText('PRODUCTION READY')).toHaveCount(0);
   expect(productionConfirmAttempts).toBe(0);
 });
+
+
+test('Owner private reveal cannot leak plaintext from a previously selected Issue', async ({ page }) => {
+  const secondId = '22222222-2222-2222-2222-222222222222';
+  const detail = (issueId: string, issueCode: string) => ({
+    issueId, issueCode, status: 'DESIGN_REVIEW', objectType: 'tee', sizeCode: 'M', colorCode: 'Black', amountMinor: 3200, currency: 'USD',
+    paymentStatus: 'PAID', paymentProvider: null, paymentProviderReference: null, paymentExceptionCode: null,
+    designState: 'REVIEW', artworkWidth: 2048, artworkHeight: 3072, designProvider: 'OPENAI', designModel: 'test-model',
+    manufacturingState: null, providerOrderId: null, providerStatus: null, trackingNumber: null, trackingUrl: null,
+    privacy: { verifiedEmail: true, shipping: true, answers: true, privateBrief: true, supportMessage: false },
+    timeline: [], notifications: [], support: [],
+  });
+
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, {
+      sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 },
+      operations: { paidIssues: 2, designing: 0, review: 2, production: 0, transit: 0, delivered: 0 },
+      attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 0 }, activity: [],
+    });
+    if (path === '/ops/api/issues' && request.method() === 'GET') return json(route, { items: [
+      { issueId: ISSUE_ID, issueCode: 'IO-PRIVATE-A', status: 'DESIGN_REVIEW', objectType: 'tee', sizeCode: 'M', colorCode: 'Black', amountMinor: 3200, currency: 'USD', paymentStatus: 'PAID', designState: 'REVIEW', manufacturingState: null, providerOrderId: null, trackingNumber: null, paymentExceptionCode: null, updatedAt: '2026-08-23T08:00:00.000Z' },
+      { issueId: secondId, issueCode: 'IO-PRIVATE-B', status: 'DESIGN_REVIEW', objectType: 'tee', sizeCode: 'L', colorCode: 'Bone', amountMinor: 3200, currency: 'USD', paymentStatus: 'PAID', designState: 'REVIEW', manufacturingState: null, providerOrderId: null, trackingNumber: null, paymentExceptionCode: null, updatedAt: '2026-08-23T08:00:00.000Z' },
+    ], nextCursor: null });
+    if (path === `/ops/api/issues/${ISSUE_ID}` && request.method() === 'GET') return json(route, { issue: detail(ISSUE_ID, 'IO-PRIVATE-A') });
+    if (path === `/ops/api/issues/${secondId}` && request.method() === 'GET') return json(route, { issue: detail(secondId, 'IO-PRIVATE-B') });
+    if (path === `/ops/api/issues/${ISSUE_ID}/reveal` && request.method() === 'POST') {
+      await new Promise((resolve) => setTimeout(resolve, 350));
+      return json(route, { value: { secret: 'PRIVATE-A-PLAINTEXT' } });
+    }
+    if (path === `/ops/api/issues/${secondId}/reveal` && request.method() === 'POST') return json(route, { value: { secret: 'PRIVATE-B-PLAINTEXT' } });
+    return json(route, { error: `Unhandled reveal-race fixture ${request.method()} ${path}` }, 500);
+  });
+
+  await login(page);
+  await page.getByRole('button', { name: 'Issues', exact: true }).click();
+  await page.getByRole('button', { name: /IO-PRIVATE-A/ }).click();
+  await expect(page.getByText('ISSUE / IO-PRIVATE-A')).toBeVisible();
+  await page.getByRole('button', { name: '7 ANSWERS' }).click();
+  await page.getByPlaceholder('Why do you need this?').fill('Review A');
+  await page.getByRole('button', { name: 'REVEAL PRIVATE DATA' }).click();
+
+  await page.getByRole('button', { name: /IO-PRIVATE-B/ }).click();
+  await expect(page.getByText('ISSUE / IO-PRIVATE-B')).toBeVisible();
+  await page.getByRole('button', { name: '7 ANSWERS' }).click();
+  await page.getByPlaceholder('Why do you need this?').fill('Review B');
+  await page.waitForTimeout(500);
+
+  await expect(page.getByText('PRIVATE-A-PLAINTEXT')).toHaveCount(0);
+});
+
+
+test('Owner Support reveal cannot leak a previous case message into a newly selected case', async ({ page }) => {
+  const secondIssueId = '22222222-2222-2222-2222-222222222222';
+  const secondSupportId = '44444444-4444-4444-4444-444444444444';
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, {
+      sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 },
+      operations: { paidIssues: 2, designing: 0, review: 0, production: 0, transit: 0, delivered: 0 },
+      attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 2 }, activity: [],
+    });
+    if (path === '/ops/api/support' && request.method() === 'GET') return json(route, { items: [
+      { requestId: SUPPORT_ID, issueId: ISSUE_ID, issueCode: 'IO-SUPPORT-A', issueStatus: 'DESIGN_REVIEW', status: 'OPEN', createdAt: '2026-08-23T08:00:00.000Z', updatedAt: '2026-08-23T08:00:00.000Z', noteCount: 0, failedNotifications: [] },
+      { requestId: secondSupportId, issueId: secondIssueId, issueCode: 'IO-SUPPORT-B', issueStatus: 'DESIGN_REVIEW', status: 'OPEN', createdAt: '2026-08-23T08:00:00.000Z', updatedAt: '2026-08-23T08:00:00.000Z', noteCount: 0, failedNotifications: [] },
+    ] });
+    if (path === `/ops/api/issues/${ISSUE_ID}/reveal` && request.method() === 'POST') {
+      await new Promise((resolve) => setTimeout(resolve, 350));
+      return json(route, { value: { message: 'SUPPORT-A-PRIVATE' } });
+    }
+    if (path === `/ops/api/issues/${secondIssueId}/reveal` && request.method() === 'POST') return json(route, { value: { message: 'SUPPORT-B-PRIVATE' } });
+    return json(route, { error: `Unhandled support-race fixture ${request.method()} ${path}` }, 500);
+  });
+
+  await login(page);
+  await page.getByRole('button', { name: 'Support', exact: true }).click();
+  await page.getByRole('button', { name: /IO-SUPPORT-A/ }).click();
+  await page.getByPlaceholder('Why do you need the message?').fill('Review A');
+  await page.getByRole('button', { name: 'REVEAL MESSAGE' }).click();
+  await page.getByRole('button', { name: /IO-SUPPORT-B/ }).click();
+  await expect(page.getByText('ISSUE / IO-SUPPORT-B')).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.getByText('SUPPORT-A-PRIVATE')).toHaveCount(0);
+});

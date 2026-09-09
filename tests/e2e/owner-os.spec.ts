@@ -82,6 +82,15 @@ async function login(page: Page) {
   await expect(page.getByText('OWNER OS', { exact: true })).toBeVisible();
 }
 
+async function expectNoDocumentOverflow(page: Page) {
+  const width = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    html: document.documentElement.scrollWidth,
+    body: document.body.scrollWidth,
+  }));
+  expect(Math.max(width.html, width.body)).toBeLessThanOrEqual(width.viewport);
+}
+
 test('Owner OS protects private data and exposes every control-plane room', async ({ page }) => {
   await mockOwnerApis(page);
   await login(page);
@@ -128,6 +137,7 @@ test('Owner OS protects private data and exposes every control-plane room', asyn
       await expect(page.getByText(/available/i).first()).toBeVisible();
       await expect(page.getByText(/creator@example|PK00-PRIVATE/i)).toHaveCount(0);
     }
+    await expectNoDocumentOverflow(page);
   }
   await expect(page.getByText('Audit metadata never stores raw answers, email, phone, address, secrets or decrypted support text.')).toBeVisible();
 });
@@ -189,4 +199,22 @@ test('Owner OS new question editor keeps fields in a deliberate grid instead of 
     expect(promptBox!.y).toBeGreaterThan(idBox!.y + idBox!.height);
     expect(promptBox!.width).toBeGreaterThan(idBox!.width + familyBox!.width);
   }
+});
+
+test('Owner OS Website catalog fits a laptop viewport after variants render', async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 900 });
+  await mockOwnerApis(page);
+  await login(page);
+  await page.getByRole('button', { name: 'Website', exact: true }).click();
+  await expect(page.getByLabel('tee variant id')).toBeVisible();
+  await expectNoDocumentOverflow(page);
+});
+
+test('Owner OS Referrals fits a tablet viewport after creator detail renders', async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await mockOwnerApis(page);
+  await login(page);
+  await page.getByRole('button', { name: 'Referrals', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'CREATOR-ONE', exact: true })).toBeVisible();
+  await expectNoDocumentOverflow(page);
 });
