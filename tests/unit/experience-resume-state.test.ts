@@ -14,6 +14,7 @@ function service(stage: ExperienceRecord['stage'], options?: {
   verified?: boolean;
   shipping?: boolean;
   quoteExpired?: boolean;
+  quoteAmountMinor?: number;
 }) {
   const experience = { ...baseExperience, stage };
   const quoteCreate = vi.fn(async () => undefined);
@@ -39,7 +40,7 @@ function service(stage: ExperienceRecord['stage'], options?: {
       quotes: {
         findLatestByExperienceId: async () => stage === 'COMMITMENT_READY' ? {
           id: 'quote-old', experienceId: 'exp-1', productSlug: 'io-tee', variantId: 'tee-m-black',
-          amountMinor: 5600, currency: 'USD',
+          amountMinor: options?.quoteAmountMinor ?? 5600, currency: 'USD',
           expiresAt: new Date(options?.quoteExpired ? '2026-09-09T00:30:00Z' : '2026-09-09T02:30:00Z'),
         } : null,
         create: quoteCreate,
@@ -84,6 +85,17 @@ describe('ExperienceResumeService', () => {
       phase, object: 'tee', sizeCode: 'M', color: { code: 'Black', label: 'Black' },
       quote: { quoteId: 'quote-old', amountMinor: 5600, currency: 'USD' },
     });
+  });
+
+  it('preserves an unexpired server-issued discounted quote instead of silently removing the referral', async () => {
+    const harness = service('COMMITMENT_READY', {
+      verified: true,
+      shipping: true,
+      quoteAmountMinor: 5040,
+    });
+    const result = await harness.instance.read(token);
+    expect(result.quote).toMatchObject({ quoteId: 'quote-old', amountMinor: 5040, currency: 'USD' });
+    expect(harness.quoteCreate).not.toHaveBeenCalled();
   });
 
   it('refreshes an expired quote from the current saved variant before commitment resumes', async () => {
