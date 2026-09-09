@@ -36,14 +36,17 @@ const questions: AssignedQuestionRecord[] = [
   kind: 'text' as const, optional: slot === 'q7',
 }));
 
-test('START AGAIN retires the old browser token and returns a fresh Question 1 session', async () => {
-  const oldToken = 'unfinished-browser-token';
-  const oldRecord: ExperienceRecord = {
-    id: 'unfinished-exp', publicSessionHash: hashSessionToken(oldToken), stage: 'QUESTION_4',
+function unfinished(token: string): ExperienceRecord {
+  return {
+    id: 'unfinished-exp', publicSessionHash: hashSessionToken(token), stage: 'QUESTION_4',
     hookId: 'public-entry', createdAt: new Date('2026-09-09T00:00:00Z'),
     updatedAt: new Date('2026-09-09T00:05:00Z'), expiresAt: new Date('2026-10-09T00:00:00Z'),
   };
-  const repo = new MemoryExperiences(oldRecord);
+}
+
+test('START AGAIN retires the old browser token and returns a fresh Question 1 session', async () => {
+  const oldToken = 'unfinished-browser-token';
+  const repo = new MemoryExperiences(unfinished(oldToken));
   const service = new InterviewBootstrapService(repo, { assign: async () => questions });
 
   const fresh = await service.restart(oldToken);
@@ -54,6 +57,17 @@ test('START AGAIN retires the old browser token and returns a fresh Question 1 s
   expect(fresh.token).not.toBe(oldToken);
   expect(await repo.findBySessionHash(hashSessionToken(oldToken))).toBeNull();
   expect(repo.records.find((record) => record.id === 'unfinished-exp')).toBeDefined();
+});
+
+test('fresh-session preparation failure leaves the unfinished browser token usable', async () => {
+  const oldToken = 'preserve-on-failure-token';
+  const repo = new MemoryExperiences(unfinished(oldToken));
+  const service = new InterviewBootstrapService(repo, {
+    assign: async () => { throw new Error('question storage unavailable'); },
+  });
+
+  await expect(service.restart(oldToken)).rejects.toThrow(/question storage unavailable/i);
+  expect(await repo.findBySessionHash(hashSessionToken(oldToken))).not.toBeNull();
 });
 
 test('START AGAIN refuses to retire a checkout-started purchase session', async () => {
