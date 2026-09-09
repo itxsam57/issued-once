@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "version": "1.39.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-09T00:57:49Z",
+  "updatedAt": "2026-09-09T01:03:48Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -222,7 +222,8 @@
     "canonicalAppOriginEnvironmentVerified": true,
     "merchantDisclosureTruthAttested": true,
     "wwwTlsStatus": "verified_wildcard_and_apex_san",
-    "wwwCanonicalRedirectStatus": "verified_307_to_apex_on_hostinger_dns_path"
+    "wwwCanonicalRedirectStatus": "verified_307_to_apex_on_hostinger_dns_path",
+    "lastVerifiedConsumerInfoRelease": "f197447f458ddd8ddf085b2881ce992b865c2cf1"
   },
   "nextAction": {
     "actor": "OWNER_PROVIDER_INTEGRATION",
@@ -1096,7 +1097,7 @@
     }
   },
   "storeInfoConsumerRewrite20260909": {
-    "status": "CODE_VERIFIED_DEPLOYMENT_AUTHORIZED",
+    "status": "DEPLOYED_AND_LIVE_VERIFIED",
     "baseReleaseHead": "586982ef147475a391627176d0922517c0fdd17f",
     "implementationHead": "bf13b872f2645cbe0364f397c33142c9cfefa249",
     "rootCause": "The public Store Info page exposed internal operating mechanics such as automated/manual design workflow, production controls, manufacturing-partner language, live-catalog mechanics and quote-freezing behavior.",
@@ -1130,6 +1131,14 @@
       "realChargeOrRefund": false,
       "realManufacturingConfirmation": false
     },
-    "nextAction": "Push the verified release branch under owner deployment approval, wait for Hostinger to serve the exact new release, then rerun live Store Info leak checks and the production-safe hard test."
+    "nextAction": "Owner may review the live Store Info page. Separately, Owner OS Designer has a newly discovered stale readiness-key bug: the UI reads `blob` while the Hostinger readiness service exposes private artwork storage as `storage`; fix only under its own bounded approval.",
+    "deploymentRelease": "f197447f458ddd8ddf085b2881ce992b865c2cf1",
+    "liveVerification": {
+      "releaseHealth": "PASS: Hostinger served exact release f197447f458ddd8ddf085b2881ce992b865c2cf1",
+      "storeInfoDesktop": "PASS: required consumer heading visible, forbidden internal mechanics absent, overflow 0",
+      "storeInfoMobile": "PASS: required consumer heading visible, forbidden internal mechanics absent, overflow 0",
+      "nonOtpBoundaryAudit": "PASS",
+      "physicalSmoke": "PASS: Tee/Cap/Tote seven-answer + object + size + base gates; real OTP request reached; no payment or manufacturing confirmation"
+    }
   }
 }
