@@ -75,8 +75,9 @@ describe('POST /api/experience/resume', () => {
       read: vi.fn().mockRejectedValue(new Error('Saved base selection is no longer available: provider-secret')),
     });
     const conflict = await POST();
+    const conflictPayload = await conflict.json();
     expect(conflict.status).toBe(409);
-    expect(await conflict.json()).toEqual({ error: 'This unfinished Issue can no longer be continued' });
-    expect(JSON.stringify(await conflict.clone().json().catch(() => null))).not.toContain('provider-secret');
+    expect(conflictPayload).toEqual({ error: 'This unfinished Issue can no longer be continued' });
+    expect(JSON.stringify(conflictPayload)).not.toContain('provider-secret');
   });
 });
