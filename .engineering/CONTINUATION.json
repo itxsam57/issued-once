@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "version": "1.39.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-08T22:09:40Z",
+  "updatedAt": "2026-09-09T00:57:49Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -1094,5 +1094,42 @@
         "playwright": "PASS: complete desktop/mobile suite; failedTests empty"
       }
     }
+  },
+  "storeInfoConsumerRewrite20260909": {
+    "status": "CODE_VERIFIED_DEPLOYMENT_AUTHORIZED",
+    "baseReleaseHead": "586982ef147475a391627176d0922517c0fdd17f",
+    "implementationHead": "bf13b872f2645cbe0364f397c33142c9cfefa249",
+    "rootCause": "The public Store Info page exposed internal operating mechanics such as automated/manual design workflow, production controls, manufacturing-partner language, live-catalog mechanics and quote-freezing behavior.",
+    "replacementContract": "Store Info is customer-only copy: how the purchase works, what is known before payment, what stays hidden, Issue Code usage after purchase, and minimal truthful seller/support disclosure.",
+    "forbiddenPublicMechanics": [
+      "automation",
+      "manual design workflow",
+      "OpenAI",
+      "production controls",
+      "Printful",
+      "manufacturing partner",
+      "live catalog mechanics",
+      "frozen quote mechanics",
+      "provider/runtime language"
+    ],
+    "verification": {
+      "red": "PASS: new consumer-facing regression failed against the prior Store Info copy for the intended missing heading/internal-language leak.",
+      "focusedUnit": "PASS: tests/unit/merchant-pages.test.tsx 7/7",
+      "fullUnit": "PASS: 249 files / 766 tests",
+      "merchantPlaywright": "PASS: desktop + mobile 2/2 with zero horizontal overflow and internal-language leak assertion",
+      "manualVisualReview": "PASS: new Store Info inspected on desktop and mobile",
+      "typecheck": "PASS",
+      "lint": "PASS",
+      "productionBuild": "PASS",
+      "diffCheck": "PASS"
+    },
+    "ownerOs": "Authenticated Owner OS session remains open at Designer for owner testing; no design policy was changed.",
+    "providerSafety": {
+      "safepayMutated": false,
+      "printfulMutated": false,
+      "realChargeOrRefund": false,
+      "realManufacturingConfirmation": false
+    },
+    "nextAction": "Push the verified release branch under owner deployment approval, wait for Hostinger to serve the exact new release, then rerun live Store Info leak checks and the production-safe hard test."
   }
 }
