@@ -1,7 +1,7 @@
 import type { ExperienceStage, QuestionDefinition } from '@/domain/experience/types';
 import type { ExperienceRepository } from '@/server/experience/ExperienceRepository';
 import { ExperienceService } from '@/server/experience/ExperienceService';
-import { hashSessionToken } from '@/server/http/sessionToken';
+import { createSessionToken, hashSessionToken } from '@/server/http/sessionToken';
 import type { AssignedQuestionRecord } from './QuestionSetRepository';
 import { toInterviewQuestions } from './QuestionSelectionService';
 
@@ -15,6 +15,19 @@ const POSITION_BY_STAGE: Partial<Record<ExperienceStage, number>> = {
   QUESTION_7: 7,
 };
 
+const RETURN_CHOICE_STAGES = new Set<ExperienceStage>([
+  'QUESTION_2',
+  'QUESTION_3',
+  'QUESTION_4',
+  'QUESTION_5',
+  'QUESTION_6',
+  'QUESTION_7',
+  'PROFILE_COMPLETE',
+  'OBJECT_SELECTED',
+  'SIZE_CONFIRMED',
+  'COMMITMENT_READY',
+]);
+
 export type InterviewEntryMode = 'interview' | 'profile' | 'repeat-choice';
 
 export type InterviewBootstrap = {
@@ -23,6 +36,7 @@ export type InterviewBootstrap = {
   initialPosition: number;
   interviewComplete: boolean;
   entryMode: InterviewEntryMode;
+  resumePrompt: boolean;
   questions: readonly QuestionDefinition[];
 };
 
@@ -34,6 +48,10 @@ function entryModeFor(stage: ExperienceStage): InterviewEntryMode {
   if (stage === 'CHECKOUT_STARTED') return 'repeat-choice';
   if (POSITION_BY_STAGE[stage]) return 'interview';
   return 'profile';
+}
+
+function resumePromptFor(stage: ExperienceStage): boolean {
+  return RETURN_CHOICE_STAGES.has(stage);
 }
 
 export class InterviewBootstrapService {
@@ -53,6 +71,7 @@ export class InterviewBootstrapService {
           initialPosition: POSITION_BY_STAGE[existing.stage] ?? 7,
           interviewComplete: !POSITION_BY_STAGE[existing.stage],
           entryMode: entryModeFor(existing.stage),
+          resumePrompt: resumePromptFor(existing.stage),
           questions: toInterviewQuestions(assignment),
         };
       }
@@ -69,7 +88,33 @@ export class InterviewBootstrapService {
       initialPosition: 1,
       interviewComplete: false,
       entryMode: 'interview',
+      resumePrompt: false,
       questions: toInterviewQuestions(assignment),
     };
+  }
+
+  async restart(existingToken: string): Promise<InterviewBootstrap> {
+    const expectedPublicSessionHash = hashSessionToken(existingToken);
+    const existing = await this.experienceRepository.findBySessionHash(expectedPublicSessionHash);
+    if (!existing) throw new Error('Experience restart session was not found');
+    if (!resumePromptFor(existing.stage)) {
+      throw new Error('Experience cannot be restarted from this stage');
+    }
+
+    const rotate = this.experienceRepository.rotateSessionHashIfCurrent;
+    if (!rotate) throw new Error('Experience restart is unavailable');
+
+    // Prepare the replacement first so a storage/question failure never strands
+    // the customer by retiring the only working browser session too early.
+    const fresh = await this.bootstrap(null);
+    const retired = await rotate.call(this.experienceRepository, {
+      experienceId: existing.id,
+      expectedPublicSessionHash,
+      publicSessionHash: hashSessionToken(createSessionToken()),
+      updatedAt: new Date(),
+    });
+    if (!retired) throw new Error('Experience restart conflict');
+
+    return fresh;
   }
 }

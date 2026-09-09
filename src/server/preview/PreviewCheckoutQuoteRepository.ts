@@ -12,4 +12,11 @@ export class PreviewCheckoutQuoteRepository implements CheckoutQuoteRepository {
     const record = this.store.checkoutQuotes.get(id);
     return record ? structuredClone(record) : null;
   }
+
+  async findLatestByExperienceId(experienceId: string): Promise<CheckoutQuoteRecord | null> {
+    const matches = [...this.store.checkoutQuotes.values()]
+      .filter((record) => record.experienceId === experienceId)
+      .sort((left, right) => right.expiresAt.getTime() - left.expiresAt.getTime());
+    return matches[0] ? structuredClone(matches[0]) : null;
+  }
 }

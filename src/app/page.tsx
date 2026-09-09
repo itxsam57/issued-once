@@ -57,6 +57,7 @@ export default function Home() {
           <Link href="/contact">CONTACT</Link>
           <Link href="/terms">TERMS</Link>
           <Link href="/returns">RETURNS</Link>
+          <Link href="/cookies">COOKIES</Link>
         </nav>
       </footer>
     </main>

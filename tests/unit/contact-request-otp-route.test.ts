@@ -41,15 +41,22 @@ describe('contact OTP request route', () => {
     expect((await requestOtp(request())).status).toBe(401);
   });
 
-  it('preserves successful OTP request behavior', async () => {
-    const result = { challengeId: 'challenge-1', expiresAt: '2026-08-31T12:00:00.000Z' };
+  it('returns only verification transport fields and keeps the request tag internal', async () => {
+    const result = {
+      challengeId: 'challenge-1',
+      retryAfterSeconds: 60,
+      requestTag: 'INTERNAL1',
+    };
     const requestOtpMock = vi.fn().mockResolvedValue(result);
     createContactServiceMock.mockReturnValue({ requestOtp: requestOtpMock });
 
     const response = await requestOtp(request());
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(result);
+    expect(await response.json()).toEqual({
+      challengeId: 'challenge-1',
+      retryAfterSeconds: 60,
+    });
     expect(requestOtpMock).toHaveBeenCalledWith({
       experienceToken: 'session-token',
       email: 'sam@example.com',

@@ -1,5 +1,8 @@
 import { cookies } from 'next/headers';
-import { getExperienceRepository, PersistentExperienceRepositoryUnavailableError } from '@/server/experience/runtimeRepository';
+import {
+  getExperienceRepository,
+  PersistentExperienceRepositoryUnavailableError,
+} from '@/server/experience/runtimeRepository';
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from '@/server/http/sessionCookie';
 import { InterviewBootstrapService } from '@/server/questions/InterviewBootstrapService';
 import {
@@ -8,24 +11,25 @@ import {
 } from '@/server/questions/runtimeQuestions';
 
 export async function POST() {
+  const cookieStore = await cookies();
+  const existingToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  if (!existingToken) {
+    return Response.json({ error: 'Experience session is required' }, { status: 401 });
+  }
+
   try {
-    const cookieStore = await cookies();
-    const existingToken = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
     const bootstrap = await new InterviewBootstrapService(
       getExperienceRepository(),
       getQuestionSelectionService(),
-    ).bootstrap(existingToken);
+    ).restart(existingToken);
 
-    if (bootstrap.token !== existingToken) {
-      cookieStore.set(SESSION_COOKIE_NAME, bootstrap.token, sessionCookieOptions);
-    }
-
+    cookieStore.set(SESSION_COOKIE_NAME, bootstrap.token, sessionCookieOptions);
     return Response.json({
       stage: bootstrap.stage,
       initialPosition: bootstrap.initialPosition,
       interviewComplete: bootstrap.interviewComplete,
       entryMode: bootstrap.entryMode,
-      resumePrompt: bootstrap.resumePrompt,
+      resumePrompt: false,
       questions: bootstrap.questions,
     });
   } catch (error) {
@@ -35,8 +39,11 @@ export async function POST() {
     ) {
       return Response.json({ error: 'Interview storage is unavailable' }, { status: 503 });
     }
+    if (error instanceof Error && /not found|cannot|conflict/i.test(error.message)) {
+      return Response.json({ error: 'This unfinished Issue can no longer be restarted' }, { status: 409 });
+    }
 
-    console.error('public interview bootstrap failed');
-    return Response.json({ error: 'Interview could not begin' }, { status: 500 });
+    console.error('public interview restart failed');
+    return Response.json({ error: 'A fresh Issue could not be started' }, { status: 500 });
   }
 }

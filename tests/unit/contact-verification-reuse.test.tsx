@@ -64,14 +64,15 @@ describe('repeat contact verification UI', () => {
     expect(calls.onComplete).not.toHaveBeenCalled();
   });
 
-  it('nonmatching email requests OTP and displays the active request tag', async () => {
+  it('keeps the internal OTP request tag out of customer-facing UI', async () => {
     const user = userEvent.setup();
     const calls = renderContact();
     await enterEmail(user);
 
     expect(calls.onCheckEmail).toHaveBeenCalledWith('sam@example.com');
     expect(calls.onRequestOtp).toHaveBeenCalledWith('sam@example.com');
-    expect(screen.getByText((_, node) => node?.textContent === 'Request 6C6BA8D3')).toBeInTheDocument();
+    expect(screen.queryByText(/6C6BA8D3/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/request/i)).not.toBeInTheDocument();
     expect(screen.getByLabelText('Verification code')).toBeInTheDocument();
   });
 

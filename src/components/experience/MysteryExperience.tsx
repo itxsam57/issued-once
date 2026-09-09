@@ -32,7 +32,7 @@ type BaseColorCatalog = Partial<
   Record<ObjectType, Readonly<Record<string, readonly BaseColorOption[]>>>
 >;
 
-type ExperiencePhase =
+export type ExperiencePhase =
   | 'interview'
   | 'form'
   | 'size'
@@ -44,7 +44,16 @@ type ExperiencePhase =
 type OtpRequest = {
   challengeId: string;
   retryAfterSeconds: number;
-  requestTag?: string;
+};
+
+export type ExperienceResumeHydration = {
+  phase: Exclude<ExperiencePhase, 'interview'>;
+  object?: ObjectType;
+  sizeCode?: string;
+  color?: { code: string; label: string };
+  sizes?: readonly SizeOption[];
+  colors?: readonly BaseColorOption[];
+  quote?: CommitmentQuote;
 };
 
 type MysteryExperienceProps = {
@@ -52,6 +61,7 @@ type MysteryExperienceProps = {
   initialQuestionPosition?: number;
   interviewInitiallyComplete?: boolean;
   initialPhase?: Extract<ExperiencePhase, 'interview' | 'form'>;
+  resumeState?: ExperienceResumeHydration | null;
   onAnswer: (payload: AnswerPayload) => Promise<void> | void;
   onInterviewComplete?: () => Promise<void> | void;
   onObjectSelected: (object: ObjectType) => Promise<readonly SizeOption[] | void> | readonly SizeOption[] | void;
@@ -81,6 +91,7 @@ export function MysteryExperience({
   initialQuestionPosition,
   interviewInitiallyComplete,
   initialPhase = 'interview',
+  resumeState,
   onAnswer,
   onInterviewComplete,
   onObjectSelected,
@@ -97,16 +108,20 @@ export function MysteryExperience({
   onApplyReferral,
   onCheckoutRequested,
 }: MysteryExperienceProps) {
-  const [phase, setPhase] = useState<ExperiencePhase>(initialPhase);
+  const [phase, setPhase] = useState<ExperiencePhase>(() => resumeState?.phase ?? initialPhase);
   const [answeredCount, setAnsweredCount] = useState(() =>
     interviewInitiallyComplete ? 7 : Math.max(0, (initialQuestionPosition ?? 1) - 1),
   );
-  const [selectedObject, setSelectedObject] = useState<ObjectType | null>(null);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [selectedColor, setSelectedColor] = useState<{ code: string; label: string } | null>(null);
-  const [availableSizes, setAvailableSizes] = useState<readonly SizeOption[]>([]);
-  const [availableColors, setAvailableColors] = useState<readonly BaseColorOption[]>([]);
-  const [commitmentQuote, setCommitmentQuote] = useState<CommitmentQuote | null>(null);
+  const [selectedObject, setSelectedObject] = useState<ObjectType | null>(() => resumeState?.object ?? null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(() => resumeState?.sizeCode ?? null);
+  const [selectedColor, setSelectedColor] = useState<{ code: string; label: string } | null>(
+    () => resumeState?.color ?? null,
+  );
+  const [availableSizes, setAvailableSizes] = useState<readonly SizeOption[]>(() => resumeState?.sizes ?? []);
+  const [availableColors, setAvailableColors] = useState<readonly BaseColorOption[]>(() => resumeState?.colors ?? []);
+  const [commitmentQuote, setCommitmentQuote] = useState<CommitmentQuote | null>(
+    () => resumeState?.quote ?? null,
+  );
 
   const requiresContactAndShipping = Boolean(
     onRequestOtp && onVerifyOtp && onShippingSubmitted,

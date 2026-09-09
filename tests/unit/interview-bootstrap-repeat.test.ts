@@ -47,7 +47,34 @@ function experience(stage: ExperienceRecord['stage'], token = `token-${stage}`):
   };
 }
 
-describe('InterviewBootstrapService repeat-order entry', () => {
+describe('InterviewBootstrapService returning-session entry', () => {
+  it('does not interrupt a brand-new Question 1 session with a resume prompt', async () => {
+    const token = 'fresh-q1-token';
+    const service = new InterviewBootstrapService(
+      new MemoryExperiences(experience('QUESTION_1', token)),
+      questionAssigner,
+    );
+
+    expect(await service.bootstrap(token)).toMatchObject({
+      stage: 'QUESTION_1',
+      entryMode: 'interview',
+      resumePrompt: false,
+    });
+  });
+
+  it.each([
+    'QUESTION_2', 'QUESTION_3', 'QUESTION_4', 'QUESTION_5', 'QUESTION_6', 'QUESTION_7',
+    'PROFILE_COMPLETE', 'OBJECT_SELECTED', 'SIZE_CONFIRMED', 'COMMITMENT_READY',
+  ] as const)('asks before silently resuming progressed unfinished stage %s', async (stage) => {
+    const token = `token-${stage}`;
+    const service = new InterviewBootstrapService(
+      new MemoryExperiences(experience(stage, token)),
+      questionAssigner,
+    );
+
+    expect((await service.bootstrap(token)).resumePrompt).toBe(true);
+  });
+
   it('returns repeat-choice for terminal checkout without creating or rotating the session', async () => {
     const token = 'terminal-token';
     const service = new InterviewBootstrapService(
@@ -63,6 +90,7 @@ describe('InterviewBootstrapService repeat-order entry', () => {
       initialPosition: 7,
       interviewComplete: true,
       entryMode: 'repeat-choice',
+      resumePrompt: false,
     });
     expect(result.questions).toHaveLength(7);
   });
