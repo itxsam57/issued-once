@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { expect, test } from 'vitest';
 import CookiesPage from '@/app/cookies/page';
+import { MerchantPageShell } from '@/app/MerchantPageShell';
 import {
   contactContinuityCookieOptions,
   sessionCookieOptions,
@@ -14,6 +15,15 @@ test('cookie page explains the strictly necessary order and security cookies wit
   expect(screen.getByText(/order|progress|session/i)).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /accept|reject/i })).not.toBeInTheDocument();
   expect(document.body.textContent).not.toMatch(/advertising|personalized ads|marketing tracker/i);
+});
+
+test('merchant information footer exposes the cookie disclosure', () => {
+  render(
+    <MerchantPageShell kicker="TEST" title="TEST" intro="TEST">
+      <p>Body</p>
+    </MerchantPageShell>,
+  );
+  expect(screen.getByRole('link', { name: 'COOKIES' })).toHaveAttribute('href', '/cookies');
 });
 
 test('customer continuity cookies remain hardened and first-party only', () => {
