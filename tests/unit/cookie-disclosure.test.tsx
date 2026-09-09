@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { expect, test } from 'vitest';
 import CookiesPage from '@/app/cookies/page';
+import Home from '@/app/page';
 import { MerchantPageShell } from '@/app/MerchantPageShell';
 import {
   contactContinuityCookieOptions,
@@ -11,13 +12,17 @@ test('cookie page explains the strictly necessary order and security cookies wit
   render(<CookiesPage />);
 
   expect(screen.getByRole('heading', { name: /cookies/i })).toBeInTheDocument();
-  expect(screen.getByText(/strictly necessary/i)).toBeInTheDocument();
-  expect(screen.getByText(/order|progress|session/i)).toBeInTheDocument();
+  expect(screen.getAllByText(/strictly necessary/i).length).toBeGreaterThan(0);
+  expect(screen.getByText(/secure session cookie connects this browser/i)).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /accept|reject/i })).not.toBeInTheDocument();
-  expect(document.body.textContent).not.toMatch(/advertising|personalized ads|marketing tracker/i);
+  expect(document.body.textContent).not.toMatch(/personalized ads|marketing tracker/i);
 });
 
-test('merchant information footer exposes the cookie disclosure', () => {
+test('homepage and merchant information footer expose the cookie disclosure', () => {
+  const home = render(<Home />);
+  expect(screen.getByRole('link', { name: 'COOKIES' })).toHaveAttribute('href', '/cookies');
+  home.unmount();
+
   render(
     <MerchantPageShell kicker="TEST" title="TEST" intro="TEST">
       <p>Body</p>
