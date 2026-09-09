@@ -79,8 +79,7 @@ describe('approved object inspection selector', () => {
 
   test('locks object choices while the selected form is being saved', async () => {
     const user = userEvent.setup();
-    let release: (() => void) | null = null;
-    const onSelect = vi.fn(() => new Promise<void>((resolve) => { release = resolve; }));
+    const onSelect = vi.fn(() => new Promise<void>(() => undefined));
     render(<ObjectSelection onSelect={onSelect} />);
     const tee = screen.getByRole('radio', { name: 'TEE' });
     const cap = screen.getByRole('radio', { name: 'CAP' });

@@ -176,7 +176,7 @@ export function IssuesPanel() {
           {nextCursor ? <button type="button" onClick={() => void loadMore()}>LOAD MORE</button> : null}
           {rows.length === 0 && !loading ? <p>NO ISSUES MATCH</p> : null}
         </div>
-        <IssueDetailPanel issueId={selected} />
+        <IssueDetailPanel key={selected ?? 'none'} issueId={selected} />
       </div>
     </div>
   );

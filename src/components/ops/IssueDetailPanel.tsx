@@ -44,16 +44,6 @@ export function IssueDetailPanel({ issueId }: { issueId: string | null }) {
     return () => { alive = false; };
   }, [issueId]);
 
-  useEffect(() => {
-    revealRequest.current += 1;
-    setRevealIssueId(null);
-    setRevealCategory(null);
-    setRevealReason('');
-    setRevealed(null);
-    setRevealError(null);
-    setRevealing(false);
-  }, [issueId]);
-
   async function reveal() {
     if (!issueId || revealIssueId !== issueId || !revealCategory) return;
     const requestId = ++revealRequest.current;

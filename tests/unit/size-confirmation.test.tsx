@@ -52,8 +52,7 @@ describe('SizeConfirmation', () => {
   });
   test('locks size choices while the confirmed size is being saved', async () => {
     const user = userEvent.setup();
-    let release: (() => void) | null = null;
-    const onConfirm = vi.fn(() => new Promise<void>((resolve) => { release = resolve; }));
+    const onConfirm = vi.fn(() => new Promise<void>(() => undefined));
     render(<SizeConfirmation object="tee" sizes={qaSizes} onConfirm={onConfirm} />);
     const medium = screen.getByRole('radio', { name: /^Medium —/ });
     const large = screen.getByRole('radio', { name: /^Large —/ });
