@@ -6,7 +6,6 @@ import styles from './contact-verification.module.css';
 type OtpRequest = {
   challengeId: string;
   retryAfterSeconds: number;
-  requestTag?: string;
 };
 
 type OtpError = Error & {
@@ -63,7 +62,6 @@ export function ContactVerification({
   const [email, setEmail] = useState('');
   const [mode, setMode] = useState<ContactMode>('email');
   const [challengeId, setChallengeId] = useState<string | null>(null);
-  const [requestTag, setRequestTag] = useState<string | null>(null);
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +72,6 @@ export function ContactVerification({
   async function startOtp() {
     const result = await onRequestOtp(normalizedEmail);
     setChallengeId(result.challengeId);
-    setRequestTag(result.requestTag ?? null);
     setCode('');
     setCanSendNewCode(false);
     setMode('otp');
@@ -157,7 +154,6 @@ export function ContactVerification({
   function changeEmail() {
     setMode('email');
     setChallengeId(null);
-    setRequestTag(null);
     setCode('');
     setError(null);
     setCanSendNewCode(false);
@@ -204,7 +200,6 @@ export function ContactVerification({
       {mode === 'otp' ? (
         <form className={styles.form} onSubmit={verify}>
           <p className={styles.note}>Six digits went to <strong>{normalizedEmail}</strong>.</p>
-          {requestTag ? <p className={styles.note}>Request <strong>{requestTag}</strong></p> : null}
           <label className={styles.field}>
             <span>Verification code</span>
             <input
