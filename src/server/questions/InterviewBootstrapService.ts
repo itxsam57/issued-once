@@ -104,6 +104,9 @@ export class InterviewBootstrapService {
     const rotate = this.experienceRepository.rotateSessionHashIfCurrent;
     if (!rotate) throw new Error('Experience restart is unavailable');
 
+    // Prepare the replacement first so a storage/question failure never strands
+    // the customer by retiring the only working browser session too early.
+    const fresh = await this.bootstrap(null);
     const retired = await rotate.call(this.experienceRepository, {
       experienceId: existing.id,
       expectedPublicSessionHash,
@@ -112,6 +115,6 @@ export class InterviewBootstrapService {
     });
     if (!retired) throw new Error('Experience restart conflict');
 
-    return this.bootstrap(null);
+    return fresh;
   }
 }
