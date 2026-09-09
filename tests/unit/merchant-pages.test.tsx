@@ -116,10 +116,11 @@ test('four public merchant routes explain the real purchase and remedy contract 
   configureCatalog();
 
   const store = render(await StoreInfoPage());
-  expect(screen.getByRole('heading', { name: /What you are actually buying/i })).toBeInTheDocument();
-  expect(screen.getByText(/seven answers/i)).toBeInTheDocument();
-  expect(screen.getAllByText(/final artwork/i).length).toBeGreaterThanOrEqual(1);
-  expect(screen.getByText(/\$54\.00/)).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /You choose the form\. The interpretation stays hidden\./i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /Seven answers\. One issue\./i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /The design is the reveal\./i })).toBeInTheDocument();
+  expect(screen.getByText(/You get an Issue Code for the order/i)).toBeInTheDocument();
+  expect(screen.getByText('support@issuedonce.shop')).toBeInTheDocument();
   store.unmount();
 
   const contact = render(<ContactPage />);
@@ -161,4 +162,21 @@ test('homepage and commitment stage expose restrained merchant-policy links', ()
   expect(screen.getByRole('link', { name: 'TERMS' })).toHaveAttribute('href', '/terms');
   expect(screen.getByRole('link', { name: 'RETURNS' })).toHaveAttribute('href', '/returns');
   expect(screen.getByRole('link', { name: 'CONTACT' })).toHaveAttribute('href', '/contact');
+});
+
+test('store info stays consumer-facing and never exposes internal operating mechanics', async () => {
+  configureMerchant();
+  configureCatalog();
+
+  render(await StoreInfoPage());
+
+  expect(screen.getByRole('heading', {
+    name: /You choose the form\. The interpretation stays hidden\./i,
+  })).toBeInTheDocument();
+  expect(screen.getByText(/You get an Issue Code/i)).toBeInTheDocument();
+
+  const publicCopy = document.body.textContent ?? '';
+  expect(publicCopy).not.toMatch(
+    /automated|automation|manual design|OpenAI|production controls|Printful|manufacturing partner|live catalog|frozen amount|provider|runtime/i,
+  );
 });

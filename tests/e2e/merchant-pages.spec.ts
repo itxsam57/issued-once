@@ -7,7 +7,7 @@ async function capture(page: import('@playwright/test').Page, name: string) {
 }
 
 const merchantRoutes = [
-  { path: '/store-info', heading: 'What you are actually buying.' },
+  { path: '/store-info', heading: 'You choose the form. The interpretation stays hidden.' },
   { path: '/contact', heading: 'If something needs sorting, bring the Issue Code.' },
   { path: '/terms', heading: 'The physical facts are known. The interpretation is not.' },
   { path: '/returns', heading: 'Personalized does not mean remedy-free.' },
@@ -34,5 +34,8 @@ test('public merchant routes are readable, linked, and do not overflow the viewp
 
     const publicText = await page.locator('body').innerText();
     expect(publicText).not.toMatch(/Delaware|United Kingdom office|US corporation/i);
+    if (route.path === '/store-info') {
+      expect(publicText).not.toMatch(/automated|automation|manual design|OpenAI|production controls|Printful|manufacturing partner|live catalog|frozen amount|provider|runtime/i);
+    }
   }
 });
