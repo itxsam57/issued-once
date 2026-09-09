@@ -12,6 +12,7 @@ import { MysteryExperience } from './MysteryExperience';
 import type { ObjectType } from './ObjectSelection';
 import { ReferenceHeader } from '@/components/reference/ReferenceHeader';
 import { RepeatOrderChoice, type RepeatOrderMode } from './RepeatOrderChoice';
+import { ReturningSessionChoice } from './ReturningSessionChoice';
 import type { SizeOption } from './SizeConfirmation';
 
 type AnswerPayload = {
@@ -32,6 +33,7 @@ type BootstrapPayload = {
   initialPosition: number;
   interviewComplete: boolean;
   entryMode: EntryMode;
+  resumePrompt?: boolean;
   questions: QuestionDefinition[];
 };
 
@@ -130,7 +132,6 @@ async function requestOtp(email: string) {
   return postContactJson<{
     challengeId: string;
     retryAfterSeconds: number;
-    requestTag?: string;
   }>('/api/contact/request-otp', { email });
 }
 
@@ -193,6 +194,13 @@ export function PublicInterviewExperience() {
     setBootstrap(next);
   }
 
+  async function startAgain() {
+    const next = validateBootstrap(
+      await postJson<BootstrapPayload>('/api/experience/restart'),
+    );
+    setBootstrap(next);
+  }
+
   if (bootstrapError) {
     return (
       <>
@@ -214,6 +222,20 @@ export function PublicInterviewExperience() {
           <p className="interview-complete__signal">ENTRY / 00</p>
           <h1>ISSUED ONCE</h1>
         </section>
+      </>
+    );
+  }
+
+  if (bootstrap.resumePrompt) {
+    return (
+      <>
+        <ReferenceHeader center="ISSUE / RETURN" />
+        <main className="public-interview" data-reference-surface="returning-session">
+          <ReturningSessionChoice
+            onContinue={() => setBootstrap({ ...bootstrap, resumePrompt: false })}
+            onStartAgain={startAgain}
+          />
+        </main>
       </>
     );
   }
