@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AttentionPanel } from '@/components/ops/AttentionPanel';
 import { CustomersPanel } from '@/components/ops/CustomersPanel';
@@ -232,6 +232,30 @@ describe('Owner OS live rooms', () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
     await flush();
     expect(screen.getByText('CONFIGURED')).toBeInTheDocument();
+  });
+
+  it('starts an Owner-scoped Safepay sandbox QA session before exposing the customer test link', async () => {
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url === '/ops/api/readiness') return response({
+        checkedAt: '2026-09-09T06:00:00.000Z', readyForSandbox: true, readyForProduction: false,
+        checks: [{ key: 'safepay', label: 'Safepay', state: 'configured', detail: 'Sandbox credentials are configured.' }],
+      });
+      if (url === '/ops/api/safepay-sandbox/session' && init?.method === 'POST') {
+        return response({ active: true, url: '/begin?qa=safepay' });
+      }
+      throw new Error(`Unexpected fetch ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    render(<SystemPanel />);
+    await flush();
+
+    expect(screen.queryByRole('link', { name: 'OPEN SANDBOX CUSTOMER' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'START SAFEPAY SANDBOX QA' }));
+    await flush();
+
+    expect(fetchMock).toHaveBeenCalledWith('/ops/api/safepay-sandbox/session', expect.objectContaining({ method: 'POST' }));
+    expect(screen.getByRole('link', { name: 'OPEN SANDBOX CUSTOMER' })).toHaveAttribute('href', '/begin?qa=safepay');
   });
 
   it('refreshes Designer queue/readiness every 15 seconds while mounted', async () => {
