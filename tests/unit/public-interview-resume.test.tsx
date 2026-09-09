@@ -47,8 +47,8 @@ test('CONTINUE hydrates an already saved object and resumes directly at size sel
   await userEvent.setup().click(screen.getByRole('button', { name: 'CONTINUE' }));
 
   expect(await screen.findByRole('heading', { name: 'Pick your size.' })).toBeInTheDocument();
-  expect(screen.getByRole('radio', { name: 'M', exact: true })).toBeInTheDocument();
-  expect(screen.getByRole('radio', { name: 'L', exact: true })).toBeInTheDocument();
+  expect(screen.getByRole('radio', { name: /^M$/ })).toBeInTheDocument();
+  expect(screen.getByRole('radio', { name: /^L$/ })).toBeInTheDocument();
   expect(fetchMock).toHaveBeenCalledWith('/api/experience/resume', expect.objectContaining({
     method: 'POST',
     credentials: 'same-origin',

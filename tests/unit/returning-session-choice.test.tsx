@@ -44,3 +44,21 @@ test('START AGAIN is single-submit while a fresh session is being created', asyn
   expect(startAgain).toBeDisabled();
   release();
 });
+
+test('CONTINUE failure stays on the return choice and offers a retry', async () => {
+  const user = userEvent.setup();
+  const onContinue = vi.fn(async () => { throw new Error('resume unavailable'); });
+
+  render(
+    <ReturningSessionChoice
+      onContinue={onContinue}
+      onStartAgain={async () => undefined}
+    />,
+  );
+
+  await user.click(screen.getByRole('button', { name: 'CONTINUE' }));
+
+  expect(await screen.findByRole('alert')).toHaveTextContent(/saved Issue could not be opened/i);
+  expect(screen.getByRole('button', { name: 'CONTINUE' })).toBeEnabled();
+  expect(screen.getByRole('button', { name: 'START AGAIN' })).toBeEnabled();
+});

@@ -69,7 +69,6 @@ async function installDeliveryStubs(page: Page): Promise<DeliveryHarness> {
       body: JSON.stringify({
         challengeId: `challenge-repeat-${harness.otpRequests.length}`,
         retryAfterSeconds: 60,
-        requestTag: `REPEAT0${harness.otpRequests.length}`,
       }),
     });
   });
@@ -186,7 +185,7 @@ async function reachCommitment(
     }
     await page.getByRole('button', { name: 'USE THIS EMAIL' }).click();
   } else {
-    await expect(page.getByText(/Request REPEAT0[12]/)).toBeVisible();
+    await expect(page.getByText(/Request REPEAT0[12]/)).toHaveCount(0);
     await page.getByLabel('Verification code').fill('123456');
     await page.getByRole('button', { name: 'VERIFY' }).click();
   }

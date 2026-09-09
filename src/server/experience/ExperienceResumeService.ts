@@ -10,7 +10,19 @@ import type { ExperienceRepository } from './ExperienceRepository';
 export type ResumePhase = 'form' | 'size' | 'base' | 'contact' | 'shipping' | 'commitment';
 export type ResumeSize = { code: string; label: string };
 export type ResumeColor = { code: string; label: string; swatch?: string };
-export type ResumeQuote = { quoteId: string; amountMinor: number; currency: string; expiresAt: string };
+export type ResumeQuote = {
+  quoteId: string;
+  amountMinor: number;
+  currency: string;
+  expiresAt: string;
+  grossAmountMinor?: number;
+  discountAmountMinor?: number;
+};
+
+type StoredResumeQuote = CheckoutQuoteRecord & {
+  grossAmountMinor?: number;
+  discountAmountMinor?: number;
+};
 
 export type ExperienceResumeState = {
   phase: ResumePhase;
@@ -26,8 +38,8 @@ type Dependencies = {
   experiences: Pick<ExperienceRepository, 'findBySessionHash'>;
   physical: { findByExperienceId(experienceId: string): Promise<PhysicalSelectionRecord | null> };
   quotes: {
-    findLatestByExperienceId(experienceId: string): Promise<CheckoutQuoteRecord | null>;
-    create(record: CheckoutQuoteRecord): Promise<void>;
+    findLatestByExperienceId(experienceId: string): Promise<StoredResumeQuote | null>;
+    create(record: StoredResumeQuote): Promise<void>;
   };
   contacts: { findVerifiedByExperienceId(experienceId: string): Promise<VerifiedContactRecord | null> };
   shipping: { findByExperienceId(experienceId: string): Promise<ShippingSnapshotRecord | null> };
@@ -122,8 +134,9 @@ export class ExperienceResumeService {
       quote.expiresAt.getTime() > now.getTime() &&
       quote.productSlug === physical.productSlug &&
       quote.variantId === variant.id &&
-      quote.amountMinor === variant.amountMinor &&
-      quote.currency === variant.currency,
+      quote.currency === variant.currency &&
+      Number.isSafeInteger(quote.amountMinor) &&
+      quote.amountMinor > 0,
     );
 
     if (!quoteStillCurrent) {
@@ -156,6 +169,12 @@ export class ExperienceResumeService {
         amountMinor: quote.amountMinor,
         currency: quote.currency,
         expiresAt: quote.expiresAt.toISOString(),
+        ...(typeof quote.grossAmountMinor === 'number'
+          ? { grossAmountMinor: quote.grossAmountMinor }
+          : {}),
+        ...(typeof quote.discountAmountMinor === 'number'
+          ? { discountAmountMinor: quote.discountAmountMinor }
+          : {}),
       },
     };
   }

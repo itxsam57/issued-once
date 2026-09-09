@@ -4,8 +4,8 @@ import { useState } from 'react';
 import styles from './repeat-order-choice.module.css';
 
 type ReturningSessionChoiceProps = {
-  onContinue: () => void;
-  onStartAgain: () => Promise<void>;
+  onContinue: () => Promise<void> | void;
+  onStartAgain: () => Promise<void> | void;
 };
 
 export function ReturningSessionChoice({
@@ -13,16 +13,17 @@ export function ReturningSessionChoice({
   onStartAgain,
 }: ReturningSessionChoiceProps) {
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<'continue' | 'restart' | null>(null);
 
-  async function startAgain() {
+  async function submit(action: 'continue' | 'restart') {
     if (submitting) return;
     setSubmitting(true);
-    setError(false);
+    setError(null);
     try {
-      await onStartAgain();
+      if (action === 'continue') await onContinue();
+      else await onStartAgain();
     } catch {
-      setError(true);
+      setError(action);
       setSubmitting(false);
     }
   }
@@ -34,17 +35,19 @@ export function ReturningSessionChoice({
       <p className={styles.copy}>Your unfinished Issue is still here.</p>
 
       <div className={styles.actions}>
-        <button type="button" disabled={submitting} onClick={onContinue}>
-          CONTINUE
+        <button type="button" disabled={submitting} onClick={() => void submit('continue')}>
+          {submitting ? '...' : 'CONTINUE'}
         </button>
-        <button type="button" disabled={submitting} onClick={() => void startAgain()}>
+        <button type="button" disabled={submitting} onClick={() => void submit('restart')}>
           {submitting ? '...' : 'START AGAIN'}
         </button>
       </div>
 
       {error ? (
         <p className={styles.error} role="alert">
-          A fresh Issue could not be started. Try again.
+          {error === 'continue'
+            ? 'That saved Issue could not be opened. Try again.'
+            : 'A fresh Issue could not be started. Try again.'}
         </p>
       ) : null}
     </section>

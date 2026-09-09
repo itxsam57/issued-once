@@ -8,7 +8,7 @@ import type {
   CommitmentQuote,
   ReferralApplicationQuote,
 } from './CommitmentScreen';
-import { MysteryExperience } from './MysteryExperience';
+import { MysteryExperience, type ExperienceResumeHydration } from './MysteryExperience';
 import type { ObjectType } from './ObjectSelection';
 import { ReferenceHeader } from '@/components/reference/ReferenceHeader';
 import { RepeatOrderChoice, type RepeatOrderMode } from './RepeatOrderChoice';
@@ -170,6 +170,7 @@ async function requestPayment(quoteId: string): Promise<void> {
 export function PublicInterviewExperience() {
   const [bootstrap, setBootstrap] = useState<BootstrapPayload | null>(null);
   const [bootstrapError, setBootstrapError] = useState(false);
+  const [resumeState, setResumeState] = useState<ExperienceResumeHydration | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -191,13 +192,26 @@ export function PublicInterviewExperience() {
     const next = validateBootstrap(
       await postJson<BootstrapPayload>('/api/experience/repeat', { choice: mode }),
     );
+    setResumeState(null);
     setBootstrap(next);
+  }
+
+  async function continueExisting() {
+    if (!bootstrap) return;
+    if (/^QUESTION_[1-7]$/.test(bootstrap.stage)) {
+      setBootstrap({ ...bootstrap, resumePrompt: false });
+      return;
+    }
+    const resumed = await postJson<ExperienceResumeHydration>('/api/experience/resume');
+    setResumeState(resumed);
+    setBootstrap({ ...bootstrap, resumePrompt: false });
   }
 
   async function startAgain() {
     const next = validateBootstrap(
       await postJson<BootstrapPayload>('/api/experience/restart'),
     );
+    setResumeState(null);
     setBootstrap(next);
   }
 
@@ -232,7 +246,7 @@ export function PublicInterviewExperience() {
         <ReferenceHeader center="ISSUE / RETURN" />
         <main className="public-interview" data-reference-surface="returning-session">
           <ReturningSessionChoice
-            onContinue={() => setBootstrap({ ...bootstrap, resumePrompt: false })}
+            onContinue={continueExisting}
             onStartAgain={startAgain}
           />
         </main>
@@ -257,6 +271,7 @@ export function PublicInterviewExperience() {
       initialQuestionPosition={bootstrap.initialPosition}
       interviewInitiallyComplete={bootstrap.interviewComplete}
       initialPhase={bootstrap.entryMode === 'form' ? 'form' : 'interview'}
+      resumeState={resumeState}
       onAnswer={submitAnswer}
       onObjectSelected={selectObject}
       onSizeConfirmed={confirmSize}

@@ -196,6 +196,10 @@ test('public physical flow requires verified contact and shipping before Safepay
   const issueMine = page.getByRole('button', { name: 'ISSUE MINE' });
   await expect(issueMine).toBeVisible();
   await capture(page, `14-public-commitment-${testInfo.project.name}`);
+  // A full-page screenshot can move the mobile viewport while preserving the page DOM.
+  // Restore the actual click target before testing the checkout handoff.
+  await issueMine.scrollIntoViewIfNeeded();
+  await expect(issueMine).toBeEnabled();
 
   await page.route('https://sandbox.api.getsafepay.com/checkout/**', async (route) => {
     await route.fulfill({
