@@ -130,7 +130,7 @@ test('four public merchant routes explain the real purchase and remedy contract 
   contact.unmount();
 
   const terms = render(<TermsPage />);
-  expect(screen.getByText(/rather than previewing the final artwork before payment/i)).toBeInTheDocument();
+  expect(screen.getByText(/final artwork is personalized for the Issue and is not previewed before payment/i)).toBeInTheDocument();
   expect(screen.getByText(/mandatory consumer rights/i)).toBeInTheDocument();
   terms.unmount();
 
@@ -179,4 +179,17 @@ test('store info stays consumer-facing and never exposes internal operating mech
   expect(publicCopy).not.toMatch(
     /automated|automation|manual design|OpenAI|production controls|Printful|manufacturing partner|live catalog|frozen amount|provider|runtime/i,
   );
+});
+
+
+test('all public merchant pages stay consumer-facing and hide implementation mechanics', async () => {
+  configureMerchant();
+  configureCatalog();
+  const forbidden = /automated|automation|manual design|OpenAI|production controls|Printful|manufacturing partner|configured payment provider|payment-provider truth|live provider|live catalog|frozen amount|provider runtime|runtime/i;
+
+  for (const page of [await StoreInfoPage(), <TermsPage key="terms" />, <ReturnsPage key="returns" />]) {
+    const view = render(page);
+    expect(document.body.textContent ?? '').not.toMatch(forbidden);
+    view.unmount();
+  }
 });

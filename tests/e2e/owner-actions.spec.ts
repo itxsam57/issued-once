@@ -300,3 +300,98 @@ test('Owner Support reveal cannot leak a previous case message into a newly sele
   await page.waitForTimeout(500);
   await expect(page.getByText('SUPPORT-A-PRIVATE')).toHaveCount(0);
 });
+
+
+test('Owner Audit keeps the newest filter when older requests finish late', async ({ page }) => {
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request(); const url = new URL(request.url()); const path = url.pathname;
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, { sales: { currency:'USD',today:{orders:0,grossMinor:0},sevenDays:{orders:0,grossMinor:0},thirtyDays:{orders:0,grossMinor:0},lifetime:{orders:0,grossMinor:0},refundedMinor:0,averageOrderMinor:0 }, operations:{paidIssues:0,designing:0,review:0,production:0,transit:0,delivered:0}, attention:{paymentExceptions:0,designFailures:0,manufacturingFailures:0,notificationFailures:0,supportOpen:0}, activity:[] });
+    if (path === '/ops/api/audit') {
+      const action = url.searchParams.get('action') ?? '';
+      if (action === 'OLD') { await new Promise((r)=>setTimeout(r,350)); return json(route,{items:[{id:'a1',actor:'OWNER',action:'OLD_RESULT',issueId:null,targetType:'system',targetId:'old',reason:null,safeMetadata:{},createdAt:'2026-09-09T00:00:00Z'}],nextCursor:null}); }
+      if (action === 'NEW') return json(route,{items:[{id:'b1',actor:'OWNER',action:'NEW_RESULT',issueId:null,targetType:'system',targetId:'new',reason:null,safeMetadata:{},createdAt:'2026-09-09T00:00:00Z'}],nextCursor:null});
+      return json(route,{items:[],nextCursor:null});
+    }
+    return json(route,{error:`Unhandled audit race ${path}`},500);
+  });
+  await login(page); await page.getByRole('button',{name:'Audit',exact:true}).click();
+  await page.getByLabel('Audit action').fill('OLD'); await page.getByRole('button',{name:'FILTER'}).click();
+  await page.getByLabel('Audit action').fill('NEW'); await page.getByRole('button',{name:'FILTER'}).click();
+  await expect(page.getByText('NEW RESULT')).toBeVisible(); await page.waitForTimeout(500);
+  await expect(page.getByText('OLD RESULT')).toHaveCount(0); await expect(page.getByText('NEW RESULT')).toBeVisible();
+});
+
+
+test('Owner Issues drops stale LOAD MORE results after the search changes', async ({ page }) => {
+  const row = (id: string, code: string) => ({ issueId: id, issueCode: code, status: 'DESIGN_REVIEW', objectType: 'tee', sizeCode: 'M', colorCode: 'Black', amountMinor: 3200, currency: 'USD', paymentStatus: 'PAID', designState: 'REVIEW', manufacturingState: null, providerOrderId: null, trackingNumber: null, paymentExceptionCode: null, updatedAt: '2026-09-09T00:00:00Z' });
+  await page.route('**/ops/api/**', async (route) => {
+    const req=route.request(); const url=new URL(req.url()); const path=url.pathname;
+    if (path==='/ops/api/attention') return json(route,{items:[]});
+    if (path==='/ops/api/dashboard') return json(route,{sales:{currency:'USD',today:{orders:0,grossMinor:0},sevenDays:{orders:0,grossMinor:0},thirtyDays:{orders:0,grossMinor:0},lifetime:{orders:0,grossMinor:0},refundedMinor:0,averageOrderMinor:0},operations:{paidIssues:0,designing:0,review:0,production:0,transit:0,delivered:0},attention:{paymentExceptions:0,designFailures:0,manufacturingFailures:0,notificationFailures:0,supportOpen:0},activity:[]});
+    if (path==='/ops/api/issues') {
+      if (url.searchParams.get('cursor')==='page-2') { await new Promise((r)=>setTimeout(r,450)); return json(route,{items:[row('22222222-2222-4222-8222-222222222222','OLD-TAIL')],nextCursor:null}); }
+      if (url.searchParams.get('search')==='NEW') return json(route,{items:[row('33333333-3333-4333-8333-333333333333','NEW-HEAD')],nextCursor:null});
+      return json(route,{items:[row('11111111-1111-4111-8111-111111111111','OLD-HEAD')],nextCursor:'page-2'});
+    }
+    return json(route,{error:`Unhandled issue paging race ${path}`},500);
+  });
+  await login(page); await page.getByRole('button',{name:'Issues',exact:true}).click();
+  await expect(page.getByText('OLD-HEAD')).toBeVisible();
+  await page.getByRole('button',{name:'LOAD MORE'}).click();
+  await page.getByLabel('Search Issues').fill('NEW');
+  await expect(page.getByText('NEW-HEAD')).toBeVisible();
+  await page.waitForTimeout(600);
+  await expect(page.getByText('OLD-TAIL')).toHaveCount(0);
+  await expect(page.getByText('NEW-HEAD')).toBeVisible();
+});
+
+
+test('Owner Customers drops stale LOAD MORE results after the email search changes', async ({ page }) => {
+  const customer = (alias: string) => ({ contactAlias: alias, issueCount: 1, currency: 'USD', paidMinor: 3200, refundedIssues: 0, activeDeliveries: 0, supportCount: 0, lastSeenAt: '2026-09-09T00:00:00Z' });
+  await page.route('**/ops/api/**', async (route) => {
+    const req=route.request(); const url=new URL(req.url()); const path=url.pathname;
+    if (path==='/ops/api/attention') return json(route,{items:[]});
+    if (path==='/ops/api/dashboard') return json(route,{sales:{currency:'USD',today:{orders:0,grossMinor:0},sevenDays:{orders:0,grossMinor:0},thirtyDays:{orders:0,grossMinor:0},lifetime:{orders:0,grossMinor:0},refundedMinor:0,averageOrderMinor:0},operations:{paidIssues:0,designing:0,review:0,production:0,transit:0,delivered:0},attention:{paymentExceptions:0,designFailures:0,manufacturingFailures:0,notificationFailures:0,supportOpen:0},activity:[]});
+    if (path==='/ops/api/customers') {
+      if (url.searchParams.get('cursor')==='customer-2') { await new Promise((r)=>setTimeout(r,450)); return json(route,{items:[customer('OLD-CUSTOMER-TAIL')],nextCursor:null}); }
+      if (url.searchParams.get('email')==='new@example.com') return json(route,{items:[customer('NEW-CUSTOMER-HEAD')],nextCursor:null});
+      return json(route,{items:[customer('OLD-CUSTOMER-HEAD')],nextCursor:'customer-2'});
+    }
+    return json(route,{error:`Unhandled customer paging race ${path}`},500);
+  });
+  await login(page); await page.getByRole('button',{name:'Customers',exact:true}).click();
+  await expect(page.getByText('OLD-CUSTOMER-HEAD')).toBeVisible();
+  await page.getByRole('button',{name:'LOAD MORE'}).click();
+  await page.getByLabel('Find customer by verified email').fill('new@example.com');
+  await expect(page.getByText('NEW-CUSTOMER-HEAD')).toBeVisible();
+  await page.waitForTimeout(650);
+  await expect(page.getByText('OLD-CUSTOMER-TAIL')).toHaveCount(0);
+  await expect(page.getByText('NEW-CUSTOMER-HEAD')).toBeVisible();
+});
+
+
+test('Owner Manufacturing stale action completion does not erase a newly selected Issue editor', async ({ page }) => {
+  const A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'; const B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const items = [
+    { issueId: A, issueCode: 'IO-MFG-A', issueStatus: 'DESIGN_APPROVED', objectType: 'tee', sizeCode: 'M', colorCode: 'Black', designState: 'APPROVED', manufacturingState: null, providerOrderId: null, providerStatus: null, trackingNumber: null, updatedAt: '2026-09-09T00:00:00Z' },
+    { issueId: B, issueCode: 'IO-MFG-B', issueStatus: 'DESIGN_APPROVED', objectType: 'tote', sizeCode: 'OS', colorCode: 'Bone', designState: 'APPROVED', manufacturingState: null, providerOrderId: null, providerStatus: null, trackingNumber: null, updatedAt: '2026-09-09T00:00:00Z' },
+  ];
+  await page.route('**/ops/api/**', async (route) => {
+    const request=route.request(); const path=new URL(request.url()).pathname; const method=request.method();
+    if (path === '/ops/api/attention') return json(route,{items:[]});
+    if (path === '/ops/api/dashboard') return json(route,{ sales:{currency:'USD',today:{orders:0,grossMinor:0},sevenDays:{orders:0,grossMinor:0},thirtyDays:{orders:0,grossMinor:0},lifetime:{orders:0,grossMinor:0},refundedMinor:0,averageOrderMinor:0}, operations:{paidIssues:2,designing:0,review:0,production:0,transit:0,delivered:0}, attention:{paymentExceptions:0,designFailures:0,manufacturingFailures:0,notificationFailures:0,supportOpen:0},activity:[]});
+    if (path === '/ops/api/manufacturing' && method === 'GET') return json(route,{confirmArmed:false,items});
+    if (path === '/ops/api/manufacturing/create-draft' && method === 'POST') { await new Promise((r)=>setTimeout(r,350)); return json(route,{created:true}); }
+    return json(route,{error:`Unhandled manufacturing race ${method} ${path}`},500);
+  });
+  await login(page);
+  await page.getByRole('button',{name:'Manufacturing',exact:true}).click();
+  await page.getByRole('button',{name:/IO-MFG-A/}).click();
+  await page.getByRole('button',{name:'CREATE / RETRY PRINTFUL DRAFT'}).click();
+  await page.getByRole('button',{name:/IO-MFG-B/}).click();
+  await page.getByPlaceholder('Why should this stop?').fill('Keep this B-specific reason');
+  await page.waitForTimeout(600);
+  await expect(page.getByText('ISSUE / IO-MFG-B')).toBeVisible();
+  await expect(page.getByPlaceholder('Why should this stop?')).toHaveValue('Keep this B-specific reason');
+});

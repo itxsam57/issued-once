@@ -90,3 +90,13 @@ test('does not leak support delivery error details into server logs', async () =
     consoleError.mockRestore();
   }
 });
+
+
+test('unauthenticated support canary does not reveal whether internal auth is configured', async () => {
+  delete process.env.INTERNAL_OPERATIONS_TOKEN;
+  const POST = await loadPost();
+  const response = await POST(request(releaseId));
+  expect(response.status).toBe(401);
+  expect(await response.json()).toEqual({ error: 'Unauthorized' });
+  expect(sendCanaryMock).not.toHaveBeenCalled();
+});

@@ -29,9 +29,9 @@ export default function ReturnsPage() {
 
       <section className={styles.section}>
         <p className={styles.sectionLabel}>REFUND TRUTH</p>
-        <h2>A refund is not declared from a browser screen.</h2>
+        <h2>A refund is complete only when it is confirmed.</h2>
         <p>
-          Refund status is reconciled from the configured payment provider. We do not promise an automated refund path that has not been proven with the live provider.
+          If a refund is approved, the Issue is updated only when the refund has actually been confirmed. A pending screen or request is not presented as a completed refund.
         </p>
         <p>Start with the <Link className={styles.inlineLink} href="/contact">contact route</Link> and include the Issue Code.</p>
       </section>

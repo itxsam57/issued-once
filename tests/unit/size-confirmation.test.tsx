@@ -50,4 +50,17 @@ describe('SizeConfirmation', () => {
     expect(screen.queryByText(/undefined/i)).not.toBeInTheDocument();
     expect(document.body.innerHTML).not.toContain('undefined');
   });
+  test('locks size choices while the confirmed size is being saved', async () => {
+    const user = userEvent.setup();
+    let release: (() => void) | null = null;
+    const onConfirm = vi.fn(() => new Promise<void>((resolve) => { release = resolve; }));
+    render(<SizeConfirmation object="tee" sizes={qaSizes} onConfirm={onConfirm} />);
+    const medium = screen.getByRole('radio', { name: /^Medium —/ });
+    const large = screen.getByRole('radio', { name: /^Large —/ });
+    await user.click(medium);
+    await user.click(screen.getByRole('button', { name: 'CONFIRM SIZE' }));
+    expect(medium).toBeDisabled();
+    expect(large).toBeDisabled();
+  });
+
 });

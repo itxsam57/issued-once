@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useLiveResource } from './useLiveResource';
 import styles from './owner-os.module.css';
 
@@ -29,12 +29,14 @@ export function ManufacturingPanel() {
   const [reason, setReason] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
+  const selectionGeneration = useRef(0);
   const { data, error: liveError, refresh } = useLiveResource({ load: fetchManufacturingQueue, intervalMs: 15_000 });
   const items = data?.items ?? [];
   const armed = data?.confirmArmed ?? false;
   const selected = selectedId ? items.find((item) => item.issueId === selectedId) ?? null : null;
 
   function choose(item: Item) {
+    selectionGeneration.current += 1;
     setSelectedId(item.issueId);
     setConfirmation('');
     setReason('');
@@ -42,9 +44,18 @@ export function ManufacturingPanel() {
   }
 
   async function run(action: () => Promise<void>) {
+    const generation = selectionGeneration.current;
     setWorking(true); setActionError(null);
-    try { await action(); await refresh(); setConfirmation(''); setReason(''); }
-    catch (cause) { setActionError(cause instanceof Error ? cause.message : 'Manufacturing action failed'); }
+    try {
+      await action();
+      await refresh();
+      if (generation === selectionGeneration.current) { setConfirmation(''); setReason(''); }
+    }
+    catch (cause) {
+      if (generation === selectionGeneration.current) {
+        setActionError(cause instanceof Error ? cause.message : 'Manufacturing action failed');
+      }
+    }
     finally { setWorking(false); }
   }
 

@@ -130,13 +130,17 @@ export function DesignerPanel() {
     try {
       await action();
       await refresh();
-      if (selectedIssueId && requestId === selectionRequest.current) {
-        await loadCandidates(selectedIssueId);
+      if (requestId === selectionRequest.current) {
+        if (selectedIssueId) await loadCandidates(selectedIssueId);
+        setReason('');
+        setInstruction('');
+        if (success) setNotice(success);
       }
-      setReason(''); setInstruction('');
-      if (success) setNotice(success);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Designer action failed'); }
-    finally { setWorking(false); }
+    } catch (cause) {
+      if (requestId === selectionRequest.current) {
+        setError(cause instanceof Error ? cause.message : 'Designer action failed');
+      }
+    } finally { setWorking(false); }
   }
 
   async function saveGlobalPolicy(policy: DesignPolicy) {
@@ -148,6 +152,7 @@ export function DesignerPanel() {
 
   async function saveIssueField<K extends keyof DesignPolicy>(key: K, value: DesignPolicy[K] | undefined) {
     if (!selected || !issuePolicy) return;
+    const requestId = selectionRequest.current;
     const path = `/ops/api/designer/${encodeURIComponent(selected.issueId)}/policy`;
     const nextOverride: Partial<DesignPolicy> = { ...(issuePolicy.override ?? {}) };
     if (value === undefined) delete nextOverride[key];
@@ -156,7 +161,8 @@ export function DesignerPanel() {
     const response = hasOverride
       ? await fetch(path, { method: 'PUT', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify(nextOverride) })
       : await fetch(path, { method: 'DELETE', credentials: 'same-origin' });
-    setIssuePolicy(await readJson<EffectivePolicy>(response, 'Issue design policy could not be saved'));
+    const effective = await readJson<EffectivePolicy>(response, 'Issue design policy could not be saved');
+    if (requestId === selectionRequest.current) setIssuePolicy(effective);
   }
 
   async function revealAnswers() {

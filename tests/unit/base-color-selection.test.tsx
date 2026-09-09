@@ -34,4 +34,17 @@ describe('BaseColorSelection', () => {
 
     expect(onConfirm).toHaveBeenCalledWith('forest');
   });
+  test('locks base choices while the confirmed color is being saved', async () => {
+    const user = userEvent.setup();
+    let release: (() => void) | null = null;
+    const onConfirm = vi.fn(() => new Promise<void>((resolve) => { release = resolve; }));
+    render(<BaseColorSelection colors={qaColors} onConfirm={onConfirm} />);
+    const forest = screen.getByRole('radio', { name: 'Forest' });
+    const black = screen.getByRole('radio', { name: 'Black' });
+    await user.click(forest);
+    await user.click(screen.getByRole('button', { name: 'LOCK BASE' }));
+    expect(forest).toBeDisabled();
+    expect(black).toBeDisabled();
+  });
+
 });

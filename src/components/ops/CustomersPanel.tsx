@@ -33,6 +33,7 @@ export function CustomersPanel() {
   const firstPageCount = useRef(0);
   const loadedMore = useRef(false);
   const firstQuery = useRef(true);
+  const queryGeneration = useRef(0);
   const load = useCallback(() => fetchCustomers(email), [email]);
   const { data: liveData, error: liveError, refresh } = useLiveResource({ load, intervalMs: 30_000 });
 
@@ -49,6 +50,7 @@ export function CustomersPanel() {
   }, [liveData]);
 
   useEffect(() => {
+    queryGeneration.current += 1;
     if (firstQuery.current) {
       firstQuery.current = false;
       return;
@@ -64,8 +66,10 @@ export function CustomersPanel() {
 
   async function loadMore() {
     if (!cursor) return;
+    const generation = queryGeneration.current;
     try {
       const page = await fetchCustomers(email, cursor);
+      if (generation !== queryGeneration.current) return;
       loadedMore.current = true;
       setItems((current) => {
         const known = new Set(current.map((item) => `${item.contactAlias}:${item.lastSeenAt}`));
@@ -74,7 +78,9 @@ export function CustomersPanel() {
       setCursor(page.nextCursor);
       setAppendError(null);
     } catch (cause) {
-      setAppendError(cause instanceof Error ? cause.message : 'Customers unavailable');
+      if (generation === queryGeneration.current) {
+        setAppendError(cause instanceof Error ? cause.message : 'Customers unavailable');
+      }
     }
   }
 

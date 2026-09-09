@@ -13,11 +13,8 @@ export class InternalOperationsUnauthorizedError extends Error {
 
 export function requireInternalAuthorization(headers: Headers): void {
   const configured = process.env.INTERNAL_OPERATIONS_TOKEN?.trim();
-  if (!configured) {
-    throw new Error('Internal operations are not configured');
-  }
-  if (configured.length < 24) {
-    throw new Error('Internal operations token is not configured safely');
+  if (!configured || configured.length < 24) {
+    throw new InternalOperationsUnauthorizedError();
   }
 
   const authorization = headers.get('authorization')?.trim() ?? '';

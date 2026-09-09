@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { expect, test, vi } from 'vitest';
 import { ContactVerification } from '@/components/experience/ContactVerification';
@@ -68,8 +68,8 @@ test('shipping step submits a valid international address without region or phon
 
 test('contact email cannot change while the OTP request for that address is pending', async () => {
   const user = userEvent.setup();
-  let releaseOtp: ((value: { challengeId: string; retryAfterSeconds: number }) => void) | null = null;
-  const requestOtp = vi.fn(() => new Promise<{ challengeId: string; retryAfterSeconds: number }>((resolve) => { releaseOtp = resolve; }));
+  const otpGate: { release?: (value: { challengeId: string; retryAfterSeconds: number }) => void } = {};
+  const requestOtp = vi.fn(() => new Promise<{ challengeId: string; retryAfterSeconds: number }>((resolve) => { otpGate.release = resolve; }));
   render(<ContactVerification onRequestOtp={requestOtp} onVerifyOtp={vi.fn()} onComplete={vi.fn()} />);
 
   const email = screen.getByLabelText('Email');
@@ -79,7 +79,29 @@ test('contact email cannot change while the OTP request for that address is pend
   expect(requestOtp).toHaveBeenCalledWith('first@example.com');
   expect(email).toBeDisabled();
 
-  releaseOtp?.({ challengeId: 'challenge-first', retryAfterSeconds: 60 });
+  otpGate.release?.({ challengeId: 'challenge-first', retryAfterSeconds: 60 });
   await screen.findByText(/six digits went to/i);
   expect(screen.getByText('first@example.com')).toBeInTheDocument();
+});
+
+
+test('shipping fields freeze while the submitted address is still saving', async () => {
+  const user = userEvent.setup();
+  const saveGate: { release?: () => void } = {};
+  const submit = vi.fn(() => new Promise<void>((resolve) => { saveGate.release = resolve; }));
+  render(<ShippingAddressForm onSubmit={submit} />);
+
+  await user.type(screen.getByLabelText('Name'), 'Sam Example');
+  await user.type(screen.getByLabelText('Address'), '1 Quiet Street');
+  await user.type(screen.getByLabelText('City'), 'Lahore');
+  await user.type(screen.getByLabelText('Postal code'), '54000');
+  await user.selectOptions(screen.getByLabelText('Country'), 'PK');
+  await user.click(screen.getByRole('button', { name: 'USE THIS ADDRESS' }));
+
+  expect(screen.getByLabelText('Name')).toBeDisabled();
+  expect(screen.getByLabelText('Country')).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'SAVING' })).toBeDisabled();
+
+  await act(async () => { saveGate.release?.(); });
+  await waitFor(() => expect(screen.getByLabelText('Name')).not.toBeDisabled());
 });

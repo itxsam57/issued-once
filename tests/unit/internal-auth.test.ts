@@ -18,5 +18,5 @@ test('accepts only the configured bearer token', () => {
 test('fails closed when owner operations are not configured', () => {
   expect(() => requireInternalAuthorization(new Headers({
     authorization: 'Bearer anything',
-  }))).toThrow(/not configured/i);
+  }))).toThrow(/unauthorized/i);
 });

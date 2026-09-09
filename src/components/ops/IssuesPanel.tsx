@@ -67,6 +67,7 @@ export function IssuesPanel() {
   const firstPageCount = useRef(0);
   const loadedMore = useRef(false);
   const firstQuery = useRef(true);
+  const queryGeneration = useRef(0);
   const load = useCallback(() => fetchIssuePage(search, filters), [search, filters]);
   const { data: liveData, error: liveError, loading, refresh } = useLiveResource({ load, intervalMs: 20_000 });
 
@@ -83,6 +84,7 @@ export function IssuesPanel() {
   }, [liveData]);
 
   useEffect(() => {
+    queryGeneration.current += 1;
     if (firstQuery.current) {
       firstQuery.current = false;
       return;
@@ -98,8 +100,10 @@ export function IssuesPanel() {
 
   async function loadMore() {
     if (!nextCursor) return;
+    const generation = queryGeneration.current;
     try {
       const page = await fetchIssuePage(search, filters, nextCursor);
+      if (generation !== queryGeneration.current) return;
       loadedMore.current = true;
       setRows((current) => {
         const known = new Set(current.map((item) => item.issueId));
@@ -108,7 +112,9 @@ export function IssuesPanel() {
       setNextCursor(page.nextCursor);
       setAppendError(null);
     } catch (cause) {
-      setAppendError(cause instanceof Error ? cause.message : 'Issue ledger unavailable');
+      if (generation === queryGeneration.current) {
+        setAppendError(cause instanceof Error ? cause.message : 'Issue ledger unavailable');
+      }
     }
   }
 

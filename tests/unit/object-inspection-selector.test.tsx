@@ -77,4 +77,17 @@ describe('approved object inspection selector', () => {
     expect(css).toMatch(/max-width:\s*720px[\s\S]*height:\s*240px/);
   });
 
+  test('locks object choices while the selected form is being saved', async () => {
+    const user = userEvent.setup();
+    let release: (() => void) | null = null;
+    const onSelect = vi.fn(() => new Promise<void>((resolve) => { release = resolve; }));
+    render(<ObjectSelection onSelect={onSelect} />);
+    const tee = screen.getByRole('radio', { name: 'TEE' });
+    const cap = screen.getByRole('radio', { name: 'CAP' });
+    await user.click(tee);
+    await user.click(screen.getByRole('button', { name: 'LOCK FORM' }));
+    expect(tee).toBeDisabled();
+    expect(cap).toBeDisabled();
+  });
+
 });

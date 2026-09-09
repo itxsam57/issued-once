@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './owner-os.module.css';
 
 type ReferralValue =
@@ -186,6 +186,8 @@ export function ReferralsPanel() {
   const [revealReason, setRevealReason] = useState('');
   const [settleReason, setSettleReason] = useState('');
   const [revealed, setRevealed] = useState<unknown>(null);
+  const privateViewGeneration = useRef(0);
+  const selectionGeneration = useRef(0);
 
   useEffect(() => {
     let alive = true;
@@ -213,14 +215,16 @@ export function ReferralsPanel() {
   const selectedPayout = creatorPayouts.find((payout) => payout.payoutId === effectivePayoutId) ?? null;
 
   function clearPrivatePayoutView() {
+    privateViewGeneration.current += 1;
     setRevealed(null);
     setRevealReason('');
     setSettleReason('');
   }
 
-  async function refresh(preferredId?: string | null) {
+  async function refresh(preferredId?: string | null, expectedSelectionGeneration = selectionGeneration.current) {
     const next = await loadSnapshot();
     setSnapshot(next);
+    if (expectedSelectionGeneration !== selectionGeneration.current) return;
     const wanted = preferredId ?? selectedId;
     setSelectedId(wanted && next.creators.some((creator) => creator.creatorId === wanted)
       ? wanted
@@ -228,21 +232,26 @@ export function ReferralsPanel() {
   }
 
   async function mutation(action: () => Promise<void>, preferredId?: string | null) {
+    const generation = selectionGeneration.current;
     setWorking(true);
     setError(null);
     setNotice(null);
     try {
       await action();
-      clearPrivatePayoutView();
-      await refresh(preferredId);
+      if (generation === selectionGeneration.current) clearPrivatePayoutView();
+      else setNotice(null);
+      await refresh(preferredId, generation);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Referral action failed');
+      if (generation === selectionGeneration.current) {
+        setError(cause instanceof Error ? cause.message : 'Referral action failed');
+      }
     } finally {
       setWorking(false);
     }
   }
 
   function choose(creator: Creator) {
+    selectionGeneration.current += 1;
     setSelectedId(creator.creatorId);
     setPayoutCurrency('');
     setPayoutId('');
@@ -355,6 +364,7 @@ export function ReferralsPanel() {
 
   async function revealPayout() {
     if (!selectedPayout || revealReason.trim().length < 3) return;
+    const generation = privateViewGeneration.current;
     setWorking(true);
     setError(null);
     try {
@@ -363,9 +373,11 @@ export function ReferralsPanel() {
         payoutId: selectedPayout.payoutId,
         reason: revealReason.trim(),
       });
-      setRevealed(payload.value ?? null);
+      if (generation === privateViewGeneration.current) setRevealed(payload.value ?? null);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Payout reveal failed');
+      if (generation === privateViewGeneration.current) {
+        setError(cause instanceof Error ? cause.message : 'Payout reveal failed');
+      }
     } finally {
       setWorking(false);
     }

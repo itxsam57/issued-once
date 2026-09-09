@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './owner-os.module.css';
 
 type Audit = { id: string; actor: 'OWNER'; action: string; issueId: string | null; targetType: string; targetId: string; reason: string | null; safeMetadata: Record<string,string|number|boolean|null>; createdAt: string };
@@ -29,22 +29,30 @@ export function AuditPanel() {
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [applied, setApplied] = useState<Filters>(EMPTY_FILTERS);
   const [error, setError] = useState<string | null>(null);
+  const requestGeneration = useRef(0);
 
   async function load(next: string | null = null, append = false, active: Filters = applied) {
+    const generation = ++requestGeneration.current;
     const page = await fetchAudit(next, active);
+    if (generation !== requestGeneration.current) return;
     setItems((current) => append ? [...current, ...page.items] : page.items);
     setCursor(page.nextCursor);
   }
 
   useEffect(() => {
     let alive = true;
+    const generation = ++requestGeneration.current;
     void fetchAudit(null, EMPTY_FILTERS)
       .then((page) => {
-        if (!alive) return;
+        if (!alive || generation !== requestGeneration.current) return;
         setItems(page.items);
         setCursor(page.nextCursor);
       })
-      .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : 'Audit unavailable'); });
+      .catch((cause) => {
+        if (alive && generation === requestGeneration.current) {
+          setError(cause instanceof Error ? cause.message : 'Audit unavailable');
+        }
+      });
     return () => { alive = false; };
   }, []);
 

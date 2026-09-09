@@ -38,10 +38,10 @@ test('job drain fails closed without the dedicated cron secret', async () => {
   expect(cleanupOtpRateLimits).not.toHaveBeenCalled();
 });
 
-test('job drain requires safe cron configuration', async () => {
-  await expect(POST(request('anything'))).resolves.toMatchObject({ status: 503 });
+test('job drain hides cron configuration state from unauthenticated callers', async () => {
+  await expect(POST(request('anything'))).resolves.toMatchObject({ status: 401 });
   process.env.CRON_SECRET = 'too-short';
-  await expect(POST(request('too-short'))).resolves.toMatchObject({ status: 503 });
+  await expect(POST(request('too-short'))).resolves.toMatchObject({ status: 401 });
   expect(drain).not.toHaveBeenCalled();
   expect(cleanupOtpRateLimits).not.toHaveBeenCalled();
 });

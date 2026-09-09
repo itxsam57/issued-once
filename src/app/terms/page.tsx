@@ -11,11 +11,10 @@ export default function TermsPage() {
     >
       <section className={styles.section}>
         <p className={styles.sectionLabel}>WHAT YOU BUY</p>
-        <h2>A selected form and a personalized creation process.</h2>
+        <h2>A selected form and a personalized piece.</h2>
         <p>
-          You select and confirm the physical form, available size where applicable, color, final payable amount, and shipping destination. The purchase includes the personalized creation process rather than previewing the final artwork before payment.
+          You select and confirm the physical form, available size where applicable, color, final payable amount, and shipping destination. The final artwork is personalized for the Issue and is not previewed before payment.
         </p>
-        <p>A design may be produced through configured automated tools, manual work, or a combination of both under our production controls.</p>
       </section>
 
       <section className={styles.section}>
@@ -26,9 +25,9 @@ export default function TermsPage() {
 
       <section className={styles.section}>
         <p className={styles.sectionLabel}>PAYMENT / FULFILLMENT</p>
-        <h2>Payment truth comes from the configured payment provider.</h2>
-        <p>Opening or returning from a checkout page does not by itself prove payment. An order advances only after authenticated payment-provider truth is recorded.</p>
-        <p>Manufacturing and shipping estimates are estimates, not guarantees. Provider availability, destination, customs, carrier events, and production exceptions can affect delivery.</p>
+        <h2>Payment must be confirmed before an Issue moves forward.</h2>
+        <p>Opening or returning from checkout does not by itself mean payment is complete. An Issue moves forward only after payment is confirmed.</p>
+        <p>Making and shipping estimates are estimates, not guarantees. Destination, customs, carrier events, availability, and unexpected fulfillment problems can affect delivery.</p>
       </section>
 
       <section className={styles.section}>

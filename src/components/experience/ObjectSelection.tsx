@@ -96,6 +96,7 @@ export function ObjectSelection({ onSelect }: ObjectSelectionProps) {
                   value={object.value}
                   aria-label={object.label}
                   checked={isSelected}
+                  disabled={submitting}
                   onChange={() => undefined}
                   onClick={() => activate(object.value)}
                 />

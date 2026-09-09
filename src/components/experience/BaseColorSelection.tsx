@@ -49,6 +49,7 @@ export function BaseColorSelection({ colors, onConfirm }: BaseColorSelectionProp
               name="base-color"
               value={color.code}
               checked={selected === color.code}
+              disabled={submitting}
               onChange={() => {
                 setSelected(color.code);
                 setError(null);

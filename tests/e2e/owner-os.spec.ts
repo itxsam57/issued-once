@@ -218,3 +218,173 @@ test('Owner OS Referrals fits a tablet viewport after creator detail renders', a
   await expect(page.getByRole('heading', { name: 'CREATOR-ONE', exact: true })).toBeVisible();
   await expectNoDocumentOverflow(page);
 });
+
+
+test('Owner Referrals payout reveal cannot leak a previous creator destination into a newly selected creator', async ({ page }) => {
+  const creators = [
+    { creatorId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', displayName: 'Creator A', code: 'CREATOR-A', referralPath: '/r/CREATOR-A', active: true, ruleVersion: 1, rules: { customerDiscount: { mode: 'PERCENT', basisPoints: 1000 }, creatorReward: { mode: 'PERCENT', basisPoints: 2000 }, payoutCadence: 'THRESHOLD', payoutThresholdMinor: 1000, attributionWindowDays: 30 }, salesCount: 2, balances: [{ currency: 'USD', pendingMinor: 0, availableMinor: 2000, paidOutMinor: 0, reversedMinor: 0, payoutReady: true }] },
+    { creatorId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', displayName: 'Creator B', code: 'CREATOR-B', referralPath: '/r/CREATOR-B', active: true, ruleVersion: 1, rules: { customerDiscount: { mode: 'PERCENT', basisPoints: 1000 }, creatorReward: { mode: 'PERCENT', basisPoints: 2000 }, payoutCadence: 'THRESHOLD', payoutThresholdMinor: 1000, attributionWindowDays: 30 }, salesCount: 1, balances: [{ currency: 'USD', pendingMinor: 0, availableMinor: 2000, paidOutMinor: 0, reversedMinor: 0, payoutReady: true }] },
+  ];
+  const payouts = [
+    { payoutId: 'pay-a', creatorId: creators[0].creatorId, currency: 'USD', requestedAmountMinor: 1000, conversionCount: 1, status: 'REQUESTED', requestedAt: '2026-09-09T00:00:00.000Z', paidAt: null },
+    { payoutId: 'pay-b', creatorId: creators[1].creatorId, currency: 'USD', requestedAmountMinor: 1000, conversionCount: 1, status: 'REQUESTED', requestedAt: '2026-09-09T00:00:00.000Z', paidAt: null },
+  ];
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, { sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 }, operations: { paidIssues: 0, designing: 0, review: 0, production: 0, transit: 0, delivered: 0 }, attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 0 }, activity: [] });
+    if (path === '/ops/api/referrals' && request.method() === 'GET') return json(route, { creators, payouts });
+    if (path === '/ops/api/referrals/payouts' && request.method() === 'POST') {
+      const body = request.postDataJSON() as { action?: string; payoutId?: string };
+      if (body.action === 'REVEAL' && body.payoutId === 'pay-a') {
+        await new Promise((resolve) => setTimeout(resolve, 350));
+        return json(route, { value: { destination: 'CREATOR-A-PRIVATE-DESTINATION' } });
+      }
+      return json(route, { value: { destination: 'CREATOR-B-PRIVATE-DESTINATION' } });
+    }
+    return json(route, { error: `Unhandled referral race route ${request.method()} ${path}` }, 500);
+  });
+
+  await login(page);
+  await page.getByRole('button', { name: 'Referrals', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'CREATOR-A', exact: true })).toBeVisible();
+  await page.getByLabel('Reason to reveal payout details').fill('Owner payout audit');
+  await page.getByRole('button', { name: 'REVEAL PAYOUT DETAILS' }).click();
+  await page.getByRole('button', { name: /CREATOR-B/ }).click();
+  await expect(page.getByRole('heading', { name: 'CREATOR-B', exact: true })).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.getByText('CREATOR-A-PRIVATE-DESTINATION')).toHaveCount(0);
+});
+
+
+test('Owner Referrals mutation completion preserves a creator selected while the action was pending', async ({ page }) => {
+  const A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const creators = [
+    { creatorId: A, displayName: 'Creator A', code: 'CREATOR-A', referralPath: '/r/CREATOR-A', active: true, ruleVersion: 1, rules: { customerDiscount: { mode: 'PERCENT', basisPoints: 1000 }, creatorReward: { mode: 'PERCENT', basisPoints: 2000 }, payoutCadence: 'MONTHLY', payoutThresholdMinor: null, attributionWindowDays: 30 }, salesCount: 2, balances: [] },
+    { creatorId: B, displayName: 'Creator B', code: 'CREATOR-B', referralPath: '/r/CREATOR-B', active: true, ruleVersion: 1, rules: { customerDiscount: { mode: 'PERCENT', basisPoints: 1000 }, creatorReward: { mode: 'PERCENT', basisPoints: 2000 }, payoutCadence: 'MONTHLY', payoutThresholdMinor: null, attributionWindowDays: 30 }, salesCount: 1, balances: [] },
+  ];
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request(); const path = new URL(request.url()).pathname; const method = request.method();
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, { sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 }, operations: { paidIssues: 0, designing: 0, review: 0, production: 0, transit: 0, delivered: 0 }, attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 0 }, activity: [] });
+    if (path === '/ops/api/referrals' && method === 'GET') return json(route, { creators, payouts: [] });
+    if (path === `/ops/api/referrals/${A}` && method === 'PATCH') { await new Promise((r) => setTimeout(r, 350)); return json(route, { updated: true }); }
+    return json(route, { error: `Unhandled referral mutation race ${method} ${path}` }, 500);
+  });
+  await login(page);
+  await page.getByRole('button', { name: 'Referrals', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'CREATOR-A', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'PAUSE CREATOR' }).click();
+  await page.getByRole('button', { name: /CREATOR-B/ }).click();
+  await expect(page.getByRole('heading', { name: 'CREATOR-B', exact: true })).toBeVisible();
+  await page.waitForTimeout(600);
+  await expect(page.getByRole('heading', { name: 'CREATOR-B', exact: true })).toBeVisible();
+});
+
+test('Owner Issues ignores a stale LOAD MORE page after the search changes', async ({ page }) => {
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const path = url.pathname;
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, { sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 }, operations: { paidIssues: 1, designing: 0, review: 0, production: 0, transit: 0, delivered: 0 }, attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 0 }, activity: [] });
+    if (path === '/ops/api/issues') {
+      const search = url.searchParams.get('search');
+      const cursor = url.searchParams.get('cursor');
+      const row = (id: string, code: string) => ({ issueId: id, issueCode: code, status: 'RECEIVED', objectType: 'tee', sizeCode: 'M', colorCode: 'Black', amountMinor: 3200, currency: 'USD', paymentStatus: 'PAID', designState: null, manufacturingState: null, providerOrderId: null, trackingNumber: null, paymentExceptionCode: null, updatedAt: '2026-09-09T00:00:00Z' });
+      if (cursor === 'old-next') { await new Promise((r) => setTimeout(r, 350)); return json(route, { items: [row('22222222-2222-4222-8222-222222222222', 'IO-OLD-MORE')], nextCursor: null }); }
+      if (search === 'IO-TARGET') return json(route, { items: [row('33333333-3333-4333-8333-333333333333', 'IO-TARGET')], nextCursor: null });
+      return json(route, { items: [row('11111111-1111-4111-8111-111111111111', 'IO-INITIAL')], nextCursor: 'old-next' });
+    }
+    return json(route, { error: `Unhandled Issues race ${request.method()} ${path}` }, 500);
+  });
+  await login(page);
+  await page.getByRole('button', { name: 'Issues', exact: true }).click();
+  await expect(page.getByText('IO-INITIAL')).toBeVisible();
+  await page.getByRole('button', { name: 'LOAD MORE' }).click();
+  await page.getByLabel('Search Issues').fill('IO-TARGET');
+  await expect(page.getByText('IO-TARGET')).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.getByText('IO-OLD-MORE')).toHaveCount(0);
+});
+
+test('Owner Customers ignores a stale LOAD MORE page after the email search changes', async ({ page }) => {
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request(); const url = new URL(request.url()); const path = url.pathname;
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, { sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 }, operations: { paidIssues: 0, designing: 0, review: 0, production: 0, transit: 0, delivered: 0 }, attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 0 }, activity: [] });
+    if (path === '/ops/api/customers') {
+      const cursor = url.searchParams.get('cursor'); const email = url.searchParams.get('email');
+      const row = (alias: string, time: string) => ({ contactAlias: alias, issueCount: 1, currency: 'USD', paidMinor: 3200, refundedIssues: 0, activeDeliveries: 0, supportCount: 0, lastSeenAt: time });
+      if (cursor === 'old-customer-next') { await new Promise((r) => setTimeout(r, 350)); return json(route, { items: [row('STALE CUSTOMER', '2026-09-08T00:00:00Z')], nextCursor: null }); }
+      if (email === 'target@example.com') return json(route, { items: [row('TARGET CUSTOMER', '2026-09-09T00:00:00Z')], nextCursor: null });
+      return json(route, { items: [row('INITIAL CUSTOMER', '2026-09-07T00:00:00Z')], nextCursor: 'old-customer-next' });
+    }
+    return json(route, { error: `Unhandled Customers race ${request.method()} ${path}` }, 500);
+  });
+  await login(page);
+  await page.getByRole('button', { name: 'Customers', exact: true }).click();
+  await expect(page.getByText('INITIAL CUSTOMER')).toBeVisible();
+  await page.getByRole('button', { name: 'LOAD MORE' }).click();
+  await page.getByLabel('Find customer by verified email').fill('target@example.com');
+  await expect(page.getByText('TARGET CUSTOMER')).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.getByText('STALE CUSTOMER')).toHaveCount(0);
+});
+
+test('Owner Audit ignores a slow initial response after a newer filter result arrives', async ({ page }) => {
+  let auditReads = 0;
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request(); const url = new URL(request.url()); const path = url.pathname;
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, { sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 }, operations: { paidIssues: 0, designing: 0, review: 0, production: 0, transit: 0, delivered: 0 }, attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 0 }, activity: [] });
+    if (path === '/ops/api/audit') {
+      auditReads += 1;
+      const filtered = url.searchParams.get('action') === 'DESIGN_APPROVED';
+      if (!filtered) await new Promise((r) => setTimeout(r, 350));
+      const item = (id: string, action: string) => ({ id, actor: 'OWNER', action, issueId: null, targetType: 'design', targetId: id, reason: null, safeMetadata: {}, createdAt: '2026-09-09T00:00:00Z' });
+      return json(route, { items: [filtered ? item('22222222-2222-4222-8222-222222222222', 'DESIGN_APPROVED') : item('11111111-1111-4111-8111-111111111111', 'STALE_INITIAL')], nextCursor: null });
+    }
+    return json(route, { error: `Unhandled Audit race ${request.method()} ${path}` }, 500);
+  });
+  await login(page);
+  await page.getByRole('button', { name: 'Audit', exact: true }).click();
+  await page.getByLabel('Audit action').fill('DESIGN_APPROVED');
+  await page.getByRole('button', { name: 'FILTER' }).click();
+  await expect(page.getByText('DESIGN APPROVED')).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.getByText('STALE INITIAL')).toHaveCount(0);
+  expect(auditReads).toBeGreaterThanOrEqual(2);
+});
+
+test('Owner Referrals never carries or clears payout destination fields across creators', async ({ page }) => {
+  const A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const creator = (creatorId: string, code: string) => ({ creatorId, displayName: code, code, referralPath: `/r/${code}`, active: true, ruleVersion: 1, rules: { customerDiscount: { mode: 'PERCENT', basisPoints: 1000 }, creatorReward: { mode: 'PERCENT', basisPoints: 2000 }, payoutCadence: 'THRESHOLD', payoutThresholdMinor: 1000, attributionWindowDays: 30 }, salesCount: 1, balances: [{ currency: 'USD', pendingMinor: 0, availableMinor: 2000, paidOutMinor: 0, reversedMinor: 0, payoutReady: true }] });
+  const creators = [creator(A, 'CREATOR-A'), creator(B, 'CREATOR-B')];
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request(); const path = new URL(request.url()).pathname; const method = request.method();
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, { sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 }, operations: { paidIssues: 0, designing: 0, review: 0, production: 0, transit: 0, delivered: 0 }, attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 0 }, activity: [] });
+    if (path === '/ops/api/referrals' && method === 'GET') return json(route, { creators, payouts: [] });
+    if (path === '/ops/api/referrals/payouts' && method === 'POST') { await new Promise((r) => setTimeout(r, 350)); return json(route, { payoutId: 'pay-a' }); }
+    return json(route, { error: `Unhandled payout field race ${method} ${path}` }, 500);
+  });
+  await login(page);
+  await page.getByRole('button', { name: 'Referrals', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'CREATOR-A', exact: true })).toBeVisible();
+  const method = page.locator('label').filter({ hasText: 'Destination type' }).getByRole('combobox');
+  const name = page.locator('label').filter({ hasText: 'Recipient name' }).getByRole('textbox');
+  const reference = page.locator('label').filter({ hasText: 'Destination / reference' }).getByRole('textbox');
+  const reason = page.getByPlaceholder('Why is this payout being prepared?');
+  await method.selectOption('bank'); await name.fill('CREATOR A BANK'); await reference.fill('A-ACCOUNT'); await reason.fill('Pay A');
+  await page.getByRole('button', { name: 'REQUEST PAYOUT' }).click();
+  await page.getByRole('button', { name: /CREATOR-B/ }).click();
+  await expect(page.getByRole('heading', { name: 'CREATOR-B', exact: true })).toBeVisible();
+  await expect(method).toHaveValue(''); await expect(name).toHaveValue(''); await expect(reference).toHaveValue(''); await expect(reason).toHaveValue('');
+  await method.selectOption('wallet'); await name.fill('CREATOR B WALLET'); await reference.fill('B-WALLET'); await reason.fill('Pay B');
+  await page.waitForTimeout(600);
+  await expect(name).toHaveValue('CREATOR B WALLET'); await expect(reference).toHaveValue('B-WALLET'); await expect(reason).toHaveValue('Pay B');
+});

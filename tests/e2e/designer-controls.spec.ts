@@ -177,7 +177,7 @@ test('Reviewer selection ignores stale candidate and policy responses from a pre
 test('Reviewer action completion cannot repopulate a newly selected Issue with old candidates', async ({ page }) => {
   const items = [
     { issueId: REVIEW_ID, issueCode: 'IO-REVIEW-01', issueStatus: 'DESIGN_REVIEW', objectType: 'tee', sizeCode: 'M', colorCode: 'Black', designJobId: '33333333-3333-3333-3333-333333333333', designState: 'REVIEW', artworkUrl: null, width: 2048, height: 3072, provider: 'OPENAI', model: 'test-model', candidateCount: 1, updatedAt: '2026-08-21T10:00:00.000Z' },
-    { issueId: APPROVED_ID, issueCode: 'IO-APPROVED-01', issueStatus: 'DESIGN_APPROVED', objectType: 'tee', sizeCode: 'L', colorCode: 'White', designJobId: '44444444-4444-4444-4444-444444444444', designState: 'APPROVED', artworkUrl: null, width: 2048, height: 3072, provider: 'OPENAI', model: 'test-model', candidateCount: 1, updatedAt: '2026-08-21T10:00:00.000Z' },
+    { issueId: APPROVED_ID, issueCode: 'IO-APPROVED-01', issueStatus: 'DESIGN_REVIEW', objectType: 'tee', sizeCode: 'L', colorCode: 'White', designJobId: '44444444-4444-4444-4444-444444444444', designState: 'REVIEW', artworkUrl: null, width: 2048, height: 3072, provider: 'OPENAI', model: 'test-model', candidateCount: 1, updatedAt: '2026-08-21T10:00:00.000Z' },
   ];
   let reviewStarted = false;
   await page.route('**/ops/api/**', async (route) => {
@@ -213,10 +213,13 @@ test('Reviewer action completion cannot repopulate a newly selected Issue with o
   await expect.poll(() => reviewStarted).toBe(true);
   await page.getByRole('button', { name: /IO-APPROVED-01/ }).click();
   await expect(page.getByText('ACTION-NEW-CANDIDATE')).toBeVisible();
+  await page.getByLabel('Revision reason').fill('B-SPECIFIC-FEEDBACK');
   await page.waitForTimeout(500);
   await expect(page.getByText('ISSUE / IO-APPROVED-01')).toBeVisible();
   await expect(page.getByText('ACTION-OLD-CANDIDATE')).toHaveCount(0);
   await expect(page.getByText('ACTION-NEW-CANDIDATE')).toBeVisible();
+  await expect(page.getByLabel('Revision reason')).toHaveValue('B-SPECIFIC-FEEDBACK');
+  await expect(page.getByRole('status')).toHaveCount(0);
 });
 
 
@@ -253,4 +256,44 @@ test('Reviewer private answer reveal cannot leak into a newly selected Issue', a
   await expect(page.getByText('ISSUE / IO-REVIEW-B')).toBeVisible();
   await page.waitForTimeout(500);
   await expect(page.getByText('PRIVATE-A-ANSWER')).toHaveCount(0);
+});
+
+
+test('Reviewer per-Issue policy save cannot overwrite a newly selected Issue policy', async ({ page }) => {
+  const A = REVIEW_ID;
+  const B = APPROVED_ID;
+  await page.route('**/ops/api/**', async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    const method = request.method();
+    if (path === '/ops/api/attention') return json(route, { items: [] });
+    if (path === '/ops/api/dashboard') return json(route, { sales: { currency: 'USD', today: { orders: 0, grossMinor: 0 }, sevenDays: { orders: 0, grossMinor: 0 }, thirtyDays: { orders: 0, grossMinor: 0 }, lifetime: { orders: 0, grossMinor: 0 }, refundedMinor: 0, averageOrderMinor: 0 }, operations: { paidIssues: 2, designing: 0, review: 1, production: 0, transit: 0, delivered: 0 }, attention: { paymentExceptions: 0, designFailures: 0, manufacturingFailures: 0, notificationFailures: 0, supportOpen: 0 }, activity: [] });
+    if (path === '/ops/api/designer' && method === 'GET') return json(route, { items: [
+      { issueId: A, issueCode: 'IO-POLICY-A', issueStatus: 'DESIGN_REVIEW', objectType: 'tee', sizeCode: 'M', colorCode: 'Black', designJobId: 'a3333333-3333-4333-8333-333333333333', designState: 'REVIEW', artworkUrl: null, width: 2048, height: 3072, provider: 'OPENAI', model: 'test', candidateCount: 0, updatedAt: '2026-09-09T00:00:00Z' },
+      { issueId: B, issueCode: 'IO-POLICY-B', issueStatus: 'DESIGN_APPROVED', objectType: 'tee', sizeCode: 'L', colorCode: 'White', designJobId: 'b4444444-4444-4444-8444-444444444444', designState: 'APPROVED', artworkUrl: null, width: 2048, height: 3072, provider: 'OPENAI', model: 'test', candidateCount: 0, updatedAt: '2026-09-09T00:00:00Z' },
+    ] });
+    if (path === '/ops/api/designer/policy' && method === 'GET') return json(route, { policy: basePolicy });
+    if (path === '/ops/api/readiness') return json(route, { checkedAt: '2026-09-09T00:00:00Z', readyForSandbox: true, readyForProduction: false, checks: [{ key: 'openai', label: 'OpenAI', state: 'ready', detail: 'ready' }, { key: 'storage', label: 'Storage', state: 'ready', detail: 'ready' }, { key: 'queues', label: 'Queues', state: 'configured', detail: 'ready' }, { key: 'factory-confirm', label: 'Factory', state: 'safe', detail: 'safe' }] });
+    if (path.endsWith('/candidates')) return json(route, { items: [] });
+    if (path === `/ops/api/designer/${A}/policy`) {
+      if (method === 'GET') return json(route, { globalVersion: 1, override: null, policy: { ...basePolicy, mode: 'HYBRID' } });
+      if (method === 'PUT') {
+        await new Promise((resolve) => setTimeout(resolve, 350));
+        return json(route, { globalVersion: 1, override: { mode: 'AUTO' }, policy: { ...basePolicy, mode: 'AUTO' } });
+      }
+    }
+    if (path === `/ops/api/designer/${B}/policy` && method === 'GET') return json(route, { globalVersion: 1, override: { mode: 'MANUAL' }, policy: { ...basePolicy, mode: 'MANUAL' } });
+    return json(route, { error: `Unhandled policy race ${method} ${path}` }, 500);
+  });
+
+  await login(page);
+  await page.getByRole('button', { name: 'Designer', exact: true }).click();
+  await page.getByRole('button', { name: /IO-POLICY-A/ }).click();
+  await expect(page.getByRole('combobox', { name: 'This Issue Mode' })).toHaveValue('INHERIT');
+  await page.getByRole('combobox', { name: 'This Issue Mode' }).selectOption('AUTO');
+  await page.getByRole('button', { name: /IO-POLICY-B/ }).click();
+  await expect(page.getByText('ISSUE / IO-POLICY-B')).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'This Issue Mode' })).toHaveValue('MANUAL');
+  await page.waitForTimeout(500);
+  await expect(page.getByRole('combobox', { name: 'This Issue Mode' })).toHaveValue('MANUAL');
 });

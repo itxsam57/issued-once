@@ -63,27 +63,27 @@ export function ShippingAddressForm({ onSubmit }: Props) {
       <p className={styles.signal}>ISSUE / DESTINATION</p>
       <h1 id="shipping-heading">Where does it go?</h1>
       <form className={styles.form} onSubmit={submit}>
-        <label className={`${styles.field} ${styles.wide}`}><span>Name</span><input name="recipientName" autoComplete="name" required /></label>
-        <label className={`${styles.field} ${styles.wide}`}><span>Address</span><input name="line1" autoComplete="address-line1" required /></label>
-        <label className={`${styles.field} ${styles.wide}`}><span>Address line 2 <em>optional</em></span><input name="line2" autoComplete="address-line2" /></label>
-        <label className={styles.field}><span>City</span><input name="city" autoComplete="address-level2" required /></label>
+        <label className={`${styles.field} ${styles.wide}`}><span>Name</span><input name="recipientName" autoComplete="name" required disabled={busy} /></label>
+        <label className={`${styles.field} ${styles.wide}`}><span>Address</span><input name="line1" autoComplete="address-line1" required disabled={busy} /></label>
+        <label className={`${styles.field} ${styles.wide}`}><span>Address line 2 <em>optional</em></span><input name="line2" autoComplete="address-line2" disabled={busy} /></label>
+        <label className={styles.field}><span>City</span><input name="city" autoComplete="address-level2" required disabled={busy} /></label>
         <label className={styles.field}>
           <span>Province / state / region {!requirements.regionRequired ? <em>optional</em> : null}</span>
-          <input aria-label="Province / state / region" name="region" autoComplete="address-level1" required={requirements.regionRequired} />
+          <input aria-label="Province / state / region" name="region" autoComplete="address-level1" required={requirements.regionRequired} disabled={busy} />
         </label>
-        <label className={styles.field}><span>Postal code</span><input name="postalCode" autoComplete="postal-code" required /></label>
+        <label className={styles.field}><span>Postal code</span><input name="postalCode" autoComplete="postal-code" required disabled={busy} /></label>
         <label className={styles.field}>
           <span>Country</span>
-          <select aria-label="Country" value={country} onChange={(event) => setCountry(event.target.value)} required>
+          <select aria-label="Country" value={country} onChange={(event) => setCountry(event.target.value)} required disabled={busy}>
             <option value="" disabled>Select</option>
             {COUNTRIES.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
             <option value="OTHER">Other</option>
           </select>
         </label>
         {country === 'OTHER' ? (
-          <label className={styles.field}><span>Country code</span><input aria-label="Country code" value={otherCountry} onChange={(event) => setOtherCountry(event.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2))} placeholder="XX" required /></label>
+          <label className={styles.field}><span>Country code</span><input aria-label="Country code" value={otherCountry} onChange={(event) => setOtherCountry(event.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2))} placeholder="XX" required disabled={busy} /></label>
         ) : null}
-        <label className={`${styles.field} ${styles.wide}`}><span>Phone <em>optional</em></span><input aria-label="Phone" name="phone" autoComplete="tel" inputMode="tel" /></label>
+        <label className={`${styles.field} ${styles.wide}`}><span>Phone <em>optional</em></span><input aria-label="Phone" name="phone" autoComplete="tel" inputMode="tel" disabled={busy} /></label>
         <p className={styles.note}>Used only to deliver your issue, including courier contact when supplied. It stays private.</p>
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
         <button type="submit" disabled={busy || !country}>{busy ? 'SAVING' : 'USE THIS ADDRESS'}</button>

@@ -58,3 +58,13 @@ test('fails closed without leaking provider error details', async () => {
     errorSpy.mockRestore();
   }
 });
+
+
+test('unauthenticated Printful catalog route hides missing internal auth configuration', async () => {
+  delete process.env.INTERNAL_OPERATIONS_TOKEN;
+  const GET = await loadGet();
+  const response = await GET(request());
+  expect(response.status).toBe(401);
+  expect(await response.json()).toEqual({ error: 'Unauthorized' });
+  expect(inspectIssuedOnceMock).not.toHaveBeenCalled();
+});

@@ -52,6 +52,7 @@ export function SizeConfirmation({ object, sizes, onConfirm }: SizeConfirmationP
               name="size"
               value={size.code}
               checked={selected === size.code}
+              disabled={submitting}
               onChange={() => {
                 setSelected(size.code);
                 setError(null);

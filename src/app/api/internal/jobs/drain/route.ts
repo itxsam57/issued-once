@@ -9,9 +9,9 @@ function digest(value: string): Buffer {
   return createHash('sha256').update(value, 'utf8').digest();
 }
 
-function authorize(request: Request): 'ok' | 'unauthorized' | 'unconfigured' {
+function authorize(request: Request): 'ok' | 'unauthorized' {
   const configured = process.env.CRON_SECRET?.trim();
-  if (!configured || configured.length < 24) return 'unconfigured';
+  if (!configured || configured.length < 24) return 'unauthorized';
   const authorization = request.headers.get('authorization')?.trim() ?? '';
   if (!authorization.startsWith('Bearer ')) return 'unauthorized';
   const candidate = authorization.slice('Bearer '.length).trim();
@@ -21,9 +21,6 @@ function authorize(request: Request): 'ok' | 'unauthorized' | 'unconfigured' {
 
 export async function POST(request: Request) {
   const authorization = authorize(request);
-  if (authorization === 'unconfigured') {
-    return Response.json({ error: 'Background jobs are not configured' }, { status: 503 });
-  }
   if (authorization === 'unauthorized') {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
