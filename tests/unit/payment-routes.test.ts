@@ -1,4 +1,4 @@
-import { beforeEach, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 
 const {
   cookiesMock,
@@ -56,6 +56,7 @@ const conversionId = '22222222-2222-4222-8222-222222222222';
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.stubEnv('SAFEPAY_ENVIRONMENT', 'production');
   referralsAreEnabledMock.mockReturnValue(true);
   cookiesMock.mockResolvedValue({ get: vi.fn().mockReturnValue({ value: 'session-token' }) });
   createIssueServiceMock.mockReturnValue({
@@ -74,6 +75,10 @@ beforeEach(() => {
     reverseRefundedAttempt: reverseRefundedReferralMock,
   });
   enqueueReferralNotificationMock.mockResolvedValue({ messageId: 'referral-notification-message' });
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 test('payment creation derives experience and return origin server-side', async () => {

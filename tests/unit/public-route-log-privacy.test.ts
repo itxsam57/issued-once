@@ -82,6 +82,7 @@ describe('public API route log privacy', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv('ENABLE_VISUAL_PREVIEW', '0');
+    vi.stubEnv('SAFEPAY_ENVIRONMENT', 'production');
     cookiesMock.mockResolvedValue(cookieStore());
   });
 
