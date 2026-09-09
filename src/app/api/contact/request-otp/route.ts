@@ -29,7 +29,10 @@ export async function POST(request: Request) {
       email: parsed.data.email,
       ipKey: clientIpRiskKey(request.headers),
     });
-    return Response.json(result);
+    return Response.json({
+      challengeId: result.challengeId,
+      retryAfterSeconds: result.retryAfterSeconds,
+    });
   } catch (error) {
     if (error instanceof ContactRuntimeUnavailableError) {
       return Response.json({ error: 'Contact verification is unavailable' }, { status: 503 });
