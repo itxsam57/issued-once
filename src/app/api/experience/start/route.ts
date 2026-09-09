@@ -25,6 +25,7 @@ export async function POST() {
       initialPosition: bootstrap.initialPosition,
       interviewComplete: bootstrap.interviewComplete,
       entryMode: bootstrap.entryMode,
+      resumePrompt: bootstrap.resumePrompt,
       questions: bootstrap.questions,
     });
   } catch (error) {
