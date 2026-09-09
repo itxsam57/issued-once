@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "version": "1.39.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-09T01:03:48Z",
+  "updatedAt": "2026-09-09T01:29:21.831795Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
@@ -1140,5 +1140,36 @@
       "nonOtpBoundaryAudit": "PASS",
       "physicalSmoke": "PASS: Tee/Cap/Tote seven-answer + object + size + base gates; real OTP request reached; no payment or manufacturing confirmation"
     }
+  },
+  "ownerOsReliability20260909": {
+    "status": "CODE_GREEN_READY_FOR_PRODUCTION_DEPLOYMENT",
+    "implementationHead": "7b25053de74051d32f122e48a22625df2fb9f1b8",
+    "rootCauses": [
+      "DesignerPanel still consumed legacy readiness key 'blob' after backend migrated durable private artwork readiness to 'storage', falsely blocking manual artwork.",
+      "Global DESIGN_POLICY and CATALOG publication used a data-modifying CTE that retired the old ACTIVE row and inserted a new ACTIVE row in one statement, colliding with ops_website_config_active_type_idx on repeat publication."
+    ],
+    "implemented": [
+      "Designer consumes the canonical storage readiness key and keeps manual workflow available independently of OpenAI readiness.",
+      "Versioned website configuration publication now uses a serialized Neon transaction: advisory transaction lock, retire current ACTIVE row, then insert the next ACTIVE version.",
+      "Both DESIGN_POLICY and CATALOG publication share the same atomic rotation primitive.",
+      "Factory confirmation policy and independent production kill switch remain unchanged."
+    ],
+    "verification": {
+      "tddRed": "PASS: intended regressions failed on legacy blob lookup and unsafe query-only version publication before implementation.",
+      "focused": "PASS: 4 files / 22 tests plus exact OpenAI-missing/storage-ready Designer regression.",
+      "fullUnit": "PASS: 249 files / 769 tests",
+      "typecheck": "PASS",
+      "lint": "PASS",
+      "productionBuild": "PASS",
+      "playwright": "PASS: 56/56 desktop/mobile tests"
+    },
+    "productionSafety": {
+      "safepayMutated": false,
+      "printfulProviderMutated": false,
+      "realChargeOrRefund": false,
+      "realManufacturingConfirmation": false,
+      "productionDeploymentPerformed": false
+    },
+    "nextAction": "Fast-forward the production-linked Hostinger release branch, wait for exact release identity, verify manual storage readiness live, round-trip design mode MANUAL\u2192HYBRID\u2192MANUAL to prove repeat policy publication, then rerun production-safe hard test."
   }
 }
