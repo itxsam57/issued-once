@@ -5,7 +5,7 @@ export default function CookiesPage() {
   return (
     <MerchantPageShell
       kicker="COOKIES / BROWSER CONTINUITY"
-      title="Only what the Issue needs to keep its place."
+      title="Cookies, only where the Issue needs them."
       intro="ISSUED ONCE currently uses strictly necessary first-party cookies for the order journey and its security."
     >
       <section className={styles.section}>
