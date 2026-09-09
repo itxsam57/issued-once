@@ -7,11 +7,16 @@ import type {
   SessionHashRotation,
 } from './ExperienceRepository';
 
+export type SqlStatement = { text: string; params?: readonly unknown[] };
+
 export type SqlExecutor = {
   query<Row extends Record<string, unknown> = Record<string, unknown>>(
     text: string,
     params?: readonly unknown[],
   ): Promise<Row[]>;
+  transaction?(
+    statements: readonly SqlStatement[],
+  ): Promise<Array<Array<Record<string, unknown>>>>;
 };
 
 type ExperienceRow = {

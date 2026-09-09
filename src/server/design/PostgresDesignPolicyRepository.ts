@@ -1,4 +1,5 @@
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
+import { publishVersionedConfig } from '@/server/config/PostgresVersionedConfig';
 import {
   DEFAULT_DESIGN_POLICY,
   mergeDesignPolicy,
@@ -55,27 +56,7 @@ export class PostgresDesignPolicyRepository {
 
   async publishGlobal(input: DesignPolicy): Promise<number> {
     const policy = parseDesignPolicy(input);
-    const rows = await this.sql.query<{ version: number | string }>(
-      `WITH next AS (
-         SELECT COALESCE(MAX(version),0)+1 AS version
-         FROM ops_website_config_versions
-         WHERE config_type='DESIGN_POLICY'
-       ), retired AS (
-         UPDATE ops_website_config_versions
-         SET status='RETIRED'
-         WHERE config_type='DESIGN_POLICY' AND status='ACTIVE'
-         RETURNING id
-       ), inserted AS (
-         INSERT INTO ops_website_config_versions(config_type,version,status,payload,created_at,published_at)
-         SELECT 'DESIGN_POLICY',next.version,'ACTIVE',$1::jsonb,NOW(),NOW()
-         FROM next
-         RETURNING version
-       )
-       SELECT version FROM inserted`,
-      [JSON.stringify(policy)],
-    );
-    if (!rows[0]) throw new Error('Design policy could not be published');
-    return Number(rows[0].version);
+    return publishVersionedConfig(this.sql, 'DESIGN_POLICY', policy);
   }
 
   async setIssueOverride(issueId: string, input: DesignPolicyOverride | null): Promise<void> {

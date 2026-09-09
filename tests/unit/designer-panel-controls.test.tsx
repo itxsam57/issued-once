@@ -38,21 +38,21 @@ function queueItem(designState: 'REVIEW' | 'APPROVED' = 'REVIEW') {
   };
 }
 
-function readiness() {
+function readiness(openAIState: 'ready' | 'missing' = 'ready') {
   return {
     checkedAt: new Date().toISOString(),
     readyForSandbox: false,
     readyForProduction: false,
     checks: [
-      { key: 'openai', label: 'OpenAI design models', state: 'ready', detail: 'Models accessible.' },
-      { key: 'blob', label: 'Private artwork storage', state: 'ready', detail: 'Private Blob signing check succeeded.' },
+      { key: 'openai', label: 'OpenAI design models', state: openAIState, detail: openAIState === 'ready' ? 'Models accessible.' : 'OPENAI_API_KEY is not configured.' },
+      { key: 'storage', label: 'Private artwork storage', state: 'ready', detail: 'Durable private artwork database boundary is available.' },
       { key: 'queues', label: 'Durable queues', state: 'configured', detail: 'Queue consumers declared.' },
       { key: 'factory-confirm', label: 'Factory charge switch', state: 'safe', detail: 'Printful production confirmation is disabled by default.' },
     ],
   };
 }
 
-function mockDesignerFetch(designState: 'REVIEW' | 'APPROVED' = 'REVIEW') {
+function mockDesignerFetch(designState: 'REVIEW' | 'APPROVED' = 'REVIEW', openAIState: 'ready' | 'missing' = 'ready') {
   return vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
     const url = String(input);
     const method = init?.method ?? 'GET';
@@ -60,7 +60,7 @@ function mockDesignerFetch(designState: 'REVIEW' | 'APPROVED' = 'REVIEW') {
     if (url === '/ops/api/designer/policy' && method === 'GET') {
       return response({ source: 'ACTIVE', version: 3, policy: DEFAULT_DESIGN_POLICY });
     }
-    if (url === '/ops/api/readiness' && method === 'GET') return response(readiness());
+    if (url === '/ops/api/readiness' && method === 'GET') return response(readiness(openAIState));
     if (url === `/ops/api/designer/${issueId}/candidates` && method === 'GET') return response({ items: [] });
     if (url === `/ops/api/designer/${issueId}/policy` && method === 'GET') {
       return response({ globalVersion: 3, override: null, policy: DEFAULT_DESIGN_POLICY });
@@ -107,6 +107,18 @@ test('Designer exposes complete global/per-Issue policy, readiness, private reve
   expect(fetchMock).toHaveBeenCalledWith('/ops/api/designer/policy', expect.objectContaining({ cache: 'no-store' }));
   expect(fetchMock).toHaveBeenCalledWith('/ops/api/readiness', expect.objectContaining({ cache: 'no-store' }));
   expect(fetchMock).toHaveBeenCalledWith(`/ops/api/designer/${issueId}/policy`, expect.objectContaining({ cache: 'no-store' }));
+});
+
+
+test('Designer keeps manual artwork ready when OpenAI is missing but durable storage is ready', async () => {
+  mockDesignerFetch('REVIEW', 'missing');
+
+  render(<DesignerPanel />);
+
+  expect(await screen.findByText(/AI AUTOMATION UNAVAILABLE/i)).toBeInTheDocument();
+  expect(screen.getByText(/OPENAI_API_KEY is not configured/i)).toBeInTheDocument();
+  expect(screen.getByText(/MANUAL ARTWORK READY/i)).toBeInTheDocument();
+  expect(screen.getByText(/Durable private artwork database boundary is available/i)).toBeInTheDocument();
 });
 
 test('approved artwork exposes only the safe unconfirmed manufacturing handoff from Designer', async () => {

@@ -3,6 +3,7 @@ import { PostgresIssuedOnceCatalogGateway } from '@/server/physical/PostgresIssu
 import { OpsWebsiteService } from '@/server/ops/OpsWebsiteService';
 import type { OpsCatalogPayload } from '@/server/ops/OpsWebsiteService';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
+import { PostgresOpsWebsiteStore } from '@/server/ops/PostgresOpsWebsiteStore';
 
 const base = JSON.stringify({ currency: 'USD', products: { tee: { slug: 'issued-tee', variants: [{ id: 'tee-m-black', size: 'M', colorName: 'Black', colorSwatch: '#171713', amountMinor: 5400, available: true }] } } });
 const active = { currency: 'USD', products: { tee: { slug: 'issued-tee', variants: [{ id: 'tee-m-black', size: 'M', colorName: 'Black', colorSwatch: '#171713', amountMinor: 5900, available: true }] } } };
@@ -120,4 +121,24 @@ test('choice question versions require real choices', async () => {
 
   await expect(service.createQuestionVersion({ questionId: 'rhythm.new', family: 'rhythm', prompt: 'Pick one.', kind: 'choice', optional: false, choices: [] }))
     .rejects.toThrow(/at least two valid choices/i);
+});
+
+
+test('catalog publication rotates the active version inside one atomic transaction', async () => {
+  const transaction = vi.fn(async (queries: Array<{ text: string; params?: readonly unknown[] }>) => {
+    expect(queries.map((entry) => entry.text)).toEqual([
+      expect.stringMatching(/pg_advisory_xact_lock/i),
+      expect.stringMatching(/UPDATE ops_website_config_versions[\s\S]*status='RETIRED'/i),
+      expect.stringMatching(/INSERT INTO ops_website_config_versions[\s\S]*RETURNING version/i),
+    ]);
+    return [[], [], [{ version: 6 }]];
+  });
+  const sql = {
+    query: async () => { throw new Error('unsafe non-transactional publication'); },
+    transaction,
+  } as unknown as SqlExecutor;
+  const store = new PostgresOpsWebsiteStore(sql, retailCatalog);
+
+  await expect(store.publishCatalog(retailCatalog)).resolves.toBe(6);
+  expect(transaction).toHaveBeenCalledTimes(1);
 });

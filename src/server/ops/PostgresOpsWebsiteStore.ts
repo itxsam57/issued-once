@@ -1,4 +1,5 @@
 import { QUESTION_VAULT } from '@/domain/questions/QuestionVault';
+import { publishVersionedConfig } from '@/server/config/PostgresVersionedConfig';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
 import type { OpsCatalogPayload, OpsQuestionControl, OpsWebsiteState, OpsWebsiteStore } from './OpsWebsiteService';
 
@@ -47,21 +48,7 @@ export class PostgresOpsWebsiteStore implements OpsWebsiteStore {
   }
 
   async publishCatalog(payload: OpsCatalogPayload): Promise<number> {
-    const rows = await this.sql.query<{ version: number }>(
-      `WITH next AS (
-         SELECT COALESCE(MAX(version),0)+1 AS version FROM ops_website_config_versions WHERE config_type='CATALOG'
-       ), retired AS (
-         UPDATE ops_website_config_versions SET status='RETIRED'
-         WHERE config_type='CATALOG' AND status='ACTIVE' RETURNING id
-       ), inserted AS (
-         INSERT INTO ops_website_config_versions(config_type,version,status,payload,created_at,published_at)
-         SELECT 'CATALOG',next.version,'ACTIVE',$1::jsonb,NOW(),NOW() FROM next
-         RETURNING version
-       ) SELECT version FROM inserted`,
-      [JSON.stringify(payload)],
-    );
-    if (!rows[0]) throw new Error('Catalog could not be published');
-    return Number(rows[0].version);
+    return publishVersionedConfig(this.sql, 'CATALOG', payload);
   }
 
   async updateQuestion(input: { questionId: string; version: number; active: boolean; weight: number }): Promise<void> {

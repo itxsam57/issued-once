@@ -88,11 +88,11 @@ export function DesignerPanel() {
 
   const readinessCheck = (key: string) => readiness?.checks.find((check) => check.key === key);
   const openAI = readinessCheck('openai');
-  const blob = readinessCheck('blob');
+  const storage = readinessCheck('storage');
   const queues = readinessCheck('queues');
   const factorySwitch = readinessCheck('factory-confirm');
-  const aiReady = openAI?.state === 'ready' && blob?.state === 'ready' && ['ready', 'configured'].includes(queues?.state ?? '');
-  const manualReady = blob?.state === 'ready';
+  const aiReady = openAI?.state === 'ready' && storage?.state === 'ready' && ['ready', 'configured'].includes(queues?.state ?? '');
+  const manualReady = storage?.state === 'ready';
   const factorySafe = factorySwitch?.state === 'safe';
 
   async function refresh() { await live.refresh(); }
@@ -193,7 +193,7 @@ export function DesignerPanel() {
       <p>GLOBAL DESIGN MODE</p>
       <div className={styles.detailGrid} aria-label="Design runtime readiness">
         <div><span>AI RUNTIME</span><strong>{aiReady ? 'AI AUTOMATION READY' : 'AI AUTOMATION UNAVAILABLE'}</strong><small>{openAI?.detail ?? 'OpenAI status pending.'}</small></div>
-        <div><span>MANUAL RUNTIME</span><strong>{manualReady ? 'MANUAL ARTWORK READY' : 'MANUAL ARTWORK BLOCKED'}</strong><small>{blob?.detail ?? 'Private Blob status pending.'}</small></div>
+        <div><span>MANUAL RUNTIME</span><strong>{manualReady ? 'MANUAL ARTWORK READY' : 'MANUAL ARTWORK BLOCKED'}</strong><small>{storage?.detail ?? 'Private artwork storage status pending.'}</small></div>
         <div><span>FACTORY SAFETY</span><strong>{factorySafe ? 'FACTORY CHARGE SWITCH SAFE' : factorySwitch?.state === 'armed' ? 'FACTORY CHARGE SWITCH ARMED' : 'FACTORY CHARGE SWITCH UNKNOWN'}</strong><small>{factorySwitch?.detail ?? 'Factory kill-switch status pending.'}</small></div>
       </div>
       {!globalPolicy ? <small>LOADING POLICY…</small> : <div className={styles.actionRow}>

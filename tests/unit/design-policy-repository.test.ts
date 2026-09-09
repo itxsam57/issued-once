@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { DEFAULT_DESIGN_POLICY } from '@/server/design/DesignPolicy';
 import { PostgresDesignPolicyRepository } from '@/server/design/PostgresDesignPolicyRepository';
 import type { SqlExecutor } from '@/server/experience/PostgresExperienceRepository';
@@ -37,15 +37,18 @@ test('per-Issue override takes precedence over the active global policy', async 
 });
 
 test('publishes validated global policy as a new active DESIGN_POLICY version', async () => {
-  const params: Array<readonly unknown[]> = [];
-  const sql: SqlExecutor = { query: async (_query, nextParams) => {
-    params.push(nextParams ?? []);
-    return [{ version: 7 }] as never;
-  }};
+  const transactions: Array<readonly { text: string; params?: readonly unknown[] }[]> = [];
+  const sql: SqlExecutor = {
+    query: async () => [] as never,
+    transaction: async (statements) => {
+      transactions.push(statements);
+      return [[], [], [{ version: 7 }]];
+    },
+  };
   const repository = new PostgresDesignPolicyRepository(sql);
 
   await expect(repository.publishGlobal({ ...DEFAULT_DESIGN_POLICY, mode: 'MANUAL' })).resolves.toBe(7);
-  expect(JSON.parse(String(params[0][0]))).toMatchObject({ mode: 'MANUAL' });
+  expect(JSON.parse(String(transactions[0][2].params?.[1]))).toMatchObject({ mode: 'MANUAL' });
 });
 
 test('stores only validated partial per-Issue overrides and supports clearing them', async () => {
@@ -64,4 +67,23 @@ test('stores only validated partial per-Issue overrides and supports clearing th
   expect(JSON.parse(String(calls[0].params[1]))).toEqual({ mode: 'MANUAL', answerRevealDefault: 'VISIBLE' });
   expect(calls[1].query).toMatch(/delete/i);
   await expect(repository.setIssueOverride(issueId, { mode: 'MAGIC' as never })).rejects.toThrow(/design policy override/i);
+});
+
+test('publishes the next global policy through an atomic version rotation transaction', async () => {
+  const transaction = vi.fn(async (queries: Array<{ text: string; params?: readonly unknown[] }>) => {
+    expect(queries.map((entry) => entry.text)).toEqual([
+      expect.stringMatching(/pg_advisory_xact_lock/i),
+      expect.stringMatching(/UPDATE ops_website_config_versions[\s\S]*status='RETIRED'/i),
+      expect.stringMatching(/INSERT INTO ops_website_config_versions[\s\S]*RETURNING version/i),
+    ]);
+    return [[], [], [{ version: 2 }]];
+  });
+  const sql = {
+    query: async () => { throw new Error('unsafe non-transactional publication'); },
+    transaction,
+  } as unknown as SqlExecutor;
+  const repository = new PostgresDesignPolicyRepository(sql);
+
+  await expect(repository.publishGlobal({ ...DEFAULT_DESIGN_POLICY, mode: 'AUTO' })).resolves.toBe(2);
+  expect(transaction).toHaveBeenCalledTimes(1);
 });

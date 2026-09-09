@@ -244,7 +244,7 @@ describe('Owner OS live rooms', () => {
         checkedAt: '2026-08-23T08:00:00.000Z', readyForSandbox: true, readyForProduction: false,
         checks: [
           { key: 'openai', label: 'OpenAI design models', state: 'ready', detail: 'Models accessible.' },
-          { key: 'blob', label: 'Private artwork storage', state: 'ready', detail: 'Blob accessible.' },
+          { key: 'storage', label: 'Private artwork storage', state: 'ready', detail: 'Durable private artwork database boundary is available.' },
           { key: 'queues', label: 'Durable queues', state: 'configured', detail: 'Queues configured.' },
           { key: 'factory-confirm', label: 'Factory charge switch', state: 'safe', detail: 'Production disabled.' },
         ],

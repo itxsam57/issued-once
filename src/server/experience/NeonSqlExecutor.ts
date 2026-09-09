@@ -12,5 +12,11 @@ export function createNeonSqlExecutor(databaseUrl: string): SqlExecutor {
       const rows = await sql.query(text, Array.from(params));
       return rows as Row[];
     },
+    async transaction(statements) {
+      const results = await sql.transaction((tx) => statements.map((statement) =>
+        tx.query(statement.text, Array.from(statement.params ?? [])),
+      ));
+      return results as Array<Array<Record<string, unknown>>>;
+    },
   };
 }

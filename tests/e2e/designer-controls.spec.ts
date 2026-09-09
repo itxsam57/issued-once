@@ -65,7 +65,7 @@ test('Designer control plane applies policy, feedback and unconfirmed manufactur
       checkedAt: '2026-08-21T10:00:00.000Z', readyForSandbox: true, readyForProduction: false,
       checks: [
         { key: 'openai', label: 'OpenAI design models', state: 'ready', detail: 'Configured models are accessible.' },
-        { key: 'blob', label: 'Private artwork storage', state: 'ready', detail: 'Private Blob signing check succeeded.' },
+        { key: 'storage', label: 'Private artwork storage', state: 'ready', detail: 'Durable private artwork database boundary is available.' },
         { key: 'queues', label: 'Durable queues', state: 'configured', detail: 'Design queue consumer is declared.' },
         { key: 'factory-confirm', label: 'Factory charge switch', state: 'safe', detail: 'Production confirmation is disabled.' },
       ],
