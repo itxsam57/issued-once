@@ -85,8 +85,8 @@ jobs:
           curl -sSL https://strix.ai/install | bash
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           export PATH="$HOME/.local/bin:$PATH"
-          strix --version
-          docker pull ghcr.io/usestrix/strix-sandbox:1.2.0
+          "/home/ubuntu/.strix/bin/strix" --version
+          docker image inspect ghcr.io/usestrix/strix-sandbox:1.3.0 >/dev/null
 
       - name: Run hard full-scope white-box Strix scan
         id: scan
@@ -94,7 +94,7 @@ jobs:
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           set +e
-          strix -n -t ./ --scan-mode standard --scope-mode full \
+          "/home/ubuntu/.strix/bin/strix" -n -t ./ --scan-mode standard --scope-mode full \
             --instruction-file .github/strix-hard-20260910.md \
             --max-budget 1 --max-turns 220 2>&1 | tee strix-hard.log
           code=${PIPESTATUS[0]}
@@ -109,7 +109,10 @@ jobs:
           echo "Strix exit: ${STRIX_EXIT_CODE:-unknown}"
           cp /tmp/ollama.log ./ollama.log 2>/dev/null || true
           find strix_runs -maxdepth 3 -type f -print 2>/dev/null | sort || true
-          for f in strix_runs/*/run.json; do [ -f "$f" ] && cat "$f"; done
+          shopt -s nullglob
+          files=(strix_runs/*/run.json)
+          for f in "${files[@]}"; do cat "$f"; done
+          true
 
       - name: Upload Strix hard-mode evidence
         if: always()
