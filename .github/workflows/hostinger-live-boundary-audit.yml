@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      LIVE_PRODUCTION_URL: https://lightgray-coyote-141764.hostingersite.com
+      LIVE_PRODUCTION_URL: https://issuedonce.shop
       EXPECTED_RELEASE_ID: ${{ github.sha }}
     steps:
       - name: Checkout pushed Hostinger candidate
