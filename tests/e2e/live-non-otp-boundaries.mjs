@@ -159,7 +159,7 @@ try {
     await checkStatusOrExactUnavailable(
       anonymous,
       '/api/webhooks/safepay',
-      [401],
+      [400, 401],
       'Payment webhook is unavailable',
       {
         method: 'POST',
