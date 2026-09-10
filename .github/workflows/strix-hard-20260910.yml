@@ -1,0 +1,124 @@
+name: Strix Hard Adversarial 20260910
+
+"on":
+  push:
+    branches:
+      - qa/strix-hard-20260910-c56
+
+permissions:
+  contents: read
+
+jobs:
+  strix-hard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      STRIX_LLM: ollama/qwen3:4b-instruct
+      LLM_API_BASE: http://127.0.0.1:11434
+      LLM_TIMEOUT: '600'
+      LLM_STREAM_IDLE_TIMEOUT: '600'
+      LLM_DISABLE_STREAMING: '1'
+      STRIX_REASONING_EFFORT: high
+      STRIX_FORCE_REQUIRED_TOOL_CHOICE: 'true'
+      STRIX_TELEMETRY: 'false'
+      STRIX_SANDBOX_MEM_LIMIT: 3g
+      STRIX_SANDBOX_CPUS: '2'
+      STRIX_SANDBOX_PIDS_LIMIT: '512'
+      STRIX_DOCKER_SANDBOX_NETWORK: strix-isolated
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prove pinned target and runner resources
+        run: |
+          git rev-parse HEAD
+          git status --short
+          free -h
+          docker info --format '{{.ServerVersion}} {{.OSType}}/{{.Architecture}}'
+
+      - name: Create no-egress Strix sandbox network
+        run: |
+          docker network create --internal strix-isolated
+          docker network inspect strix-isolated --format '{{.Internal}} {{.Driver}}'
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.23.0
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: pnpm
+
+      - name: Materialize locked application dependencies for local PoCs
+        run: pnpm install --frozen-lockfile
+
+      - name: Install and start Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          OLLAMA_HOST=127.0.0.1:11434 OLLAMA_CONTEXT_LENGTH=32768 OLLAMA_NUM_PARALLEL=1 OLLAMA_MAX_LOADED_MODELS=1 nohup ollama serve >/tmp/ollama.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:11434/api/tags >/dev/null && break; sleep 1; done
+          ollama pull qwen3:4b-instruct
+
+      - name: Verify local model tool calling
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request
+          body = json.dumps({
+              'model':'qwen3:4b-instruct',
+              'stream':False,
+              'messages':[{'role':'user','content':'Call diagnostic_ready with value ready. Do not answer in plain text.'}],
+              'tools':[{'type':'function','function':{'name':'diagnostic_ready','description':'diagnostic tool','parameters':{'type':'object','properties':{'value':{'type':'string'}},'required':['value']}}}],
+              'options':{'num_ctx':32768,'temperature':0.2},
+          }).encode()
+          req=urllib.request.Request('http://127.0.0.1:11434/api/chat',data=body,headers={'content-type':'application/json'})
+          data=json.load(urllib.request.urlopen(req, timeout=120))
+          calls=data.get('message',{}).get('tool_calls') or []
+          print('tool_calls=', len(calls))
+          if not calls: raise SystemExit('local model did not emit a structured tool call')
+          PY
+
+      - name: Install Strix
+        run: |
+          curl -sSL https://strix.ai/install | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.local/bin:$PATH"
+          strix --version
+          docker pull ghcr.io/usestrix/strix-sandbox:1.2.0
+
+      - name: Run hard full-scope white-box Strix scan
+        id: scan
+        shell: bash
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          set +e
+          strix -n -t ./ --scan-mode standard --scope-mode full \
+            --instruction-file .github/strix-hard-20260910.md \
+            --max-budget 1 --max-turns 220 2>&1 | tee strix-hard.log
+          code=${PIPESTATUS[0]}
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          echo "STRIX_EXIT_CODE=$code" >> "$GITHUB_ENV"
+          if [ "$code" -eq 1 ]; then exit 1; fi
+          exit 0
+
+      - name: Summarize artifacts
+        if: always()
+        run: |
+          echo "Strix exit: ${STRIX_EXIT_CODE:-unknown}"
+          cp /tmp/ollama.log ./ollama.log 2>/dev/null || true
+          find strix_runs -maxdepth 3 -type f -print 2>/dev/null | sort || true
+          for f in strix_runs/*/run.json; do [ -f "$f" ] && cat "$f"; done
+
+      - name: Upload Strix hard-mode evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strix-hard-20260910
+          path: |
+            strix-hard.log
+            strix_runs/
+            ollama.log
+          if-no-files-found: warn
+          retention-days: 7
