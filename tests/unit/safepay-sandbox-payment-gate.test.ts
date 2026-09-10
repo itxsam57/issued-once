@@ -45,13 +45,17 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllEnvs());
 
-test('Safepay sandbox payment fails closed for an ordinary public customer session', async () => {
+test('Safepay sandbox payment is available in the normal customer flow while sandbox QA is enabled', async () => {
   const response = await POST(new Request('https://issuedonce.shop/api/payments/create', {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ quoteId: 'quote-1' }),
   }));
-  expect(response.status).toBe(503);
-  expect(await response.json()).toEqual({ error: 'Payment is unavailable' });
-  expect(mocks.createPaymentService).not.toHaveBeenCalled();
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual(expect.objectContaining({ paymentAttemptId: 'payment-sandbox-qa' }));
+  expect(mocks.start).toHaveBeenCalledWith(expect.objectContaining({
+    sessionToken: experienceToken,
+    quoteId: 'quote-1',
+    returnBaseUrl: 'https://issuedonce.shop',
+  }));
 });
 
 test('Owner-started QA customer uses the real Safepay sandbox payment runtime', async () => {

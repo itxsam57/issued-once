@@ -7,11 +7,7 @@ import {
   PaymentRuntimeUnavailableError,
 } from '@/server/payments/runtimePayments';
 import { PreviewPaymentStartService } from '@/server/preview/PreviewPaymentStartService';
-import {
-  isSafepaySandboxQaAvailable,
-  SAFEPAY_SANDBOX_QA_COOKIE,
-  verifySafepaySandboxQaSessionValue,
-} from '@/server/payments/safepaySandboxQa';
+import { isSafepaySandboxQaAvailable } from '@/server/payments/safepaySandboxQa';
 
 const schema = z.object({
   quoteId: z.string().trim().min(1).max(200),
@@ -39,11 +35,8 @@ export async function POST(request: Request) {
     }
 
     const safepayEnvironment = process.env.SAFEPAY_ENVIRONMENT?.trim().toLowerCase() || 'sandbox';
-    if (safepayEnvironment !== 'production') {
-      const qaSession = cookieStore.get(SAFEPAY_SANDBOX_QA_COOKIE)?.value;
-      if (!isSafepaySandboxQaAvailable() || !verifySafepaySandboxQaSessionValue(qaSession)) {
-        return Response.json({ error: 'Payment is unavailable' }, { status: 503 });
-      }
+    if (safepayEnvironment !== 'production' && !isSafepaySandboxQaAvailable()) {
+      return Response.json({ error: 'Payment is unavailable' }, { status: 503 });
     }
 
     const origin = resolvePublicOrigin(request.url);
