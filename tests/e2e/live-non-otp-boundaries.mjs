@@ -227,7 +227,7 @@ try {
       },
     );
 
-    await checkStatus(customer, '/api/referrals/apply', [503], {
+    await checkStatus(customer, '/api/referrals/apply', [409], {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       data: { quoteId: 'live-boundary-audit-no-quote', explicitCode: 'AUDIT' },
