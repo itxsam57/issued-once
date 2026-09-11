@@ -88,6 +88,12 @@ test('Designer exposes complete global/per-Issue policy, readiness, private reve
 
   await userEvent.click(await screen.findByRole('button', { name: /IO-TEST-001/i }));
 
+  expect(await screen.findByText(/CUSTOMER CHOSE/i)).toBeInTheDocument();
+  expect(screen.getByLabelText('Customer selection')).toHaveTextContent(/SHIRT \/ M \/ BLACK/i);
+  expect(screen.getByText(/STEP 1.*CUSTOMER CONTEXT/i)).toBeInTheDocument();
+  expect(screen.getByText(/STEP 2.*UPLOAD DESIGN/i)).toBeInTheDocument();
+  expect(screen.getByText(/STEP 3.*APPROVE DESIGN/i)).toBeInTheDocument();
+
   expect(await screen.findByRole('combobox', { name: /this issue mode/i })).toBeInTheDocument();
   expect(screen.getByRole('combobox', { name: /this issue approval/i })).toBeInTheDocument();
   expect(screen.getByRole('combobox', { name: /this issue reject behavior/i })).toBeInTheDocument();

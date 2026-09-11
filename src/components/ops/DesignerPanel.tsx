@@ -270,6 +270,11 @@ export function DesignerPanel() {
       </button>)}</div>
       <section className={styles.detail}>{!selected ? <p>SELECT A DESIGN</p> : <>
         <p>ISSUE / {selected.issueCode}</p><h2>{selected.designState}</h2>
+        <div className={styles.customerChoice} aria-label="Customer selection">
+          <small>CUSTOMER CHOSE</small>
+          <strong>{selected.objectType.toUpperCase()} / {selected.sizeCode} / {selected.colorCode.toUpperCase()}</strong>
+          <span>These physical choices are locked to this Issue.</span>
+        </div>
         <div className={styles.detailGrid} aria-label="This Issue policy overrides">
           <label>This Issue Mode
             <select aria-label="This Issue Mode" value={issuePolicy?.override?.mode ?? 'INHERIT'} disabled={working || !issuePolicy} onChange={(event) => {
@@ -311,16 +316,21 @@ export function DesignerPanel() {
         {selected.artworkUrl ? <img className={styles.largeArtwork} src={selected.artworkUrl} alt={`Artwork for ${selected.issueCode}`} /> : <div className={styles.emptyArtwork}>NO ARTWORK YET</div>}
         <p>{selected.width && selected.height ? `${selected.width} × ${selected.height}` : 'DIMENSIONS PENDING'} · {selected.model ?? 'MODEL PENDING'}</p>
 
-        <h3>Private design context</h3>
+        <h3 className={styles.workflowStep}>STEP 1 · CUSTOMER CONTEXT</h3>
+        <p className={styles.privacyFlags}>Reveal the seven answers only when you need them to make this design. The reveal is audited.</p>
         <label>Reveal reason<input value={revealReason} onChange={(event) => setRevealReason(event.target.value)} placeholder="Why do you need the answers?" /></label>
         <div className={styles.actionRow}><button disabled={working || !revealReason.trim()} type="button" onClick={() => void revealAnswers()}>{answers ? 'REFRESH REVEALED ANSWERS' : 'REVEAL ANSWERS'}</button>{answers ? <button type="button" onClick={() => setAnswers(null)}>HIDE ANSWERS</button> : null}</div>
         {answers ? <div>{answers.map((entry) => <article key={entry.slot}><small>{entry.slot.toUpperCase()}</small><p>{entry.prompt}</p><strong>{typeof entry.answer === 'string' ? entry.answer : JSON.stringify(entry.answer)}</strong></article>)}</div> : null}
 
-        <h3>Manual artwork</h3>
+        <h3 className={styles.workflowStep}>STEP 2 · UPLOAD DESIGN</h3>
+        <p className={styles.privacyFlags}>Choose the finished PNG you made for this exact Issue. Uploading saves it as the selected review candidate; it does not manufacture anything.</p>
         <label>Manual artwork PNG<input aria-label="Manual artwork PNG" type="file" accept="image/png,.png" disabled={!manualReady || working} onChange={(event) => setArtworkFile(event.target.files?.[0] ?? null)} /></label>
         <label>Upload reason<input value={uploadReason} onChange={(event) => setUploadReason(event.target.value)} /></label>
         <div className={styles.actionRow}><button disabled={working || !manualReady || !artworkFile || !uploadReason.trim()} type="button" onClick={() => void uploadArtwork()}>UPLOAD PNG</button></div>
         {!manualReady ? <p className={styles.privacyFlags}>Manual upload is blocked until private artwork storage is ready.</p> : null}
+
+        <h3 className={styles.workflowStep}>STEP 3 · {selected.designState === 'APPROVED' ? 'DESIGN APPROVED' : 'APPROVE DESIGN'}</h3>
+        <p className={styles.privacyFlags}>Approve only the artwork you want attached to this Issue. Manufacturing remains a separate explicit action.</p>
 
         {selected.designState === 'FAILED' ? <div className={styles.actionRow}><button disabled={working || !aiReady} type="button" onClick={() => void run(() => post(`/ops/api/designer/${selected.issueId}/retry`, {}), 'Failed design queued for retry.')}>RETRY FAILED DESIGN</button></div> : null}
         {selected.designState === 'REVIEW' ? <>
