@@ -8,7 +8,7 @@ import { PreviewPhysicalSelectionRepository } from '@/server/preview/PreviewPhys
 import { ISSUED_ONCE_BOOT_CATALOG_JSON } from '@/server/physical/bootCatalog';
 import { PostgresIssuedOnceCatalogGateway } from '@/server/physical/PostgresIssuedOnceCatalogGateway';
 import { PostgresPhysicalSelectionRepository } from '@/server/physical/PostgresPhysicalSelectionRepository';
-import { PostgresReferralQuoteRepository } from '@/server/referrals/PostgresReferralQuoteRepository';
+import { PostgresCheckoutQuoteRepository } from '@/server/checkout/PostgresCheckoutQuoteRepository';
 import { PostgresShippingRepository } from '@/server/shipping/PostgresShippingRepository';
 import { ExperienceResumeService } from './ExperienceResumeService';
 
@@ -49,7 +49,7 @@ export function createExperienceResumeService(): ExperienceResumeService {
   return new ExperienceResumeService({
     experiences: new PostgresExperienceRepository(sql),
     physical: new PostgresPhysicalSelectionRepository(sql),
-    quotes: new PostgresReferralQuoteRepository(sql),
+    quotes: new PostgresCheckoutQuoteRepository(sql),
     contacts: new PostgresContactRepository(sql),
     shipping: new PostgresShippingRepository(sql),
     catalog,
