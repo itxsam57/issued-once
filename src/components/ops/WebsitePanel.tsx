@@ -28,6 +28,20 @@ function quickPriceValues(catalog: Catalog): Record<string, string> {
   }));
 }
 
+function variantPriceKey(productKey: string, index: number): string {
+  return `${productKey}:${index}`;
+}
+
+function variantPriceValues(catalog: Catalog): Record<string, string> {
+  const values: Record<string, string> = {};
+  for (const [productKey, product] of Object.entries(catalog.products)) {
+    product.variants.forEach((variant, index) => {
+      values[variantPriceKey(productKey, index)] = (variant.amountMinor / 100).toFixed(2);
+    });
+  }
+  return values;
+}
+
 function parseMajorPrice(value: string): number | null {
   const normalized = value.trim();
   if (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(normalized)) return null;
@@ -40,6 +54,8 @@ export function WebsitePanel() {
   const [state, setState] = useState<State | null>(null);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [quickPrices, setQuickPrices] = useState<Record<string, string>>({});
+  const [variantPrices, setVariantPrices] = useState<Record<string, string>>({});
+  const [catalogDirty, setCatalogDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
@@ -50,6 +66,8 @@ export function WebsitePanel() {
     setState(payload);
     setCatalog(nextCatalog);
     setQuickPrices(quickPriceValues(nextCatalog));
+    setVariantPrices(variantPriceValues(nextCatalog));
+    setCatalogDirty(false);
   }, []);
 
   async function refresh() {
@@ -93,6 +111,7 @@ export function WebsitePanel() {
   }
 
   function mutateVariant(productKey: string, index: number, patch: Partial<Variant>) {
+    setCatalogDirty(true);
     setCatalog((current) => {
       if (!current) return current;
       const next = structuredClone(current);
@@ -101,12 +120,35 @@ export function WebsitePanel() {
     });
   }
 
+  function mutateVariantPrice(productKey: string, index: number, value: string) {
+    setCatalogDirty(true);
+    setVariantPrices((current) => ({ ...current, [variantPriceKey(productKey, index)]: value }));
+  }
+
+  async function publishCatalogChanges() {
+    if (!catalog) return;
+    const next = structuredClone(catalog);
+    for (const [productKey, product] of Object.entries(next.products)) {
+      for (const [index, variant] of product.variants.entries()) {
+        const amountMinor = parseMajorPrice(variantPrices[variantPriceKey(productKey, index)] ?? '');
+        if (amountMinor == null) {
+          setNotice(null);
+          setError(`Enter a valid price for ${productKey.toUpperCase()} ${variant.size} ${variant.colorName} with no more than two decimal places.`);
+          return;
+        }
+        variant.amountMinor = amountMinor;
+      }
+    }
+    const ok = await run(() => post('/ops/api/website/catalog', next));
+    if (ok) setNotice('Catalog changes published for future sales.');
+  }
+
   return <div>
     <div className={styles.panelHead}><div><p>WEBSITE / CONTROL</p><h1>What the next customer can receive.</h1></div><span>{state ? `${state.catalog.source} / V${state.catalog.version}` : 'READING'}</span></div>
     {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
     {notice ? <p role="status">{notice}</p> : null}
     {catalog ? <section className={styles.configSection}>
-      <div className={styles.panelHead}><div><h2>Retail catalog</h2><p>Changes affect future selections only. Existing quotes and Issues stay frozen.</p></div><button disabled={working} type="button" onClick={() => void run(() => post('/ops/api/website/catalog', catalog))}>PUBLISH CATALOG</button></div>
+      <div className={styles.panelHead}><div><h2>Retail catalog</h2><p>Changes affect future selections only. Existing quotes and Issues stay frozen.</p><p>QUICK PRICE sets one price across a product. For mixed size/color prices, edit the variant prices below and publish catalog changes.</p></div><div><strong>{catalogDirty ? 'UNSAVED CATALOG CHANGES' : 'CATALOG SAVED'}</strong><button disabled={working || !catalogDirty} type="button" onClick={() => void publishCatalogChanges()}>PUBLISH CATALOG CHANGES</button></div></div>
       {Object.entries(catalog.products).map(([productKey, product]) => <article className={styles.configCard} key={productKey}>
         <h3>{productKey.toUpperCase()} <small>{product.slug}</small></h3>
         <div className={`${styles.questionRow} ${styles.quickPriceRow}`}>
@@ -118,7 +160,7 @@ export function WebsitePanel() {
           <input aria-label={`${productKey} variant id`} value={variant.id} onChange={(event) => mutateVariant(productKey, index, { id: event.target.value })} />
           <input aria-label={`${productKey} size`} value={variant.size} onChange={(event) => mutateVariant(productKey, index, { size: event.target.value })} />
           <input aria-label={`${productKey} color`} value={variant.colorName} onChange={(event) => mutateVariant(productKey, index, { colorName: event.target.value })} />
-          <input aria-label={`${productKey} price`} type="number" min="1" value={variant.amountMinor} onChange={(event) => mutateVariant(productKey, index, { amountMinor: Number(event.target.value) })} />
+          <label>{catalog.currency} <input aria-label={`${productKey.toUpperCase()} ${variant.size} ${variant.colorName} price`} inputMode="decimal" value={variantPrices[variantPriceKey(productKey, index)] ?? ''} onChange={(event) => mutateVariantPrice(productKey, index, event.target.value)} /></label>
           <label><input type="checkbox" checked={variant.available} onChange={(event) => mutateVariant(productKey, index, { available: event.target.checked })} /> SELL</label>
         </div>)}</div>
       </article>)}
