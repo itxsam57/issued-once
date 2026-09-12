@@ -112,3 +112,14 @@
 - Remaining live Owner proof requires re-authentication; automated transfer of the Owner key is blocked by the platform safety boundary.
 - Hostinger Temporary Release Proof and Live Boundary Audit pass on `5c38ade`; Live Support Proof remains independently blocked by the known GitHub Actions vs Hostinger `INTERNAL_OPERATIONS_TOKEN` mismatch.
 - Live quote matrix passes on `5c38ade`: TEE XS/Bone `$32.00`, CAP OS/Bone `$34.00`, TOTE OS/Bone `$36.00`; no payment attempted. Invalid referral code capture redirects safely to `/begin` without setting a referral cookie.
+
+### 2026-09-12 referral-aware resume checkpoint
+
+- Exact deployed application SHA: `ea4233b7ce4063595b626d0bbde0478b7c6551e7`.
+- Referral-enabled resume now selects `PostgresReferralQuoteRepository`; referral-disabled deployments retain the core quote repository fallback.
+- TDD regression proves gross amount, referral discount, and final amount survive resume hydration.
+- Fresh verification: 261 test files / 829 tests, typecheck, lint, production build, `git diff --check`, and 92/92 Playwright all pass.
+- Live post-deploy resume proof passes on `TEE / M / ASH`: phase `contact`, `$32.00 USD` quote restored. Hostinger Temporary Release Proof and Live Boundary Audit pass on the same SHA.
+- Discount-specific live resume proof still needs a synthetic active creator; Owner OS remains logged out and automated Owner-key transfer is blocked by the platform safety boundary.
+- Live Support Proof remains a separate configuration blocker because the GitHub Actions `INTERNAL_OPERATIONS_TOKEN` does not match Hostinger.
+- Safepay remains sandbox; no real payment/refund, creator outreach, or Printful production confirmation occurred.

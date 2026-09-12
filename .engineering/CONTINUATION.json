@@ -1,32 +1,32 @@
 {
   "schemaVersion": 1,
-  "version": "1.40.0",
+  "version": "1.40.1",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-12T01:32:06Z",
+  "updatedAt": "2026-09-12T02:24:27Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "5c38ade6fefb725ba1a76427ed463922addac23e",
-    "verifiedRuntimeTree": "1902f6be6b31e8e2a15205a2219a5cdb8e20ddc2",
-    "liveReleaseHead": "5c38ade6fefb725ba1a76427ed463922addac23e",
-    "liveReleaseTree": "1902f6be6b31e8e2a15205a2219a5cdb8e20ddc2",
+    "verifiedRuntimeIntegrationHead": "ea4233b7ce4063595b626d0bbde0478b7c6551e7",
+    "verifiedRuntimeTree": "4429beb08346780b7f31a87ba187e2c3d2d67864",
+    "liveReleaseHead": "ea4233b7ce4063595b626d0bbde0478b7c6551e7",
+    "liveReleaseTree": "4429beb08346780b7f31a87ba187e2c3d2d67864",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-    "hostingerLinkedBranchHead": "5c38ade6fefb725ba1a76427ed463922addac23e",
+    "hostingerLinkedBranchHead": "ea4233b7ce4063595b626d0bbde0478b7c6551e7",
     "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
     "combinedCandidateBranchHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop",
-    "latestEngineeringIntegrationHead": "5c38ade6fefb725ba1a76427ed463922addac23e",
-    "latestEngineeringIntegrationTree": "1902f6be6b31e8e2a15205a2219a5cdb8e20ddc2",
-    "latestEngineeringIntegrationVerifiedAt": "2026-09-12T01:32:06Z"
+    "latestEngineeringIntegrationHead": "ea4233b7ce4063595b626d0bbde0478b7c6551e7",
+    "latestEngineeringIntegrationTree": "4429beb08346780b7f31a87ba187e2c3d2d67864",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-12T02:24:27Z"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "Owner-flow, resume, mixed-pricing and referral activation work is deployed and verified on exact Hostinger release 5c38ade. Remaining work requires Owner OS re-authentication and/or owner/provider credentials or irreversible live provider actions.",
+    "currentEngineeringStopReason": "Referral-aware resume metadata fix is deployed and verified on exact Hostinger release ea4233b. Remaining work requires Owner OS re-authentication and/or owner/provider credentials or irreversible live provider actions.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -35,7 +35,7 @@
       "COMPLETE"
     ],
     "decision": "STOP_OWNER_REQUIRED_LIVE_OWNER_AND_PROVIDER_GATES",
-    "reason": "Exact release 5c38ade passed 827/827 unit tests, typecheck, lint, production build, 92/92 Playwright tests, live partial-question and COMMITMENT_READY resume proof, Hostinger Temporary Release Proof and Live Boundary Audit. Referral schema and signing key are active; no outreach or manufacturing confirmation occurred."
+    "reason": "Exact release ea4233b passed 261 files / 829 unit tests, typecheck, lint, production build, 92/92 Playwright tests, live referral-aware non-discount resume proof, Hostinger Temporary Release Proof and Live Boundary Audit. Discount metadata preservation is regression-locked; live creator-discount resume proof remains Owner-auth gated. No outreach or manufacturing confirmation occurred."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
@@ -160,7 +160,7 @@
     "status": "CODE_READY_DEPLOYED_LIVE_BOUNDARY_VERIFIED_OWNER_PROVIDER_EVIDENCE_REQUIRED",
     "engineeringSafeWork": "COMPLETE_FOR_CURRENT_SCOPE",
     "masterPlanRowState": "OWNER_PROVIDER_GATES_ONLY",
-    "note": "Exact Hostinger release 5c38ade is live. Resume after partial questions and COMMITMENT_READY is proven; Designer customer-choice/manual-upload UX and mixed pricing are deployed; referral migrations 0029/0034/0035 and REFERRAL_ATTRIBUTION_SIGNING_KEY are active. Remaining live Owner proof requires Owner OS re-authentication. GitHub Live Support Proof is blocked by a stale GitHub Actions INTERNAL_OPERATIONS_TOKEN relative to Hostinger. Safepay remains sandbox and Printful confirmation remains disabled."
+    "note": "Exact Hostinger release ea4233b is live. Resume after partial questions and COMMITMENT_READY is proven, including referral-aware runtime selection; Designer customer-choice/manual-upload UX and mixed pricing are deployed; referral migrations 0029/0034/0035 and REFERRAL_ATTRIBUTION_SIGNING_KEY are active. Discounted referral resume preserves gross/discount/final metadata in regression tests; the live creator-discount proof still requires Owner OS re-authentication. GitHub Live Support Proof is blocked by a stale GitHub Actions INTERNAL_OPERATIONS_TOKEN relative to Hostinger. Safepay remains sandbox and Printful confirmation remains disabled."
   },
   "standingOwnerGates": {
     "productionDeploymentOrHostingerBranchMutation": true,
@@ -179,8 +179,8 @@
     "hostingerAuthenticationForProviderConfig": false
   },
   "productionRuntime": {
-    "liveRelease": "5c38ade6fefb725ba1a76427ed463922addac23e",
-    "liveTree": "1902f6be6b31e8e2a15205a2219a5cdb8e20ddc2",
+    "liveRelease": "ea4233b7ce4063595b626d0bbde0478b7c6551e7",
+    "liveTree": "4429beb08346780b7f31a87ba187e2c3d2d67864",
     "runtimeProvider": "hostinger",
     "productionDeploymentOfIntegratedTree": true,
     "hostingerSelectedBranch": "release/hostinger-v2-candidate-20260824",
@@ -224,7 +224,7 @@
     "wwwTlsStatus": "verified_wildcard_and_apex_san",
     "wwwCanonicalRedirectStatus": "verified_307_to_apex_on_hostinger_dns_path",
     "lastVerifiedConsumerInfoRelease": "f197447f458ddd8ddf085b2881ce992b865c2cf1",
-    "hostingerLinkedBranchHead": "5c38ade6fefb725ba1a76427ed463922addac23e"
+    "hostingerLinkedBranchHead": "ea4233b7ce4063595b626d0bbde0478b7c6551e7"
   },
   "nextAction": {
     "actor": "OWNER_AUTH_OR_PROVIDER_GATE",
@@ -1175,18 +1175,19 @@
   },
   "ownerFlowReferralsHardening20260911": {
     "status": "DEPLOYED_VERIFIED_OWNER_SESSION_PROOF_PENDING",
-    "release": "5c38ade6fefb725ba1a76427ed463922addac23e",
-    "tree": "1902f6be6b31e8e2a15205a2219a5cdb8e20ddc2",
+    "release": "ea4233b7ce4063595b626d0bbde0478b7c6551e7",
+    "tree": "4429beb08346780b7f31a87ba187e2c3d2d67864",
     "verification": {
-      "unit": "PASS: 261 files / 827 tests",
+      "unit": "PASS: 261 files / 829 tests",
       "typecheck": "PASS",
       "lint": "PASS",
       "build": "PASS",
       "playwright": "PASS: 92/92 desktop+mobile",
-      "liveResume": "PASS: partial-question and COMMITMENT_READY; TEE/M/ASH restored with $32.00 USD quote",
-      "hostingerTemporaryReleaseProof": "PASS",
-      "hostingerBoundaryAudit": "PASS",
-      "liveQuoteMatrix": "PASS: TEE XS/Bone $32.00, CAP OS/Bone $34.00, TOTE OS/Bone $36.00 on isolated live customer sessions; no payment attempted"
+      "liveResume": "PASS: partial-question, COMMITMENT_READY, and post-referral-activation non-discount resume; TEE/M/ASH restored at contact with $32.00 USD quote on exact ea4233b",
+      "hostingerTemporaryReleaseProof": "PASS on exact ea4233b",
+      "hostingerBoundaryAudit": "PASS on exact ea4233b",
+      "liveQuoteMatrix": "PASS: TEE XS/Bone $32.00, CAP OS/Bone $34.00, TOTE OS/Bone $36.00 on isolated live customer sessions; no payment attempted",
+      "referralResumeRegression": "PASS: referral-enabled runtime reads PostgresReferralQuoteRepository; disabled runtime retains core fallback; gross/discount/final amounts survive resume service hydration"
     },
     "referrals": {
       "migrationsApplied": [
@@ -1199,7 +1200,7 @@
       "creatorRowsAtLastRead": 0,
       "outreachRowsAtLastRead": 0,
       "liveCreatorDiscountProof": false,
-      "blocker": "Owner OS session is expired; platform safety blocks automated transfer of INTERNAL_OPERATIONS_TOKEN from Hostinger into the Owner login.",
+      "blocker": "Owner OS session is expired; platform safety blocks automated transfer of INTERNAL_OPERATIONS_TOKEN from Hostinger into the Owner login. A real synthetic creator is therefore not yet available for live discounted-resume proof.",
       "invalidCodeFailSafe": "PASS: /r/QA-NO-SUCH-CREATOR redirects to /begin and sets no referral cookie"
     },
     "supportProof": {
