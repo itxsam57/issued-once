@@ -100,14 +100,14 @@
 - [x] Run focused live customer resume proof from partial questions and from COMMITMENT_READY.
 - [ ] Run Owner OS proof for customer choice visibility, manual PNG workflow, and mixed pricing controls without publishing unintended price changes.
 - [ ] Run referral Owner/API proof without sending outreach or real manufacturing actions.
-- [ ] Push the reviewed branch, fast-forward through normal release gates, wait for exact live SHA, and run Hostinger boundary proof.
-- [ ] Report remaining provider/config blockers separately from code defects.
+- [x] Push the reviewed branch, fast-forward through normal release gates, wait for exact live SHA, and run Hostinger boundary proof.
+- [x] Report remaining provider/config blockers separately from code defects.
 
 ### 2026-09-11 live checkpoint
 
-- Exact deployed application SHA before audit-only follow-up: `47c416a2cf36a37b882c97a47122445f6161d3d2`.
+- Exact deployed application SHA after active-referral live-boundary correction: `5c38ade6fefb725ba1a76427ed463922addac23e`.
 - Live partial-question and COMMITMENT_READY resume proofs passed; restored selection `TEE / M / ASH` with `$32.00 USD` quote.
 - Referral migrations `0029`, `0034`, `0035` are applied; signing key is configured; no creator outreach was sent.
-- Local non-OTP boundary proof passes with active referrals returning `409` for an invalid/no-current quote.
+- Local and GitHub Hostinger non-OTP boundary proofs pass with active referrals returning `409` for an invalid/no-current quote.
 - Remaining live Owner proof requires re-authentication; automated transfer of the Owner key is blocked by the platform safety boundary.
-- Hostinger Live Support Proof remains independently blocked by the known GitHub Actions vs Hostinger `INTERNAL_OPERATIONS_TOKEN` mismatch.
+- Hostinger Temporary Release Proof and Live Boundary Audit pass on `5c38ade`; Live Support Proof remains independently blocked by the known GitHub Actions vs Hostinger `INTERNAL_OPERATIONS_TOKEN` mismatch.

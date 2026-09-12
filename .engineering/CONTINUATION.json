@@ -1,32 +1,32 @@
 {
   "schemaVersion": 1,
-  "version": "1.39.1",
+  "version": "1.40.0",
   "project": "ISSUED ONCE",
-  "updatedAt": "2026-09-09T01:29:21.831795Z",
+  "updatedAt": "2026-09-12T01:32:06Z",
   "sourceOfTruth": {
     "repository": "itxsam57/issued-once",
     "canonicalBranch": "feat/mystery-foundation",
     "activeMigrationBranch": "infra/hostinger-migration-20260823",
     "activeMigrationPullRequest": 13,
-    "verifiedRuntimeIntegrationHead": "5053090b24cea8add307f432e53bd055a3843968",
-    "verifiedRuntimeTree": "949f254ca27b28179b2e276a1396e9d58b04ebf2",
-    "liveReleaseHead": "88961f027a110575374e5172b99681ebada3c24f",
-    "liveReleaseTree": "a8c176bd62372db9648632d099f01a131a261c01",
+    "verifiedRuntimeIntegrationHead": "5c38ade6fefb725ba1a76427ed463922addac23e",
+    "verifiedRuntimeTree": "1902f6be6b31e8e2a15205a2219a5cdb8e20ddc2",
+    "liveReleaseHead": "5c38ade6fefb725ba1a76427ed463922addac23e",
+    "liveReleaseTree": "1902f6be6b31e8e2a15205a2219a5cdb8e20ddc2",
     "hostingerLinkedBranch": "release/hostinger-v2-candidate-20260824",
-    "hostingerLinkedBranchHead": "88961f027a110575374e5172b99681ebada3c24f",
+    "hostingerLinkedBranchHead": "5c38ade6fefb725ba1a76427ed463922addac23e",
     "combinedCandidateBranch": "release/hostinger-v10-candidate-20260825",
     "combinedCandidateBranchHead": "6b64b3b000cff18db2ac27b8c5494b0c72670211",
     "consumerReadinessMasterPlan": "docs/superpowers/plans/2026-08-31-issued-once-consumer-readiness-master-plan.md",
     "cr27EvidenceCheckpoint": "docs/superpowers/plans/2026-09-01-cr27-live-release-checkpoint.md",
     "plannedCanonicalDomain": "issuedonce.shop",
-    "latestEngineeringIntegrationHead": "4195bfd5d445d7625885c9716f9b9ed3e68e93ea",
-    "latestEngineeringIntegrationTree": "a8c176bd62372db9648632d099f01a131a261c01",
-    "latestEngineeringIntegrationVerifiedAt": "2026-09-08T04:21:12Z"
+    "latestEngineeringIntegrationHead": "5c38ade6fefb725ba1a76427ed463922addac23e",
+    "latestEngineeringIntegrationTree": "1902f6be6b31e8e2a15205a2219a5cdb8e20ddc2",
+    "latestEngineeringIntegrationVerifiedAt": "2026-09-12T01:32:06Z"
   },
   "continuationGovernor": {
     "state": "OWNER_REQUIRED",
     "currentEngineeringStopRequired": true,
-    "currentEngineeringStopReason": "Reference UI rebuild is locally integrated and post-merge verified on release/hostinger-v2-candidate-20260824. Remote push/Hostinger production promotion remains owner-authorized work; Safepay and Printful provider state remain untouched.",
+    "currentEngineeringStopReason": "Owner-flow, resume, mixed-pricing and referral activation work is deployed and verified on exact Hostinger release 5c38ade. Remaining work requires Owner OS re-authentication and/or owner/provider credentials or irreversible live provider actions.",
     "allowedStopStates": [
       "OWNER_REQUIRED",
       "BLOCKED",
@@ -34,12 +34,12 @@
       "LOOP_DETECTED",
       "COMPLETE"
     ],
-    "decision": "STOP_OWNER_REQUIRED_REMOTE_RELEASE_PROMOTION",
-    "reason": "Local integration completed at 9849412d8a127e49ad4b0f82762aeb96b4ddc69c. Post-merge verification passed 249 test files / 765 unit tests, typecheck, lint, production build, and the complete Playwright desktop/mobile matrix."
+    "decision": "STOP_OWNER_REQUIRED_LIVE_OWNER_AND_PROVIDER_GATES",
+    "reason": "Exact release 5c38ade passed 827/827 unit tests, typecheck, lint, production build, 92/92 Playwright tests, live partial-question and COMMITMENT_READY resume proof, Hostinger Temporary Release Proof and Live Boundary Audit. Referral schema and signing key are active; no outreach or manufacturing confirmation occurred."
   },
   "engineeringFactory": {
     "mode": "REPO_LOCAL_PROTOCOL",
-    "internalWorkStatus": "REFERENCE_UI_REBUILD_VERIFIED_PENDING_OWNER_RELEASE_APPROVAL",
+    "internalWorkStatus": "OWNER_FLOW_REFERRALS_DEPLOYED_VERIFIED_OWNER_PROVIDER_GATES_ONLY",
     "rules": [
       "Treat feat/mystery-foundation as canonical until final release promotion.",
       "Use the consumer-readiness master plan and CR-27 evidence checkpoint as the release evidence ledger.",
@@ -157,17 +157,17 @@
   "activeTask": {
     "consumerReadinessId": "CR-28",
     "title": "Consumer-readiness finish v4 and full commercial-cycle proof",
-    "status": "CODE_READY_MERGED_POST_MERGE_VERIFIED_OWNER_PROVIDER_INTEGRATION_REQUIRED",
+    "status": "CODE_READY_DEPLOYED_LIVE_BOUNDARY_VERIFIED_OWNER_PROVIDER_EVIDENCE_REQUIRED",
     "engineeringSafeWork": "COMPLETE_FOR_CURRENT_SCOPE",
     "masterPlanRowState": "OWNER_PROVIDER_GATES_ONLY",
-    "note": "PR #106 merged at 34312ef4c354612bbf5b0ea539f44f58bdbfd384 with tree f6956843a2db265dac85d5d07e5f91a7f584b332. Exact feature head and post-merge CI/Browser QA are green. Canonical DNS authority and support mailbox are established. Production remains on Hostinger release 674ca48769619bc4664653caddd5f5b9545d1576 until owner completes canonical Hostinger environment/provider integration; root Resend DKIM remains pending external DNS-cache expiry."
+    "note": "Exact Hostinger release 5c38ade is live. Resume after partial questions and COMMITMENT_READY is proven; Designer customer-choice/manual-upload UX and mixed pricing are deployed; referral migrations 0029/0034/0035 and REFERRAL_ATTRIBUTION_SIGNING_KEY are active. Remaining live Owner proof requires Owner OS re-authentication. GitHub Live Support Proof is blocked by a stale GitHub Actions INTERNAL_OPERATIONS_TOKEN relative to Hostinger. Safepay remains sandbox and Printful confirmation remains disabled."
   },
   "standingOwnerGates": {
     "productionDeploymentOrHostingerBranchMutation": true,
     "productionCoreMigration0036": false,
     "productionCatalogPublication": false,
     "productionProviderRuntimeConfiguration": true,
-    "productionReferralMigrations": true,
+    "productionReferralMigrations": false,
     "realSafepayCharge": true,
     "realSafepayRefund": true,
     "printfulProductionConfirmation": true,
@@ -179,8 +179,8 @@
     "hostingerAuthenticationForProviderConfig": false
   },
   "productionRuntime": {
-    "liveRelease": "88961f027a110575374e5172b99681ebada3c24f",
-    "liveTree": "a8c176bd62372db9648632d099f01a131a261c01",
+    "liveRelease": "5c38ade6fefb725ba1a76427ed463922addac23e",
+    "liveTree": "1902f6be6b31e8e2a15205a2219a5cdb8e20ddc2",
     "runtimeProvider": "hostinger",
     "productionDeploymentOfIntegratedTree": true,
     "hostingerSelectedBranch": "release/hostinger-v2-candidate-20260824",
@@ -190,7 +190,7 @@
     "realSafepayQaCharge": false,
     "realSafepayRefundProof": false,
     "printfulProductionConfirmation": false,
-    "referralMigrationsApplied": false,
+    "referralMigrationsApplied": true,
     "coreMigration0036Verified": true,
     "coreMigration0036NewlyCreatedByRunner": false,
     "activeProductionCatalogCount": 1,
@@ -223,11 +223,12 @@
     "merchantDisclosureTruthAttested": true,
     "wwwTlsStatus": "verified_wildcard_and_apex_san",
     "wwwCanonicalRedirectStatus": "verified_307_to_apex_on_hostinger_dns_path",
-    "lastVerifiedConsumerInfoRelease": "f197447f458ddd8ddf085b2881ce992b865c2cf1"
+    "lastVerifiedConsumerInfoRelease": "f197447f458ddd8ddf085b2881ce992b865c2cf1",
+    "hostingerLinkedBranchHead": "5c38ade6fefb725ba1a76427ed463922addac23e"
   },
   "nextAction": {
-    "actor": "OWNER_PROVIDER_INTEGRATION",
-    "instruction": "In Hostinger hPanel, set APP_ORIGIN=https://issuedonce.shop, SUPPORT_INBOX_EMAIL=support@issuedonce.shop, SUPPORT_REPLY_TO=support@issuedonce.shop and MERCHANT_SUPPORT_EMAIL=support@issuedonce.shop. Keep the existing OTP sender until Resend marks issuedonce.shop DKIM verified, then set RESEND_FROM_EMAIL=ISSUED ONCE <notify@issuedonce.shop>. Provide a truthful MERCHANT_PUBLIC_LOCATION (and any truthful legal entity if used), set MERCHANT_PUBLIC_NAME=ISSUED ONCE, and only then set MERCHANT_PUBLIC_DETAILS_CONFIRMED=true. Do not set COMMERCIAL_METRICS_BASELINE_DATE to 2026-09-07: read-only Neon evidence shows QA funnel buckets on that date; set it to the actual future date paid production is opened. Configure Safepay production credentials/webhook and Printful signed-webhook credentials for https://issuedonce.shop while keeping PRINTFUL_ALLOW_CONFIRM disabled. After those account-side integrations are complete, report only that they are done; engineering can then deploy the already-merged integration tree and run the final live proofs without receiving secrets in chat."
+    "actor": "OWNER_AUTH_OR_PROVIDER_GATE",
+    "instruction": "Re-authenticate Owner OS on the authorized power-station browser without sharing the Owner key in chat. Then engineering can create one synthetic QA referral creator and prove referral link -> attribution -> discounted quote, and visually verify Designer/manual-upload and mixed-pricing controls. Separately, sync the GitHub Actions INTERNAL_OPERATIONS_TOKEN to the current Hostinger value if the authenticated Live Support Proof should run; do not rotate or paste the secret in chat. Keep Safepay sandbox and PRINTFUL_ALLOW_CONFIRM disabled unless separately authorized."
   },
   "consumerReadinessFinishV4": {
     "taskId": "issued-once-consumer-ready-finish-v4",
@@ -1171,5 +1172,45 @@
       "productionDeploymentPerformed": false
     },
     "nextAction": "Fast-forward the production-linked Hostinger release branch, wait for exact release identity, verify manual storage readiness live, round-trip design mode MANUAL\u2192HYBRID\u2192MANUAL to prove repeat policy publication, then rerun production-safe hard test."
+  },
+  "ownerFlowReferralsHardening20260911": {
+    "status": "DEPLOYED_VERIFIED_OWNER_SESSION_PROOF_PENDING",
+    "release": "5c38ade6fefb725ba1a76427ed463922addac23e",
+    "tree": "1902f6be6b31e8e2a15205a2219a5cdb8e20ddc2",
+    "verification": {
+      "unit": "PASS: 261 files / 827 tests",
+      "typecheck": "PASS",
+      "lint": "PASS",
+      "build": "PASS",
+      "playwright": "PASS: 92/92 desktop+mobile",
+      "liveResume": "PASS: partial-question and COMMITMENT_READY; TEE/M/ASH restored with $32.00 USD quote",
+      "hostingerTemporaryReleaseProof": "PASS",
+      "hostingerBoundaryAudit": "PASS"
+    },
+    "referrals": {
+      "migrationsApplied": [
+        "0029_creator_referrals",
+        "0034_referral_launch_outreach",
+        "0035_referral_private_payload_key_v2"
+      ],
+      "signingKeyConfigured": true,
+      "runtimeEnabledEvidence": "/api/referrals/apply returns active-gate 409 for an invalid/no-current quote instead of rollout-disabled 503",
+      "creatorRowsAtLastRead": 0,
+      "outreachRowsAtLastRead": 0,
+      "liveCreatorDiscountProof": false,
+      "blocker": "Owner OS session is expired; platform safety blocks automated transfer of INTERNAL_OPERATIONS_TOKEN from Hostinger into the Owner login."
+    },
+    "supportProof": {
+      "status": "BLOCKED_CONFIG_MISMATCH",
+      "finding": "GitHub Actions INTERNAL_OPERATIONS_TOKEN does not match the current Hostinger runtime token, so /api/internal/support-canary returns 401 in CI.",
+      "productCodeFailure": false
+    },
+    "providerSafety": {
+      "safepayEnvironment": "sandbox",
+      "realSafepayChargePerformed": false,
+      "realSafepayRefundPerformed": false,
+      "printfulProductionConfirmationPerformed": false,
+      "creatorOutreachSent": false
+    }
   }
 }
