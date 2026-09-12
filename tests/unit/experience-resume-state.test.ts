@@ -15,6 +15,8 @@ function service(stage: ExperienceRecord['stage'], options?: {
   shipping?: boolean;
   quoteExpired?: boolean;
   quoteAmountMinor?: number;
+  quoteGrossAmountMinor?: number;
+  quoteDiscountAmountMinor?: number;
 }) {
   const experience = { ...baseExperience, stage };
   const quoteCreate = vi.fn(async () => undefined);
@@ -41,6 +43,8 @@ function service(stage: ExperienceRecord['stage'], options?: {
         findLatestByExperienceId: async () => stage === 'COMMITMENT_READY' ? {
           id: 'quote-old', experienceId: 'exp-1', productSlug: 'io-tee', variantId: 'tee-m-black',
           amountMinor: options?.quoteAmountMinor ?? 5600, currency: 'USD',
+          ...(options?.quoteGrossAmountMinor !== undefined ? { grossAmountMinor: options.quoteGrossAmountMinor } : {}),
+          ...(options?.quoteDiscountAmountMinor !== undefined ? { discountAmountMinor: options.quoteDiscountAmountMinor } : {}),
           expiresAt: new Date(options?.quoteExpired ? '2026-09-09T00:30:00Z' : '2026-09-09T02:30:00Z'),
         } : null,
         create: quoteCreate,
@@ -96,6 +100,24 @@ describe('ExperienceResumeService', () => {
     const result = await harness.instance.read(token);
     expect(result.quote).toMatchObject({ quoteId: 'quote-old', amountMinor: 5040, currency: 'USD' });
     expect(harness.quoteCreate).not.toHaveBeenCalled();
+  });
+
+  it('preserves referral gross, discount, and final amounts when commitment resumes', async () => {
+    const harness = service('COMMITMENT_READY', {
+      verified: true,
+      shipping: true,
+      quoteAmountMinor: 5040,
+      quoteGrossAmountMinor: 5600,
+      quoteDiscountAmountMinor: 560,
+    });
+    const result = await harness.instance.read(token);
+    expect(result.quote).toMatchObject({
+      quoteId: 'quote-old',
+      grossAmountMinor: 5600,
+      discountAmountMinor: 560,
+      amountMinor: 5040,
+      currency: 'USD',
+    });
   });
 
   it('refreshes an expired quote from the current saved variant before commitment resumes', async () => {

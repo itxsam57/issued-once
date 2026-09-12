@@ -8,9 +8,11 @@ const source = readFileSync(
 );
 
 describe('experience resume runtime schema authority', () => {
-  it('uses the core checkout quote repository before referral activation', () => {
+  it('uses referral-aware quotes only after referral activation and keeps the core fallback', () => {
     expect(source).toContain('PostgresCheckoutQuoteRepository');
-    expect(source).toContain('quotes: new PostgresCheckoutQuoteRepository(sql)');
-    expect(source).not.toContain('PostgresReferralQuoteRepository');
+    expect(source).toContain('PostgresReferralQuoteRepository');
+    expect(source).toContain('referralsAreEnabled()');
+    expect(source).toContain('? new PostgresReferralQuoteRepository(sql)');
+    expect(source).toContain(': new PostgresCheckoutQuoteRepository(sql)');
   });
 });
