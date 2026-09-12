@@ -1185,7 +1185,8 @@
       "playwright": "PASS: 92/92 desktop+mobile",
       "liveResume": "PASS: partial-question and COMMITMENT_READY; TEE/M/ASH restored with $32.00 USD quote",
       "hostingerTemporaryReleaseProof": "PASS",
-      "hostingerBoundaryAudit": "PASS"
+      "hostingerBoundaryAudit": "PASS",
+      "liveQuoteMatrix": "PASS: TEE XS/Bone $32.00, CAP OS/Bone $34.00, TOTE OS/Bone $36.00 on isolated live customer sessions; no payment attempted"
     },
     "referrals": {
       "migrationsApplied": [
@@ -1198,7 +1199,8 @@
       "creatorRowsAtLastRead": 0,
       "outreachRowsAtLastRead": 0,
       "liveCreatorDiscountProof": false,
-      "blocker": "Owner OS session is expired; platform safety blocks automated transfer of INTERNAL_OPERATIONS_TOKEN from Hostinger into the Owner login."
+      "blocker": "Owner OS session is expired; platform safety blocks automated transfer of INTERNAL_OPERATIONS_TOKEN from Hostinger into the Owner login.",
+      "invalidCodeFailSafe": "PASS: /r/QA-NO-SUCH-CREATOR redirects to /begin and sets no referral cookie"
     },
     "supportProof": {
       "status": "BLOCKED_CONFIG_MISMATCH",

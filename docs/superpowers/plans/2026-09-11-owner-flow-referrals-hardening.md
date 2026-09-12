@@ -111,3 +111,4 @@
 - Local and GitHub Hostinger non-OTP boundary proofs pass with active referrals returning `409` for an invalid/no-current quote.
 - Remaining live Owner proof requires re-authentication; automated transfer of the Owner key is blocked by the platform safety boundary.
 - Hostinger Temporary Release Proof and Live Boundary Audit pass on `5c38ade`; Live Support Proof remains independently blocked by the known GitHub Actions vs Hostinger `INTERNAL_OPERATIONS_TOKEN` mismatch.
+- Live quote matrix passes on `5c38ade`: TEE XS/Bone `$32.00`, CAP OS/Bone `$34.00`, TOTE OS/Bone `$36.00`; no payment attempted. Invalid referral code capture redirects safely to `/begin` without setting a referral cookie.
