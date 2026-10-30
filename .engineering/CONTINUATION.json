@@ -989,7 +989,7 @@
     "implemented": [
       "Approved #F3EEE6 cream editorial homepage with no homepage ledger and exact 7 / 1 / 1-to-1 sequence.",
       "Production ritual shell with truthful NOT YET pre-payment Issue state and progressive server-success-bound ledger.",
-      "Exact TEE / CAP / TOTE selector geometry and FORM\u2192MATERIAL\u2192TECHNICAL\u2192DISPLAY cycling without card growth.",
+      "Exact TEE / CAP / TOTE selector geometry and FORM→MATERIAL→TECHNICAL→DISPLAY cycling without card growth.",
       "Desktop/tablet/mobile ledger breakpoints, keyboard/touch semantics, reduced-motion handling and no pre-purchase hidden-artwork DOM leakage.",
       "Shared fixed public utility header across merchant and Issue status/pending surfaces; downstream typography/colors aligned to approved tokens.",
       "No src/server, src/domain, src/app/api, payment, Safepay, Printful or catalog business-contract code changed."
@@ -1171,7 +1171,7 @@
       "realManufacturingConfirmation": false,
       "productionDeploymentPerformed": false
     },
-    "nextAction": "Fast-forward the production-linked Hostinger release branch, wait for exact release identity, verify manual storage readiness live, round-trip design mode MANUAL\u2192HYBRID\u2192MANUAL to prove repeat policy publication, then rerun production-safe hard test."
+    "nextAction": "Fast-forward the production-linked Hostinger release branch, wait for exact release identity, verify manual storage readiness live, round-trip design mode MANUAL→HYBRID→MANUAL to prove repeat policy publication, then rerun production-safe hard test."
   },
   "ownerFlowReferralsHardening20260911": {
     "status": "DEPLOYED_VERIFIED_OWNER_SESSION_PROOF_PENDING",
@@ -1245,5 +1245,39 @@
     ],
     "safety": "No real payment, refund, Printful charge, catalog publication, provider secret change, or creator outreach; Safepay remains sandbox.",
     "deployment": "NOT_DEPLOYED_AS_PART_OF_LOCAL_VERIFICATION"
+  },
+  "safepayCheckoutLiveProof20261030": {
+    "date": "2026-10-30",
+    "deployedRelease": "1f357bef2260d06142ea2b12af02931e80d28ee8",
+    "evidencePath": "docs/operations/safepay-sandbox-live-proof-2026-10-30.md",
+    "liveCustomer": {
+      "sevenAnswers": "PASS HTTP 200 x7",
+      "physicalSelection": "PASS TEE/M/Bone",
+      "emailOtp": "PASS real Hostinger Mail receipt and POST verify HTTP 200",
+      "shipping": "PASS HTTP 200 synthetic address",
+      "quote": "PASS $32.00 ACTIVE catalog",
+      "safepayCheckout": "PASS HTTP 200 official sandbox.api.getsafepay.com/embedded",
+      "paidIssue": "NOT CREATED; issue status found=false as required before payment"
+    },
+    "safepayHostedCheckout": {
+      "pageLoaded": true,
+      "paymentButtonDisabledObserved": true,
+      "usableCardFieldsObserved": false,
+      "fullSandboxPaymentCompleted": false,
+      "rootCause": "UNDETERMINED; requires authenticated Safepay sandbox merchant dashboard/browser investigation"
+    },
+    "ownerOs": {
+      "authenticated": false,
+      "reason": "Owner key required; no credential transfer or bypass attempted"
+    },
+    "decision": "CODE_READY_LIVE_CUSTOMER_TO_CHECKOUT_PASS_PAYMENT_AND_OWNER_GATE_PENDING",
+    "remainsOwnerProviderRequired": [
+      "Signed sandbox paid transaction -> webhook -> exactly one Issue -> customer confirmation",
+      "Safepay hosted card method UI/dashboard proof",
+      "Owner OS live manual design, pricing, referral and order proof",
+      "Truthful merchant identity and policy timelines",
+      "GitHub Actions internal operations token mismatch validation"
+    ],
+    "safety": "No real charge, refund, factory confirmation, creator outreach, or secret disclosure"
   }
 }
