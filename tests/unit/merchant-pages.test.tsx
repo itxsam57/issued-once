@@ -147,6 +147,8 @@ test('homepage and commitment stage expose restrained merchant-policy links', ()
     ['STORE INFO', '/store-info'],
     ['CONTACT', '/contact'],
     ['TERMS', '/terms'],
+    ['PRIVACY', '/privacy'],
+    ['DELIVERY', '/shipping'],
     ['RETURNS', '/returns'],
   ]) {
     expect(screen.getByRole('link', { name })).toHaveAttribute('href', href);
@@ -161,6 +163,8 @@ test('homepage and commitment stage expose restrained merchant-policy links', ()
   expect(screen.getByRole('link', { name: 'STORE INFO' })).toHaveAttribute('href', '/store-info');
   expect(screen.getByRole('link', { name: 'TERMS' })).toHaveAttribute('href', '/terms');
   expect(screen.getByRole('link', { name: 'RETURNS' })).toHaveAttribute('href', '/returns');
+  expect(screen.getByRole('link', { name: 'PRIVACY' })).toHaveAttribute('href', '/privacy');
+  expect(screen.getByRole('link', { name: 'DELIVERY' })).toHaveAttribute('href', '/shipping');
   expect(screen.getByRole('link', { name: 'CONTACT' })).toHaveAttribute('href', '/contact');
 });
 

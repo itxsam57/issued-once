@@ -32,6 +32,8 @@ export function MerchantPageShell({
           <Link href="/store-info">STORE INFO</Link>
           <Link href="/contact">CONTACT</Link>
           <Link href="/terms">TERMS</Link>
+          <Link href="/privacy">PRIVACY</Link>
+          <Link href="/shipping">DELIVERY</Link>
           <Link href="/returns">RETURNS</Link>
           <Link href="/cookies">COOKIES</Link>
         </nav>

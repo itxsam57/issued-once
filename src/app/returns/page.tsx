@@ -28,6 +28,13 @@ export default function ReturnsPage() {
       </section>
 
       <section className={styles.section}>
+        <p className={styles.sectionLabel}>CANCELLATION / RETURN REQUESTS</p>
+        <h2>Tell us as early as possible.</h2>
+        <p>If you need to cancel, contact us before personalized production starts. We will review the Issue state and your applicable rights; requesting cancellation is not an automatic stop or guaranteed refund once customized work has begun.</p>
+        <p>For damage, the wrong item or a delivery problem, contact us promptly with your Issue Code, description and photos where relevant. Support will explain whether a return is necessary and how to send it; do not send anything to the published business address without return instructions.</p>
+        <p>Refund and replacement eligibility, shipping costs and processing time depend on the verified issue and applicable law. We will communicate the resolution and status; we do not promise a fixed refund or reply deadline that has not been established.</p>
+      </section>
+      <section className={styles.section}>
         <p className={styles.sectionLabel}>REFUND TRUTH</p>
         <h2>A refund is complete only when it is confirmed.</h2>
         <p>

@@ -1,11 +1,13 @@
+import Link from 'next/link';
 import { MerchantPageShell } from '@/app/MerchantPageShell';
 import styles from '@/app/merchant.module.css';
-import { readPublicMerchant } from '@/brand/publicMerchant';
+import { formatPublicMoney, getPublicCatalogSummary, readPublicMerchant } from '@/brand/publicMerchant';
 
 export const dynamic = 'force-dynamic';
 
-export default function StoreInfoPage() {
+export default async function StoreInfoPage() {
   const merchant = readPublicMerchant();
+  const catalog = await getPublicCatalogSummary().catch(() => null);
 
   return (
     <MerchantPageShell
@@ -40,6 +42,22 @@ export default function StoreInfoPage() {
         </div>
       </section>
 
+      <section className={styles.section}>
+        <p className={styles.sectionLabel}>PRODUCTS / PRICING</p>
+        <h2>Real forms. The price is not a mystery.</h2>
+        <p>Personalized unisex tee, cap and tote options are shown subject to available sizes and colors. The artwork itself remains hidden until delivery.</p>
+        {catalog && catalog.products.length > 0 ? (
+          <div className={styles.priceList} aria-label="Current starting prices">
+            {catalog.products.map((product) => (
+              <div className={styles.priceRow} key={product.objectType}>
+                <span>{product.objectType === 'tee' ? 'TEE' : product.objectType === 'hat' ? 'CAP' : 'TOTE'} / FROM</span>
+                <strong>{formatPublicMoney(product.startingAmountMinor, catalog.currency)}</strong>
+              </div>
+            ))}
+          </div>
+        ) : <p className={styles.notice}>Current catalog prices are temporarily unavailable here. Check the exact price during the order journey before paying.</p>}
+        <p>Final price, selected size and color are confirmed in your order before checkout. A referral discount, if applicable, changes your displayed final quote. See <Link className={styles.inlineLink} href="/shipping">delivery information</Link> for shipping and possible destination charges.</p>
+      </section>
       <section className={styles.section}>
         <p className={styles.sectionLabel}>AFTER YOU BUY</p>
         <h2>Your Issue Code follows it.</h2>

@@ -31,6 +31,12 @@ export default function TermsPage() {
       </section>
 
       <section className={styles.section}>
+        <p className={styles.sectionLabel}>DELIVERY / DATA / CANCELLATIONS</p>
+        <h2>Know the practical terms before committing.</h2>
+        <p>Review <Link className={styles.inlineLink} href="/shipping">delivery arrangements</Link> for timing, supported destinations, possible charges and customs, and <Link className={styles.inlineLink} href="/returns">cancellation and refund conditions</Link> for personalized goods.</p>
+        <p>We use your verified contact, delivery details and private answers for the order as described in our <Link className={styles.inlineLink} href="/privacy">privacy notice</Link>. Do not submit material you do not have the right to use.</p>
+      </section>
+      <section className={styles.section}>
         <p className={styles.sectionLabel}>LIMITS / RIGHTS</p>
         <h2>We can refuse material we cannot responsibly make.</h2>
         <p>Abusive, unlawful, prohibited, unsafe, or technically unfulfillable submissions may be refused, cancelled, or refunded as appropriate.</p>
