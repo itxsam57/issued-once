@@ -30,6 +30,8 @@ describe('CommitmentScreen', () => {
     expect(screen.getByText('Everything else stays unknown until it arrives.')).toBeInTheDocument();
     expect(screen.queryByText(/final sale|countdown|left in stock|people are viewing|design preview|artwork preview|sample artwork|palette preview|style preview|guaranteed refund|instant refund/i)).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'RETURNS' })).toHaveAttribute('href', '/returns');
+    expect(screen.getByRole('link', { name: 'PRIVACY' })).toHaveAttribute('href', '/privacy');
+    expect(screen.getByRole('link', { name: 'DELIVERY' })).toHaveAttribute('href', '/shipping');
 
     await user.click(screen.getByRole('button', { name: 'ISSUE MINE' }));
     expect(onCommit).toHaveBeenCalledWith('qa-quote-001');

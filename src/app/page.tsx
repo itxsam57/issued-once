@@ -17,6 +17,7 @@ export default function Home() {
             <em>Issued for you.</em>
           </h1>
           <Link className={styles.start} href="/begin">START <span aria-hidden="true">↘</span></Link>
+          <p className={styles.merchantLine}>Personalized tee / cap / tote. You choose the form. The design stays unseen.</p>
         </div>
         <ReferenceHeroPresence />
       </section>
@@ -56,6 +57,8 @@ export default function Home() {
           <Link href="/store-info">STORE INFO</Link>
           <Link href="/contact">CONTACT</Link>
           <Link href="/terms">TERMS</Link>
+          <Link href="/privacy">PRIVACY</Link>
+          <Link href="/shipping">DELIVERY</Link>
           <Link href="/returns">RETURNS</Link>
           <Link href="/cookies">COOKIES</Link>
         </nav>

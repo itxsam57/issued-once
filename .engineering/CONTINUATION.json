@@ -1214,5 +1214,36 @@
       "printfulProductionConfirmationPerformed": false,
       "creatorOutreachSent": false
     }
+  },
+  "safepayMerchantReview20261030": {
+    "status": "CODE_READY_LOCAL_VERIFIED_LIVE_SAFEPAY_OWNER_GATES_PENDING",
+    "sourceLiveRelease": "ea4233b7ce4063595b626d0bbde0478b7c6551e7",
+    "workingBranch": "fix/safepay-merchant-review-disclosures-20261030",
+    "plan": "docs/operations/safepay-review-readiness-2026-10-30.md",
+    "scope": [
+      "Privacy policy /privacy",
+      "Delivery policy /shipping",
+      "Clarified terms and cancellation/refund language",
+      "Runtime canonical ACTIVE catalog starting price on Store Info",
+      "Minimal product disclosure home",
+      "Privacy and Delivery links in home, merchant footer, commitment"
+    ],
+    "verification": {
+      "focused": "17/17 PASS",
+      "full": "833/833 PASS across 262 test files",
+      "typecheck": "PASS",
+      "lint": "PASS",
+      "productionBuild": "PASS; routes /privacy and /shipping compiled",
+      "merchantBrowserQA": "2/2 PASS desktop and mobile; no horizontal overflow"
+    },
+    "ownerGates": [
+      "Legal and merchant-address truthful attestation",
+      "Real delivery periods, fees, country eligibility and applicable refund timing",
+      "Controlled signed Safepay sandbox payment -> Issue -> Owner confirmation",
+      "Owner OS manual design / pricing / referral live proof",
+      "Refresh GitHub Actions Hostinger operations-token mismatch"
+    ],
+    "safety": "No real payment, refund, Printful charge, catalog publication, provider secret change, or creator outreach; Safepay remains sandbox.",
+    "deployment": "NOT_DEPLOYED_AS_PART_OF_LOCAL_VERIFICATION"
   }
 }

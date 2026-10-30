@@ -11,12 +11,14 @@ const merchantRoutes = [
   { path: '/contact', heading: 'If something needs sorting, bring the Issue Code.' },
   { path: '/terms', heading: 'The physical facts are known. The interpretation is not.' },
   { path: '/returns', heading: 'Personalized does not mean remedy-free.' },
+  { path: '/privacy', heading: 'Privacy belongs to your Issue.' },
+  { path: '/shipping', heading: 'Delivery follows your Issue.' }
 ] as const;
 
 test('public merchant routes are readable, linked, and do not overflow the viewport', async ({ page }, testInfo) => {
   await page.goto('/');
   const footer = page.getByRole('navigation', { name: 'Footer' });
-  for (const label of ['STORE INFO', 'CONTACT', 'TERMS', 'RETURNS']) {
+  for (const label of ['STORE INFO', 'CONTACT', 'TERMS', 'PRIVACY', 'DELIVERY', 'RETURNS']) {
     await expect(footer.getByRole('link', { name: label })).toBeVisible();
   }
 
